@@ -1,7 +1,7 @@
 # openSeaChest
 Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
-===============================================================================
+
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
 Welcome to the openSeaChest open source project!
