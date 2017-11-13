@@ -1,0 +1,102 @@
+<!DOCTYPE Project SYSTEM "http://www.slickedit.com/dtd/vse/10.0/vpj.dtd">
+<Project
+    Version="10.0"
+    VendorName="SlickEdit"
+    TemplateName="(Other)"
+    WorkingDir=".">
+    <Config
+        Name="Release"
+        OutputFile=""
+        CompilerConfigName="">
+        <Menu>
+            <Target
+                Name="Compile"
+                MenuCaption="&amp;Compile"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveCurrent"
+                RunFromDir="%rw">
+                <Exec/>
+            </Target>
+            <Target
+                Name="Build"
+                MenuCaption="&amp;Build"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec/>
+            </Target>
+            <Target
+                Name="Rebuild"
+                MenuCaption="&amp;Rebuild"
+                CaptureOutputWith="ProcessBuffer"
+                SaveOption="SaveWorkspaceFiles"
+                RunFromDir="%rw">
+                <Exec/>
+            </Target>
+            <Target
+                Name="Debug"
+                MenuCaption="&amp;Debug"
+                SaveOption="SaveNone"
+                RunFromDir="%rw">
+                <Exec/>
+            </Target>
+            <Target
+                Name="Execute"
+                MenuCaption="E&amp;xecute"
+                SaveOption="SaveNone"
+                RunFromDir="%rw">
+                <Exec CmdLine='".exe"'/>
+            </Target>
+        </Menu>
+    </Config>
+    <CustomFolders>
+        <Folder
+            Name="Source Files"
+            Filters="*.c;*.C;*.cc;*.cpp;*.cp;*.cxx;*.c++;*.prg;*.pas;*.dpr;*.asm;*.s;*.bas;*.java;*.cs;*.sc;*.e;*.cob;*.html;*.rc;*.tcl;*.py;*.pl;*.d;*.m;*.mm;*.go"></Folder>
+        <Folder
+            Name="Header Files"
+            Filters="*.h;*.H;*.hh;*.hpp;*.hxx;*.h++;*.inc;*.sh;*.cpy;*.if"></Folder>
+        <Folder
+            Name="Resource Files"
+            Filters="*.ico;*.cur;*.dlg"/>
+        <Folder
+            Name="Bitmaps"
+            Filters="*.bmp"/>
+        <Folder
+            Name="Other Files"
+            Filters=""/>
+    </CustomFolders>
+    <Files AutoFolders="DirectoryView">
+        <Folder Name="../gcc">
+            <F
+                N="../gcc/Makefile"
+                Type="Makefile"/>
+            <F N="../gcc/Makefile.openSeaChest_firmware"/>
+        </Folder>
+        <Folder Name="../../include">
+            <F N="../../include/EULA.h"/>
+            <F N="../../include/openseachest_util_options.h"/>
+        </Folder>
+        <Folder Name="../../src">
+            <F N="../../src/EULA.c"/>
+            <F N="../../src/openseachest_util_options.c"/>
+        </Folder>
+        <Folder Name="../../utils">
+            <Folder Name="C">
+                <Folder Name="openSeaChest">
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Basics.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Configure.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Erase.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Firmware.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Format.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_GenericTests.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Info.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_PowerControl.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Sample.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_SMART.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_ZBD.c"/>
+                </Folder>
+            </Folder>
+        </Folder>
+    </Files>
+</Project>
