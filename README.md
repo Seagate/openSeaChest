@@ -54,19 +54,19 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_PowerControl*
 * *openSeaChest_SMART*
 
-### SOURCE
+### Source
 
 
-### BUILDING
+### Building
 
 
-### DOCUMENTATION
+### Documentation
 
 
-### PLATFORMS
+### Platforms
 
 
-### IMPORTANT NOTES:
+### Important Notes:
 
 If this is your drive, you should always keep a current backup of your
 important data.
