@@ -1,12 +1,3 @@
-## Mozilla Public License Version 2.0
-
-BINARIES and SOURCE CODE files of the openSeaChest open source project have
-been made available to you under the Mozilla Public License 2.0 (MPL).  Mozilla
-is the custodian of the Mozilla Public License ("MPL"), an open source/free
-software license.
-
-https://www.mozilla.org/en-US/MPL/
-
 Mozilla Public License Version 2.0
 ==================================
 
