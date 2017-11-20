@@ -1,0 +1,9 @@
+[submodule "opensea-common"]
+	path = opensea-common
+	url = ../opensea-common.git
+[submodule "opensea-transport"]
+	path = opensea-transport
+	url = ../opensea-transport.git
+[submodule "opensea-operations"]
+	path = opensea-operations
+	url = ../opensea-operations.git

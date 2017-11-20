@@ -1,0 +1,205 @@
+#
+# Do NOT modify or remove this copyright and license
+#
+# Copyright (c) 2012 - 2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#
+# This software is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# ******************************************************************************************
+
+# Hand Written Makefile (Edit with caution) -Muhammad
+# 
+
+UTIL_SRC_DIR=../../utils/C/openSeaChest/
+CC = gcc
+LIB_FILE_OUTPUT_DIR=lib
+STRIP = strip
+CFLAGS = -Wall -c -std=gnu99
+CFLAGS_I686 = -Wall -c -m32
+LFLAGS = \
+	-Wall \
+	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
+	-lm -lrt
+TCGLFLAGS = \
+	-Wall \
+	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
+	../../SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
+	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
+	-lm -lrt
+INC_DIR= \
+	-I../../opensea-common/include \
+	-I../../opensea-transport/include \
+	-I../../include \
+	-I../../opensea-operations/include
+
+MACHINE := $(shell uname -m)
+
+FILE_OUTPUT_DIR=openseachest_exes
+
+ifeq ($(MACHINE), x86_64)
+
+endif
+
+#Files for the final binary
+SOURCES = $(UTIL_SRC_DIR)/openSeaChest_Legacy.c ../../src/EULA.c
+OUTFILE = openSeaChest
+OBJS = $(SOURCES:.c=.o)
+
+#add any defines needed for tool release.
+PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
+
+ERASEOUTFILE = openSeaChest_Erase
+ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c ../../src/EULA.c ../../src/openseachest_util_options.c
+ERASEOBJS = $(ERASESOURCES:.c=.o)
+
+SMARTOUTFILE = openSeaChest_SMART
+SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c ../../src/EULA.c ../../src/openseachest_util_options.c
+SMARTOBJS = $(SMARTSOURCES:.c=.o)
+
+POWERCONTROLOUTFILE = openSeaChest_PowerControl
+POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c ../../src/EULA.c ../../src/openseachest_util_options.c
+POWERCONTROLOBJS = $(POWERCONTROLSOURCES:.c=.o)
+
+GENERICTESTSOUTFILE = openSeaChest_GenericTests
+GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c ../../src/EULA.c ../../src/openseachest_util_options.c
+GENERICTESTSOBJS = $(GENERICTESTSSOURCES:.c=.o)
+
+BASICSOUTFILE = openSeaChest_Basics
+BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c ../../src/EULA.c ../../src/openseachest_util_options.c
+BASICSOBJS = $(BASICSSOURCES:.c=.o)
+
+CONFIGUREOUTFILE = openSeaChest_Configure
+CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c ../../src/EULA.c ../../src/openseachest_util_options.c
+CONFIGUREOBJS = $(CONFIGURESOURCES:.c=.o)
+
+INFOOUTFILE = openSeaChest_Info
+INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c ../../src/EULA.c ../../src/openseachest_util_options.c
+INFOOBJS = $(INFOSOURCES:.c=.o)
+
+ZBDOUTFILE = openSeaChest_ZBD
+ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c ../../src/EULA.c ../../src/openseachest_util_options.c
+ZBDOBJS = $(ZBDSOURCES:.c=.o)
+
+FORMATOUTFILE = openSeaChest_FormatUnit
+FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c ../../src/EULA.c ../../src/openseachest_util_options.c
+FORMATOBJS = $(FORMATSOURCES:.c=.o)
+
+FIRMWAREOUTFILE = openSeaChest_Firmware
+
+.PHONY: clean_all all 
+
+all: clean_all debug 
+
+debug: CXXFLAGS += -g
+debug: CFLAGS += -g
+debug: PROJECT_DEFINES += -D_DEBUG
+debug: ERASEOUTFILE := $(ERASEOUTFILE)_dbg
+debug: SMARTOUTFILE := $(SMARTOUTFILE)_dbg
+debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_dbg
+debug: GENERICTESTOUTFILE := $(GENERICTESTSOUTFILE)_dbg
+debug: BASICSOUTFILE := $(BASICSOUTFILE)_dbg
+debug: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_dbg
+debug: INFOOUTFILE := $(INFOOUTFILE)_dbg
+debug: ZBDOUTFILE := $(ZBDOUTFILE)_dbg
+debug: FORMATOUTFILE := $(FORMATOUTFILE)_dbg
+debug: mkoutputdir $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE)
+
+release: CXXFLAGS += -O3
+release: CFLAGS += -O3
+release: mkoutputdir $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE)
+
+export CFLAGS
+export CXXFLAGS
+export PROJECT_DEFINES
+
+
+opensea-libs:
+	$(MAKE) -C ../../opensea-common/Make/gcc
+	$(MAKE) -C ../../opensea-transport/Make/gcc
+	$(MAKE) -C ../../opensea-operations/Make/gcc
+
+$(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir 
+	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(SMARTOUTFILE)
+	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)_static --static
+
+$(GENERICTESTSOUTFILE) : $(GENERICTESTSOBJS) opensea-libs mkoutputdir 
+	$(CC) $(GENERICTESTSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(GENERICTESTSOUTFILE)
+	$(CC) $(GENERICTESTSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)_static --static
+
+$(POWERCONTROLOUTFILE) : $(POWERCONTROLOBJS) opensea-libs mkoutputdir 
+	$(CC) $(POWERCONTROLOBJS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE) $(LFLAGS)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(POWERCONTROLOUTFILE)
+	$(CC) $(POWERCONTROLOBJS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)_static $(LFLAGS) --static
+
+$(OUTFILE): $(OBJS) opensea-libs mkoutputdir 
+	$(CC) $(OBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(OUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(OUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(OUTFILE)
+	$(CC) $(OBJS) -static -o $(FILE_OUTPUT_DIR)/$(OUTFILE)_static $(LFLAGS)
+
+$(BASICSOUTFILE): $(BASICSOBJS) opensea-libs mkoutputdir 
+	$(CC) $(BASICSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(BASICSOUTFILE)
+	$(CC) $(BASICSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)_static --static
+	
+$(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir 
+	$(CC) $(CONFIGUREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(CONFIGUREOUTFILE)
+	$(CC) $(CONFIGUREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)_static --static
+	
+$(FIRMWAREOUTFILE):
+	$(MAKE) -f Makefile.openSeaChest_firmware $(MAKECMDGOALS)
+	
+$(INFOOUTFILE): $(INFOOBJS) opensea-libs mkoutputdir 
+	$(CC) $(INFOOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(INFOOUTFILE)
+	$(CC) $(INFOOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)_static --static
+	
+$(ZBDOUTFILE): $(ZBDOBJS) opensea-libs mkoutputdir 
+	$(CC) $(ZBDOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ZBDOUTFILE)
+	$(CC) $(ZBDOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)_static --static
+	
+$(FORMATOUTFILE): $(FORMATOBJS) opensea-libs mkoutputdir 
+	$(CC) $(FORMATOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(FORMATOUTFILE)
+	$(CC) $(FORMATOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)_static --static
+
+$(ERASEOUTFILE): $(ERASEOBJS) opensea-libs mkoutputdir 
+    ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
+		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+	    $(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ERASEOUTFILE)
+		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)_static --static
+    else
+		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+	    $(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ERASEOUTFILE)
+		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)_static --static
+    endif
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@
+
+clean:
+	rm -f *.o *.a $(FILE_OUTPUT_DIR)/$(OUTFILE) $(FILE_OUTPUT_DIR)/$(OUTFILE)_static $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)* $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)* $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)* $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)* $(FILE_OUTPUT_DIR)/stripped* $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)* $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)* $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)* $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)*
+	rm -f ../../src/*.o
+	rm -f $(UTIL_SRC_DIR)/*.o
+	rm -rf $(FILE_OUTPUT_DIR)
+	$(MAKE) -f Makefile.openSeaChest_firmware clean
+
+clean_all: clean
+	rm -f *.o *.a
+	$(MAKE) -C ../../opensea-common/Make/gcc clean
+	$(MAKE) -C ../../opensea-transport/Make/gcc clean
+	$(MAKE) -C ../../opensea-operations/Make/gcc clean
+	$(MAKE) -f Makefile.openSeaChest_firmware clean_all
+
+mkoutputdir:
+	mkdir -p $(FILE_OUTPUT_DIR)
+
