@@ -7,3 +7,6 @@
 [submodule "opensea-operations"]
 	path = opensea-operations
 	url = ../opensea-operations.git
+[submodule "wingetopt"]
+	path = wingetopt
+	url = https://github.com/Seagate/wingetopt.git
