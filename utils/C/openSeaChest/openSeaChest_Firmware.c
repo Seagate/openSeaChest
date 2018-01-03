@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.5.0";
+const char *buildVersion = "2.5.2";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -207,6 +207,11 @@ int32_t main(int argc, char *argv[])
                 {
                     DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -238,7 +243,6 @@ int32_t main(int argc, char *argv[])
                 CHILD_NEW_FW_MATCH_FLAG = true;
                 strncpy(CHILD_NEW_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
             }
-
             else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
             {
                 FWDL_SEGMENT_SIZE_FROM_USER = true;
@@ -316,8 +320,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -447,7 +450,6 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
-
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
@@ -623,9 +625,7 @@ int32_t main(int argc, char *argv[])
             }
         }
     }
-
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-
     for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
@@ -883,6 +883,11 @@ int32_t main(int argc, char *argv[])
                                     DOWNLOAD_FW_MODE = DL_FW_FULL;
                                 }
                             }
+							//For now, setting deferred download as default for NVMe drives. 
+							if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
+							{
+								DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+							}
                             //*/
                         }
                     }

@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.8.1";
+const char *buildVersion = "1.8.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -203,6 +203,11 @@ int32_t main(int argc, char *argv[])
                 {
                     EPC_ENABLED_IDENTIFIER = DISABLE_EPC;
                 }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(EPC_ENABLED_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             //parse long options that have no short option and required arguments here
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_LONG_OPT_STRING))) == 0)
@@ -242,6 +247,11 @@ int32_t main(int argc, char *argv[])
                     {
                         POWER_MODE_IDENTIFIER = PWR_CND_ALL;
                     }
+					else
+					{
+						print_Error_In_Cmd_Line_Args(POWER_MODE_LONG_OPT_STRING, optarg);
+						exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+					}
                 }
             }
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_TIMER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_TIMER_LONG_OPT_STRING))) == 0)
@@ -298,14 +308,11 @@ int32_t main(int argc, char *argv[])
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DIPM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DIPM_LONG_OPT_STRING))) == 0)
             {
@@ -323,14 +330,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DIPM_FLAG = true;
                     SATA_DIPM_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SATA_DIPM_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SATA_DIPM_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DAPS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DAPS_LONG_OPT_STRING))) == 0)
             {
@@ -348,14 +352,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DAPS_FLAG = true;
                     SATA_DAPS_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SATA_DAPS_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -445,8 +446,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -1582,7 +1582,7 @@ void utility_Usage(bool shortUsage)
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
     //utility options - alphabetized
-    printf("Utility Options\n");
+    printf("\nUtility Options\n");
     printf("===============\n");
 #if defined (ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);

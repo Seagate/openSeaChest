@@ -36,7 +36,7 @@
 //  Global Variables  //
 //////////////////////// 
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.9.0";
+const char *buildVersion = "1.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -213,6 +213,11 @@ int32_t main(int argc, char *argv[])
                 {
                     SINGLE_SECTOR_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
             {
@@ -246,7 +251,8 @@ int32_t main(int argc, char *argv[])
                         IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
                         break;
                     default:
-                        RUN_IDD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -267,7 +273,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Invalid argument to --%s: %s\n", SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -284,7 +290,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MRIE_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MRIE_MODE_LONG_OPT_STRING))) == 0)
@@ -312,7 +319,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_ATTR_AUTOSAVE_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING))) == 0)
@@ -328,7 +336,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_AUTO_OFFLINE_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -442,8 +451,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -1799,6 +1807,6 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("===========================\n");
+    printf("=========================\n");
     print_DST_And_Clean_Help(shortUsage);
 }

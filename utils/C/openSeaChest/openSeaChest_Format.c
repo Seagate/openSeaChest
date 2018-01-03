@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_FormatUnit";
-const char *buildVersion = "1.0.0";
+const char *buildVersion = "1.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -97,6 +97,7 @@ int32_t main(int argc, char *argv[])
     SHOW_FORMAT_STATUS_LOG_VAR
     SHOW_SUPPORTED_PROTECTION_TYPES_VAR
     SHOW_SUPPORTED_SECTOR_SIZES_VAR
+    SET_SECTOR_SIZE_VARS
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -147,6 +148,7 @@ int32_t main(int argc, char *argv[])
         FORMAT_UNIT_ADDITIONAL_OPTIONS,
         SHOW_FORMAT_STATUS_LOG_LONG_OPT,
         SHOW_SUPPORTED_PROTECTION_TYPES_LONG_OPT,
+        SET_SECTOR_SIZE_LONG_OPT,
         SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
@@ -187,6 +189,11 @@ int32_t main(int argc, char *argv[])
                 {
                     PARTIAL_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -217,6 +224,11 @@ int32_t main(int argc, char *argv[])
                     FORMAT_SECTOR_SIZE = (uint32_t)atoi(optarg);
                 }
             }
+            else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
+            {
+                SET_SECTOR_SIZE_FLAG = true;
+                SET_SECTOR_SIZE_SIZE = (uint32_t)atoi(optarg);
+            }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
                 DISPLAY_LBA_FLAG = true;
@@ -232,7 +244,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        DISPLAY_LBA_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -243,10 +256,12 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_PROTECTION_TYPE = (uint8_t)atoi(optarg);
+                FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = (uint8_t)atoi(optarg);
+                FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
             }
             else if (strcmp(longopts[optionIndex].name, PATTERN_LONG_OPT_STRING) == 0)
             {
@@ -301,7 +316,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        PATTERN_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -376,8 +392,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -559,6 +574,7 @@ int32_t main(int argc, char *argv[])
         || (PROGRESS_CHAR != NULL)
         || SHOW_FORMAT_STATUS_LOG_FLAG
         || SHOW_SUPPORTED_PROTECTION_TYPES_FLAG
+        || SET_SECTOR_SIZE_FLAG
         || SHOW_SUPPORTED_SECTOR_SIZES_FLAG
         ))
     {
@@ -965,17 +981,38 @@ int32_t main(int argc, char *argv[])
                 formatUnitParameters.gList = NULL;
                 formatUnitParameters.glistSize = 0;
                 formatUnitParameters.completeList = FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG;
+                formatUnitParameters.defaultFormat = true;//Setting this to ture as the default UNLESS one of the format option flags is given!!! - TJE
                 formatUnitParameters.disablePrimaryList = FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG;
                 formatUnitParameters.disableCertification = FORMAT_UNIT_DISABLE_CERTIFICATION;
-                formatUnitParameters.defaultFormat = FORMAT_UNIT_DEFAULT_FORMAT;//change to true when a user wants a default format
                 formatUnitParameters.stopOnListError = FORMAT_UNIT_STOP_ON_LIST_ERROR;
-                formatUnitParameters.disableImmediate = FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE;
-                formatUnitParameters.protectionType = FORMAT_UNIT_PROTECTION_TYPE;
-                formatUnitParameters.protectionIntervalExponent = FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT;
                 if (PATTERN_FLAG)
                 {
                     formatUnitParameters.pattern = PATTERN_BUFFER;
                     formatUnitParameters.patternLength = deviceList[deviceIter].drive_info.deviceBlockSize;
+                }
+                if (formatUnitParameters.disablePrimaryList || formatUnitParameters.disableCertification || formatUnitParameters.stopOnListError || PATTERN_FLAG)
+                {
+                    //format options are being specified, so we need to turn this off!!! Code refactor would probably be better in the operations lib, but this is OK for now.
+                    formatUnitParameters.defaultFormat = false;
+                }
+                //formatUnitParameters.defaultFormat = FORMAT_UNIT_DEFAULT_FORMAT;//change to true when a user wants a default format...This is basically obsolete now due to the above code, but left in place in case someone wants to try some weird bit combinations
+                formatUnitParameters.disableImmediate = FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE;
+                //Set the same protection information as we discovered first.
+                formatUnitParameters.protectionType = deviceList[deviceIter].drive_info.currentProtectionType;
+                formatUnitParameters.protectionIntervalExponent = deviceList[deviceIter].drive_info.piExponent;
+                //override protection info if we were asked to.
+                if (FORMAT_UNIT_PROECTION_TYPE_FROM_USER)
+                {
+                    formatUnitParameters.protectionType = FORMAT_UNIT_PROTECTION_TYPE;
+                    if (formatUnitParameters.protectionType < 2)
+                    {
+                        //clearing the exponent value since it is only valid for PI 3.
+                        formatUnitParameters.protectionIntervalExponent = 0;
+                    }
+                }
+                if (FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER)
+                {
+                    formatUnitParameters.protectionIntervalExponent = FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT;
                 }
                 formatUnitParameters.securityInitialize = false;
                 int formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
@@ -1020,6 +1057,99 @@ int32_t main(int argc, char *argv[])
                     printf("to the command line arguments to run a format unit.\n\n");
                     printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
+            }
+        }
+
+        if (SET_SECTOR_SIZE_FLAG)
+        {
+            if (DATA_ERASE_FLAG)
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Set Sector Size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
+                }
+                switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Successfully set sector size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Setting sector size not supported on this device\n");
+                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                        {
+                            printf("For SCSI Drives, try a format unit operation\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to set sector size!\n");
+                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                        {
+                            printf("For SCSI Drives, try a format unit operation\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a set sector size operation.\n\n");
+                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
+            }
+        }
+        
+        if (PROGRESS_CHAR != NULL)
+        {
+            int result = UNKNOWN;
+            //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
+            convert_String_To_Upper_Case(progressTest);
+            //do some string comparisons to figure out what we are checking for progress on
+            if (strcmp(progressTest, "FORMAT") == 0)
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Getting Format Unit Progress.\n");
+                }
+                result = show_Format_Unit_Progress(&deviceList[deviceIter]);
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\"%s\" does not report progress.\n", progressTest);
+                }
+            }
+            switch (result)
+            {
+            case UNKNOWN:
+                break;
+            case SUCCESS:
+                break;
+            case IN_PROGRESS:
+                break;
+            case ABORTED:
+                exitCode = UTIL_EXIT_OPERATION_ABORTED;
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
     }
@@ -1080,7 +1210,6 @@ void utility_Usage(bool shortUsage)
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
-
     //the test options
     printf("\nUtility arguments\n");
     printf("=================\n");
@@ -1097,6 +1226,7 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
+    print_Set_Sector_Size_Help(shortUsage);
     print_Show_Supported_Sector_Sizes_Help(shortUsage);
     //SATA Only Options
     //printf("\n\tSATA Only:\n\n");
@@ -1108,11 +1238,11 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("===========================\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
-    print_Format_Default_Format_Help(shortUsage);
+    //print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);
     print_Format_Disable_Primary_List_Help(shortUsage);
     print_Format_Discard_Grown_Defect_List_Help(shortUsage);

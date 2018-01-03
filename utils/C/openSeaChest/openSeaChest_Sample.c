@@ -244,8 +244,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -727,18 +726,18 @@ void utility_Usage(bool shortUsage)
     printf("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
+    printf("\nExamples\n");
     printf("========\n");
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
     //return codes
-    printf("Return codes\n");
+    printf("\nReturn codes\n");
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
     //utility options - alphabetized
-    printf("Utility Options\n");
+    printf("\nUtility Options\n");
     printf("===============\n");
 #if defined (ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
@@ -762,7 +761,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("Utility arguments\n");
+    printf("\nUtility arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -782,7 +781,7 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSAS Only:\n\n");
 
     //data destructive commands - alphabetized
-    printf("Data Destructive Commands\n");
-    printf("========================================\n");
+    printf("\nData Destructive Commands\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
 }

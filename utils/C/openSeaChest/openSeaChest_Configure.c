@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.10.0";
+const char *buildVersion = "1.11.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -98,8 +98,6 @@ int32_t main(int argc, char *argv[])
     PROVISION_VAR
     TRIM_UNMAP_VARS //need these with provision var
     LOW_CURRENT_SPINUP_VARS
-    SET_SECTOR_SIZE_VARS
-    SHOW_SUPPORTED_SECTOR_SIZES_VAR
     SCT_WRITE_CACHE_VARS
     SCT_WRITE_CACHE_REORDER_VARS
     VOLATILE_VAR
@@ -156,8 +154,6 @@ int32_t main(int argc, char *argv[])
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
-        SET_SECTOR_SIZE_LONG_OPT,
-        SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT,
         SCT_WRITE_CACHE_LONG_OPT,
         SCT_WRITE_CACHE_REORDER_LONG_OPT,
         PUIS_FEATURE_LONG_OPT,
@@ -202,6 +198,11 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
@@ -235,8 +236,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //invalid option sent
-                    SET_PIN_11_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SET_PIN_11_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
@@ -258,7 +259,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        READ_LOOK_AHEAD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(READ_LOOK_AHEAD_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -281,7 +283,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -305,13 +308,9 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+                    print_Error_In_Cmd_Line_Args(LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            }
-            else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
-            {
-                SET_SECTOR_SIZE_FLAG = true;
-                SET_SECTOR_SIZE_SIZE = (uint32_t)atoi(optarg);
             }
             else if (strcmp(longopts[optionIndex].name, SCT_WRITE_CACHE_LONG_OPT_STRING) == 0)
             {
@@ -336,7 +335,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SCT_WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SCT_WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -363,7 +363,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SCT_WRITE_CACHE_REORDER_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SCT_WRITE_CACHE_REORDER_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -380,7 +381,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    PUIS_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(PUIS_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SSC_FEATURE_LONG_OPT_STRING) == 0)
@@ -406,7 +408,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SET_SSC_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SSC_FEATURE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -558,8 +561,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -746,8 +748,6 @@ int32_t main(int argc, char *argv[])
         || WRITE_CACHE_INFO
         || PROVISION_FLAG
         || LOW_CURRENT_SPINUP_FLAG
-        || SET_SECTOR_SIZE_FLAG
-        || SHOW_SUPPORTED_SECTOR_SIZES_FLAG
         || SCT_WRITE_CACHE_INFO
         || SCT_WRITE_CACHE_FLAG
         || SCT_WRITE_CACHE_REORDER_FLAG
@@ -1800,77 +1800,6 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-
-        if (SHOW_SUPPORTED_SECTOR_SIZES_FLAG)
-        {
-            switch (show_Supported_Sector_Sizes(&deviceList[deviceIter]))
-            {
-            case SUCCESS:
-                break;
-            case NOT_SUPPORTED:
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Failed to get supported sector sizes from device!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (SET_SECTOR_SIZE_FLAG)
-        {
-            if (DATA_ERASE_FLAG)
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Set Sector Size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
-                }
-                switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
-                {
-                case SUCCESS:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Successfully set sector size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
-                    }
-                    break;
-                case NOT_SUPPORTED:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Setting sector size not supported on this device\n");
-                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
-                        {
-                            printf("For SCSI Drives, try a format unit operation\n");
-                        }
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                    break;
-                default:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Failed to set sector size!\n");
-                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
-                        {
-                            printf("For SCSI Drives, try a format unit operation\n");
-                        }
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    break;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a set sector size operation.\n\n");
-                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                }
-            }
-        }
         
         if(PUIS_FEATURE_FLAG)
         {
@@ -1993,7 +1922,6 @@ void utility_Usage(bool shortUsage)
     print_Read_Look_Ahead_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
-    print_Show_Supported_Sector_Sizes_Help(shortUsage);
     print_Write_Cache_Help(shortUsage);
     
     //SATA Only Options
@@ -2016,5 +1944,4 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Provision_Help(shortUsage);
-    print_Set_Sector_Size_Help(shortUsage);
 }

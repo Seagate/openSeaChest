@@ -177,7 +177,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Invalid argument to --%s: %s\n", SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -269,8 +269,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -864,6 +863,6 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSATA Only:\n\t=========\n");
     print_SMART_Attributes_Help(shortUsage);
     //SAS Only Options
-    //printf("\n\tSAS Only:\n\n");
+    //printf("\n\tSAS Only:\n\t=========\n");
 
 }

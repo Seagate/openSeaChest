@@ -30,11 +30,12 @@
 #include "operations.h"
 #include "generic_tests.h"
 #include "drive_info.h"
+#include "buffer_test.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_GenericTests";
-const char *buildVersion = "1.7.0";
+const char *buildVersion = "1.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -107,7 +108,7 @@ int32_t main(int argc, char *argv[])
     PARTIAL_DATA_ERASE_VAR
     OD_MD_ID_TEST_VARS
     HIDE_LBA_COUNTER_VAR
-
+    BUFFER_TEST_VAR
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -167,6 +168,7 @@ int32_t main(int argc, char *argv[])
         SECONDS_TIME_LONG_OPT,
         DISPLAY_LBA_LONG_OPT,
         HIDE_LBA_COUNTER_LONG_OPT,
+        BUFFER_TEST_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -218,8 +220,9 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-						RUN_USER_GENERIC_TEST = false;
-					}
+                        print_Error_In_Cmd_Line_Args(USER_GENERIC_LONG_OPT_START_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_RANGE_STRING))) == 0)
@@ -230,32 +233,32 @@ int32_t main(int argc, char *argv[])
                 if (strstr(optarg, "KB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1000;
+                    multiplier = UINT64_C(1000);
                 }
                 else if (strstr(optarg, "KiB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1024;
+                    multiplier = UINT64_C(1024);
                 }
                 else if (strstr(optarg, "MB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1000000;
+                    multiplier = UINT64_C(1000000);
                 }
                 else if (strstr(optarg, "MiB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1048576;
+                    multiplier = UINT64_C(1048576);
                 }
                 else if (strstr(optarg, "GB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1000000000;
+                    multiplier = UINT64_C(1000000000);
                 }
                 else if (strstr(optarg, "GiB"))
                 {
                     USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = 1073741824;
+                    multiplier = UINT64_C(1073741824);
                 }
                 else if (strstr(optarg, "TB"))
                 {
@@ -299,6 +302,11 @@ int32_t main(int argc, char *argv[])
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_VERIFY;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(GENERIC_TEST_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -335,8 +343,9 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-						DISPLAY_LBA_FLAG = false;
-					}
+                        print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, OD_MD_ID_TEST_LONG_OPT_STRING) == 0)
@@ -362,32 +371,32 @@ int32_t main(int argc, char *argv[])
                 if (strstr(optarg, "KB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1000;
+                    multiplier = UINT64_C(1000);
                 }
                 else if (strstr(optarg, "KiB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1024;
+                    multiplier = UINT64_C(1024);
                 }
                 else if (strstr(optarg, "MB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1000000;
+                    multiplier = UINT64_C(1000000);
                 }
                 else if (strstr(optarg, "MiB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1048576;
+                    multiplier = UINT64_C(1048576);
                 }
                 else if (strstr(optarg, "GB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1000000000;
+                    multiplier = UINT64_C(1000000000);
                 }
                 else if (strstr(optarg, "GiB"))
                 {
                     OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = 1073741824;
+                    multiplier = UINT64_C(1073741824);
                 }
                 else if (strstr(optarg, "TB"))
                 {
@@ -469,8 +478,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -655,6 +663,7 @@ int32_t main(int argc, char *argv[])
         || BUTTERFLY_READ_TEST_FLAG
         || DISPLAY_LBA_FLAG
         || (PERFORM_OD_TEST || PERFORM_ID_TEST || PERFORM_MD_TEST)
+        || BUFFER_TEST_FLAG
         ))
     {
         utility_Usage(true);
@@ -973,6 +982,57 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
             safe_Free(displaySector);
+        }
+
+        if (BUFFER_TEST_FLAG)
+        {
+            if (VERBOSITY_QUIET < g_verbosity)
+            {
+                printf("Performing buffer test. This may take a while...\n");
+            }
+            cableTestResults bufferTestResults;
+            switch (perform_Cable_Test(&deviceList[deviceIter], &bufferTestResults))
+            {
+            case SUCCESS:
+                print_Cable_Test_Results(bufferTestResults);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Buffer test is not supported on this device!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Buffer test failed!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
+        //check if the drive is seagate or not. If not seagate, disable the repairs because repairs are only allowed on Seagate Drives
+        if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
+        {
+            if (REPAIR_ON_FLY_FLAG || REPAIR_AT_END_FLAG)
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Repairs are only allowed on Seagate Drives.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                continue;
+            }
+            if (GENERIC_TEST_MODE_FLAG == RWV_COMMAND_WRITE)
+            {
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Write command testing is only allowed on Seagate Drives.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                continue;
+            }
         }
 
         if (REPAIR_AT_END_FLAG && REPAIR_ON_FLY_FLAG)
@@ -1420,6 +1480,7 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here
+    print_Buffer_Test_Help(shortUsage);
     print_Butterfly_Read_Test_Help(shortUsage);
     print_OD_MD_ID_Test_Help(shortUsage);
     print_OD_MD_ID_Test_Range_Help(shortUsage);
@@ -1438,7 +1499,7 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("========================================\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Repair_At_End_Help(shortUsage);
     print_Repair_On_Fly_Help(shortUsage);

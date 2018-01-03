@@ -10,7 +10,7 @@
 // ******************************************************************************************
 // 
 // 
-// \file OpenSeaChest_Basic.c command line that performs various basic functions on a device.
+// \file OpenSeaChest_Basics.c command line that performs various basic functions on a device.
 
 //////////////////////
 //  Included files  //
@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.7.0";
+const char *buildVersion = "2.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -233,6 +233,11 @@ int32_t main(int argc, char *argv[])
                 {
                     PARTIAL_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
@@ -254,7 +259,15 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_TRIM_UNMAP_FLAG = false;
+                        if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0)
+                        {
+                            print_Error_In_Cmd_Line_Args(TRIM_LONG_OPT_STRING, optarg);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(UNMAP_LONG_OPT_STRING, optarg);
+                        }
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -277,7 +290,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_OVERWRITE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(OVERWRITE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -314,6 +328,11 @@ int32_t main(int argc, char *argv[])
                 {
                     DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
@@ -347,8 +366,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //invalid option sent
-                    SET_PIN_11_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SET_PIN_11_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
@@ -370,7 +389,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        READ_LOOK_AHEAD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(READ_LOOK_AHEAD_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -393,7 +413,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -436,7 +457,8 @@ int32_t main(int argc, char *argv[])
                         IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
                         break;
                     default:
-                        RUN_IDD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -453,7 +475,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Invalid argument to --%s: %s\n", SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -492,7 +514,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                    	DISPLAY_LBA_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -563,8 +586,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -2193,13 +2215,11 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("===========================\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
     print_Provision_Help(shortUsage);
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
-
-
 }
