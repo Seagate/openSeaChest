@@ -767,6 +767,21 @@ void print_Transition_Power_Help(bool shortHelp)
     }
 }
 
+void print_Buffer_Test_Help(bool shortHelp)
+{
+    printf("\t--%s\n", BUFFER_TEST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will perform a test using the device's echo buffer.\n");
+        printf("\t\tThe write buffer and read buffer commands are used to send &\n");
+        printf("\t\treceive different data patterns. The patterns are compared\n");
+        printf("\t\tand interface CRC errors are also checked (when available).\n");
+        printf("\t\tTest patterns performed are all 0's, all F's, all 5's, all A's,\n");
+        printf("\t\twalking 1's, walking 0's, and random data patterns.\n");
+        printf("\t\tAt completion, a count of the number of errors will be displayed.\n\n");
+    }
+}
+
 void print_Short_Generic_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHORT_GENERIC_LONG_OPT_STRING);

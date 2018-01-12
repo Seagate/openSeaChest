@@ -383,6 +383,12 @@ extern "C"
     #define GENERIC_TEST_LONG_OPT_STRING "genericMode"
     #define GENERIC_TEST_LONG_OPT { GENERIC_TEST_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //buffer test
+    #define BUFFER_TEST_FLAG performBufferTest
+    #define BUFFER_TEST_VAR getOptBool BUFFER_TEST_FLAG = goFalse;
+    #define BUFFER_TEST_LONG_OPT_STRING "bufferTest"
+    #define BUFFER_TEST_LONG_OPT { BUFFER_TEST_LONG_OPT_STRING, no_argument, &BUFFER_TEST_FLAG, goTrue }
+
     #define SHORT_GENERIC_FLAG runShortGeneric
     #define SHORT_GENERIC_VAR \
     getOptBool SHORT_GENERIC_FLAG = goFalse;
@@ -862,8 +868,10 @@ extern "C"
     #define FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG  discardExistingGList
     #define FORMAT_UNIT_DISABLE_CERTIFICATION           disableCertification
     #define FORMAT_UNIT_SECURITY_INITIALIZE             formatSecurityInitialize
+    #define FORMAT_UNIT_PROECTION_TYPE_FROM_USER        userSpecifiedPI
     #define FORMAT_UNIT_PROTECTION_TYPE                 formatProtectionType
     #define FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT    formatProtectionIntervalExponent
+    #define FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER        userSpecifiedPIexponent
     #define FORMAT_UNIT_DEFAULT_FORMAT                  performDefaultFormat
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE      disableFormatImmediateResponse
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR              formatStopOnListError
@@ -873,7 +881,9 @@ extern "C"
     getOptBool FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG = goFalse;\
     getOptBool FORMAT_UNIT_DISABLE_CERTIFICATION = goFalse;\
     getOptBool FORMAT_UNIT_SECURITY_INITIALIZE = goFalse;\
+    bool FORMAT_UNIT_PROECTION_TYPE_FROM_USER = false;\
     uint8_t FORMAT_UNIT_PROTECTION_TYPE = 0;\
+    bool FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = false;\
     uint8_t FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = 0;\
     getOptBool FORMAT_UNIT_DEFAULT_FORMAT = goFalse;\
     getOptBool FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE = goFalse;\
@@ -2441,6 +2451,8 @@ extern "C"
     void print_Set_SSC_Help(bool shortHelp);
 
 	void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
+
+    void print_Buffer_Test_Help(bool shortHelp);
 
     //Returns 255 when a memory allocation/reallocation error occurs (prints to stderr), 254 when a parameter is missing, zero otherwise.
     int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandleProvided, uint32_t *deviceCount, char ***handleList);
