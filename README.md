@@ -62,11 +62,11 @@ tests that will examine the physical media on your storage device.
 #### Linux
 Required Tools:
 * gcc
-* gmake
+* make
 
 From a terminal, change directory to "OpenSeaChest/Make/gcc".
 
-Run the command "gmake release" to build the release version of the OpenSeaChest tools.
+Run the command "make release" to build the release version of the OpenSeaChest tools.
 After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
 
 #### Windows
