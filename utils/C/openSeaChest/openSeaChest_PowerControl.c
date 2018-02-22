@@ -105,6 +105,11 @@ int32_t main(int argc, char *argv[])
     SEAGATE_POWER_BALANCE_VARS
     SATA_DIPM_VARS
     SATA_DAPS_VARS
+    STANDBY_VAR
+    SLEEP_VAR
+    IDLE_VAR
+    IDLE_UNLOAD_VAR
+    ACTIVE_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -164,6 +169,11 @@ int32_t main(int argc, char *argv[])
         SEAGATE_POWER_BALANCE_LONG_OPT,
         SATA_DIPM_LONG_OPT,
         SATA_DAPS_LONG_OPT,
+        STANDBY_LONG_OPT,
+        SLEEP_LONG_OPT,
+        IDLE_LONG_OPT,
+        IDLE_UNLOAD_LONG_OPT,
+        ACTIVE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -640,6 +650,10 @@ int32_t main(int argc, char *argv[])
         || SATA_DIPM_FLAG
         || SATA_DAPS_INFO_FLAG
         || SATA_DAPS_FLAG
+        || STANDBY_FLAG
+        || SLEEP_FLAG
+        || IDLE_FLAG
+        || IDLE_UNLOAD_FLAG
         ))
     {
         utility_Usage(true);
@@ -663,7 +677,7 @@ int32_t main(int argc, char *argv[])
     version.version = DEVICE_BLOCK_VERSION;
     version.size = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG)
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG || STANDBY_FLAG || IDLE_FLAG || IDLE_UNLOAD_FLAG || SLEEP_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
@@ -980,6 +994,146 @@ int32_t main(int argc, char *argv[])
                     printf("Failed to spin down device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
+        if (IDLE_FLAG)
+        {
+            switch (transition_To_Idle(&deviceList[deviceIter], false))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to idle state.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to idle not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to idle state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (IDLE_UNLOAD_FLAG)
+        {
+            switch (transition_To_Idle(&deviceList[deviceIter], true))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to idle (unload) state.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to idle (unload) not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to idle (unload) state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (STANDBY_FLAG)
+        {
+            switch (transition_To_Standby(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to standby state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to standby not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to standby state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SLEEP_FLAG)
+        {
+            switch (transition_To_Sleep(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to sleep state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nNOTE: drive will now require a reset to wake.\tThe system may not be able to rediscover it without a reboot.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to sleep not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to sleep state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (ACTIVE_FLAG)
+        {
+            switch (transition_To_Active(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to active state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to active not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to active state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
 
@@ -1617,15 +1771,20 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
+    print_Active_Help(shortUsage);
     print_Change_Power_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Default_Power_Mode_Help(shortUsage);
     print_Disable_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
     print_Enable_Power_Mode_Help(shortUsage);
+    print_Idle_Help(shortUsage);
+    print_Idle_Unload_Help(shortUsage);
     print_Power_Mode_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Sleep_Help(shortUsage);
     print_Spindown_Help(shortUsage);
+    print_Standby_Help(shortUsage);
     print_Timer_Mode_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
     //SATA Only Options

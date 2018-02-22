@@ -313,6 +313,31 @@ extern "C"
     #define SPIN_DOWN_LONG_OPT_STRING "spinDown"
     #define SPIN_DOWN_LONG_OPT { SPIN_DOWN_LONG_OPT_STRING, no_argument, &SPIN_DOWN_FLAG, goTrue }
 
+    #define STANDBY_FLAG standby
+    #define STANDBY_VAR getOptBool STANDBY_FLAG = goFalse;
+    #define STANDBY_LONG_OPT_STRING "standby"
+    #define STANDBY_LONG_OPT { STANDBY_LONG_OPT_STRING, no_argument, &STANDBY_FLAG, goTrue }
+
+    #define SLEEP_FLAG sleep
+    #define SLEEP_VAR getOptBool SLEEP_FLAG = goFalse;
+    #define SLEEP_LONG_OPT_STRING "sleep"
+    #define SLEEP_LONG_OPT { SLEEP_LONG_OPT_STRING, no_argument, &SLEEP_FLAG, goTrue }
+
+    #define IDLE_FLAG idle
+    #define IDLE_VAR getOptBool IDLE_FLAG = goFalse;
+    #define IDLE_LONG_OPT_STRING "idle"
+    #define IDLE_LONG_OPT { IDLE_LONG_OPT_STRING, no_argument, &IDLE_FLAG, goTrue }
+
+    #define IDLE_UNLOAD_FLAG idleUnload
+    #define IDLE_UNLOAD_VAR getOptBool IDLE_UNLOAD_FLAG = goFalse;
+    #define IDLE_UNLOAD_LONG_OPT_STRING "idleUnload"
+    #define IDLE_UNLOAD_LONG_OPT { IDLE_UNLOAD_LONG_OPT_STRING, no_argument, &IDLE_UNLOAD_FLAG, goTrue }
+
+    #define ACTIVE_FLAG activeState
+    #define ACTIVE_VAR getOptBool ACTIVE_FLAG = goFalse;
+    #define ACTIVE_LONG_OPT_STRING "active"
+    #define ACTIVE_LONG_OPT { ACTIVE_LONG_OPT_STRING, no_argument, &ACTIVE_FLAG, goTrue }
+
     #define ENABLE_POWER_MODE_FLAG enablePowerMode
     #define ENABLE_POWER_MODE_VAR getOptBool ENABLE_POWER_MODE_FLAG = goFalse;
     #define ENABLE_POWER_MODE_LONG_OPT_STRING "enableMode"
@@ -2507,6 +2532,16 @@ extern "C"
     void print_DIPM_Help(bool shortHelp);
 
     void print_DAPS_Help(bool shortHelp);
+
+    void print_Active_Help(bool shortHelp);
+
+    void print_Sleep_Help(bool shortHelp);
+
+    void print_Idle_Unload_Help(bool shortHelp);
+
+    void print_Idle_Help(bool shortHelp);
+
+    void print_Standby_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

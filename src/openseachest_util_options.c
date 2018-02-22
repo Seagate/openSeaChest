@@ -668,10 +668,82 @@ void print_Spindown_Help(bool shortHelp)
     printf("\t--%s\n", SPIN_DOWN_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tRemoves power to the disk drive motor with the Idle Immediate\n");
+        printf("\t\tRemoves power to the disk drive motor with the Standby Immediate\n");
         printf("\t\tcommand. Use this before moving a hard disk drive. The drive\n");
         printf("\t\twill spin back up if the operating system selects the drive.\n");
         printf("\t\tThis means that an active drive will not stay spun down.\n\n");
+    }
+}
+
+void print_Standby_Help(bool shortHelp)
+{
+    printf("\t--%s\n", STANDBY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the standby power state.\n");
+        printf("\t\tThis command will flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tOn an HDD, this will cause the spindle motor to stop.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Idle_Help(bool shortHelp)
+{
+    printf("\t--%s\n", IDLE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the idle power state.\n");
+        printf("\t\tThis command may flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Idle_Unload_Help(bool shortHelp)
+{
+    printf("\t--%s\n", IDLE_UNLOAD_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the idle, heads unloaded, power state.\n");
+        printf("\t\tThis command may flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Sleep_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SLEEP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the sleep power state.\n");
+        printf("\t\tA reset must be sent to wake a drive from sleep state.\n");
+        printf("\t\tThe OS may not be able to wake a drive from this state once it has\n");
+        printf("\t\tbeen entered. Use this option with caution!\n\n");
+    }
+}
+
+void print_Active_Help(bool shortHelp)
+{
+    printf("\t--%s\n", ACTIVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the active power state.\n");
+        printf("\t\tThis uses a ATA read-verify command to a random LBA, or a SCSI\n");
+        printf("\t\tstart-stop unit command.\n\n");
     }
 }
 
