@@ -144,7 +144,7 @@ extern "C"
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
     #define ONLY_SEAGATE_LONG_OPT_STRING "onlySeagate"
-    #define ONLY_SEAGATE_LONG_OPT { ONLY_SEAGATE_LONG_OPT_STRING, no_argument, &ONLY_SEAGATE_FLAG, goFalse }
+    #define ONLY_SEAGATE_LONG_OPT { ONLY_SEAGATE_LONG_OPT_STRING, no_argument, &ONLY_SEAGATE_FLAG, goTrue }
     
     #define FORCE_SCSI_FLAG forceSCSI
     #define FORCE_ATA_FLAG forceATA
