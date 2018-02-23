@@ -2751,3 +2751,22 @@ void print_DAPS_Help(bool shortHelp)
         printf("\t\tgo down and the device will not be able to communicate.\n\n");
     }
 }
+
+void print_Free_Fall_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable | sensitivity value]\t(SATA only)\n", FREE_FALL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to configure the Free Fall control feature\n");
+        printf("\t\tfound on some SATA drives. This feature allows the drive to\n");
+        printf("\t\ttake action if it detects it is in free fall to protect the data\n");
+        printf("\t\tfrom harm due to a drop.\n");
+        printf("\t\t    info - use this to see the current sensitivity value\n");
+        printf("\t\t    enable - this option will set the sensitivity to the vendor's\n");
+        printf("\t\t             recommended value.\n");
+        printf("\t\t    disable - this will disable the free fall control feature.\n");
+        printf("\t\t    sensitivity value - set a value between 1 and 255 to control\n");
+        printf("\t\t                        how sensitive the detection is. A value of zero\n");
+        printf("\t\t                        will set the vendor's recommended value.\n\n");
+    }
+}

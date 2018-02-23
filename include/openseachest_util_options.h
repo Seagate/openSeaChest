@@ -1312,6 +1312,19 @@ extern "C"
     #define SATA_DAPS_LONG_OPT_STRING "sataDAPSfeature"
     #define SATA_DAPS_LONG_OPT { SATA_DAPS_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //Free fall control
+    #define FREE_FALL_FLAG setFreeFall
+    #define FREE_FALL_DISABLE disableFreeFall
+    #define FREE_FALL_INFO freeFallInfo
+    #define FREE_FALL_SENSITIVITY freeFallSensitivity
+    #define FREE_FALL_VARS \
+    bool FREE_FALL_FLAG = false;\
+    bool FREE_FALL_INFO = false;\
+    bool FREE_FALL_DISABLE = false;\
+    uint8_t FREE_FALL_SENSITIVITY = 0;
+    #define FREE_FALL_LONG_OPT_STRING "freeFall"
+    #define FREE_FALL_LONG_OPT { FREE_FALL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -2544,6 +2557,8 @@ extern "C"
     void print_Idle_Help(bool shortHelp);
 
     void print_Standby_Help(bool shortHelp);
+
+    void print_Free_Fall_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

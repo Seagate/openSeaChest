@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.11.0";
+const char *buildVersion = "1.12.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -108,6 +108,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     SCT_ERROR_RECOVERY_CONTROL_VARS
+    FREE_FALL_VARS
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -159,6 +160,7 @@ int32_t main(int argc, char *argv[])
         PUIS_FEATURE_LONG_OPT,
         SSC_FEATURE_LONG_OPT,
         SCT_ERROR_RECOVERY_CONTROL_LONG_OPTS,
+        FREE_FALL_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -473,6 +475,33 @@ int32_t main(int argc, char *argv[])
                     SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = (uint32_t)atoi(optarg) * multiplier;
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    FREE_FALL_INFO = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    FREE_FALL_FLAG = true;
+                    FREE_FALL_SENSITIVITY = 0;//enable to vendor recommended if this arg is given
+                }
+                else
+                {
+                    uint64_t value = 0;
+                    //this is a value to read in.
+                    if (SUCCESS != get_And_Validate_Integer_Input(optarg, &value))
+                    {
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    if (value > UINT8_MAX)
+                    {
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    FREE_FALL_FLAG = true;
+                    FREE_FALL_SENSITIVITY = (uint8_t)value;
+                }
+            }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -759,6 +788,8 @@ int32_t main(int argc, char *argv[])
         || SCT_ERROR_RECOVERY_CONTROL_READ_INFO
         || SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER
         || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER
+        || FREE_FALL_FLAG
+        || FREE_FALL_INFO
         ))
     {
         utility_Usage(true);
@@ -1848,6 +1879,105 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
+        if (FREE_FALL_FLAG)
+        {
+            if (FREE_FALL_DISABLE)
+            {
+                switch (disable_Free_Fall_Control_Feature(&deviceList[deviceIter]))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Free Fall Control feature successfully disabled!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Disabling Free Fall Control feature not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to disable Free Fall Control feature!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                switch (set_Free_Fall_Control_Sensitivity(&deviceList[deviceIter], FREE_FALL_SENSITIVITY))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        if (FREE_FALL_SENSITIVITY == 0)
+                        {
+                            printf("Free Fall Control feature successfully set to vendor's recommended value!\n");
+                        }
+                        else
+                        {
+                            printf("Free Fall Control feature successfully set to %" PRIu8 "!\n", FREE_FALL_SENSITIVITY);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Setting Free Fall Control sensitivity not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to set Free Fall Control sensitivity!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+        }
+
+        if (FREE_FALL_INFO)
+        {
+            uint16_t sensitivity = 0;
+            switch (get_Current_Free_Fall_Control_Sensitivity(&deviceList[deviceIter], &sensitivity))
+            {
+            case SUCCESS:
+                if (sensitivity == UINT16_MAX)
+                {
+                    printf("Free Fall control feature is supported, but not enabled.\n");
+                }
+                else if (sensitivity == 0)
+                {
+                    printf("Free Fall control sensitivity is set to the vendor's recommended value.\n");
+                }
+                else
+                {
+                    printf("Free Fall control sensitivity is set to %" PRIu16 " of 255.\n", sensitivity);
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Free Fall control feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Failed to get Free Fall control information.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
     }
     exit(exitCode);
 }
@@ -1926,6 +2056,7 @@ void utility_Usage(bool shortUsage)
     
     //SATA Only Options
     printf("\n\tSATA Only:\n\t========\n");
+    print_Free_Fall_Help(shortUsage);
     print_Low_Current_Spinup_Help(shortUsage);
     print_PUIS_Feature_Help(shortUsage);
     print_Set_SSC_Help(shortUsage);
