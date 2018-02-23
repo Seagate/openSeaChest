@@ -71,7 +71,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
 }
 
-void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion)
+void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
 {
     char osName[OS_NAME_SIZE] = { 0 };
     OSVersionNumber osversionnumber;
@@ -84,8 +84,10 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
 
     printf("Version Info for %s:\n", utilityName);
     printf("\tUtility Version: %s\n", buildVersion);
-    printf("\tLibrary Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
-    printf("\tBuild Date: %s\n", __DATE__);
+	printf("\topensea-common Version: %s\n", openseaCommonVersion);
+    printf("\topensea-transport Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
+	printf("\topensea-operations Version: %s\n", openseaOperationVersion);
+	printf("\tBuild Date: %s\n", __DATE__);
     printf("\tCompiled Architecture: ");
     print_Architecture(get_Compiled_Architecture());
     printf("\n\tDetected Endianness: ");

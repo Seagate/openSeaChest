@@ -30,6 +30,8 @@ extern "C"
 #endif
 
     #include "common.h"
+#include "opensea_common_version.h"
+#include "opensea_operation_version.h"
 
     //this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack corruption at runtime
     //This type should only be used where a boolean is desired when using the getopt parser (which expects an int), otherwise bool will do just fine
@@ -1318,7 +1320,7 @@ extern "C"
 
     void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion);
 
-    void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion);
+    void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion);
 
     //-----------------------------------------------------------------------------
     //
