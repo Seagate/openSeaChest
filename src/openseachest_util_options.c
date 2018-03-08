@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -61,7 +61,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char       *g_timeStringPtr = g_timeString;
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities\n", utilityName);
-    printf(" Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    printf(" Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
