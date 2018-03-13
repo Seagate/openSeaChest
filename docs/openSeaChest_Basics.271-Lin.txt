@@ -803,7 +803,7 @@ SAS HDD Device Information:
         Serial Number: Z1QZ04KVG
         Firmware Revision: 0004
         World Wide Name: 500Q0C5005594AEFB
-        Copyright: Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+        Copyright: Copyright (c) 2014 Seagate All Rights Reserved
         Drive Capacity (TB/TiB): 4.00/3.64
         Temperature Data:
                 Current Temperature (C): 28
@@ -866,7 +866,7 @@ SAS SSD: Device Information
         Serial Number: P3QF13026
         Firmware Revision: 0006
         World Wide Name: 5000QC50069010B4B
-        Copyright: Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved -
+        Copyright: Copyright (c) 2014 Seagate All Rights Reserved -
         Drive Capacity (GB/GiB): 400.09/372.61
         Temperature Data:
                 Current Temperature (C): 34
