@@ -1302,6 +1302,7 @@ int32_t main(int argc, char *argv[])
         if (SHOW_POWER_CONSUMPTION_FLAG)
         {
             powerConsumptionIdentifiers identifiers;
+			memset(&identifiers, 0, sizeof(powerConsumptionIdentifiers));
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
