@@ -92,7 +92,7 @@ int32_t main(int argc, char *argv[])
     RESTORE_MAX_LBA_VAR
     SET_PHY_SPEED_VARS
     SET_PHY_SAS_PHY_IDENTIFIER_VAR
-    SET_PIN_11_VARS
+    SET_READY_LED_VARS
     READ_LOOK_AHEAD_VARS
     WRITE_CACHE_VARS
     PROVISION_VAR
@@ -151,7 +151,7 @@ int32_t main(int argc, char *argv[])
         RESTORE_MAX_LBA_LONG_OPT,
         SET_PHY_SPEED_LONG_OPT,
         SET_PHY_SAS_PHY_LONG_OPT,
-        SET_PIN_11_LONG_OPT,
+		SET_READY_LED_LONG_OPTS,
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
@@ -221,24 +221,26 @@ int32_t main(int argc, char *argv[])
                 SET_PHY_ALL_PHYS = false;
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
+			else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0) ||
+				(strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
+				)
             {
-                SET_PIN_11_FLAG = true;
+                SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
-                    SET_PIN_11_DEFAULT = true;
+                    SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_PIN_11_MODE = true;
+                    SET_READY_LED_MODE = true;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_PIN_11_MODE = false;
+                    SET_READY_LED_MODE = false;
                 }
                 else
                 {
-                    print_Error_In_Cmd_Line_Args(SET_PIN_11_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SET_READY_LED_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -770,7 +772,7 @@ int32_t main(int argc, char *argv[])
         || RESTORE_MAX_LBA_FLAG
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
-        || SET_PIN_11_FLAG
+        || SET_READY_LED_FLAG
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
@@ -1162,28 +1164,28 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (SET_PIN_11_FLAG)
+        if (SET_READY_LED_FLAG)
         {
-            switch (change_Pin11(&deviceList[deviceIter], SET_PIN_11_DEFAULT, SET_PIN_11_MODE))
+            switch (change_Ready_LED(&deviceList[deviceIter], SET_READY_LED_DEFAULT, SET_READY_LED_MODE))
             {
             case SUCCESS:
                 exitCode = 0;
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Successfully changed pin 11 behavior!\n");
+                    printf("Successfully changed Ready LED behavior!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Changin pin 11 behavior is not supported on this device or this device type.\n");
+                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Failed to change pin 11 behavior!\n");
+                    printf("Failed to change Ready LED behavior!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2067,7 +2069,7 @@ void utility_Usage(bool shortUsage)
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");
-    print_Set_Pin_11_Help(shortUsage);
+	print_Set_Ready_LED_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
 
     //data destructive commands - alphabetized
