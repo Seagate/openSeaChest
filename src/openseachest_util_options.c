@@ -2482,7 +2482,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             char *deviceHandle = &windowsHandle[0];
             char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
-            if (strncmp((char *)optarg, "PD", 2) == 0)
+            if (_strnicmp((char *)optarg, "PD", 2) == 0)
             {
                 physicalDeviceNumber = strpbrk((char *)optarg, "0123456789");
                 sprintf(deviceHandle, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
