@@ -830,10 +830,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
