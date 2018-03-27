@@ -1902,6 +1902,17 @@ void print_Format_Stop_On_List_Error_Help(bool shortHelp)
     }
 }
 
+void print_Format_New_Max_LBA_Help(bool shortHelp)
+{
+	printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
+		printf("\t\tformat unit operation. This can speed up a format unit if\n");
+		printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
+		printf("\t\tcapacity while formattting.\n\n");
+}
+
 void print_Show_Format_Status_Log_Help(bool shortHelp)
 {
     printf("\t--%s (SAS Only)\n", SHOW_FORMAT_STATUS_LOG_LONG_OPT_STRING);

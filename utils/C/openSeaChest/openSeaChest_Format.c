@@ -263,6 +263,10 @@ int32_t main(int argc, char *argv[])
                 FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = (uint8_t)atoi(optarg);
                 FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
             }
+			else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
+			{
+				FORMAT_UNIT_NEW_MAX_LBA = (uint64_t)atoll(optarg);
+			}
             else if (strcmp(longopts[optionIndex].name, PATTERN_LONG_OPT_STRING) == 0)
             {
                 PATTERN_FLAG = true;
@@ -982,6 +986,7 @@ int32_t main(int argc, char *argv[])
                 formatUnitParameters.formatType = FAST_FORMAT_FLAG;
                 formatUnitParameters.currentBlockSize = currentBlockSize;
                 formatUnitParameters.newBlockSize = FORMAT_SECTOR_SIZE;
+				formatUnitParameters.newMaxLBA = FORMAT_UNIT_NEW_MAX_LBA;//if zero, this is ignored
                 formatUnitParameters.gList = NULL;
                 formatUnitParameters.glistSize = 0;
                 formatUnitParameters.completeList = FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG;
@@ -1251,6 +1256,7 @@ void utility_Usage(bool shortUsage)
     print_Format_Disable_Primary_List_Help(shortUsage);
     print_Format_Discard_Grown_Defect_List_Help(shortUsage);
     print_Format_Disable_Immediate_Response_Help(shortUsage);
+	print_Format_New_Max_LBA_Help(shortUsage);
     print_Format_Protection_Interval_Exponent_Help(shortUsage);
     print_Format_Protection_Type_Help(shortUsage);
     print_Fast_Format_Help(shortUsage);
