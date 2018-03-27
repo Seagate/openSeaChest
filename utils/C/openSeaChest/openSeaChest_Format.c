@@ -503,6 +503,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
