@@ -619,7 +619,7 @@ void print_Abort_IDD_Help(bool shortHelp)
 
 void print_IDD_Help(bool shortHelp)
 {
-    printf("\t--%s [short | long | repair]\t\t(Seagate Only)\n", IDD_TEST_LONG_OPT_STRING);
+    printf("\t--%s [short | long]\t\t(Seagate Only)\n", IDD_TEST_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tStart an In Drive Diagnostic (IDD) test on a Seagate\n");
@@ -630,8 +630,10 @@ void print_IDD_Help(bool shortHelp)
         printf("\t\t        test on the boot device.\n");
         printf("\t\tLong:   Reset and Recalibration test and test G list and \n");
         printf("\t\t        P list\n");
-        printf("\t\tRepair: Reset and Recalibration test and test G list and \n");
-        printf("\t\t        P list and attempt to repair or reallocate bad sectors.\n\n");
+        printf("\t\tNote: the --%s option can be added to run the long test in\n", CAPTIVE_LONG_OPT_STRING);
+		printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
+		printf("\t\t      and some additional checks to be performed. This may not\n");
+		printf("\t\t      work on some products.\n\n");
     }
 }
 
@@ -1294,7 +1296,7 @@ void print_Restore_Max_LBA_Help(bool shortHelp)
 
 void printf_Set_Phy_Speed_Help(bool shortHelp)
 {
-    printf("\t--%s [0 | 1 | 2 | 3] (SATA Only)\n", SET_PHY_SPEED_LONG_OPT_STRING);
+    printf("\t--%s [0 | 1 | 2 | 3] (SATA Only) (Seagate Only)\n", SET_PHY_SPEED_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the PHY speed to a\n");
@@ -1310,7 +1312,7 @@ void printf_Set_Phy_Speed_Help(bool shortHelp)
 
 void print_Set_SSC_Help(bool shortHelp)
 {
-    printf("\t--%s [info | default | enable | disable] (SATA Only)\n", SSC_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [info | default | enable | disable] (SATA Only) (Seagate Only)\n", SSC_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change or view the SSC (Spread Spectrum\n");
@@ -1911,6 +1913,7 @@ void print_Format_New_Max_LBA_Help(bool shortHelp)
 		printf("\t\tformat unit operation. This can speed up a format unit if\n");
 		printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
 		printf("\t\tcapacity while formattting.\n\n");
+	}
 }
 
 void print_Show_Format_Status_Log_Help(bool shortHelp)
