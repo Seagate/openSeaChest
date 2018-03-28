@@ -230,10 +230,6 @@ int32_t main(int argc, char *argv[])
                 {
                     IDD_TEST_FLAG = SEAGATE_IDD_LONG;
                 }
-                else if (strcmp(optarg, "repair") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                }
                 else
                 {
                     //read in the argument as a hex value instead of an integer
@@ -246,9 +242,6 @@ int32_t main(int argc, char *argv[])
                         break;
                     case 0x71:
                         IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                        break;
-                    case 0x72:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
                         break;
                     default:
                         print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
@@ -378,7 +371,7 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        printf("You must add a a test type to run for the idd option. Valid tests are 70, 71, or 72\n");
+                        printf("You must add a a test type to run for the idd option. Valid tests are short or long\n");
                     }
                 }
                 break;
@@ -1352,7 +1345,7 @@ int32_t main(int argc, char *argv[])
                     }
                     printf("\n");
                 }
-                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG);
+                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
                 switch (IDDResult)
                 {
                 case UNKNOWN:
@@ -1361,7 +1354,7 @@ int32_t main(int argc, char *argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT)//short test is run in captive mode, so polling doesn't make sense
+                        if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT || CAPTIVE_FOREGROUND_FLAG)//short test is run in captive mode, so polling doesn't make sense
                         {
                             printf("IDD - ");
                             switch(IDD_TEST_FLAG)
@@ -1372,9 +1365,9 @@ int32_t main(int argc, char *argv[])
                             case SEAGATE_IDD_LONG:
                                 printf("long");
                                 break;
-                            case SEAGATE_IDD_LONG_WITH_REPAIR:
-                                printf("long with repair");
-                                break;
+							default:
+								printf("unknown");
+								break;
                             }
                             printf(" - completed without error!\n");
                         }
@@ -1389,9 +1382,9 @@ int32_t main(int argc, char *argv[])
                             case SEAGATE_IDD_LONG:
                                 printf("long");
                                 break;
-                            case SEAGATE_IDD_LONG_WITH_REPAIR:
-                                printf("long with repair");
-                                break;
+							default:
+								printf("unknown");
+								break;
                             }
                             printf(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
@@ -1415,7 +1408,14 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        printf("IDD not supported\n");
+                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && CAPTIVE_FOREGROUND_FLAG)
+                        {
+                            printf("Captive/foreground mode not supported on this IDD test on this drive.\n");
+                        }
+                        else
+                        {   
+                            printf("IDD not supported\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
