@@ -23,14 +23,25 @@ FWDLLFLAGS = \
 	-Wall \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
-	-lm -lrt
+	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 	
 INC_DIR= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
 	-I../../include \
 	-I../../opensea-operations/include
+
+UNAME := $(shell uname)
+ifeq ($(UNAME),Linux)
+    FWDLLFLAGS += -lm -lrt
+endif
+ifeq ($(UNAME),SunOS)
+    FWDLLFLAGS += 
+    export AR=gar
+endif
+ifeq (($UNAME),FreeBSD)
+    FWDLLFLAGS += -lcam
+endif
 
 MACHINE := $(shell uname -m)
 
@@ -41,7 +52,6 @@ ifeq ($(MACHINE), x86_64)
 endif
 
 #Files for the final binary
-#firmware files also need a few SeaCPrivate files, but NOT the entire lib. This is for the config file stuff.
 FIRMWAREOUTFILE = openSeaChest_Firmware
 FIRMWARESOURCES = \
 	$(UTIL_SRC_DIR)/openSeaChest_Firmware.c \
@@ -62,9 +72,22 @@ debug: PROJECT_DEFINES += -D_DEBUG
 debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_dbg
 debug: mkoutputdir $(FIRMWAREOUTFILE)
 
+static-debug: CXXFLAGS += -g
+static-debug: CFLAGS += -g
+static-debug: FWDLLFLAGS += -static
+static-debug: PROJECT_DEFINES += -D_DEBUG
+static-debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static_dbg
+static-debug: mkoutputdir $(FIRMWAREOUTFILE)
+
 release: CXXFLAGS += -O3
 release: CFLAGS += -O3
 release: mkoutputdir $(FIRMWAREOUTFILE)
+
+static-release: CXXFLAGS += -O3
+static-release: CFLAGS += -O3
+static-release: FWDLLFLAGS += -static
+static-release: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static
+static-release: mkoutputdir $(FIRMWAREOUTFILE)
 
 export CFLAGS
 export CXXFLAGS
@@ -79,8 +102,7 @@ opensea-libs:
 
 $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir 
 	$(CC) $(FIRMWAREOBJS) $(FWDLLFLAGS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
-	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(FIRMWAREOUTFILE)
-	$(CC) $(FIRMWAREOBJS) $(FWDLLFLAGS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)_static --static
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@
