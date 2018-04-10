@@ -1911,6 +1911,7 @@ void print_Format_New_Max_LBA_Help(bool shortHelp)
 		printf("\t\tformat unit operation. This can speed up a format unit if\n");
 		printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
 		printf("\t\tcapacity while formattting.\n\n");
+    }
 }
 
 void print_Show_Format_Status_Log_Help(bool shortHelp)
