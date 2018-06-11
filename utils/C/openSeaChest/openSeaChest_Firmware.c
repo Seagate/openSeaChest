@@ -854,11 +854,6 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 long firmwareFileSize = get_File_Size(firmwareFilePtr);
-                if (firmwareFileSize % LEGACY_DRIVE_SEC_SIZE)
-                {
-                    //Round to 512B size
-                    firmwareFileSize = (((firmwareFileSize + LEGACY_DRIVE_SEC_SIZE) - 1) / LEGACY_DRIVE_SEC_SIZE) * LEGACY_DRIVE_SEC_SIZE;
-                }
                 uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
                 if (firmwareMem)
                 {
@@ -1158,6 +1153,10 @@ void utility_Usage(bool shortUsage)
     //utility options - alphabetized
     printf("Utility Options\n");
     printf("===============\n");
+#if defined (ENABLE_CSMI)
+	print_CSMI_Force_Flags_Help(shortUsage);
+	print_CSMI_Verbose_Help(shortUsage);
+#endif
     print_Echo_Command_Line_Help(shortUsage);
     print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
     print_Force_ATA_Help(shortUsage);
@@ -1177,12 +1176,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
-#if defined (ENABLE_CSMI)
-    print_CSMI_Force_Flags_Help(shortUsage);
-    print_CSMI_Verbose_Help(shortUsage);
-#endif
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);

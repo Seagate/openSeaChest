@@ -356,11 +356,11 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_READY_LED_MODE = true;
+                    SET_READY_LED_MODE = false;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_READY_LED_MODE = false;
+                    SET_READY_LED_MODE = true;
                 }
                 else
                 {
@@ -1998,7 +1998,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Scan_Help(shortUsage, deviceHandleExample);
