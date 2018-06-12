@@ -979,20 +979,7 @@ int32_t main(int argc, char *argv[])
 
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (DISPLAY_LBA_FLAG)
