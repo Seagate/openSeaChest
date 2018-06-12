@@ -221,9 +221,7 @@ int32_t main(int argc, char *argv[])
                 SET_PHY_ALL_PHYS = false;
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
-			else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0) ||
-				(strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
-				)
+			else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
             {
                 SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
@@ -232,11 +230,11 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_READY_LED_MODE = true;
+                    SET_READY_LED_MODE = false;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_READY_LED_MODE = false;
+                    SET_READY_LED_MODE = true;
                 }
                 else
                 {
@@ -2043,7 +2041,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);

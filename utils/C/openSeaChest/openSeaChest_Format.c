@@ -1220,7 +1220,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1235,7 +1235,6 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
-    print_Set_Sector_Size_Help(shortUsage);
     print_Show_Supported_Sector_Sizes_Help(shortUsage);
     //SATA Only Options
     //printf("\n\tSATA Only:\n\n");
@@ -1250,6 +1249,7 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
+	print_Set_Sector_Size_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
     //print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);

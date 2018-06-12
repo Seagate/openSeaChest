@@ -1334,9 +1334,9 @@ void print_Set_Ready_LED_Help(bool shortHelp)
     {
         printf("\t\tUse this option to change the behavior of the ready LED.\n");
 		printf("\t\tSee the SPL spec for full details on how this changes LED\n");
-		printf("\t\t    on - sets the ready LED to usually off unless\n");
+		printf("\t\t    on - sets the ready LED to usually on unless\n");
 		printf("\t\t         processing a command.\n");
-		printf("\t\t    off - sets the ready LED to usually on unless\n");
+		printf("\t\t    off - sets the ready LED to usually off unless\n");
 		printf("\t\t          processing a command\n");
 		printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
     }
