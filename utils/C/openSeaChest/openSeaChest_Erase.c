@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "1.7.0";
+const char *buildVersion = "1.7.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -238,6 +238,11 @@ int32_t main(int argc, char *argv[])
                 {
                     PARTIAL_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
@@ -259,7 +264,15 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                    	RUN_TRIM_UNMAP_FLAG = false;
+                        if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0)
+                        {
+                            print_Error_In_Cmd_Line_Args(TRIM_LONG_OPT_STRING, optarg);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(UNMAP_LONG_OPT_STRING, optarg);
+                        }
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -282,7 +295,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_OVERWRITE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(OVERWRITE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -318,7 +332,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_WRITE_SAME_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(WRITE_SAME_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -351,7 +366,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                    	DISPLAY_LBA_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -432,7 +448,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        PATTERN_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -477,8 +494,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -521,7 +537,7 @@ int32_t main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -598,6 +614,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -810,10 +830,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -1563,10 +1583,15 @@ int32_t main(int argc, char *argv[])
                 formatUnitParameters.completeList = false;
                 formatUnitParameters.disablePrimaryList = false;
                 formatUnitParameters.disableCertification = false;
+                formatUnitParameters.stopOnListError = false;
+                formatUnitParameters.defaultFormat = true;//This is true unless we need to write a pattern since we aren't setting any of the other format option flags!!
+                formatUnitParameters.protectionType = deviceList[deviceIter].drive_info.currentProtectionType;
+                formatUnitParameters.protectionIntervalExponent = deviceList[deviceIter].drive_info.piExponent;
                 if (PATTERN_FLAG)
                 {
                     formatUnitParameters.pattern = PATTERN_BUFFER;
                     formatUnitParameters.patternLength = deviceList[deviceIter].drive_info.deviceBlockSize;
+                    formatUnitParameters.defaultFormat = false;//This is true unless we need to write a pattern!!
                 }
                 formatUnitParameters.securityInitialize = false;
                 int formatRet = UNKNOWN;
@@ -2098,7 +2123,6 @@ void utility_Usage(bool shortUsage)
     print_Force_ATA_PIO_Help(shortUsage);
     print_Force_ATA_UDMA_Help(shortUsage);
     print_Force_SCSI_Help(shortUsage);
-    print_Force_Seagate_Depop_Help(shortUsage);
     print_Help_Help(shortUsage);
     print_Hide_LBA_Counter_Help(shortUsage);
     print_License_Help(shortUsage);
@@ -2110,9 +2134,8 @@ void utility_Usage(bool shortUsage)
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
-
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -2140,7 +2163,7 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("========================================\n");
+    printf("=========================\n");
     //multiple interfaces
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
@@ -2161,5 +2184,4 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSAS Only:\n\t=========\n");
     print_Fast_Format_Help(shortUsage);
     print_Format_Unit_Help(shortUsage);
-
 }

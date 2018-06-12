@@ -1,7 +1,7 @@
 openSeaChest_Basics.Lin.txt                               Revision: 09-Nov-2017
 ===============================================================================
  openSeaChest_Basics for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
  openSeaChest_Basics Version: 2.7.1
  Build Date: Nov 02 2017
 ===============================================================================
@@ -656,7 +656,7 @@ SATA HDD Device Information:
 [sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -731,7 +731,7 @@ SATA SSD Device Information:
 [sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg1 -i
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -797,13 +797,13 @@ SAS HDD Device Information:
 [sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg2
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
         Firmware Revision: 0004
         World Wide Name: 500Q0C5005594AEFB
-        Copyright: Copyright (c) 2014 Seagate All rights reserved
+        Copyright: Copyright (c) 2014 Seagate All Rights Reserved
         Drive Capacity (TB/TiB): 4.00/3.64
         Temperature Data:
                 Current Temperature (C): 28
@@ -860,13 +860,13 @@ SAS SSD: Device Information
 [sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg3 -i
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
         Firmware Revision: 0006
         World Wide Name: 5000QC50069010B4B
-        Copyright: Copyright (c) 2014 Seagate All rights reserved -
+        Copyright: Copyright (c) 2014 Seagate All Rights Reserved -
         Drive Capacity (GB/GiB): 400.09/372.61
         Temperature Data:
                 Current Temperature (C): 34
@@ -932,7 +932,7 @@ Reminder: Seagate Support does not help to analyze SMART attributes.
 [sysop@localhost ~]$ sudo ./SeaChest_x64 -d /dev/sg0 --smartAttributes
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
 Attribute Name:                   Status: Nominal: Worst:     Raw (hex):
   1 Read Error Rate               0x000F    0x75    0x63      0x0000000969AFB4
@@ -1225,7 +1225,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.8.1";
+const char *buildVersion = "1.9.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -105,6 +105,11 @@ int32_t main(int argc, char *argv[])
     SEAGATE_POWER_BALANCE_VARS
     SATA_DIPM_VARS
     SATA_DAPS_VARS
+    STANDBY_VAR
+    SLEEP_VAR
+    IDLE_VAR
+    IDLE_UNLOAD_VAR
+    ACTIVE_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -164,6 +169,11 @@ int32_t main(int argc, char *argv[])
         SEAGATE_POWER_BALANCE_LONG_OPT,
         SATA_DIPM_LONG_OPT,
         SATA_DAPS_LONG_OPT,
+        STANDBY_LONG_OPT,
+        SLEEP_LONG_OPT,
+        IDLE_LONG_OPT,
+        IDLE_UNLOAD_LONG_OPT,
+        ACTIVE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -203,6 +213,11 @@ int32_t main(int argc, char *argv[])
                 {
                     EPC_ENABLED_IDENTIFIER = DISABLE_EPC;
                 }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(EPC_ENABLED_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             //parse long options that have no short option and required arguments here
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_LONG_OPT_STRING))) == 0)
@@ -242,6 +257,11 @@ int32_t main(int argc, char *argv[])
                     {
                         POWER_MODE_IDENTIFIER = PWR_CND_ALL;
                     }
+					else
+					{
+						print_Error_In_Cmd_Line_Args(POWER_MODE_LONG_OPT_STRING, optarg);
+						exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+					}
                 }
             }
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_TIMER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_TIMER_LONG_OPT_STRING))) == 0)
@@ -298,14 +318,11 @@ int32_t main(int argc, char *argv[])
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DIPM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DIPM_LONG_OPT_STRING))) == 0)
             {
@@ -323,14 +340,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DIPM_FLAG = true;
                     SATA_DIPM_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SATA_DIPM_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SATA_DIPM_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DAPS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DAPS_LONG_OPT_STRING))) == 0)
             {
@@ -348,14 +362,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DAPS_FLAG = true;
                     SATA_DAPS_ENABLE_FLAG = false;
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Unknown argument \"%s\" for --%s option\n", optarg, SATA_DAPS_LONG_OPT_STRING);
-                    }
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+				else
+				{
+					print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -445,8 +456,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -480,7 +490,7 @@ int32_t main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -557,6 +567,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -640,6 +654,10 @@ int32_t main(int argc, char *argv[])
         || SATA_DIPM_FLAG
         || SATA_DAPS_INFO_FLAG
         || SATA_DAPS_FLAG
+        || STANDBY_FLAG
+        || SLEEP_FLAG
+        || IDLE_FLAG
+        || IDLE_UNLOAD_FLAG
         ))
     {
         utility_Usage(true);
@@ -663,7 +681,7 @@ int32_t main(int argc, char *argv[])
     version.version = DEVICE_BLOCK_VERSION;
     version.size = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG)
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG || STANDBY_FLAG || IDLE_FLAG || IDLE_UNLOAD_FLAG || SLEEP_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
@@ -772,10 +790,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -983,6 +1001,146 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (IDLE_FLAG)
+        {
+            switch (transition_To_Idle(&deviceList[deviceIter], false))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to idle state.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to idle not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to idle state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (IDLE_UNLOAD_FLAG)
+        {
+            switch (transition_To_Idle(&deviceList[deviceIter], true))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to idle (unload) state.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to idle (unload) not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to idle (unload) state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (STANDBY_FLAG)
+        {
+            switch (transition_To_Standby(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to standby state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to standby not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to standby state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SLEEP_FLAG)
+        {
+            switch (transition_To_Sleep(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to sleep state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nNOTE: drive will now require a reset to wake.\tThe system may not be able to rediscover it without a reboot.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to sleep not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to sleep state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (ACTIVE_FLAG)
+        {
+            switch (transition_To_Active(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("\nSuccessfully tansitioned to active state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Transitioning to active not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("ERROR: Could not transition to active state\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (TRANSITION_POWER_MODE_FLAG)
         {
             if (POWER_MODE_IDENTIFIER != PWR_CND_NOT_SET && POWER_MODE_IDENTIFIER != PWR_CND_ALL)
@@ -1148,6 +1306,7 @@ int32_t main(int argc, char *argv[])
         if (SHOW_POWER_CONSUMPTION_FLAG)
         {
             powerConsumptionIdentifiers identifiers;
+			memset(&identifiers, 0, sizeof(powerConsumptionIdentifiers));
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
@@ -1582,7 +1741,7 @@ void utility_Usage(bool shortUsage)
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
     //utility options - alphabetized
-    printf("Utility Options\n");
+    printf("\nUtility Options\n");
     printf("===============\n");
 #if defined (ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
@@ -1606,7 +1765,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1617,15 +1776,20 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
+    print_Active_Help(shortUsage);
     print_Change_Power_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Default_Power_Mode_Help(shortUsage);
     print_Disable_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
     print_Enable_Power_Mode_Help(shortUsage);
+    print_Idle_Help(shortUsage);
+    print_Idle_Unload_Help(shortUsage);
     print_Power_Mode_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Sleep_Help(shortUsage);
     print_Spindown_Help(shortUsage);
+    print_Standby_Help(shortUsage);
     print_Timer_Mode_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
     //SATA Only Options

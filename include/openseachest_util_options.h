@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,6 +30,8 @@ extern "C"
 #endif
 
     #include "common.h"
+#include "opensea_common_version.h"
+#include "opensea_operation_version.h"
 
     //this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack corruption at runtime
     //This type should only be used where a boolean is desired when using the getopt parser (which expects an int), otherwise bool will do just fine
@@ -144,7 +146,7 @@ extern "C"
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
     #define ONLY_SEAGATE_LONG_OPT_STRING "onlySeagate"
-    #define ONLY_SEAGATE_LONG_OPT { ONLY_SEAGATE_LONG_OPT_STRING, no_argument, &ONLY_SEAGATE_FLAG, goFalse }
+    #define ONLY_SEAGATE_LONG_OPT { ONLY_SEAGATE_LONG_OPT_STRING, no_argument, &ONLY_SEAGATE_FLAG, goTrue }
     
     #define FORCE_SCSI_FLAG forceSCSI
     #define FORCE_ATA_FLAG forceATA
@@ -313,6 +315,31 @@ extern "C"
     #define SPIN_DOWN_LONG_OPT_STRING "spinDown"
     #define SPIN_DOWN_LONG_OPT { SPIN_DOWN_LONG_OPT_STRING, no_argument, &SPIN_DOWN_FLAG, goTrue }
 
+    #define STANDBY_FLAG standby
+    #define STANDBY_VAR getOptBool STANDBY_FLAG = goFalse;
+    #define STANDBY_LONG_OPT_STRING "standby"
+    #define STANDBY_LONG_OPT { STANDBY_LONG_OPT_STRING, no_argument, &STANDBY_FLAG, goTrue }
+
+    #define SLEEP_FLAG sleep
+    #define SLEEP_VAR getOptBool SLEEP_FLAG = goFalse;
+    #define SLEEP_LONG_OPT_STRING "sleep"
+    #define SLEEP_LONG_OPT { SLEEP_LONG_OPT_STRING, no_argument, &SLEEP_FLAG, goTrue }
+
+    #define IDLE_FLAG idle
+    #define IDLE_VAR getOptBool IDLE_FLAG = goFalse;
+    #define IDLE_LONG_OPT_STRING "idle"
+    #define IDLE_LONG_OPT { IDLE_LONG_OPT_STRING, no_argument, &IDLE_FLAG, goTrue }
+
+    #define IDLE_UNLOAD_FLAG idleUnload
+    #define IDLE_UNLOAD_VAR getOptBool IDLE_UNLOAD_FLAG = goFalse;
+    #define IDLE_UNLOAD_LONG_OPT_STRING "idleUnload"
+    #define IDLE_UNLOAD_LONG_OPT { IDLE_UNLOAD_LONG_OPT_STRING, no_argument, &IDLE_UNLOAD_FLAG, goTrue }
+
+    #define ACTIVE_FLAG activeState
+    #define ACTIVE_VAR getOptBool ACTIVE_FLAG = goFalse;
+    #define ACTIVE_LONG_OPT_STRING "active"
+    #define ACTIVE_LONG_OPT { ACTIVE_LONG_OPT_STRING, no_argument, &ACTIVE_FLAG, goTrue }
+
     #define ENABLE_POWER_MODE_FLAG enablePowerMode
     #define ENABLE_POWER_MODE_VAR getOptBool ENABLE_POWER_MODE_FLAG = goFalse;
     #define ENABLE_POWER_MODE_LONG_OPT_STRING "enableMode"
@@ -382,6 +409,12 @@ extern "C"
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
     #define GENERIC_TEST_LONG_OPT_STRING "genericMode"
     #define GENERIC_TEST_LONG_OPT { GENERIC_TEST_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //buffer test
+    #define BUFFER_TEST_FLAG performBufferTest
+    #define BUFFER_TEST_VAR getOptBool BUFFER_TEST_FLAG = goFalse;
+    #define BUFFER_TEST_LONG_OPT_STRING "bufferTest"
+    #define BUFFER_TEST_LONG_OPT { BUFFER_TEST_LONG_OPT_STRING, no_argument, &BUFFER_TEST_FLAG, goTrue }
 
     #define SHORT_GENERIC_FLAG runShortGeneric
     #define SHORT_GENERIC_VAR \
@@ -747,16 +780,19 @@ extern "C"
     #define SSC_FEATURE_LONG_OPT { SSC_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
 
-    //set pin 11
-    #define SET_PIN_11_FLAG setPin11
-    #define SET_PIN_11_MODE pin11Mode //on or off or default
-    #define SET_PIN_11_DEFAULT pin11Default
-    #define SET_PIN_11_VARS \
-    bool SET_PIN_11_FLAG = false;\
-    bool SET_PIN_11_MODE = false;\
-    bool SET_PIN_11_DEFAULT = false;
-    #define SET_PIN_11_LONG_OPT_STRING "pin11"
+    //set ready LED - previously misnamed pin11
+    #define SET_READY_LED_FLAG setReadyLED
+    #define SET_READY_LED_MODE readyLEDMode //on or off or default
+    #define SET_READY_LED_DEFAULT readyLEDDefault
+    #define SET_READY_LED_VARS \
+    bool SET_READY_LED_FLAG = false;\
+    bool SET_READY_LED_MODE = false;\
+    bool SET_READY_LED_DEFAULT = false;
+    #define SET_PIN_11_LONG_OPT_STRING "pin11" //left for backwards compatibility
     #define SET_PIN_11_LONG_OPT { SET_PIN_11_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define SET_READY_LED_LONG_OPT_STRING "readyLED" //left for backwards compatibility
+	#define SET_READY_LED_LONG_OPT { SET_READY_LED_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define SET_READY_LED_LONG_OPTS SET_PIN_11_LONG_OPT, SET_READY_LED_LONG_OPT
 
     //read look ahead
     #define READ_LOOK_AHEAD_INFO readLookAheadInfo
@@ -862,22 +898,28 @@ extern "C"
     #define FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG  discardExistingGList
     #define FORMAT_UNIT_DISABLE_CERTIFICATION           disableCertification
     #define FORMAT_UNIT_SECURITY_INITIALIZE             formatSecurityInitialize
+    #define FORMAT_UNIT_PROECTION_TYPE_FROM_USER        userSpecifiedPI
     #define FORMAT_UNIT_PROTECTION_TYPE                 formatProtectionType
     #define FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT    formatProtectionIntervalExponent
+    #define FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER        userSpecifiedPIexponent
     #define FORMAT_UNIT_DEFAULT_FORMAT                  performDefaultFormat
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE      disableFormatImmediateResponse
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR              formatStopOnListError
+	#define FORMAT_UNIT_NEW_MAX_LBA                     newMaxLBA
 
     #define FORMAT_UNIT_OPTION_FLAGS \
     getOptBool FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG = goFalse;\
     getOptBool FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG = goFalse;\
     getOptBool FORMAT_UNIT_DISABLE_CERTIFICATION = goFalse;\
     getOptBool FORMAT_UNIT_SECURITY_INITIALIZE = goFalse;\
+    bool FORMAT_UNIT_PROECTION_TYPE_FROM_USER = false;\
     uint8_t FORMAT_UNIT_PROTECTION_TYPE = 0;\
+    bool FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = false;\
     uint8_t FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = 0;\
     getOptBool FORMAT_UNIT_DEFAULT_FORMAT = goFalse;\
     getOptBool FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE = goFalse;\
-    getOptBool FORMAT_UNIT_STOP_ON_LIST_ERROR = goFalse;
+    getOptBool FORMAT_UNIT_STOP_ON_LIST_ERROR = goFalse;\
+    uint64_t FORMAT_UNIT_NEW_MAX_LBA = 0;
 
     #define FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT_STRING "disablePrimaryList"
     #define FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT_STRING "discardGList"
@@ -888,6 +930,7 @@ extern "C"
     #define FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT_STRING "defaultFormat"
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT_STRING "disableImmediateResponse"  
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT_STRING "stopOnListError"
+	#define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING "formatMaxLBA"
 
     #define FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT { FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG, goTrue }
     #define FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT { FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG, goTrue }
@@ -898,9 +941,10 @@ extern "C"
     #define FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT { FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DEFAULT_FORMAT, goTrue }
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT { FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE, goTrue }
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT { FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_STOP_ON_LIST_ERROR, goTrue }
+	#define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT { FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define FORMAT_UNIT_ADDITIONAL_OPTIONS\
      FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISABLE_CERTIFICATION_LONG_OPT,FORMAT_UNIT_SECURITY_INITIALIZE_LONG_OPT,\
-     FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT,FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT,FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT,FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT,FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT
+     FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT,FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT,FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT,FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT,FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT,FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT
 
     //show format status log
     #define SHOW_FORMAT_STATUS_LOG_FLAG showFormatStatusLog
@@ -1275,6 +1319,19 @@ extern "C"
     #define SATA_DAPS_LONG_OPT_STRING "sataDAPSfeature"
     #define SATA_DAPS_LONG_OPT { SATA_DAPS_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //Free fall control
+    #define FREE_FALL_FLAG setFreeFall
+    #define FREE_FALL_DISABLE disableFreeFall
+    #define FREE_FALL_INFO freeFallInfo
+    #define FREE_FALL_SENSITIVITY freeFallSensitivity
+    #define FREE_FALL_VARS \
+    bool FREE_FALL_FLAG = false;\
+    bool FREE_FALL_INFO = false;\
+    bool FREE_FALL_DISABLE = false;\
+    uint8_t FREE_FALL_SENSITIVITY = 0;
+    #define FREE_FALL_LONG_OPT_STRING "freeFall"
+    #define FREE_FALL_LONG_OPT { FREE_FALL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -1283,7 +1340,7 @@ extern "C"
 
     void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion);
 
-    void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion);
+    void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion);
 
     //-----------------------------------------------------------------------------
     //
@@ -2285,7 +2342,7 @@ extern "C"
 
     void printf_Set_Phy_Speed_Help(bool shortHelp);
 
-    void print_Set_Pin_11_Help(bool shortHelp);
+    void print_Set_Ready_LED_Help(bool shortHelp);
 
     void print_Read_Look_Ahead_Help(bool shortHelp);
 
@@ -2340,6 +2397,8 @@ extern "C"
     void print_Format_Disable_Immediate_Response_Help(bool shortHelp);
 
     void print_Format_Stop_On_List_Error_Help(bool shortHelp);
+
+	void print_Format_New_Max_LBA_Help(bool shortHelp);
 
     void print_Show_Format_Status_Log_Help(bool shortHelp);
 
@@ -2442,6 +2501,8 @@ extern "C"
 
 	void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
 
+    void print_Buffer_Test_Help(bool shortHelp);
+
     //Returns 255 when a memory allocation/reallocation error occurs (prints to stderr), 254 when a parameter is missing, zero otherwise.
     int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandleProvided, uint32_t *deviceCount, char ***handleList);
 
@@ -2495,6 +2556,18 @@ extern "C"
     void print_DIPM_Help(bool shortHelp);
 
     void print_DAPS_Help(bool shortHelp);
+
+    void print_Active_Help(bool shortHelp);
+
+    void print_Sleep_Help(bool shortHelp);
+
+    void print_Idle_Unload_Help(bool shortHelp);
+
+    void print_Idle_Help(bool shortHelp);
+
+    void print_Standby_Help(bool shortHelp);
+
+    void print_Free_Fall_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

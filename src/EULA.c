@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -110,7 +110,7 @@ void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense)
     printf("    purposes of this definition, \"control\" means (a) the power, direct\n");
     printf("    or indirect, to cause the direction or management of such entity,\n");
     printf("    whether by contract or otherwise, or (b) ownership of more than\n");
-    printf("    fifty percent (50%) of the outstanding shares or beneficial\n");
+    printf("    fifty percent (50%%) of the outstanding shares or beneficial\n");
     printf("    ownership of such entity.\n\n");
 
     printf("2. License Grants and Conditions\n");

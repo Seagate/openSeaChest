@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 // ******************************************************************************************
 // 
 // 
-// \file OpenSeaChest_Basic.c command line that performs various basic functions on a device.
+// \file OpenSeaChest_Basics.c command line that performs various basic functions on a device.
 
 //////////////////////
 //  Included files  //
@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.7.0";
+const char *buildVersion = "2.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -103,8 +103,6 @@ int32_t main(int argc, char *argv[])
     SHORT_DST_VAR
     SMART_ATTRIBUTES_VARS
     ABORT_DST_VAR
-    ABORT_IDD_VAR
-    IDD_TEST_VARS
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
     DOWNLOAD_FW_VARS
@@ -112,7 +110,7 @@ int32_t main(int argc, char *argv[])
     RESTORE_MAX_LBA_VAR
     SET_PHY_SAS_PHY_IDENTIFIER_VAR
     SET_PHY_SPEED_VARS
-    SET_PIN_11_VARS
+	SET_READY_LED_VARS
     READ_LOOK_AHEAD_VARS
     WRITE_CACHE_VARS
     TRIM_UNMAP_VARS
@@ -167,8 +165,6 @@ int32_t main(int argc, char *argv[])
         SHORT_DST_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         ABORT_DST_LONG_OPT,
-        ABORT_IDD_LONG_OPT,
-        IDD_TEST_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -178,7 +174,7 @@ int32_t main(int argc, char *argv[])
         RESTORE_MAX_LBA_LONG_OPT,
         SET_PHY_SPEED_LONG_OPT,
         SET_PHY_SAS_PHY_LONG_OPT,
-        SET_PIN_11_LONG_OPT,
+		SET_READY_LED_LONG_OPTS,
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         OVERWRITE_LONG_OPTS,
@@ -233,6 +229,11 @@ int32_t main(int argc, char *argv[])
                 {
                     PARTIAL_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
@@ -254,7 +255,15 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_TRIM_UNMAP_FLAG = false;
+                        if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0)
+                        {
+                            print_Error_In_Cmd_Line_Args(TRIM_LONG_OPT_STRING, optarg);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(UNMAP_LONG_OPT_STRING, optarg);
+                        }
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -277,7 +286,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        RUN_OVERWRITE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(OVERWRITE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -314,6 +324,11 @@ int32_t main(int argc, char *argv[])
                 {
                     DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
@@ -330,25 +345,27 @@ int32_t main(int argc, char *argv[])
                 SET_PHY_ALL_PHYS = false;
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
+            else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0) ||
+				(strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
+				)
             {
-                SET_PIN_11_FLAG = true;
+                SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
-                    SET_PIN_11_DEFAULT = true;
+                    SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_PIN_11_MODE = true;
+                    SET_READY_LED_MODE = false;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_PIN_11_MODE = false;
+                    SET_READY_LED_MODE = true;
                 }
                 else
                 {
-                    //invalid option sent
-                    SET_PIN_11_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SET_READY_LED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
@@ -370,7 +387,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        READ_LOOK_AHEAD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(READ_LOOK_AHEAD_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -393,7 +411,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -403,42 +422,6 @@ int32_t main(int argc, char *argv[])
                 sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
                 //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
                 TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
-            }
-            else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
-            {
-                RUN_IDD_FLAG = true;
-                if (strcmp(optarg, "short") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                }
-                else if (strcmp(optarg, "long") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                }
-                else if (strcmp(optarg, "repair") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                }
-                else
-                {
-                    //read in the argument as a hex value instead of an integer
-                    uint32_t iddTestNumber = 0;
-                    sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    switch (iddTestNumber)
-                    {
-                    case 0x70:
-                        IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                        break;
-                    case 0x71:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                        break;
-                    case 0x72:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                        break;
-                    default:
-                        RUN_IDD_FLAG = false;
-                    }
-                }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
             {
@@ -453,7 +436,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Invalid argument to --%s: %s\n", SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -492,7 +475,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                    	DISPLAY_LBA_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -563,8 +547,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -601,7 +584,7 @@ int32_t main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -678,6 +661,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -747,15 +734,13 @@ int32_t main(int argc, char *argv[])
         || SHORT_DST_FLAG
         || SMART_ATTRIBUTES_FLAG
         || ABORT_DST_FLAG
-        || ABORT_IDD_FLAG
-        || RUN_IDD_FLAG
         || CHECK_POWER_FLAG
         || SPIN_DOWN_FLAG
         || DOWNLOAD_FW_FLAG
         || RESTORE_MAX_LBA_FLAG
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
-        || SET_PIN_11_FLAG
+        || SET_READY_LED_FLAG
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
@@ -901,10 +886,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -1235,47 +1220,6 @@ int32_t main(int argc, char *argv[])
             }
         }
         
-        if (ABORT_IDD_FLAG)
-        {
-            int abortResult = UNKNOWN;
-            if (VERBOSITY_QUIET < g_verbosity)
-            {
-                printf("Aborting IDD\n");
-            }
-            abortResult = abort_DST(&deviceList[deviceIter]);//calls into the same code to do the abort - TJE
-            switch (abortResult)
-            {
-            case UNKNOWN:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Unknown Error occurred while trying to abort IDD\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            case SUCCESS:
-            case ABORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Successfully aborted IDD.\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Aborting IDD is not supported on this device.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Abort IDD Failed!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
         if (SHORT_DST_FLAG)
         {
             int32_t DSTResult = UNKNOWN;
@@ -1331,103 +1275,6 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("Short DST Failed!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (RUN_IDD_FLAG)
-        {
-            int32_t IDDResult = UNKNOWN;
-            if (VERBOSITY_QUIET < g_verbosity)
-            {
-                uint64_t iddTimeSeconds = 0;
-                uint8_t hours = 0, minutes = 0, seconds = 0;
-                get_Approximate_IDD_Time(&deviceList[deviceIter], IDD_TEST_FLAG, &iddTimeSeconds);
-                if (iddTimeSeconds == UINT64_MAX)
-                {
-                    printf("A time estimate is not available for this IDD operation");
-                }
-                else
-                {
-                    printf("The In Drive Diagnostics (IDD) test will take approximately ");
-                    convert_Seconds_To_Displayable_Time(iddTimeSeconds, NULL, NULL, &hours, &minutes, &seconds);
-                    print_Time_To_Screen(NULL, NULL, &hours, &minutes, &seconds);
-                }
-                printf("\n");
-            }
-            IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG);
-            switch (IDDResult)
-            {
-            case UNKNOWN:
-                //IDD was not run
-                break;
-            case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT)//short test is run in captive mode, so polling doesn't make sense
-                    {
-                        printf("IDD - ");
-                        switch(IDD_TEST_FLAG)
-                        {
-                        case SEAGATE_IDD_SHORT:
-                            printf("short");
-                            break;
-                        case SEAGATE_IDD_LONG:
-                            printf("long");
-                            break;
-                        case SEAGATE_IDD_LONG_WITH_REPAIR:
-                            printf("long with repair");
-                            break;
-                        }
-                        printf(" - completed without error!\n");
-                    }
-                    else
-                    {
-                        printf("IDD - ");
-                        switch(IDD_TEST_FLAG)
-                        {
-                        case SEAGATE_IDD_SHORT:
-                            printf("short");
-                            break;
-                        case SEAGATE_IDD_LONG:
-                            printf("long");
-                            break;
-                        case SEAGATE_IDD_LONG_WITH_REPAIR:
-                            printf("long with repair");
-                            break;
-                        }
-                        printf(" - has been started.\n");
-                        printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
-                        printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
-                    }
-                }
-                break;
-            case IN_PROGRESS:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("A self test is currently in progress.\n");
-                }
-                break;
-            case ABORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD aborted!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_ABORTED;
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD not supported\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1626,28 +1473,28 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (SET_PIN_11_FLAG)
+        if (SET_READY_LED_FLAG)
         {
-            switch (change_Pin11(&deviceList[deviceIter], SET_PIN_11_DEFAULT, SET_PIN_11_MODE))
+            switch (change_Ready_LED(&deviceList[deviceIter], SET_READY_LED_DEFAULT, SET_READY_LED_MODE))
             {
             case SUCCESS:
                 exitCode = 0;
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Successfully changed pin 11 behavior!\n");
+                    printf("Successfully changed ready LED behavior!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Changin pin 11 behavior is not supported on this device or this device type.\n");
+                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Failed to change pin 11 behavior!\n");
+                    printf("Failed to change Ready LED behavior!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2151,7 +1998,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Scan_Help(shortUsage, deviceHandleExample);
@@ -2168,11 +2015,9 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Download_Help(shortUsage);
     print_Firmware_Download_Mode_Help(shortUsage);
     print_Short_DST_Help(shortUsage);
-    print_IDD_Help(shortUsage);
     print_Poll_Help(shortUsage);
-    print_Progress_Help(shortUsage, "dst, idd");
+    print_Progress_Help(shortUsage, "dst");
     print_Abort_DST_Help(shortUsage);
-    print_Abort_IDD_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
@@ -2187,19 +2032,17 @@ void utility_Usage(bool shortUsage)
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
-    print_Set_Pin_11_Help(shortUsage);
+	print_Set_Ready_LED_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
 
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("===========================\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
     print_Provision_Help(shortUsage);
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
-
-
 }

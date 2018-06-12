@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.10.0";
+const char *buildVersion = "1.12.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -92,14 +92,12 @@ int32_t main(int argc, char *argv[])
     RESTORE_MAX_LBA_VAR
     SET_PHY_SPEED_VARS
     SET_PHY_SAS_PHY_IDENTIFIER_VAR
-    SET_PIN_11_VARS
+    SET_READY_LED_VARS
     READ_LOOK_AHEAD_VARS
     WRITE_CACHE_VARS
     PROVISION_VAR
     TRIM_UNMAP_VARS //need these with provision var
     LOW_CURRENT_SPINUP_VARS
-    SET_SECTOR_SIZE_VARS
-    SHOW_SUPPORTED_SECTOR_SIZES_VAR
     SCT_WRITE_CACHE_VARS
     SCT_WRITE_CACHE_REORDER_VARS
     VOLATILE_VAR
@@ -110,6 +108,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     SCT_ERROR_RECOVERY_CONTROL_VARS
+    FREE_FALL_VARS
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -152,17 +151,16 @@ int32_t main(int argc, char *argv[])
         RESTORE_MAX_LBA_LONG_OPT,
         SET_PHY_SPEED_LONG_OPT,
         SET_PHY_SAS_PHY_LONG_OPT,
-        SET_PIN_11_LONG_OPT,
+		SET_READY_LED_LONG_OPTS,
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
-        SET_SECTOR_SIZE_LONG_OPT,
-        SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT,
         SCT_WRITE_CACHE_LONG_OPT,
         SCT_WRITE_CACHE_REORDER_LONG_OPT,
         PUIS_FEATURE_LONG_OPT,
         SSC_FEATURE_LONG_OPT,
         SCT_ERROR_RECOVERY_CONTROL_LONG_OPTS,
+        FREE_FALL_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -202,6 +200,11 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
@@ -218,25 +221,25 @@ int32_t main(int argc, char *argv[])
                 SET_PHY_ALL_PHYS = false;
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
+			else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
             {
-                SET_PIN_11_FLAG = true;
+                SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
-                    SET_PIN_11_DEFAULT = true;
+                    SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_PIN_11_MODE = true;
+                    SET_READY_LED_MODE = false;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_PIN_11_MODE = false;
+                    SET_READY_LED_MODE = true;
                 }
                 else
                 {
-                    //invalid option sent
-                    SET_PIN_11_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SET_READY_LED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
@@ -258,7 +261,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        READ_LOOK_AHEAD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(READ_LOOK_AHEAD_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -281,7 +285,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -305,13 +310,9 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+                    print_Error_In_Cmd_Line_Args(LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            }
-            else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
-            {
-                SET_SECTOR_SIZE_FLAG = true;
-                SET_SECTOR_SIZE_SIZE = (uint32_t)atoi(optarg);
             }
             else if (strcmp(longopts[optionIndex].name, SCT_WRITE_CACHE_LONG_OPT_STRING) == 0)
             {
@@ -336,7 +337,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SCT_WRITE_CACHE_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SCT_WRITE_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -363,7 +365,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SCT_WRITE_CACHE_REORDER_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SCT_WRITE_CACHE_REORDER_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -380,7 +383,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    PUIS_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(PUIS_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SSC_FEATURE_LONG_OPT_STRING) == 0)
@@ -406,7 +410,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        SET_SSC_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(SSC_FEATURE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -468,6 +473,33 @@ int32_t main(int argc, char *argv[])
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
                     SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = (uint32_t)atoi(optarg) * multiplier;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    FREE_FALL_INFO = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    FREE_FALL_FLAG = true;
+                    FREE_FALL_SENSITIVITY = 0;//enable to vendor recommended if this arg is given
+                }
+                else
+                {
+                    uint64_t value = 0;
+                    //this is a value to read in.
+                    if (SUCCESS != get_And_Validate_Integer_Input(optarg, &value))
+                    {
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    if (value > UINT8_MAX)
+                    {
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    FREE_FALL_FLAG = true;
+                    FREE_FALL_SENSITIVITY = (uint8_t)value;
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -558,8 +590,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -593,7 +624,7 @@ int32_t main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -670,6 +701,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -739,15 +774,13 @@ int32_t main(int argc, char *argv[])
         || RESTORE_MAX_LBA_FLAG
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
-        || SET_PIN_11_FLAG
+        || SET_READY_LED_FLAG
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
         || WRITE_CACHE_INFO
         || PROVISION_FLAG
         || LOW_CURRENT_SPINUP_FLAG
-        || SET_SECTOR_SIZE_FLAG
-        || SHOW_SUPPORTED_SECTOR_SIZES_FLAG
         || SCT_WRITE_CACHE_INFO
         || SCT_WRITE_CACHE_FLAG
         || SCT_WRITE_CACHE_REORDER_FLAG
@@ -759,6 +792,8 @@ int32_t main(int argc, char *argv[])
         || SCT_ERROR_RECOVERY_CONTROL_READ_INFO
         || SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER
         || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER
+        || FREE_FALL_FLAG
+        || FREE_FALL_INFO
         ))
     {
         utility_Usage(true);
@@ -891,10 +926,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -1131,28 +1166,28 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (SET_PIN_11_FLAG)
+        if (SET_READY_LED_FLAG)
         {
-            switch (change_Pin11(&deviceList[deviceIter], SET_PIN_11_DEFAULT, SET_PIN_11_MODE))
+            switch (change_Ready_LED(&deviceList[deviceIter], SET_READY_LED_DEFAULT, SET_READY_LED_MODE))
             {
             case SUCCESS:
                 exitCode = 0;
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Successfully changed pin 11 behavior!\n");
+                    printf("Successfully changed Ready LED behavior!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Changin pin 11 behavior is not supported on this device or this device type.\n");
+                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    printf("Failed to change pin 11 behavior!\n");
+                    printf("Failed to change Ready LED behavior!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1800,77 +1835,6 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-
-        if (SHOW_SUPPORTED_SECTOR_SIZES_FLAG)
-        {
-            switch (show_Supported_Sector_Sizes(&deviceList[deviceIter]))
-            {
-            case SUCCESS:
-                break;
-            case NOT_SUPPORTED:
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Failed to get supported sector sizes from device!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (SET_SECTOR_SIZE_FLAG)
-        {
-            if (DATA_ERASE_FLAG)
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Set Sector Size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
-                }
-                switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
-                {
-                case SUCCESS:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Successfully set sector size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
-                    }
-                    break;
-                case NOT_SUPPORTED:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Setting sector size not supported on this device\n");
-                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
-                        {
-                            printf("For SCSI Drives, try a format unit operation\n");
-                        }
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                    break;
-                default:
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Failed to set sector size!\n");
-                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
-                        {
-                            printf("For SCSI Drives, try a format unit operation\n");
-                        }
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    break;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a set sector size operation.\n\n");
-                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                }
-            }
-        }
         
         if(PUIS_FEATURE_FLAG)
         {
@@ -1914,6 +1878,105 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Failed to disable PUIS feature!\n");
                     }
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (FREE_FALL_FLAG)
+        {
+            if (FREE_FALL_DISABLE)
+            {
+                switch (disable_Free_Fall_Control_Feature(&deviceList[deviceIter]))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Free Fall Control feature successfully disabled!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Disabling Free Fall Control feature not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to disable Free Fall Control feature!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                switch (set_Free_Fall_Control_Sensitivity(&deviceList[deviceIter], FREE_FALL_SENSITIVITY))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        if (FREE_FALL_SENSITIVITY == 0)
+                        {
+                            printf("Free Fall Control feature successfully set to vendor's recommended value!\n");
+                        }
+                        else
+                        {
+                            printf("Free Fall Control feature successfully set to %" PRIu8 "!\n", FREE_FALL_SENSITIVITY);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Setting Free Fall Control sensitivity not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to set Free Fall Control sensitivity!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+        }
+
+        if (FREE_FALL_INFO)
+        {
+            uint16_t sensitivity = 0;
+            switch (get_Current_Free_Fall_Control_Sensitivity(&deviceList[deviceIter], &sensitivity))
+            {
+            case SUCCESS:
+                if (sensitivity == UINT16_MAX)
+                {
+                    printf("Free Fall control feature is supported, but not enabled.\n");
+                }
+                else if (sensitivity == 0)
+                {
+                    printf("Free Fall control sensitivity is set to the vendor's recommended value.\n");
+                }
+                else
+                {
+                    printf("Free Fall control sensitivity is set to %" PRIu16 " of 255.\n", sensitivity);
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Free Fall control feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Failed to get Free Fall control information.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1978,7 +2041,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1993,11 +2056,11 @@ void utility_Usage(bool shortUsage)
     print_Read_Look_Ahead_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
-    print_Show_Supported_Sector_Sizes_Help(shortUsage);
     print_Write_Cache_Help(shortUsage);
     
     //SATA Only Options
     printf("\n\tSATA Only:\n\t========\n");
+    print_Free_Fall_Help(shortUsage);
     print_Low_Current_Spinup_Help(shortUsage);
     print_PUIS_Feature_Help(shortUsage);
     print_Set_SSC_Help(shortUsage);
@@ -2008,7 +2071,7 @@ void utility_Usage(bool shortUsage)
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");
-    print_Set_Pin_11_Help(shortUsage);
+	print_Set_Ready_LED_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
 
     //data destructive commands - alphabetized
@@ -2016,5 +2079,4 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Provision_Help(shortUsage);
-    print_Set_Sector_Size_Help(shortUsage);
 }

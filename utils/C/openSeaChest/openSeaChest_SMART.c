@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,7 +36,7 @@
 //  Global Variables  //
 //////////////////////// 
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.9.0";
+const char *buildVersion = "1.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -213,6 +213,11 @@ int32_t main(int argc, char *argv[])
                 {
                     SINGLE_SECTOR_DATA_ERASE_FLAG = true;
                 }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
             {
@@ -224,10 +229,6 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "long") == 0)
                 {
                     IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                }
-                else if (strcmp(optarg, "repair") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
                 }
                 else
                 {
@@ -242,11 +243,9 @@ int32_t main(int argc, char *argv[])
                     case 0x71:
                         IDD_TEST_FLAG = SEAGATE_IDD_LONG;
                         break;
-                    case 0x72:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                        break;
                     default:
-                        RUN_IDD_FLAG = false;
+                        print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -267,7 +266,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    printf("Invalid argument to --%s: %s\n", SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -284,7 +283,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SET_MRIE_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MRIE_MODE_LONG_OPT_STRING))) == 0)
@@ -312,7 +312,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_ATTR_AUTOSAVE_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING))) == 0)
@@ -328,7 +329,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SMART_AUTO_OFFLINE_FEATURE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -369,7 +371,7 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        printf("You must add a a test type to run for the idd option. Valid tests are 70, 71, or 72\n");
+                        printf("You must add a a test type to run for the idd option. Valid tests are short or long\n");
                     }
                 }
                 break;
@@ -442,8 +444,7 @@ int32_t main(int argc, char *argv[])
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
-            utility_Usage(false);
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
@@ -477,7 +478,7 @@ int32_t main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -554,6 +555,10 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+		if (ONLY_SEAGATE_FLAG)
+		{
+			scanControl |= SCAN_SEAGATE_ONLY;
+		}
         scan_And_Print_Devs(scanControl, NULL);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -769,10 +774,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -1340,7 +1345,7 @@ int32_t main(int argc, char *argv[])
                     }
                     printf("\n");
                 }
-                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG);
+                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
                 switch (IDDResult)
                 {
                 case UNKNOWN:
@@ -1349,7 +1354,7 @@ int32_t main(int argc, char *argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT)//short test is run in captive mode, so polling doesn't make sense
+                        if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT || CAPTIVE_FOREGROUND_FLAG)//short test is run in captive mode, so polling doesn't make sense
                         {
                             printf("IDD - ");
                             switch(IDD_TEST_FLAG)
@@ -1360,9 +1365,9 @@ int32_t main(int argc, char *argv[])
                             case SEAGATE_IDD_LONG:
                                 printf("long");
                                 break;
-                            case SEAGATE_IDD_LONG_WITH_REPAIR:
-                                printf("long with repair");
-                                break;
+							default:
+								printf("unknown");
+								break;
                             }
                             printf(" - completed without error!\n");
                         }
@@ -1377,9 +1382,9 @@ int32_t main(int argc, char *argv[])
                             case SEAGATE_IDD_LONG:
                                 printf("long");
                                 break;
-                            case SEAGATE_IDD_LONG_WITH_REPAIR:
-                                printf("long with repair");
-                                break;
+							default:
+								printf("unknown");
+								break;
                             }
                             printf(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
@@ -1403,7 +1408,14 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < g_verbosity)
                     {
-                        printf("IDD not supported\n");
+                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && CAPTIVE_FOREGROUND_FLAG)
+                        {
+                            printf("Captive/foreground mode not supported on this IDD test on this drive.\n");
+                        }
+                        else
+                        {   
+                            printf("IDD not supported\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1762,7 +1774,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1799,6 +1811,6 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
-    printf("===========================\n");
+    printf("=========================\n");
     print_DST_And_Clean_Help(shortUsage);
 }

@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -61,7 +61,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char       *g_timeStringPtr = g_timeString;
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities\n", utilityName);
-    printf(" Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    printf(" Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
@@ -71,7 +71,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
 }
 
-void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion)
+void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
 {
     char osName[OS_NAME_SIZE] = { 0 };
     OSVersionNumber osversionnumber;
@@ -84,8 +84,10 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
 
     printf("Version Info for %s:\n", utilityName);
     printf("\tUtility Version: %s\n", buildVersion);
-    printf("\tLibrary Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
-    printf("\tBuild Date: %s\n", __DATE__);
+	printf("\topensea-common Version: %s\n", openseaCommonVersion);
+    printf("\topensea-transport Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
+	printf("\topensea-operations Version: %s\n", openseaOperationVersion);
+	printf("\tBuild Date: %s\n", __DATE__);
     printf("\tCompiled Architecture: ");
     print_Architecture(get_Compiled_Architecture());
     printf("\n\tDetected Endianness: ");
@@ -617,7 +619,7 @@ void print_Abort_IDD_Help(bool shortHelp)
 
 void print_IDD_Help(bool shortHelp)
 {
-    printf("\t--%s [short | long | repair]\t\t(Seagate Only)\n", IDD_TEST_LONG_OPT_STRING);
+    printf("\t--%s [short | long]\t\t(Seagate Only)\n", IDD_TEST_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tStart an In Drive Diagnostic (IDD) test on a Seagate\n");
@@ -628,8 +630,10 @@ void print_IDD_Help(bool shortHelp)
         printf("\t\t        test on the boot device.\n");
         printf("\t\tLong:   Reset and Recalibration test and test G list and \n");
         printf("\t\t        P list\n");
-        printf("\t\tRepair: Reset and Recalibration test and test G list and \n");
-        printf("\t\t        P list and attempt to repair or reallocate bad sectors.\n\n");
+        printf("\t\tNote: the --%s option can be added to run the long test in\n", CAPTIVE_LONG_OPT_STRING);
+		printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
+		printf("\t\t      and some additional checks to be performed. This may not\n");
+		printf("\t\t      work on some products.\n\n");
     }
 }
 
@@ -668,10 +672,82 @@ void print_Spindown_Help(bool shortHelp)
     printf("\t--%s\n", SPIN_DOWN_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tRemoves power to the disk drive motor with the Idle Immediate\n");
+        printf("\t\tRemoves power to the disk drive motor with the Standby Immediate\n");
         printf("\t\tcommand. Use this before moving a hard disk drive. The drive\n");
         printf("\t\twill spin back up if the operating system selects the drive.\n");
         printf("\t\tThis means that an active drive will not stay spun down.\n\n");
+    }
+}
+
+void print_Standby_Help(bool shortHelp)
+{
+    printf("\t--%s\n", STANDBY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the standby power state.\n");
+        printf("\t\tThis command will flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tOn an HDD, this will cause the spindle motor to stop.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Idle_Help(bool shortHelp)
+{
+    printf("\t--%s\n", IDLE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the idle power state.\n");
+        printf("\t\tThis command may flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Idle_Unload_Help(bool shortHelp)
+{
+    printf("\t--%s\n", IDLE_UNLOAD_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the idle, heads unloaded, power state.\n");
+        printf("\t\tThis command may flush the cache before the transition to this state.\n");
+        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
+        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
+        printf("\t\tbut offers less control over the transition.\n");
+        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
+        printf("\t\tan active state.\n\n");
+    }
+}
+
+void print_Sleep_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SLEEP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the sleep power state.\n");
+        printf("\t\tA reset must be sent to wake a drive from sleep state.\n");
+        printf("\t\tThe OS may not be able to wake a drive from this state once it has\n");
+        printf("\t\tbeen entered. Use this option with caution!\n\n");
+    }
+}
+
+void print_Active_Help(bool shortHelp)
+{
+    printf("\t--%s\n", ACTIVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis command will transition a drive to the active power state.\n");
+        printf("\t\tThis uses a ATA read-verify command to a random LBA, or a SCSI\n");
+        printf("\t\tstart-stop unit command.\n\n");
     }
 }
 
@@ -764,6 +840,21 @@ void print_Transition_Power_Help(bool shortHelp)
     {
         printf("\t\tUse this option to transition the drive to a specific\n");
         printf("\t\tpower state.\n\n");
+    }
+}
+
+void print_Buffer_Test_Help(bool shortHelp)
+{
+    printf("\t--%s\n", BUFFER_TEST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will perform a test using the device's echo buffer.\n");
+        printf("\t\tThe write buffer and read buffer commands are used to send &\n");
+        printf("\t\treceive different data patterns. The patterns are compared\n");
+        printf("\t\tand interface CRC errors are also checked (when available).\n");
+        printf("\t\tTest patterns performed are all 0's, all F's, all 5's, all A's,\n");
+        printf("\t\twalking 1's, walking 0's, and random data patterns.\n");
+        printf("\t\tAt completion, a count of the number of errors will be displayed.\n\n");
     }
 }
 
@@ -1205,7 +1296,7 @@ void print_Restore_Max_LBA_Help(bool shortHelp)
 
 void printf_Set_Phy_Speed_Help(bool shortHelp)
 {
-    printf("\t--%s [0 | 1 | 2 | 3] (SATA Only)\n", SET_PHY_SPEED_LONG_OPT_STRING);
+    printf("\t--%s [0 | 1 | 2 | 3] (SATA Only) (Seagate Only)\n", SET_PHY_SPEED_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the PHY speed to a\n");
@@ -1221,7 +1312,7 @@ void printf_Set_Phy_Speed_Help(bool shortHelp)
 
 void print_Set_SSC_Help(bool shortHelp)
 {
-    printf("\t--%s [info | default | enable | disable] (SATA Only)\n", SSC_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [info | default | enable | disable] (SATA Only) (Seagate Only)\n", SSC_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change or view the SSC (Spread Spectrum\n");
@@ -1236,17 +1327,18 @@ void print_Set_SSC_Help(bool shortHelp)
     }
 }
 
-void print_Set_Pin_11_Help(bool shortHelp)
+void print_Set_Ready_LED_Help(bool shortHelp)
 {
-    printf("\t--%s [on | off | default] (SAS Only)\n", SET_PIN_11_LONG_OPT_STRING);
+    printf("\t--%s [on | off | default] (SAS Only)\n", SET_READY_LED_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to change the behavior of pin 11, the ready LED.\n");
-        printf("\t\tSetting to \"on\" means we are setting the bit to 1 on mode page\n");
-        printf("\t\t19h. See the SPL spec for details on how this changes LED\n");
-        printf("\t\tbehavior. Setting to \"off\" sets the ready LED bit to 0.\n");
-        printf("\t\tUsing \"default\" reads the drive default setting\n");
-        printf("\t\tand sets the bit according to defaults.\n\n");
+        printf("\t\tUse this option to change the behavior of the ready LED.\n");
+		printf("\t\tSee the SPL spec for full details on how this changes LED\n");
+		printf("\t\t    on - sets the ready LED to usually on unless\n");
+		printf("\t\t         processing a command.\n");
+		printf("\t\t    off - sets the ready LED to usually off unless\n");
+		printf("\t\t          processing a command\n");
+		printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
     }
 }
 
@@ -1810,6 +1902,18 @@ void print_Format_Stop_On_List_Error_Help(bool shortHelp)
         printf("\t\tIf the device cannot locate or access an existing primary or\n");
         printf("\t\tgrown defect list, the format will stop and return with an error.\n\n");
     }
+}
+
+void print_Format_New_Max_LBA_Help(bool shortHelp)
+{
+	printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
+		printf("\t\tformat unit operation. This can speed up a format unit if\n");
+		printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
+		printf("\t\tcapacity while formattting.\n\n");
+	}
 }
 
 void print_Show_Format_Status_Log_Help(bool shortHelp)
@@ -2392,7 +2496,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             char *deviceHandle = &windowsHandle[0];
             char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
-            if (strncmp((char *)optarg, "PD", 2) == 0)
+            if (_strnicmp((char *)optarg, "PD", 2) == 0)
             {
                 physicalDeviceNumber = strpbrk((char *)optarg, "0123456789");
                 sprintf(deviceHandle, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
@@ -2620,7 +2724,7 @@ void print_Show_Locked_Regions_Help(bool shortHelp)
 
 void print_Seagate_Power_Balance_Help(bool shortHelp)
 {
-    printf("\t--%s [ info | enable | disable ]\t(SATA Only) (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
+    printf("\t--%s [ info | enable | disable ]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to see the state of the Seagate Power Balance\n");
@@ -2630,7 +2734,11 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
         printf("\t\t  info - will dump the state of the Power Balance feature on the screen\n");
         printf("\t\t  enable - use this to enable Power Balance\n");
         printf("\t\t  disable - use this to disable Power Balance\n");
-        printf("\t\tNote: SAS products should use the --%s option instead.\n\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\tNote: While this feature is available on some SAS products,\n");
+		printf("\t\tit is recommended that the --%s option is\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+		printf("\t\tused instead since it allows more levels of control.\n");
+		printf("\t\tThis option and the --%s option are incompatible\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+		printf("\t\tbecause they use the same mode page fields (1Ah-01h).\n\n");
     }
 }
 
@@ -2660,5 +2768,24 @@ void print_DAPS_Help(bool shortHelp)
         printf("\t\tNOTE: Please ensure that the host adapter/controller/driver can\n");
         printf("\t\thandle this before enabling it, otherwise the drive link may\n");
         printf("\t\tgo down and the device will not be able to communicate.\n\n");
+    }
+}
+
+void print_Free_Fall_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable | sensitivity value]\t(SATA only)\n", FREE_FALL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to configure the Free Fall control feature\n");
+        printf("\t\tfound on some SATA drives. This feature allows the drive to\n");
+        printf("\t\ttake action if it detects it is in free fall to protect the data\n");
+        printf("\t\tfrom harm due to a drop.\n");
+        printf("\t\t    info - use this to see the current sensitivity value\n");
+        printf("\t\t    enable - this option will set the sensitivity to the vendor's\n");
+        printf("\t\t             recommended value.\n");
+        printf("\t\t    disable - this will disable the free fall control feature.\n");
+        printf("\t\t    sensitivity value - set a value between 1 and 255 to control\n");
+        printf("\t\t                        how sensitive the detection is. A value of zero\n");
+        printf("\t\t                        will set the vendor's recommended value.\n\n");
     }
 }

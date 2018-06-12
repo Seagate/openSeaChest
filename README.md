@@ -1,7 +1,7 @@
 # openSeaChest
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
-#### Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#### Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 Welcome to the openSeaChest open source project!
 
@@ -30,13 +30,13 @@ tests that will examine the physical media on your storage device.
 **opensea-common**      - Operating System common operations, not specific to
                       storage standards. Contains functions and defines that
                       are useful to all other libraries.
-                      
+
 **opensea-transport**   - Contains standard ATA/SCSI/NVMe functions based on open
                       standards for these command sets.  This layer also
                       supports different transporting these commands through
                       operating systems to the storage devices. Code depends on
                       opensea-common.
-                      
+
 **opensea-operations**  - Contains common use cases for operations to be performed
                       on a storage device. This layer encapsulates the nuances
                       of each command set (ATA/SCSI) and operating systems
@@ -59,12 +59,89 @@ tests that will examine the physical media on your storage device.
 
 ### Building
 
+#### Linux
+Required Tools:
+* gcc
+* make
 
-### Documentation
+From a terminal, change directory to "OpenSeaChest/Make/gcc".
 
+Run the command "make release" to build the release version of the OpenSeaChest tools.
+After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
 
-### Platforms
+#### Windows
+Required Tools:
+* Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
+  * Windows 8/8.1 SDK for Visual Studio 2013
+  * Windows 10 SDK version 10.0.14393.0 for Visual Studio 2015
+  * Windows 10 SDK version 10.0.15063.0 for Visual Studio 2017 (x86 and x86_84)
+  * Windows 10 SDK version 10.0.16299.0 for Visual Studio 2017 (ARM and ARM64)
 
+  ##### Visual Studio
+  Open the solution file in "OpenSeaChest/Make/VS.(version)/openseachest.sln".
+  Set the desired build configuration.
+  Press "F7" to build all of the tools and libraries, or select "Build->Build All" from the menu.
+  The tools will be output into "OpenSeaChest/Make/VS.(version)/(platform)/(build type)".
+
+  Example: "OpenSeaChest/Make/VS.2017/x64/Release"
+  ##### msbuild
+  From the developer command prompt for the version of visual studio that installed msbuild, change directory to "OpenSeaChest/Make/VS.(version)".
+
+  Build with the command "msbuild /p:Configuration=(build type) /p:Platform=(platform)".
+
+  Example: "msbuild "msbuild /p:Configuration=Release /p:Platform=x64"
+
+  Available Platforms:
+  * Win32
+  * x64
+  * ARM (VS2017 only)
+  * ARM64 (VS2017 only)
+
+  Available Build Types:
+  * Release
+  * Debug
+  * Static-Release
+  * Static-Debug
+
+#### Solaris/OpenSolaris
+Required Tools:
+* gcc
+* gmake
+
+From a terminal, change directory to "OpenSeaChest/Make/gcc".
+
+Run the command "gmake release" to build the release version of the OpenSeaChest tools.
+After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
+
+#### Documentation
+
+Header files & functions have doxygen documentation.
+
+#### Platforms
+
+Under Linux this library can be built on the following platforms using
+a cross platform compiler:
+
+        aarch64
+        alpha
+        arm
+        armhf
+        hppa
+        m68k
+        mips
+        mips64
+        mips64el
+        mipsel
+        powerpc
+        powerpc64
+        powerpc64le
+        s390x
+        sh4
+        x86
+        x86_64
+
+This project can be build under Windows Visual Studio 2013 & 2015 solution
+files for x86 and x64 targets.
 
 ### Important Notes:
 
@@ -230,7 +307,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 -----------------------------------------
 
@@ -276,7 +353,7 @@ Mozilla Public License Version 2.0
     means any form of the work other than Source Code Form.
 
 **1.7. “Larger Work”**  
-    means a work that combines Covered Software with other material, in 
+    means a work that combines Covered Software with other material, in
     a separate file or files, that is not Covered Software.
 
 **1.8. “License”**  
