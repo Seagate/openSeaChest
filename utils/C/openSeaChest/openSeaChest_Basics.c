@@ -103,8 +103,6 @@ int32_t main(int argc, char *argv[])
     SHORT_DST_VAR
     SMART_ATTRIBUTES_VARS
     ABORT_DST_VAR
-    ABORT_IDD_VAR
-    IDD_TEST_VARS
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
     DOWNLOAD_FW_VARS
@@ -167,8 +165,6 @@ int32_t main(int argc, char *argv[])
         SHORT_DST_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         ABORT_DST_LONG_OPT,
-        ABORT_IDD_LONG_OPT,
-        IDD_TEST_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -426,43 +422,6 @@ int32_t main(int argc, char *argv[])
                 sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
                 //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
                 TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
-            }
-            else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
-            {
-                RUN_IDD_FLAG = true;
-                if (strcmp(optarg, "short") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                }
-                else if (strcmp(optarg, "long") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                }
-                else if (strcmp(optarg, "repair") == 0)
-                {
-                    IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                }
-                else
-                {
-                    //read in the argument as a hex value instead of an integer
-                    uint32_t iddTestNumber = 0;
-                    sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    switch (iddTestNumber)
-                    {
-                    case 0x70:
-                        IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                        break;
-                    case 0x71:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                        break;
-                    case 0x72:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG_WITH_REPAIR;
-                        break;
-                    default:
-                        print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                    }
-                }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
             {
@@ -775,8 +734,6 @@ int32_t main(int argc, char *argv[])
         || SHORT_DST_FLAG
         || SMART_ATTRIBUTES_FLAG
         || ABORT_DST_FLAG
-        || ABORT_IDD_FLAG
-        || RUN_IDD_FLAG
         || CHECK_POWER_FLAG
         || SPIN_DOWN_FLAG
         || DOWNLOAD_FW_FLAG
@@ -1263,47 +1220,6 @@ int32_t main(int argc, char *argv[])
             }
         }
         
-        if (ABORT_IDD_FLAG)
-        {
-            int abortResult = UNKNOWN;
-            if (VERBOSITY_QUIET < g_verbosity)
-            {
-                printf("Aborting IDD\n");
-            }
-            abortResult = abort_DST(&deviceList[deviceIter]);//calls into the same code to do the abort - TJE
-            switch (abortResult)
-            {
-            case UNKNOWN:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Unknown Error occurred while trying to abort IDD\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            case SUCCESS:
-            case ABORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Successfully aborted IDD.\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Aborting IDD is not supported on this device.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("Abort IDD Failed!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
         if (SHORT_DST_FLAG)
         {
             int32_t DSTResult = UNKNOWN;
@@ -1359,103 +1275,6 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("Short DST Failed!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (RUN_IDD_FLAG)
-        {
-            int32_t IDDResult = UNKNOWN;
-            if (VERBOSITY_QUIET < g_verbosity)
-            {
-                uint64_t iddTimeSeconds = 0;
-                uint8_t hours = 0, minutes = 0, seconds = 0;
-                get_Approximate_IDD_Time(&deviceList[deviceIter], IDD_TEST_FLAG, &iddTimeSeconds);
-                if (iddTimeSeconds == UINT64_MAX)
-                {
-                    printf("A time estimate is not available for this IDD operation");
-                }
-                else
-                {
-                    printf("The In Drive Diagnostics (IDD) test will take approximately ");
-                    convert_Seconds_To_Displayable_Time(iddTimeSeconds, NULL, NULL, &hours, &minutes, &seconds);
-                    print_Time_To_Screen(NULL, NULL, &hours, &minutes, &seconds);
-                }
-                printf("\n");
-            }
-            IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG);
-            switch (IDDResult)
-            {
-            case UNKNOWN:
-                //IDD was not run
-                break;
-            case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT)//short test is run in captive mode, so polling doesn't make sense
-                    {
-                        printf("IDD - ");
-                        switch(IDD_TEST_FLAG)
-                        {
-                        case SEAGATE_IDD_SHORT:
-                            printf("short");
-                            break;
-                        case SEAGATE_IDD_LONG:
-                            printf("long");
-                            break;
-                        case SEAGATE_IDD_LONG_WITH_REPAIR:
-                            printf("long with repair");
-                            break;
-                        }
-                        printf(" - completed without error!\n");
-                    }
-                    else
-                    {
-                        printf("IDD - ");
-                        switch(IDD_TEST_FLAG)
-                        {
-                        case SEAGATE_IDD_SHORT:
-                            printf("short");
-                            break;
-                        case SEAGATE_IDD_LONG:
-                            printf("long");
-                            break;
-                        case SEAGATE_IDD_LONG_WITH_REPAIR:
-                            printf("long with repair");
-                            break;
-                        }
-                        printf(" - has been started.\n");
-                        printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
-                        printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
-                    }
-                }
-                break;
-            case IN_PROGRESS:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("A self test is currently in progress.\n");
-                }
-                break;
-            case ABORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD aborted!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_ABORTED;
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD not supported\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("IDD Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2196,11 +2015,9 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Download_Help(shortUsage);
     print_Firmware_Download_Mode_Help(shortUsage);
     print_Short_DST_Help(shortUsage);
-    print_IDD_Help(shortUsage);
     print_Poll_Help(shortUsage);
-    print_Progress_Help(shortUsage, "dst, idd");
+    print_Progress_Help(shortUsage, "dst");
     print_Abort_DST_Help(shortUsage);
-    print_Abort_IDD_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
