@@ -10,7 +10,7 @@
 // ******************************************************************************************
 // 
 // \file openseachest_util_options.h
-// \brief This file defines the functions and macros to make building a seachest utility easier.
+// \brief This file defines the functions and macros to make building a open seachest utility easier.
 
 #pragma once
 
