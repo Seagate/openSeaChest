@@ -1332,6 +1332,22 @@ extern "C"
     #define FREE_FALL_LONG_OPT_STRING "freeFall"
     #define FREE_FALL_LONG_OPT { FREE_FALL_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //SCSI defect list
+    #define SCSI_DEFECTS_FLAG showSCSIDefects
+    #define SCSI_DEFECTS_PRIMARY_LIST scsiPrimaryDefects
+    #define SCSI_DEFECTS_GROWN_LIST scsiGrownDefects
+    #define SCSI_DEFECTS_DESCRIPTOR_MODE scsiDefectsAddressType
+    #define SCSI_DEFECTS_VARS \
+    bool SCSI_DEFECTS_FLAG = false;\
+    bool SCSI_DEFECTS_PRIMARY_LIST = false;\
+    bool SCSI_DEFECTS_GROWN_LIST = false;\
+    int SCSI_DEFECTS_DESCRIPTOR_MODE = 5;//physical CHS as default
+    #define SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING "defectFormat"
+    #define SCSI_DEFECTS_LONG_OPT_STRING "showSCSIDefects"
+    #define SCSI_DEFECTS_LONG_OPT { SCSI_DEFECTS_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_DEFECTS_MODE_LONG_OPTS { SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_DEFECTS_LONG_OPTS SCSI_DEFECTS_LONG_OPT,SCSI_DEFECTS_MODE_LONG_OPTS
+    
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -2568,6 +2584,10 @@ extern "C"
     void print_Standby_Help(bool shortHelp);
 
     void print_Free_Fall_Help(bool shortHelp);
+
+    void print_SCSI_Defects_Help(bool shortHelp);
+
+    void print_SCSI_Defects_Format_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 
