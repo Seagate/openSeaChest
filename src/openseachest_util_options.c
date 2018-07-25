@@ -1252,6 +1252,15 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
     }
 }
 
+void print_NVMe_Temp_Stats_Help(bool shortHelp)
+{
+    printf("\t--%s   \n", NVME_TEMP_STATS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe Temperature Statistics\n");
+    }
+}
+
 void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp)
 {
     printf("\t--%s [ immediate | deferred | activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);

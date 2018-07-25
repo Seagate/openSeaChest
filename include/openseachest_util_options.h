@@ -404,6 +404,12 @@ extern "C"
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    // NVMe Temperature Statistics 
+    #define NVME_TEMP_STATS_FLAG nvmeTempStats
+    #define NVME_TEMP_STATS_VAR getOptBool NVME_TEMP_STATS_FLAG = goFalse;
+    #define NVME_TEMP_STATS_LONG_OPT_STRING "tempStats"
+    #define NVME_TEMP_STATS_LONG_OPT { NVME_TEMP_STATS_LONG_OPT_STRING, no_argument, &NVME_TEMP_STATS_FLAG, goTrue }
+
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
@@ -2351,6 +2357,8 @@ extern "C"
     void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp);//NVMe does not have a concept of segmented/differed. Revist
 
     void print_NVMe_Get_Log_Help(bool shortHelp);
+
+    void print_NVMe_Temp_Stats_Help(bool shortHelp);
 
     void print_Set_Max_LBA_Help(bool shortHelp);
 
