@@ -908,79 +908,18 @@ int32_t main(int argc, char *argv[])
 
         if (NVME_TEMP_STATS_FLAG == goTrue)
         {
-            uint64_t size = 0; 
-        	uint32_t temperature = 0, pcbTemp = 0, socTemp = 0, scCurrentTemp = 0, scMaxTemp = 0;
-            uint64_t maxTemperature = 0, maxSocTemp = 0;
-            nvmeGetLogPageCmdOpts   cmdOpts;
-            nvmeSmartLog            smartLog;
-            nvmeSuperCapDramSmart   scDramSmart;
-
-            if (is_Seagate(&deviceList[deviceIter], false))
+            switch(nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
             {
-                //STEP-1 : Get Current Temperature from SMART
-
-                memset(&smartLog, 0, sizeof(nvmeSmartLog));
-
-                cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                cmdOpts.addr = (uint64_t)(&smartLog);
-                cmdOpts.dataLen = sizeof(nvmeSmartLog);
-                cmdOpts.lid = 0x02;
-                if(nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts)==SUCCESS)
+            case SUCCESS:
+                //nothing to print here since if it was successful, the log will be printed to the screen
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
                 {
-                    temperature = ((smartLog.temperature[1] << 8) | smartLog.temperature[0]);
-                    temperature = temperature ? temperature - 273 : 0;
-                    pcbTemp = smartLog.tempSensor[0];
-                    pcbTemp = pcbTemp ? pcbTemp - 273 : 0;
-                    socTemp = smartLog.tempSensor[1];
-                    socTemp = socTemp ? socTemp - 273 : 0;
-                    
-                    printf("%-20s : %" PRIu32 " C\n", "Current Temperature", temperature);
-                    printf("%-20s : %" PRIu32 " C\n", "Current PCB Temperature", pcbTemp);
-                    printf("%-20s : %" PRIu32 " C\n", "Current SOC Temperature", socTemp);
+                    printf("A failure occured while trying to get Error Information Log\n");
                 }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Error: Could not retrieve Log Page 0x02\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                }
-
-                // STEP-2 : Get Max temperature form Ext SMART-id 194
-                // This I will add after pulling Linga's changes
-
-
-                // STEP-3 : Get Max temperature form SuperCap DRAM temperature
-                memset(&scDramSmart, 0, sizeof(nvmeSuperCapDramSmart));
-
-                cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                cmdOpts.addr = (uint64_t)(&scDramSmart);
-                cmdOpts.dataLen = sizeof(nvmeSuperCapDramSmart);
-                cmdOpts.lid = 0xCF;
-                if(nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts)==SUCCESS)
-                {
-                    scCurrentTemp = scDramSmart.attrScSmart.superCapCurrentTemperature;
-                    scCurrentTemp = scCurrentTemp ? scCurrentTemp - 273 : 0;
-                    printf("%-20s : %" PRIu32 " C\n", "Super-cap Current Temperature", scCurrentTemp);		
-            
-                    scMaxTemp = scDramSmart.attrScSmart.superCapMaximumTemperature;
-                    scMaxTemp = scMaxTemp ? scMaxTemp - 273 : 0;
-                    printf("%-20s : %" PRIu32 " C\n", "Super-cap Max Temperature", scMaxTemp);
-                }
-                else
-                {
-                    if (VERBOSITY_QUIET < g_verbosity)
-                    {
-                        printf("Error: Could not retrieve Log Page - SuperCap DRAM\n");
-                    }
-                    //exitCode = UTIL_EXIT_OPERATION_FAILURE; //should I fail it completely
-                }
-                
-            }
-            else
-            {
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
 	
