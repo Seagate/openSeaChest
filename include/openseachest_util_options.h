@@ -410,6 +410,12 @@ extern "C"
     #define NVME_TEMP_STATS_LONG_OPT_STRING "tempStats"
     #define NVME_TEMP_STATS_LONG_OPT { NVME_TEMP_STATS_LONG_OPT_STRING, no_argument, &NVME_TEMP_STATS_FLAG, goTrue }
 
+    // NVMe PCIe Statistics 
+    #define NVME_PCI_STATS_FLAG nvmePciStats
+    #define NVME_PCI_STATS_VAR getOptBool NVME_PCI_STATS_FLAG = goFalse;
+    #define NVME_PCI_STATS_LONG_OPT_STRING "pciStats"
+    #define NVME_PCI_STATS_LONG_OPT { NVME_PCI_STATS_LONG_OPT_STRING, no_argument, &NVME_PCI_STATS_FLAG, goTrue }
+
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
@@ -2359,6 +2365,8 @@ extern "C"
     void print_NVMe_Get_Log_Help(bool shortHelp);
 
     void print_NVMe_Temp_Stats_Help(bool shortHelp);
+
+    void print_NVMe_Pci_Stats_Help(bool shortHelp);
 
     void print_Set_Max_LBA_Help(bool shortHelp);
 

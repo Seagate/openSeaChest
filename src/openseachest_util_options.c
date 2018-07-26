@@ -1261,6 +1261,16 @@ void print_NVMe_Temp_Stats_Help(bool shortHelp)
     }
 }
 
+void print_NVMe_Pci_Stats_Help(bool shortHelp)
+{
+    printf("\t--%s   \n", NVME_PCI_STATS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe PCIe Statistics\n");
+    }
+}
+
+
 void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp)
 {
     printf("\t--%s [ immediate | deferred | activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
