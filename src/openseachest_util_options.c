@@ -823,6 +823,24 @@ void print_Change_Power_Help(bool shortHelp)
 }
 
 //Mainly used for NVMe devices. 
+void print_extSmatLog_Help(bool shortHelp)
+{
+    printf("\t--%s\n", EXT_SMART_LOG_LONG_OPT_STRING1);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to Extract the Extended Smart Log Attributes.\n");
+    }
+}
+
+void print_pcierr_Help (bool shortHelp)
+{
+    printf("\t--%s\n", CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to clear correctable errors.\n");
+    }    
+}
+
 void print_Transition_Power_State_Help(bool shortHelp)
 {
     printf("\t--%s [new power state]\n", TRANSITION_POWER_STATE_LONG_OPT_STRING);

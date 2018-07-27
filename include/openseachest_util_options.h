@@ -90,7 +90,7 @@ extern "C"
     #define DEVICE_INFO_SHORT_OPT 'i'
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
-
+	
     #define TCG_DEVICE_INFO_FLAG tcgDevInfo
     #define TCG_DEVICE_INFO_VAR getOptBool TCG_DEVICE_INFO_FLAG = goFalse;
     #define TCG_DEVICE_INFO_LONG_OPT_STRING "tcgInfo"
@@ -243,6 +243,11 @@ extern "C"
     #define SMART_CHECK_VAR getOptBool SMART_CHECK_FLAG = goFalse;
     #define SMART_CHECK_LONG_OPT_STRING "smartCheck"
     #define SMART_CHECK_LONG_OPT { SMART_CHECK_LONG_OPT_STRING, no_argument, &SMART_CHECK_FLAG, goTrue }
+    
+    #define EXT_SMART_LOG_FLAG1 extSmatLog
+    #define EXT_SMART_LOG_VAR1 getOptBool EXT_SMART_LOG_FLAG1 = goFalse;
+    #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmatLog"
+    #define EXT_SMART_LOG_LONG_OPT1 { EXT_SMART_LOG_LONG_OPT_STRING1, no_argument, &EXT_SMART_LOG_FLAG1, goTrue }
 
     #define SHORT_DST_FLAG shortDST
     #define SHORT_DST_VAR getOptBool SHORT_DST_FLAG = goFalse;
@@ -388,8 +393,8 @@ extern "C"
     #define TRANSITION_POWER_MODE_LONG_OPT_STRING "transitionPower"
     #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, no_argument, &TRANSITION_POWER_MODE_FLAG, goTrue }
 
-    //Following is for NVMe Utilities. 
-    #define TRANSITION_POWER_STATE_TO transitionPowerState
+    //Following is for NVMe Utilities.
+	#define TRANSITION_POWER_STATE_TO transitionPowerState
     #define TRANSITION_POWER_STATE_VAR int32_t TRANSITION_POWER_STATE_TO = -1;
     #define TRANSITION_POWER_STATE_LONG_OPT_STRING "transitionPowerState"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -399,7 +404,12 @@ extern "C"
     #define GET_NVME_LOG_LONG_OPT_STRING "getLogPage"
     #define GET_NVME_LOG_LONG_OPT { GET_NVME_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define GET_FEATURES getFeatures
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG  clearpciecorrectableerrors
+    #define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_VAR getOptBool CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG = goTrue;
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING "clearPciErr"
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, 0 }
+
+	#define GET_FEATURES getFeatures
     #define GET_FEATURES_VAR int32_t GET_FEATURES_IDENTIFIER = -1;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -2335,6 +2345,8 @@ extern "C"
     void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp);//NVMe does not have a concept of segmented/differed. Revist
 
     void print_NVMe_Get_Log_Help(bool shortHelp);
+	void print_extSmatLog_Help (bool shortHelp);
+	void print_pcierr_Help(bool shortHelp);
 
     void print_Set_Max_LBA_Help(bool shortHelp);
 

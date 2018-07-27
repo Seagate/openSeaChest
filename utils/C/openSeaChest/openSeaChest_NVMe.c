@@ -91,6 +91,8 @@ int32_t main(int argc, char *argv[])
     //POWER_MODE_VAR
     //scan output flags
     SCAN_FLAGS_UTIL_VARS
+    EXT_SMART_LOG_VAR1
+    CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_VAR
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -125,6 +127,8 @@ int32_t main(int argc, char *argv[])
         CONFIRM_LONG_OPT,
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
+        EXT_SMART_LOG_LONG_OPT1,
+        CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -508,7 +512,9 @@ int32_t main(int argc, char *argv[])
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
           || ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE )
           || (GET_FEATURES_IDENTIFIER >= 0)
-          || FORMAT_UNIT_FLAG
+          || FORMAT_UNIT_FLAG 
+          || EXT_SMART_LOG_FLAG1
+          || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
         //check for other tool specific options here
         ))
     {
@@ -912,7 +918,7 @@ int32_t main(int argc, char *argv[])
 	            eVerbosityLevels tempVerbosity = g_verbosity;
 	            printf("NOT READY\n");
 	            g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-	            check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
+	            // Linga check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
 	            g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
 	        }
 	    }
@@ -938,7 +944,7 @@ int32_t main(int argc, char *argv[])
                     dlOptions.firmwareFileMem = firmwareMem;
                     dlOptions.firmwareMemoryLength = firmwareFileSize;
                     start_Timer(&commandTimer);
-                    int firmwareDLResult = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                    int firmwareDLResult;// linga it's bad  = firmware_Dolwnload(&deviceList[deviceIter], &dlOptions);
                     stop_Timer(&commandTimer);
 	                switch (firmwareDLResult)
 	                {
@@ -1069,6 +1075,55 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        }
 	    }
+
+
+		 //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
+	    if (EXT_SMART_LOG_FLAG1)
+	    {
+	        switch (get_Ext_Smrt_Log(&deviceList[deviceIter]))
+	        {
+	        case SUCCESS:
+	            break;
+	        case NOT_SUPPORTED:
+	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Extended smart logs not supported.\n");
+	            }
+	            break;
+	        default:
+	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Failed fetch Extended smart logs.\n");
+	            }
+	            break;
+	        }
+	    }
+		
+	    if (CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG)
+	    {
+	        switch (clr_Pcie_Correctable_Errs(&deviceList[deviceIter]))
+	        {
+	        case SUCCESS:
+	            break;
+	        case NOT_SUPPORTED:
+	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Clear Pcie correctable errors not supported.\n");
+	            }
+	            break;
+	        default:
+	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Failed fetch Clear Pcie correctable errors.\n");
+	            }
+	            break;
+	        }
+	    }
+	
 	
 	    if (FORMAT_UNIT_FLAG)
 	    {
@@ -1180,6 +1235,8 @@ void utility_Usage(bool shortUsage)
     print_NVMe_Firmware_Download_Mode_Help(shortUsage);
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
+    print_pcierr_Help(shortUsage);
+    print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
 
     //data destructive commands
