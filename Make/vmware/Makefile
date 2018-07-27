@@ -9,7 +9,7 @@
 #
 # ******************************************************************************************
 
-# Hand Written Makefile (Edit with caution) -Muhammad
+# Hand Written Makefile (Edit with caution) -Debabrata
 # 
 
 DESC_ACCEPTANCE_LEVEL=certified
@@ -172,26 +172,6 @@ endif
 
 VMKAPI_LOCATION = $(dir $(shell find $(VMKAPIDDK_ROOT)/src/bora -name vmkapi.h))
 
-# Only need to evaluate once (aka use ":=").
-CURRENT_DIR := $(shell pwd)
-BUILD_DIR := build
-SCRATCH_DIR := $(BUILD_DIR)/scratch
-VIB_DIR := $(BUILD_DIR)/vib
-BUNDLE_DIR := $(BUILD_DIR)/bundle
-STAGE_DIR := $(BUILD_DIR)/stage
-TARGET_XML_DIR := /usr/lib/vmware/esxcli/ext
-
-VIB_DESCRIPTOR_XML := $(SCRATCH_DIR)/descriptor.xml
-VIB_BULLETIN_XML := $(SCRATCH_DIR)/bulletin.xml
-
-# Need to evaluate at every reference, as DEV_OBJDIR, etc, can change
-# during a build (aka use "=").  Also, some things get set/reset in
-# common included files, we reference them, and we haven't included the files
-# yet.
-BINARIES_DIR = $(BUILD_DIR)/$(DEV_OBJDIR)
-INSTALL_DIR = /opt/vmware/nvme
-STAGE_XML_DIR = $(STAGE_DIR)$(TARGET_XML_DIR)
-
 #
 # Check paths
 #
@@ -210,10 +190,6 @@ endif
 
 include $(HEXDK_BASE)/samples/common/userworld-tool.inc
 
-#VMW_EXTRA_DEFS += -I$(VMKAPI_LOCATION) -I$(VMKAPI_LOCATION)/** -I$(DEV_COMMON_DIR) \
-	-DVMK_DEVKIT_HAS_API_VMKAPI_BASE \
-	-DVMK_DEVKIT_USES_PUBLIC_APIS \
-	-DVMK_DEVKIT_USES_BINARY_COMPATIBLE_APIS
 
 VMW_VERSION := 6.5.0
 VMW_BUILD   := 4598673
@@ -301,20 +277,14 @@ VMW_DRIVER_DEVKIT_BASE := $(call VMW_IMPORT_DEVKIT,$(_VMW_RPM_PREFIX)-nativeddk-
 
 VMW_uw32_beta_CCBIN = $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/bin/x86_64-vmk-linux-gnu-gcc
 VMW_uw32_beta_OBJCOPYBIN = $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/bin/x86_64-vmk-linux-gnu-objcopy
-#VMW_uw32_beta_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -Werror -O2 -march=i686 -g -fPIC -fstack-protector -fstack-protector-all -fno-strict-aliasing -Wno-unused-but-set-variable -Wdeclaration-after-statement -Wno-unused-value -Wno-pointer-sign -Wno-strict-prototypes -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_DEBUG -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux -DVMX86_BETA
-#VMW_uw32_beta_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -Werror -O2 -march=i686 -g -fPIC -fstack-protector -fstack-protector-all -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_DEBUG -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux -DVMX86_BETA
 #The above compilation flags is the correct one but it is causing issue dur to -Werror so removing it
 VMW_uw32_beta_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -O2 -march=i686 -g -fPIC -fstack-protector -fstack-protector-all -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_DEBUG -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux -DVMX86_BETA
-#VMW_uw32_beta_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -O2 -march=i686 -g -fPIC -fstack-protector -fstack-protector-all -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_DEBUG -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux -DVMX86_BETA
 VMW_uw32_beta_LINKFLAGS =  -pthread -Wl,-z,relro -Wl,-z,noexecstack -Wl,-z,now -Wl,-z,defs -Wl,--hash-style=gnu --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot
 
 VMW_uw32_release_CCBIN = $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/bin/x86_64-vmk-linux-gnu-gcc
 VMW_uw32_release_OBJCOPYBIN = $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/bin/x86_64-vmk-linux-gnu-objcopy
-#VMW_uw32_release_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -Werror -DNDEBUG -O2 -march=i686 -g -fPIC -fstack-protector -fno-strict-aliasing -Wno-unused-but-set-variable -Wdeclaration-after-statement -Wno-unused-value -Wno-pointer-sign -Wno-strict-prototypes -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_RELEASE -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux
-#VMW_uw32_release_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -Werror -DNDEBUG -O2 -march=i686 -g -fPIC -fstack-protector -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_RELEASE -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux
 #The above compilation flags is the correct one but it is causing issue dur to -Werror so removing it
 VMW_uw32_release_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -DNDEBUG -O2 -march=i686 -g -fPIC -fstack-protector -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_RELEASE -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux
-#VMW_uw32_release_COMPILEFLAGS = -pthread -fwrapv -pipe -fno-working-directory -fno-strict-aliasing -funwind-tables -fasynchronous-unwind-tables -Wall -DNDEBUG -O2 -march=i686 -g -fPIC -fstack-protector -fno-strict-aliasing -Wno-unused-but-set-variable -Wno-unused-value -Wno-enum-compare -Wno-switch --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot -m32 -isystem $(CAYMAN_ESX_TOOLCHAIN_DIR)/usr/lib/gcc/x86_64-vmk-linux-gnu/4.8.4/include -D_LARGEFILE64_SOURCE -D_XOPEN_SOURCE=500 -D_SVID_SOURCE -DVMX86_RELEASE -D_FORTIFY_SOURCE=1 -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -Dlinux
 VMW_uw32_release_LINKFLAGS =  -pthread -Wl,-z,relro -Wl,-z,noexecstack -Wl,-z,now -Wl,-z,defs -Wl,--hash-style=gnu --sysroot=$(CAYMAN_ESX_GLIBC_DIR)/sysroot
 
 # In theory, the compiler already knows what version of the basic libraries
@@ -405,9 +375,6 @@ LINK_CMD = $(VMW_$(VMW_TARGET)_CCBIN) -o $@ \
 
 VMW_EXTRA_DEFS += -I$(VMKAPI_LOCATION) -I$(VMKAPI_LOCATION)lib \
 	-DVMK_DEVKIT_HAS_API_VMKAPI_BASE \
-	-DVMK_DEVKIT_USES_PUBLIC_APIS \
-	-DVMK_DEVKIT_USES_BINARY_COMPATIBLE_APIS
-#VMW_EXTRA_DEFS += -I$(VMKAPI_LOCATION) -I$(VMKAPI_LOCATION)lib \
 	-DVMK_DEVKIT_USES_PUBLIC_APIS \
 	-DVMK_DEVKIT_USES_BINARY_COMPATIBLE_APIS
 
@@ -541,32 +508,26 @@ opensea-libs:
 $(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir 
 	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(SMARTOUTFILE)
-	#$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)_static --static
 
 $(GENERICTESTSOUTFILE) : $(GENERICTESTSOBJS) opensea-libs mkoutputdir 
 	$(CC) $(GENERICTESTSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(GENERICTESTSOUTFILE)
-	#$(CC) $(GENERICTESTSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)_static --static
 
 $(POWERCONTROLOUTFILE) : $(POWERCONTROLOBJS) opensea-libs mkoutputdir 
 	$(CC) $(POWERCONTROLOBJS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE) $(LFLAGS)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(POWERCONTROLOUTFILE)
-	#$(CC) $(POWERCONTROLOBJS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)_static $(LFLAGS) --static
 
 $(OUTFILE): $(OBJS) opensea-libs mkoutputdir 
 	$(CC) $(OBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(OUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(OUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(OUTFILE)
-	#$(CC) $(OBJS) -static -o $(FILE_OUTPUT_DIR)/$(OUTFILE)_static $(LFLAGS)
 
 $(BASICSOUTFILE): $(BASICSOBJS) opensea-libs mkoutputdir 
 	$(CC) $(BASICSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(BASICSOUTFILE)
-	#$(CC) $(BASICSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)_static --static
 	
 $(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir 
 	$(CC) $(CONFIGUREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(CONFIGUREOUTFILE)
-	#$(CC) $(CONFIGUREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)_static --static
 	
 #Commenting out for time being. Need to add VMWare support to Firmware makefile	
 #$(FIRMWAREOUTFILE):
@@ -575,17 +536,14 @@ $(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir
 $(INFOOUTFILE): $(INFOOBJS) opensea-libs mkoutputdir 
 	$(CC) $(INFOOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(INFOOUTFILE)
-	#$(CC) $(INFOOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)_static --static
 	
 $(ZBDOUTFILE): $(ZBDOBJS) opensea-libs mkoutputdir 
 	$(CC) $(ZBDOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ZBDOUTFILE)
-	#$(CC) $(ZBDOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)_static --static
 	
 $(FORMATOUTFILE): $(FORMATOBJS) opensea-libs mkoutputdir 
 	$(CC) $(FORMATOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(FORMATOUTFILE)
-	#$(CC) $(FORMATOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)_static --static
 
 
 $(NVMEOUTFILE): $(NVMEOBJS) opensea-libs mkoutputdir
@@ -596,11 +554,9 @@ $(ERASEOUTFILE): $(ERASEOBJS) opensea-libs mkoutputdir
     ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
 		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 	    $(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ERASEOUTFILE)
-		#$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)_static --static
     else
 		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 	    $(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE) -o $(FILE_OUTPUT_DIR)/stripped___$(ERASEOUTFILE)
-		#$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)_static --static
     endif
 
 %.o: %.c
