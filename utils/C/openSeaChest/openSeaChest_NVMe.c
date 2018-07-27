@@ -85,6 +85,8 @@ int32_t main(int argc, char *argv[])
     FORMAT_UNIT_VARS
     OUTPUT_MODE_VAR
     GET_FEATURES_VAR
+    NVME_TEMP_STATS_VAR
+    NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     ONLY_SEAGATE_VAR
@@ -125,6 +127,8 @@ int32_t main(int argc, char *argv[])
         CONFIRM_LONG_OPT,
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
+        NVME_TEMP_STATS_LONG_OPT,
+        NVME_PCI_STATS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -208,6 +212,14 @@ int32_t main(int argc, char *argv[])
                     printf("Please use -h option to print help\n\n");
                 }
 
+            }
+            else if (strncmp(longopts[optionIndex].name, NVME_TEMP_STATS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NVME_TEMP_STATS_LONG_OPT_STRING))) == 0)
+            {
+                NVME_TEMP_STATS_FLAG = goTrue;
+            }
+            else if (strncmp(longopts[optionIndex].name, NVME_PCI_STATS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NVME_PCI_STATS_LONG_OPT_STRING))) == 0)
+            {
+                NVME_PCI_STATS_FLAG = goTrue;
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -509,6 +521,8 @@ int32_t main(int argc, char *argv[])
           || ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE )
           || (GET_FEATURES_IDENTIFIER >= 0)
           || FORMAT_UNIT_FLAG
+          || NVME_TEMP_STATS_FLAG
+          || NVME_PCI_STATS_FLAG 
         //check for other tool specific options here
         ))
     {
@@ -898,6 +912,40 @@ int32_t main(int argc, char *argv[])
 	            }
 	        }
 	    }
+
+        if (NVME_TEMP_STATS_FLAG == goTrue)
+        {
+            switch(nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                //nothing to print here since if it was successful, the log will be printed to the screen
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("A failure occured while trying to get Error Information Log\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (NVME_PCI_STATS_FLAG == goTrue)
+        {
+            switch(nvme_Print_PCI_Statistics(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                //nothing to print here since if it was successful, the log will be printed to the screen
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("A failure occured while trying to get Error Information Log\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
 	
 	    if (TEST_UNIT_READY_FLAG)
 	    {
@@ -1181,6 +1229,8 @@ void utility_Usage(bool shortUsage)
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
+    print_NVMe_Temp_Stats_Help(shortUsage);
+    print_NVMe_Pci_Stats_Help(shortUsage);
 
     //data destructive commands
     printf("\nData Destructive Commands\n");

@@ -32,11 +32,12 @@
 #include "dst.h"
 #include "drive_info.h"
 #include "seagate_operations.h"
+#include "defect.h"
 ////////////////////////
 //  Global Variables  //
 //////////////////////// 
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.9.1";
+const char *buildVersion = "1.10.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -109,7 +110,7 @@ int32_t main(int argc, char *argv[])
     CONVEYANCE_DST_VAR
     SET_MRIE_MODE_VARS
     ERROR_LIMIT_VAR
-
+	SCSI_DEFECTS_VARS
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -166,6 +167,7 @@ int32_t main(int argc, char *argv[])
         SHOW_DST_LOG_LONG_OPT,
         CONVEYANCE_DST_LONG_OPT,
         SET_MRIE_MODE_LONG_OPT,
+        SCSI_DEFECTS_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -331,6 +333,69 @@ int32_t main(int argc, char *argv[])
                 {
                     print_Error_In_Cmd_Line_Args(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
+            {
+                uint8_t counter = 0;
+                SCSI_DEFECTS_FLAG = true;
+                while (counter < strlen(optarg))
+                {
+                    if (optarg[counter] == 'p' || optarg[counter] == 'P')
+                    {
+                        SCSI_DEFECTS_PRIMARY_LIST = true;
+                    }
+                    else if (optarg[counter] == 'g' || optarg[counter] == 'G')
+                    {
+                        SCSI_DEFECTS_GROWN_LIST = true;
+                    }
+                    ++counter;
+                }
+                if (!SCSI_DEFECTS_PRIMARY_LIST && !SCSI_DEFECTS_GROWN_LIST)
+                {
+                    printf("\n Error in option --%s. You must specify showing primary (p) or grown (g) defects or both\n", SCSI_DEFECTS_LONG_OPT_STRING);
+                    printf("Use -h option to view command line help\n");
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
+            {
+                //check for integer value or string that specifies the correct mode.
+                if (strlen(optarg) == 1 && isdigit(optarg[0]))
+                {
+                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
+                }
+                else
+                {
+                    if (strcmp("shortBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 0;
+                    }
+                    else if (strcmp("longBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 3;
+                    }
+                    else if (strcmp("xbfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 1;
+                    }
+                    else if (strcmp("xchs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 2;
+                    }
+                    else if (strcmp("bfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 4;
+                    }
+                    else if (strcmp("chs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 5;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -641,6 +706,7 @@ int32_t main(int argc, char *argv[])
         || SHOW_DST_LOG_FLAG
         || CONVEYANCE_DST_FLAG
         || SET_MRIE_MODE_FLAG
+        || SCSI_DEFECTS_FLAG
         //check for other tool specific options here
         ))
     {
@@ -930,22 +996,29 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SCSI_DEFECTS_FLAG)
+        {
+            ptrSCSIDefectList defects = NULL;
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            {
+            case SUCCESS:
+                print_SCSI_Defect_List(defects);
+                free_Defect_List(&defects);
+                break;
+            case NOT_SUPPORTED:
+                printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                printf("Failed to retrieve SCSI defect list from this device\n");
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (SMART_CHECK_FLAG)
@@ -1774,7 +1847,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1807,7 +1880,9 @@ void utility_Usage(bool shortUsage)
 
     //SAS Only
     printf("\n\tSAS Only:\n\t=========\n");
+    print_SCSI_Defects_Format_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
+    print_SCSI_Defects_Help(shortUsage);
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");

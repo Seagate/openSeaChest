@@ -850,20 +850,7 @@ int32_t main(int argc, char *argv[])
 
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (DISPLAY_LBA_FLAG)
@@ -1220,7 +1207,7 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("\nUtility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1235,7 +1222,6 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
-    print_Set_Sector_Size_Help(shortUsage);
     print_Show_Supported_Sector_Sizes_Help(shortUsage);
     //SATA Only Options
     //printf("\n\tSATA Only:\n\n");
@@ -1250,6 +1236,7 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
+	print_Set_Sector_Size_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
     //print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);
