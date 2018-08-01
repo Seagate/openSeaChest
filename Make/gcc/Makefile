@@ -12,7 +12,7 @@
 # Hand Written Makefile (Edit with caution) -Muhammad
 #
 
-UTIL_SRC_DIR=../../utils/C/openSeaChest/
+UTIL_SRC_DIR=../../utils/C/openSeaChest
 CC = gcc
 LIB_FILE_OUTPUT_DIR=lib
 STRIP = strip

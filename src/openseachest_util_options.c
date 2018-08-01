@@ -1270,6 +1270,25 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
     }
 }
 
+void print_NVMe_Temp_Stats_Help(bool shortHelp)
+{
+    printf("\t--%s   \n", NVME_TEMP_STATS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe Temperature Statistics\n");
+    }
+}
+
+void print_NVMe_Pci_Stats_Help(bool shortHelp)
+{
+    printf("\t--%s   \n", NVME_PCI_STATS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe PCIe Statistics\n");
+    }
+}
+
+
 void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp)
 {
     printf("\t--%s [ immediate | deferred | activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
@@ -2466,8 +2485,8 @@ void print_show_FWDL_Support_Help(bool shortHelp)
 
 void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg)
 {
-	printf("\nError in option --%s. Invalid argument given '%s'.\n", optstring, arg);
-	printf("Use -h option to view command line help\n");
+    printf("\nError in option --%s. Invalid argument given '%s'.\n", optstring, arg);
+    printf("Use -h option to view command line help\n");
 }
 
 void print_Enable_Legacy_USB_Passthrough_Help(bool shortHelp)
@@ -2807,3 +2826,38 @@ void print_Free_Fall_Help(bool shortHelp)
         printf("\t\t                        will set the vendor's recommended value.\n\n");
     }
 }
+
+void print_SCSI_Defects_Help(bool shortHelp)
+{
+    printf("\t--%s [ p | g | pg ]\t(SAS Only)\n", SCSI_DEFECTS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will display the SCSI defects on the screen.\n");
+        printf("\t\tThe arguments to this will tell whether to get the grown, \n");
+        printf("\t\tprimary, or primary and grown defects from the drive.\n");
+        printf("\t\tUse the --%s option to specify the mode to display the defects.\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+        printf("\t\tIf no mode is specified, physical cylinder-head-sector mode is assumed\n");
+        printf("\t\tArguments:\n");
+        printf("\t\t  p - use this option to pull and display the primary (factory) defects\n");
+        printf("\t\t  g - use this option to pull and display the grown (reallocated) defects\n");
+        printf("\t\t The above options can be combined to pull and display both defect lists.\n\n");
+    }
+}
+
+void print_SCSI_Defects_Format_Help(bool shortHelp)
+{
+    printf("\t--%s [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option set the format of the defects to output.\n");
+        printf("\t\tNot all drives will support all defect modes!\n");
+        printf("\t\tSSDs will only support block modes!\n");
+        printf("\t\tArguments: (name | #)\n");
+        printf("\t\t shortBlock | 0 - show the defects in short block address mode (drives < 32bit LBA)\n");
+        printf("\t\t xbfi       | 1 - show the defects in extended bytes from index mode\n");
+        printf("\t\t xchs       | 1 - show the defects in extended physical cylinder-head-sector mode\n");
+        printf("\t\t longBlock  | 3 - show the defects in long block address mode (drives > 32bit LBA)\n");
+        printf("\t\t bfi        | 4 - show the defects in bytes from index mode\n");
+        printf("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
+        printf("\n");
+    }
