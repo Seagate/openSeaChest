@@ -2861,3 +2861,4 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
         printf("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
         printf("\n");
     }
+}
