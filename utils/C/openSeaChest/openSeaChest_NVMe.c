@@ -269,6 +269,14 @@ int32_t main(int argc, char *argv[])
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_FW_SLOT_ID;
                     }
+                    else if (strncmp("SuppCmds", optarg, strlen(optarg)) == 0)
+                    {
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_CMD_SPT_EFET_ID;
+                    }
+                    else if (strncmp("SelfTest", optarg, strlen(optarg)) == 0)
+                    {
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
+                    }
                     else
                     {
                         exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
@@ -897,6 +905,36 @@ int32_t main(int argc, char *argv[])
 	                        if (VERBOSITY_QUIET < g_verbosity)
 	                        {
 	                            printf("A failure occured while trying to get FW Slot Information Log\n");
+	                        }
+	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	                        break;
+	                    }
+	                break;
+	                case NVME_LOG_CMD_SPT_EFET_ID:
+	                    switch(nvme_Print_CmdSptEfft_Log_Page(&deviceList[deviceIter]))
+	                    {
+	                    case SUCCESS:
+	                        //nothing to print here since if it was successful, the log will be printed to the screen
+	                        break;
+	                    default:
+	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        {
+	                            printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
+	                        }
+	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	                        break;
+	                    }
+	                break;
+	                case NVME_LOG_DEV_SELF_TEST:
+	                    switch(nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
+	                    {
+	                    case SUCCESS:
+	                        //nothing to print here since if it was successful, the log will be printed to the screen
+	                        break;
+	                    default:
+	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        {
+	                            printf("A failure occured while trying to get Device Self-test Information Log\n");
 	                        }
 	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                        break;

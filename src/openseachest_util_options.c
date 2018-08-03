@@ -1247,6 +1247,12 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
         printf("\t\t\t          SMART/Health Information Log\n");
         printf("\t\t\tFWSlots - lists currently active Firmware slot\n");
         printf("\t\t\t          and Firmware Revision in each slot.\n");
+        printf("\t\t\tSuppCmds - lists the commands that the controller\n");
+        printf("\t\t\t          supports and the effects of those commands.\n");
+        printf("\t\t\tSelfTest - lists the status of any device\n");
+        printf("\t\t\t          self-test operation in progress\n");
+        printf("\t\t\t          and the results of the last 20 device\n");
+        printf("\t\t\t          self-test operations.\n");
         printf("\t\t\t#       - option to get the log page using\n");
         printf("\t\t\t          a number\n\n");
     }
