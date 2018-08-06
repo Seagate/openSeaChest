@@ -1254,7 +1254,7 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [ Error | SMART | FWSlots | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [ Error | SMART | FWSlots | SuppCmds | SelfTest # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
