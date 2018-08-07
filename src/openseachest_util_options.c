@@ -2861,7 +2861,7 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
         printf("\t\tArguments: (name | #)\n");
         printf("\t\t shortBlock | 0 - show the defects in short block address mode (drives < 32bit LBA)\n");
         printf("\t\t xbfi       | 1 - show the defects in extended bytes from index mode\n");
-        printf("\t\t xchs       | 1 - show the defects in extended physical cylinder-head-sector mode\n");
+        printf("\t\t xchs       | 2 - show the defects in extended physical cylinder-head-sector mode\n");
         printf("\t\t longBlock  | 3 - show the defects in long block address mode (drives > 32bit LBA)\n");
         printf("\t\t bfi        | 4 - show the defects in bytes from index mode\n");
         printf("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
