@@ -278,7 +278,7 @@ void print_Help_Help(bool shortHelp)
     {
         printf("\t\tShow utility options and example usage (this output you see now)\n");
         printf("\t\tPlease report bugs/suggestions to seaboard@seagate.com.\n");
-        printf("Include the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
+        printf("\t\tInclude the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
     }
 }
 
