@@ -2762,6 +2762,7 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
 
+    void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

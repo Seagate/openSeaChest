@@ -1118,17 +1118,53 @@ int32_t main(int argc, char *argv[])
             case 0://summary
             {
                 summarySMARTErrorLog sumErrorLog;
-                memset(&sumErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
-                get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog);
-                print_ATA_Summary_SMART_Error_Log(&sumErrorLog);
+                memset(&sumErrorLog, 0, sizeof(summarySMARTErrorLog));
+                switch (get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog))
+                {
+                case SUCCESS:
+                    print_ATA_Summary_SMART_Error_Log(&sumErrorLog);
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("SMART Summary Error log is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to read the SMART Summary Error log!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
             break;
             case 1://(ext) comprehensive
             {
                 comprehensiveSMARTErrorLog compErrorLog;
                 memset(&compErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
-                get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog);
-                print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog);
+                switch (get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog, false))
+                {
+                case SUCCESS:
+                    print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog);
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("SMART (Ext) Comprehensive Error log is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to read the SMART (Ext) Comprehensive Error log!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
                 break;
             default://error
@@ -1927,6 +1963,7 @@ void utility_Usage(bool shortUsage)
     print_SMART_Attributes_Help(shortUsage);
     print_SMART_Attribute_Autosave_Help(shortUsage);
     print_SMART_Auto_Offline_Help(shortUsage);
+    print_Show_SMART_Error_Log_Help(shortUsage);
     print_SMART_Info_Help(shortUsage);
 
     //SAS Only
