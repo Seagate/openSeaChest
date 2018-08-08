@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.5.2";
+const char *buildVersion = "2.5.3";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -661,14 +661,6 @@ int32_t main(int argc, char *argv[])
 				}
 				continue;
 			}
-            /*if (strncmp(MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.product_identification, M_Min(strlen(MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.product_identification))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-                }
-                continue;
-            }*/
         }
         //check for fw already loaded
         if (NEW_FW_MATCH_FLAG)
@@ -706,14 +698,6 @@ int32_t main(int argc, char *argv[])
 				}
 				continue;
 			}
-            /*if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strncmp(CHILD_MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, M_Min(strlen(CHILD_MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-                }
-                continue;
-            }*/
         }
         //check for child fw already loaded
         if (CHILD_NEW_FW_MATCH_FLAG)
