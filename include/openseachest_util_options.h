@@ -90,7 +90,7 @@ extern "C"
     #define DEVICE_INFO_SHORT_OPT 'i'
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
-
+	
     #define TCG_DEVICE_INFO_FLAG tcgDevInfo
     #define TCG_DEVICE_INFO_VAR getOptBool TCG_DEVICE_INFO_FLAG = goFalse;
     #define TCG_DEVICE_INFO_LONG_OPT_STRING "tcgInfo"
@@ -243,6 +243,11 @@ extern "C"
     #define SMART_CHECK_VAR getOptBool SMART_CHECK_FLAG = goFalse;
     #define SMART_CHECK_LONG_OPT_STRING "smartCheck"
     #define SMART_CHECK_LONG_OPT { SMART_CHECK_LONG_OPT_STRING, no_argument, &SMART_CHECK_FLAG, goTrue }
+    
+    #define EXT_SMART_LOG_FLAG1 extSmatLog
+    #define EXT_SMART_LOG_VAR1 getOptBool EXT_SMART_LOG_FLAG1 = goFalse;
+    #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmatLog"
+    #define EXT_SMART_LOG_LONG_OPT1 { EXT_SMART_LOG_LONG_OPT_STRING1, no_argument, &EXT_SMART_LOG_FLAG1, goTrue }
 
     #define SHORT_DST_FLAG shortDST
     #define SHORT_DST_VAR getOptBool SHORT_DST_FLAG = goFalse;
@@ -388,8 +393,8 @@ extern "C"
     #define TRANSITION_POWER_MODE_LONG_OPT_STRING "transitionPower"
     #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, no_argument, &TRANSITION_POWER_MODE_FLAG, goTrue }
 
-    //Following is for NVMe Utilities. 
-    #define TRANSITION_POWER_STATE_TO transitionPowerState
+    //Following is for NVMe Utilities.
+	#define TRANSITION_POWER_STATE_TO transitionPowerState
     #define TRANSITION_POWER_STATE_VAR int32_t TRANSITION_POWER_STATE_TO = -1;
     #define TRANSITION_POWER_STATE_LONG_OPT_STRING "transitionPowerState"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -399,7 +404,12 @@ extern "C"
     #define GET_NVME_LOG_LONG_OPT_STRING "getLogPage"
     #define GET_NVME_LOG_LONG_OPT { GET_NVME_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define GET_FEATURES getFeatures
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG  clearpciecorrectableerrors
+    #define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_VAR getOptBool CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG = goTrue;
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING "clearPciErr"
+	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, 0 }
+
+	#define GET_FEATURES getFeatures
     #define GET_FEATURES_VAR int32_t GET_FEATURES_IDENTIFIER = -1;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -1359,6 +1369,51 @@ extern "C"
     #define SCSI_DEFECTS_LONG_OPT { SCSI_DEFECTS_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_DEFECTS_MODE_LONG_OPTS { SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_DEFECTS_LONG_OPTS SCSI_DEFECTS_LONG_OPT,SCSI_DEFECTS_MODE_LONG_OPTS
+
+    //logTransferLength
+    #define LOG_TRANSFER_LENGTH_BYTES logTransferLengthBytes
+    #define LOG_TRANSFER_LENGTH_BYTES_VAR uint32_t logTransferLengthBytes = 0;/*0 means that the library will decide.*/
+    #define LOG_TRANSFER_LENGTH_LONG_OPT_STRING "logTransferLength"
+    #define LOG_TRANSFER_LENGTH_LONG_OPT { LOG_TRANSFER_LENGTH_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //FARM Log
+    #define FARM_PULL_FLAG pullFarmLog
+    #define FARM_VAR \
+    getOptBool FARM_PULL_FLAG = goFalse;
+    #define FARM_LONG_OPT_STRING "farm"
+    #define FARM_LONG_OPT { FARM_LONG_OPT_STRING, no_argument, &FARM_PULL_FLAG, goTrue }
+
+    //DST Log (standard spec)
+    #define DST_LOG_FLAG pullDSTLog
+    #define DST_LOG_VAR \
+    getOptBool DST_LOG_FLAG = goFalse;
+    #define DST_LOG_LONG_OPT_STRING "selfTestLog"
+    #define DST_LOG_LONG_OPT { DST_LOG_LONG_OPT_STRING, no_argument, &DST_LOG_FLAG, goTrue }
+
+    //Identify Device Data Log (standard spec)
+    #define IDENTIFY_DEVICE_DATA_LOG_FLAG pullIDDataLog
+    #define IDENTIFY_DEVICE_DATA_LOG_VAR getOptBool IDENTIFY_DEVICE_DATA_LOG_FLAG = goFalse;
+    #define IDENTIFY_DEVICE_DATA_LOG_LONG_OPT_STRING "identifyDataLog"
+    #define IDENTIFY_DEVICE_DATA_LOG_LONG_OPT { IDENTIFY_DEVICE_DATA_LOG_LONG_OPT_STRING, no_argument, &IDENTIFY_DEVICE_DATA_LOG_FLAG, goTrue }
+
+    //SATA Phy Event Counters Log (standard spec)
+    #define SATA_PHY_COUNTERS_LOG_FLAG sataPhyCountersLog
+    #define SATA_PHY_COUNTERS_LOG_VAR getOptBool SATA_PHY_COUNTERS_LOG_FLAG = goFalse;
+    #define SATA_PHY_COUNTERS_LOG_LONG_OPT_STRING "SATAPhyCntLog"
+    #define SATA_PHY_COUNTERS_LONG_OPT { SATA_PHY_COUNTERS_LOG_LONG_OPT_STRING, no_argument, &SATA_PHY_COUNTERS_LOG_FLAG, goTrue }
+
+    //Device Statistics Log (standard spec)
+    #define DEVICE_STATS_LOG_FLAG deviceStatisticsLog
+    #define DEVICE_STATS_LOG_VAR getOptBool DEVICE_STATS_LOG_FLAG = goFalse;
+    #define DEVICE_STATS_LOG_LONG_OPT_STRING "deviceStatisticsLog"
+    #define DEVICE_STATS_LOG_LONG_OPT { DEVICE_STATS_LOG_LONG_OPT_STRING, no_argument, &DEVICE_STATS_LOG_FLAG, goTrue }
+
+    //Informational Exceptions Log (standard spec, but may include vendor unique parameters)
+    #define INFORMATIONAL_EXCEPTIONS_FLAG informationExceptionsLog
+    #define INFORMATIONAL_EXCEPTIONS_VAR getOptBool INFORMATIONAL_EXCEPTIONS_FLAG = goFalse;
+    #define INFORMATIONAL_EXCEPTIONS_LONG_OPT_STRING "infoExceptionsLog"
+    #define INFROMATIONAL_EXCEPTIONS_LONG_OPT { INFORMATIONAL_EXCEPTIONS_LONG_OPT_STRING, no_argument, &INFORMATIONAL_EXCEPTIONS_FLAG, goTrue }
+
     
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2363,6 +2418,8 @@ extern "C"
     void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp);//NVMe does not have a concept of segmented/differed. Revist
 
     void print_NVMe_Get_Log_Help(bool shortHelp);
+	void print_extSmatLog_Help (bool shortHelp);
+	void print_pcierr_Help(bool shortHelp);
 
     void print_NVMe_Temp_Stats_Help(bool shortHelp);
 
@@ -2604,6 +2661,99 @@ extern "C"
     void print_SCSI_Defects_Help(bool shortHelp);
 
     void print_SCSI_Defects_Format_Help(bool shortHelp);
+
+    void print_Log_Transfer_Length_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Pull_Device_Statistics_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the pull device statistics log help
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Pull_Device_Statistics_Log_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Pull_Informational_Exceptions_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the pull Informational Exceptions log help
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Pull_Informational_Exceptions_Log_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Pull_Self_Test_Results_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the pull self test results log option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Pull_Self_Test_Results_Log_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Pull_Identify_Device_Data_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the pull identify device data log option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Pull_Identify_Device_Data_Log_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Pull_SATA_Phy_Event_Counters_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the pull SATA Phy Event Counters log option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Pull_SATA_Phy_Event_Counters_Log_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_FARM_Log_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the farm option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_FARM_Log_Help(bool shortHelp);
+
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

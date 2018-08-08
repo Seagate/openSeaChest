@@ -93,6 +93,8 @@ int32_t main(int argc, char *argv[])
     //POWER_MODE_VAR
     //scan output flags
     SCAN_FLAGS_UTIL_VARS
+    EXT_SMART_LOG_VAR1
+    CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_VAR
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -127,6 +129,8 @@ int32_t main(int argc, char *argv[])
         CONFIRM_LONG_OPT,
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
+        EXT_SMART_LOG_LONG_OPT1,
+        CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         NVME_TEMP_STATS_LONG_OPT,
         NVME_PCI_STATS_LONG_OPT,
         LONG_OPT_TERMINATOR
@@ -268,6 +272,14 @@ int32_t main(int argc, char *argv[])
                     else if (strncmp("FWSlots", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_FW_SLOT_ID;
+                    }
+                    else if (strncmp("SuppCmds", optarg, strlen(optarg)) == 0)
+                    {
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_CMD_SPT_EFET_ID;
+                    }
+                    else if (strncmp("SelfTest", optarg, strlen(optarg)) == 0)
+                    {
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
                     }
                     else
                     {
@@ -520,7 +532,9 @@ int32_t main(int argc, char *argv[])
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
           || ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE )
           || (GET_FEATURES_IDENTIFIER >= 0)
-          || FORMAT_UNIT_FLAG
+          || FORMAT_UNIT_FLAG 
+          || EXT_SMART_LOG_FLAG1
+          || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
           || NVME_TEMP_STATS_FLAG
           || NVME_PCI_STATS_FLAG 
         //check for other tool specific options here
@@ -910,6 +924,36 @@ int32_t main(int argc, char *argv[])
 	                        break;
 	                    }
 	                break;
+	                case NVME_LOG_CMD_SPT_EFET_ID:
+	                    switch(nvme_Print_CmdSptEfft_Log_Page(&deviceList[deviceIter]))
+	                    {
+	                    case SUCCESS:
+	                        //nothing to print here since if it was successful, the log will be printed to the screen
+	                        break;
+	                    default:
+	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        {
+	                            printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
+	                        }
+	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	                        break;
+	                    }
+	                break;
+	                case NVME_LOG_DEV_SELF_TEST:
+	                    switch(nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
+	                    {
+	                    case SUCCESS:
+	                        //nothing to print here since if it was successful, the log will be printed to the screen
+	                        break;
+	                    default:
+	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        {
+	                            printf("A failure occured while trying to get Device Self-test Information Log\n");
+	                        }
+	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	                        break;
+	                    }
+	                break;
 	                default:
 	                    if (VERBOSITY_QUIET < g_verbosity)
 	                    {
@@ -1125,6 +1169,55 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        }
 	    }
+
+
+		 //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
+	    if (EXT_SMART_LOG_FLAG1)
+	    {
+	        switch (get_Ext_Smrt_Log(&deviceList[deviceIter]))
+	        {
+	        case SUCCESS:
+	            break;
+	        case NOT_SUPPORTED:
+	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Extended smart logs not supported.\n");
+	            }
+	            break;
+	        default:
+	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Failed fetch Extended smart logs.\n");
+	            }
+	            break;
+	        }
+	    }
+		
+	    if (CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG)
+	    {
+	        switch (clr_Pcie_Correctable_Errs(&deviceList[deviceIter]))
+	        {
+	        case SUCCESS:
+	            break;
+	        case NOT_SUPPORTED:
+	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Clear Pcie correctable errors not supported.\n");
+	            }
+	            break;
+	        default:
+	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+	            if (VERBOSITY_QUIET < g_verbosity)
+	            {
+	                printf("Failed fetch Clear Pcie correctable errors.\n");
+	            }
+	            break;
+	        }
+	    }
+	
 	
 	    if (FORMAT_UNIT_FLAG)
 	    {
@@ -1236,6 +1329,8 @@ void utility_Usage(bool shortUsage)
     print_NVMe_Firmware_Download_Mode_Help(shortUsage);
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
+    print_pcierr_Help(shortUsage);
+    print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
     print_NVMe_Temp_Stats_Help(shortUsage);
     print_NVMe_Pci_Stats_Help(shortUsage);
