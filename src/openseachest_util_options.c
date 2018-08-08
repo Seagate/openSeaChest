@@ -2952,3 +2952,30 @@ void print_FARM_Log_Help(bool shortHelp)
         printf("\t\tPull the Seagate FARM log from the specified drive.\n\n");
     }
 }
+
+void print_Show_SMART_Error_Log_Help(bool shortHelp)
+{
+    printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will display the ATA SMART Error log on the screen.\n");
+        printf("\t\tUse \"summary\" to view the summary SMART error log (last 5 entries)\n");
+        printf("\t\tUse \"comprehensive\" to view all the entires the drive has available.\n");
+        printf("\t\tSpecifying \"comprehensive\" will automatically pull the ext error log\n");
+        printf("\t\ton drives that support 48bit LBAs.\n");
+        printf("\t\tNote: The summary error log will truncate 48bit commands, so some information\n");
+        printf("\t\t      will be missing to desribe the operation of certain commands.\n");
+        printf("\n");
+    }
+}
+
+void print_SMART_Error_Log_Format_Help(bool shortHelp)
+{
+    printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"detailed\"\n");
+        printf("\n");
+    }
+}

@@ -1414,6 +1414,20 @@ extern "C"
     #define INFORMATIONAL_EXCEPTIONS_LONG_OPT_STRING "infoExceptionsLog"
     #define INFROMATIONAL_EXCEPTIONS_LONG_OPT { INFORMATIONAL_EXCEPTIONS_LONG_OPT_STRING, no_argument, &INFORMATIONAL_EXCEPTIONS_FLAG, goTrue }
 
+    //Show SMART Error Log
+    #define SHOW_SMART_ERROR_LOG_FLAG showSMARTErrorLog
+    #define SHOW_SMART_ERROR_LOG_MODE smartErrorLogMode //summary vs (ext) comp. NOTE: can easily be changed to show comp vs ext comp as separate options
+    #define SHOW_SMART_ERROR_LOG_VARS \
+    bool SHOW_SMART_ERROR_LOG_FLAG  = false;\
+    uint8_t SHOW_SMART_ERROR_LOG_MODE = 0; //0 = summary, 1 = (ext) comp. If a request to see the comp vs ext comp comes in, we can add 2 = ext comp.
+    #define SHOW_SMART_ERROR_LOG_LONG_OPT_STRING "showSMARTErrorLog"
+    #define SHOW_SMART_ERROR_LOG_LONG_OPT { SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //SMART Error log format: detailed vs raw/generic
+    #define SMART_ERROR_LOG_FORMAT_FLAG showSMARTErrorLogGenericFormat //default to false
+    #define SMART_ERROR_LOG_FORMAT_VAR bool SMART_ERROR_LOG_FORMAT_FLAG = false;
+    #define SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING "smartErrorLogFormat"
+    #define SMART_ERROR_LOG_FORMAT_LONG_OPT { SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
     
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2754,6 +2768,9 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
 
+    void print_Show_SMART_Error_Log_Help(bool shortHelp);
+
+    void print_SMART_Error_Log_Format_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 
