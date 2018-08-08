@@ -2968,3 +2968,14 @@ void print_Show_SMART_Error_Log_Help(bool shortHelp)
         printf("\n");
     }
 }
+
+void print_SMART_Error_Log_Format_Help(bool shortHelp)
+{
+    printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"detailed\"\n");
+        printf("\n");
+    }
+}

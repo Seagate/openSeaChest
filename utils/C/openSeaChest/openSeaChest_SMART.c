@@ -37,7 +37,7 @@
 //  Global Variables  //
 //////////////////////// 
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.10.0";
+const char *buildVersion = "1.11.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -112,6 +112,7 @@ int32_t main(int argc, char *argv[])
     ERROR_LIMIT_VAR
 	SCSI_DEFECTS_VARS
     SHOW_SMART_ERROR_LOG_VARS
+    SMART_ERROR_LOG_FORMAT_VAR
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -170,6 +171,7 @@ int32_t main(int argc, char *argv[])
         SET_MRIE_MODE_LONG_OPT,
         SCSI_DEFECTS_LONG_OPT,
         SHOW_SMART_ERROR_LOG_LONG_OPT,
+        SMART_ERROR_LOG_FORMAT_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -415,6 +417,22 @@ int32_t main(int argc, char *argv[])
                 {
                     SHOW_SMART_ERROR_LOG_FLAG = false;
                     print_Error_In_Cmd_Line_Args(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp("raw", optarg) == 0 || strcmp("generic", optarg) == 0)
+                {
+                    SMART_ERROR_LOG_FORMAT_FLAG = true;
+                }
+                else if (strcmp("detailed", optarg) == 0)
+                {
+                    SMART_ERROR_LOG_FORMAT_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -1122,7 +1140,7 @@ int32_t main(int argc, char *argv[])
                 switch (get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog))
                 {
                 case SUCCESS:
-                    print_ATA_Summary_SMART_Error_Log(&sumErrorLog);
+                    print_ATA_Summary_SMART_Error_Log(&sumErrorLog, SMART_ERROR_LOG_FORMAT_FLAG);
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < g_verbosity)
@@ -1145,10 +1163,10 @@ int32_t main(int argc, char *argv[])
             {
                 comprehensiveSMARTErrorLog compErrorLog;
                 memset(&compErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
-                switch (get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog, false))
+                switch (get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog, false /*force reading SMART comprehensive log is turned off right now*/))
                 {
                 case SUCCESS:
-                    print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog);
+                    print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog, SMART_ERROR_LOG_FORMAT_FLAG);
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < g_verbosity)
@@ -1964,6 +1982,7 @@ void utility_Usage(bool shortUsage)
     print_SMART_Attribute_Autosave_Help(shortUsage);
     print_SMART_Auto_Offline_Help(shortUsage);
     print_Show_SMART_Error_Log_Help(shortUsage);
+    print_SMART_Error_Log_Format_Help(shortUsage);
     print_SMART_Info_Help(shortUsage);
 
     //SAS Only
