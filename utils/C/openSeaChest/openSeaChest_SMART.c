@@ -111,6 +111,7 @@ int32_t main(int argc, char *argv[])
     SET_MRIE_MODE_VARS
     ERROR_LIMIT_VAR
 	SCSI_DEFECTS_VARS
+    SHOW_SMART_ERROR_LOG_VARS
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -168,6 +169,7 @@ int32_t main(int argc, char *argv[])
         CONVEYANCE_DST_LONG_OPT,
         SET_MRIE_MODE_LONG_OPT,
         SCSI_DEFECTS_LONG_OPT,
+        SHOW_SMART_ERROR_LOG_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -396,6 +398,24 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING))) == 0)
+            {
+                SHOW_SMART_ERROR_LOG_FLAG = true;
+                if (strcmp("summary", optarg) == 0)
+                {
+                    SHOW_SMART_ERROR_LOG_MODE = 0;
+                }
+                else if (strcmp("comprehensive", optarg) == 0 || strcmp("extComprehensive", optarg) == 0)
+                {
+                    SHOW_SMART_ERROR_LOG_MODE = 1;
+                }
+                else
+                {
+                    SHOW_SMART_ERROR_LOG_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -707,6 +727,7 @@ int32_t main(int argc, char *argv[])
         || CONVEYANCE_DST_FLAG
         || SET_MRIE_MODE_FLAG
         || SCSI_DEFECTS_FLAG
+        || SHOW_SMART_ERROR_LOG_FLAG
         //check for other tool specific options here
         ))
     {
@@ -1086,6 +1107,36 @@ int32_t main(int argc, char *argv[])
                     printf("A failure occured while trying to get SMART attributes\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_SMART_ERROR_LOG_FLAG)
+        {
+            switch (SHOW_SMART_ERROR_LOG_MODE)
+            {
+            case 0://summary
+            {
+                summarySMARTErrorLog sumErrorLog;
+                memset(&sumErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
+                get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog);
+                print_ATA_Summary_SMART_Error_Log(&sumErrorLog);
+            }
+            break;
+            case 1://(ext) comprehensive
+            {
+                comprehensiveSMARTErrorLog compErrorLog;
+                memset(&compErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
+                get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog);
+                print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog);
+            }
+                break;
+            default://error
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Unknown SMART Error Log specified!\n");
+                }
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 break;
             }
         }
