@@ -1254,7 +1254,7 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [ Error | SMART | FWSlots | SuppCmds | SelfTest # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [ Error | SMART | FWSlots | SuppCmds | SelfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
@@ -1273,6 +1273,18 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
         printf("\t\t\t          self-test operations.\n");
         printf("\t\t\t#       - option to get the log page using\n");
         printf("\t\t\t          a number\n\n");
+    }
+}
+
+void print_NVMe_Get_Tele_Help(bool shortHelp)
+{
+    printf("\t--%s [ HOST | CTRL ] --%s [ 1 | 2 | 3 ]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe Telemetry\n");
+        printf("\t\tSupported Modes:\n");
+        printf("\t\t\tHOST    - get Host Telemetry\n");
+        printf("\t\t\tCTRL    - get Ctrl Telemetry\n\n");
     }
 }
 

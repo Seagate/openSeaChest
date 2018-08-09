@@ -426,6 +426,18 @@ extern "C"
     #define NVME_PCI_STATS_LONG_OPT_STRING "pciStats"
     #define NVME_PCI_STATS_LONG_OPT { NVME_PCI_STATS_LONG_OPT_STRING, no_argument, &NVME_PCI_STATS_FLAG, goTrue }
 
+    // NVMe Telemetry
+    #define GET_NVME_TELE_IDENTIFIER nvmeGetTelemetry
+    #define GET_NVME_TELE_VAR int32_t GET_NVME_TELE_IDENTIFIER = -1;
+    #define GET_NVME_TELE_LONG_OPT_STRING "getTelemetry"
+    #define GET_NVME_TELE_LONG_OPT { GET_NVME_TELE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    // NVMe Telemetry Data Area
+    #define NVME_TELE_DATA_AREA telemetryDataArea
+    #define NVME_TELE_DATA_AREA_VAR int32_t NVME_TELE_DATA_AREA = 3;
+    #define NVME_TELE_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
+    #define NVME_TELE_DATA_AREA_LONG_OPT { NVME_TELE_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
@@ -2373,8 +2385,12 @@ extern "C"
     void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp);//NVMe does not have a concept of segmented/differed. Revist
 
     void print_NVMe_Get_Log_Help(bool shortHelp);
+
+    void print_NVMe_Get_Tele_Help(bool shortHelp);
+
 	void print_extSmatLog_Help (bool shortHelp);
-	void print_pcierr_Help(bool shortHelp);
+
+    void print_pcierr_Help(bool shortHelp);
 
     void print_NVMe_Temp_Stats_Help(bool shortHelp);
 
