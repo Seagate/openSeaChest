@@ -1000,7 +1000,7 @@ int32_t main(int argc, char *argv[])
              * If it is not in between 1-3 we should exit with error 
              */
 
-            if ((NVME_TELE_DATA_AREA >= 1) && (NVME_TELE_DATA_AREA <= 3)) 
+            if ((NVME_TELE_DATA_AREA < 1) && (NVME_TELE_DATA_AREA > 3)) 
             {
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
@@ -1037,20 +1037,26 @@ int32_t main(int argc, char *argv[])
                     if(rtnVal == SUCCESS)
                     {
                         teleHdr = (nvmeTemetryLogHdr *)logBuffer;
-                        
+            
+#if defined(_DEBUG)
+                        printf("Telemetry Data Area 1 : %d \n", teleHdr->teleDataArea1);
+                        printf("Telemetry Data Area 2 : %d \n", teleHdr->teleDataArea2);
+                        printf("Telemetry Data Area 3 : %d \n", teleHdr->teleDataArea3);
+#endif
+                                    
                         if(NVME_TELE_DATA_AREA == 1) 
                         {
-                            fullSize = offset + teleHdr->teleDataArea1;
+                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea1;
                         }
 
                         if(NVME_TELE_DATA_AREA == 2) 
                         {
-                            fullSize = offset + teleHdr->teleDataArea2;
+                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea2;
                         }
 
                         if(NVME_TELE_DATA_AREA == 3) 
                         {
-                            fullSize = offset + teleHdr->teleDataArea3;
+                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea3;
                         }
 
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) || 
