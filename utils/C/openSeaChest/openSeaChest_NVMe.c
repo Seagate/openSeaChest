@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "SeaChest_NVMe";
-const char *buildVersion = "0.0.2";
+const char *buildVersion = "0.0.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -692,14 +692,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strncmp(MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.product_identification, M_Min(strlen(MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.product_identification))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for fw match
         if (FW_MATCH_FLAG)

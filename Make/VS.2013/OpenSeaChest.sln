@@ -117,6 +117,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSeaChest_ZBD", "OpenSea
 		{02F57AFA-58A6-49D3-8F17-C658CDE630BF} = {02F57AFA-58A6-49D3-8F17-C658CDE630BF}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenSeaChest_Logs", "OpenSeaChest_Logs\OpenSeaChest_Logs.vcxproj", "{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{394BD68F-7AF9-4C27-9B40-5819F24A5B64} = {394BD68F-7AF9-4C27-9B40-5819F24A5B64}
+		{9F3EACCC-FD87-407F-81B3-51F67C463106} = {9F3EACCC-FD87-407F-81B3-51F67C463106}
+		{621B44CE-B314-4E05-B214-5DC70F2B4798} = {621B44CE-B314-4E05-B214-5DC70F2B4798}
+		{02F57AFA-58A6-49D3-8F17-C658CDE630BF} = {02F57AFA-58A6-49D3-8F17-C658CDE630BF}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -395,6 +403,22 @@ Global
 		{086018B9-059F-40DE-8FAB-9FAED3652BB9}.Static-Release|Win32.Build.0 = Static-Release|Win32
 		{086018B9-059F-40DE-8FAB-9FAED3652BB9}.Static-Release|x64.ActiveCfg = Static-Release|x64
 		{086018B9-059F-40DE-8FAB-9FAED3652BB9}.Static-Release|x64.Build.0 = Static-Release|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Debug|Win32.Build.0 = Debug|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Debug|x64.ActiveCfg = Debug|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Debug|x64.Build.0 = Debug|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Release|Win32.ActiveCfg = Release|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Release|Win32.Build.0 = Release|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Release|x64.ActiveCfg = Release|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Release|x64.Build.0 = Release|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Debug|Win32.ActiveCfg = Static-Debug|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Debug|Win32.Build.0 = Static-Debug|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Debug|x64.ActiveCfg = Static-Debug|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Debug|x64.Build.0 = Static-Debug|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Release|Win32.ActiveCfg = Static-Release|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Release|Win32.Build.0 = Static-Release|Win32
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Release|x64.ActiveCfg = Static-Release|x64
+		{4D479C7B-D20C-4E11-95CB-2AC3A79253FD}.Static-Release|x64.Build.0 = Static-Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
