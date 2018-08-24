@@ -278,7 +278,7 @@ void print_Help_Help(bool shortHelp)
     {
         printf("\t\tShow utility options and example usage (this output you see now)\n");
         printf("\t\tPlease report bugs/suggestions to seaboard@seagate.com.\n");
-        printf("Include the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
+        printf("\t\tInclude the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
     }
 }
 
@@ -823,6 +823,24 @@ void print_Change_Power_Help(bool shortHelp)
 }
 
 //Mainly used for NVMe devices. 
+void print_extSmatLog_Help(bool shortHelp)
+{
+    printf("\t--%s\n", EXT_SMART_LOG_LONG_OPT_STRING1);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to Extract the Extended Smart Log Attributes.\n");
+    }
+}
+
+void print_pcierr_Help (bool shortHelp)
+{
+    printf("\t--%s\n", CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to clear correctable errors.\n");
+    }    
+}
+
 void print_Transition_Power_State_Help(bool shortHelp)
 {
     printf("\t--%s [new power state]\n", TRANSITION_POWER_STATE_LONG_OPT_STRING);
@@ -1236,7 +1254,7 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [ Error | SMART | FWSlots | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [ Error | SMART | FWSlots | SuppCmds | SelfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
@@ -1247,6 +1265,12 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
         printf("\t\t\t          SMART/Health Information Log\n");
         printf("\t\t\tFWSlots - lists currently active Firmware slot\n");
         printf("\t\t\t          and Firmware Revision in each slot.\n");
+        printf("\t\t\tSuppCmds - lists the commands that the controller\n");
+        printf("\t\t\t          supports and the effects of those commands.\n");
+        printf("\t\t\tSelfTest - lists the status of any device\n");
+        printf("\t\t\t          self-test operation in progress\n");
+        printf("\t\t\t          and the results of the last 20 device\n");
+        printf("\t\t\t          self-test operations.\n");
         printf("\t\t\t#       - option to get the log page using\n");
         printf("\t\t\t          a number\n\n");
     }
@@ -1670,7 +1694,7 @@ void print_Pull_Generic_Logs_Help(bool shortHelp)
 
 void print_Pull_Generic_Logs_Subpage_Help(bool shortHelp)
 {
-	printf("\t--%s [Subpage Number] (SAS Only)\n", GENERIC_LOG_SUBPAGE_LONG_OPT_STRING);
+	printf("\t--%s [Subpage Number]\t\t(SAS Only)\n", GENERIC_LOG_SUBPAGE_LONG_OPT_STRING);
 	if (!shortHelp)
 	{
 		printf("\t\tUse this option with the --%s option to specify\n", GENERIC_LOG_LONG_OPT_STRING);
@@ -1684,7 +1708,7 @@ void print_Pull_Generic_Logs_Subpage_Help(bool shortHelp)
 
 void print_Supported_Error_History_Help(bool shortHelp)
 {
-	printf("\t--%s\n", LIST_ERROR_HISTORY_LONG_OPT_STRING);
+	printf("\t--%s\t\t\t(SAS Only)\n", LIST_ERROR_HISTORY_LONG_OPT_STRING);
 	if (!shortHelp)
 	{
 		printf("\t\tDisplays a list of all supported error history buffer IDs\n");
@@ -1694,7 +1718,7 @@ void print_Supported_Error_History_Help(bool shortHelp)
 
 void print_Pull_Generic_Error_History_Help(bool shortHelp)
 {
-	printf("\t--%s [Buffer ID]\n", GENERIC_ERROR_HISTORY_LONG_OPT_STRING);
+	printf("\t--%s [Buffer ID]\t(SAS Only)\n", GENERIC_ERROR_HISTORY_LONG_OPT_STRING);
 	if (!shortHelp)
 	{
 		printf("\t\tPulls specific error history buffer ID from the device\n");
@@ -2837,10 +2861,121 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
         printf("\t\tArguments: (name | #)\n");
         printf("\t\t shortBlock | 0 - show the defects in short block address mode (drives < 32bit LBA)\n");
         printf("\t\t xbfi       | 1 - show the defects in extended bytes from index mode\n");
-        printf("\t\t xchs       | 1 - show the defects in extended physical cylinder-head-sector mode\n");
+        printf("\t\t xchs       | 2 - show the defects in extended physical cylinder-head-sector mode\n");
         printf("\t\t longBlock  | 3 - show the defects in long block address mode (drives > 32bit LBA)\n");
         printf("\t\t bfi        | 4 - show the defects in bytes from index mode\n");
         printf("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
+        printf("\n");
+    }
+}
+
+void print_Pull_Self_Test_Results_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", DST_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will pull the self test results log\n");
+        printf("\t\tfrom a device. On ATA drives, this will pull the\n");
+        printf("\t\textended SMART self tests result log when it is\n");
+        printf("\t\tsupported by the device.\n\n");
+    }
+}
+
+void print_Pull_Identify_Device_Data_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t(SATA only)\n", IDENTIFY_DEVICE_DATA_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will pull the Identify Device data\n");
+        printf("\t\tlog from an ATA drive.\n\n");
+    }
+}
+
+void print_Pull_SATA_Phy_Event_Counters_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t\t(SATA only)\n", SATA_PHY_COUNTERS_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will pull the SATA Phy Event Counters\n");
+        printf("\t\tlog from a SATA drive.\n\n");
+    }
+}
+
+void print_Pull_Device_Statistics_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", DEVICE_STATS_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will pull the Device Statistics Log\n");
+        printf("\t\tfrom a device.\n\n");
+    }
+}
+
+void print_Pull_Informational_Exceptions_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t\t(SAS only)\n", INFORMATIONAL_EXCEPTIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will pull the SCSI Informational\n");
+        printf("\t\tExceptions log page from a SCSI device.\n\n");
+    }
+}
+
+void print_Log_Transfer_Length_Help(bool shortHelp)
+{
+    printf("\t--%s [length in bytes]\n", LOG_TRANSFER_LENGTH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the data transfer\n");
+        printf("\t\tlength for a log transfer.\n");
+        printf("\t\tLarger transfer sizes may speed up log retrieval at the\n");
+        printf("\t\tloss of compatibility.\n");
+        printf("\t\tThe following post fixes are allowed for\n");
+        printf("\t\tspecifying a transfer length:\n");
+        printf("\t\t\tBLOCKS or SECTORS - used to specify a transfer length\n");
+        printf("\t\t\t\tin device in 512Byte blocks/sectors\n");
+        printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
+        printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
+        printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
+        printf("\t\t\tMiB - length in mebibytes (val * 1048576)\n");
+        printf("\t\tATA drives must be given a value in 512B increments.\n");
+        printf("\t\tWarning: Specifying a large size may result in\n");
+        printf("\t\tfailures due to OS, driver, or HBA/bridge specific limitations.\n\n");
+    }
+}
+
+void print_FARM_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FARM_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPull the Seagate FARM log from the specified drive.\n\n");
+    }
+}
+
+void print_Show_SMART_Error_Log_Help(bool shortHelp)
+{
+    printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will display the ATA SMART Error log on the screen.\n");
+        printf("\t\tUse \"summary\" to view the summary SMART error log (last 5 entries)\n");
+        printf("\t\tUse \"comprehensive\" to view all the entires the drive has available.\n");
+        printf("\t\tSpecifying \"comprehensive\" will automatically pull the ext error log\n");
+        printf("\t\ton drives that support 48bit LBAs.\n");
+        printf("\t\tNote: The summary error log will truncate 48bit commands, so some information\n");
+        printf("\t\t      will be missing to desribe the operation of certain commands.\n");
+        printf("\n");
+    }
+}
+
+void print_SMART_Error_Log_Format_Help(bool shortHelp)
+{
+    printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"detailed\"\n");
         printf("\n");
     }
 }
