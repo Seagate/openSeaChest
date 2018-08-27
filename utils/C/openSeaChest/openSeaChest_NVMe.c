@@ -1124,9 +1124,6 @@ int32_t main(int argc, char *argv[])
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
-                                        fflush(pLogFile);
-                                        fclose(pLogFile);
-
                                         break;
                                     }
 
