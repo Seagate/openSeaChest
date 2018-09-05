@@ -772,9 +772,11 @@ int32_t main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
+#if !defined(VMK_CROSS_COMP)
             if ((deviceList[handleIter].os_info.fd < 0) || 
-#if defined(VMK_CROSS_COMP)
-                (deviceList[handleIter].os_info.nvmeFd == NULL) ||
+#else
+            if (((deviceList[handleIter].os_info.fd < 0) && 
+                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
