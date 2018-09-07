@@ -1323,7 +1323,6 @@ int32_t main(int argc, char *argv[])
                     }
                     fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
 
-					dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
 					dlOptions.dlMode = DOWNLOAD_FW_MODE;					
 					dlOptions.segmentSize = 0;
 					dlOptions.firmwareFileMem = firmwareMem;
@@ -1391,7 +1390,6 @@ int32_t main(int argc, char *argv[])
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-                dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
                 dlOptions.dlMode = DL_FW_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;

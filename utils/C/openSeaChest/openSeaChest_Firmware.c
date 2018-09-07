@@ -881,7 +881,6 @@ int32_t main(int argc, char *argv[])
 
 					memset(&dlOptions, 0, sizeof(firmwareUpdateData));
 					memset(&commandTimer, 0, sizeof(seatimer_t));
-					dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
 					dlOptions.dlMode = DOWNLOAD_FW_MODE;
 					dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
 					dlOptions.firmwareFileMem = firmwareMem;
@@ -990,7 +989,6 @@ int32_t main(int argc, char *argv[])
             {
 				memset(&dlOptions, 0, sizeof(firmwareUpdateData));
 				memset(&commandTimer, 0, sizeof(seatimer_t));
-				dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
 				dlOptions.dlMode = DL_FW_ACTIVATE;
 				dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
 				dlOptions.firmwareFileMem = NULL;
