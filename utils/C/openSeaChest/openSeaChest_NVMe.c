@@ -1245,7 +1245,6 @@ int32_t main(int argc, char *argv[])
 	                //We always want to do DL_FW_DEFERRED for NVMe
                     memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                     memset(&commandTimer, 0, sizeof(seatimer_t));
-                    dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
                     dlOptions.dlMode = DL_FW_DEFERRED;									
                     dlOptions.segmentSize = 64;
                     dlOptions.firmwareFileMem = firmwareMem;
