@@ -1291,7 +1291,7 @@ int32_t main(int argc, char *argv[])
 	        //If it is not deferred, lets activate
 	        if ( (exitCode != UTIL_EXIT_OPERATION_FAILURE ) && (DOWNLOAD_FW_MODE != DL_FW_DEFERRED) )
 	        {
-	            switch (firmware_Download_Activate(&deviceList[deviceIter], false, 0))//TODO: Add slot numbers. 
+	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0))//TODO: Add slot numbers. 
 	            {
 	            case SUCCESS:
 	                if (VERBOSITY_QUIET < g_verbosity)
