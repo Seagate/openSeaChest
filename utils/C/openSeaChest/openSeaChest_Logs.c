@@ -535,6 +535,10 @@ int32_t main(int argc, char *argv[])
         || GENERIC_ERROR_HISTORY_PULL_FLAG
         || FARM_PULL_FLAG
         || DST_LOG_FLAG
+        || IDENTIFY_DEVICE_DATA_LOG_FLAG
+        || SATA_PHY_COUNTERS_LOG_FLAG
+        || DEVICE_STATS_LOG_FLAG
+        || INFORMATIONAL_EXCEPTIONS_FLAG
         ))
     {
         utility_Usage(true);
