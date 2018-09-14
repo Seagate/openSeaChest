@@ -815,13 +815,15 @@ extern "C"
 
 
     //set ready LED - previously misnamed pin11
+    #define READY_LED_INFO_FLAG readyLEDInfo
     #define SET_READY_LED_FLAG setReadyLED
     #define SET_READY_LED_MODE readyLEDMode //on or off or default
     #define SET_READY_LED_DEFAULT readyLEDDefault
     #define SET_READY_LED_VARS \
     bool SET_READY_LED_FLAG = false;\
     bool SET_READY_LED_MODE = false;\
-    bool SET_READY_LED_DEFAULT = false;
+    bool SET_READY_LED_DEFAULT = false;\
+    bool READY_LED_INFO_FLAG = false;
     #define SET_PIN_11_LONG_OPT_STRING "pin11" //left for backwards compatibility
     #define SET_PIN_11_LONG_OPT { SET_PIN_11_LONG_OPT_STRING, required_argument, NULL, 0 }
 	#define SET_READY_LED_LONG_OPT_STRING "readyLED" //left for backwards compatibility

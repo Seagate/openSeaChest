@@ -1384,14 +1384,16 @@ void print_Set_SSC_Help(bool shortHelp)
 
 void print_Set_Ready_LED_Help(bool shortHelp)
 {
-    printf("\t--%s [on | off | default] (SAS Only)\n", SET_READY_LED_LONG_OPT_STRING);
+    printf("\t--%s [info | on | off | default] (SAS Only)\n", SET_READY_LED_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to change the behavior of the ready LED.\n");
+        printf("\t\tUse this option to get the current state or change the\n");
+        printf("\t\tbehavior of the ready LED.\n");
 		printf("\t\tSee the SPL spec for full details on how this changes LED\n");
-		printf("\t\t    on - sets the ready LED to usually on unless\n");
+        printf("\t\t    info - gets the current state of the ready LED.\n");
+		printf("\t\t    on - sets the ready LED to usually off unless\n");
 		printf("\t\t         processing a command.\n");
-		printf("\t\t    off - sets the ready LED to usually off unless\n");
+		printf("\t\t    off - sets the ready LED to usually on unless\n");
 		printf("\t\t          processing a command\n");
 		printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
     }
