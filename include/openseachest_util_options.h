@@ -90,7 +90,7 @@ extern "C"
     #define DEVICE_INFO_SHORT_OPT 'i'
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
-	
+
     #define TCG_DEVICE_INFO_FLAG tcgDevInfo
     #define TCG_DEVICE_INFO_VAR getOptBool TCG_DEVICE_INFO_FLAG = goFalse;
     #define TCG_DEVICE_INFO_LONG_OPT_STRING "tcgInfo"
@@ -246,7 +246,7 @@ extern "C"
     
     #define EXT_SMART_LOG_FLAG1 extSmatLog
     #define EXT_SMART_LOG_VAR1 getOptBool EXT_SMART_LOG_FLAG1 = goFalse;
-    #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmatLog"
+    #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmartLog"
     #define EXT_SMART_LOG_LONG_OPT1 { EXT_SMART_LOG_LONG_OPT_STRING1, no_argument, &EXT_SMART_LOG_FLAG1, goTrue }
 
     #define SHORT_DST_FLAG shortDST
@@ -394,7 +394,7 @@ extern "C"
     #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, no_argument, &TRANSITION_POWER_MODE_FLAG, goTrue }
 
     //Following is for NVMe Utilities.
-	#define TRANSITION_POWER_STATE_TO transitionPowerState
+    #define TRANSITION_POWER_STATE_TO transitionPowerState
     #define TRANSITION_POWER_STATE_VAR int32_t TRANSITION_POWER_STATE_TO = -1;
     #define TRANSITION_POWER_STATE_LONG_OPT_STRING "transitionPowerState"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -409,7 +409,7 @@ extern "C"
 	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING "clearPciErr"
 	#define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, 0 }
 
-	#define GET_FEATURES getFeatures
+    #define GET_FEATURES getFeatures
     #define GET_FEATURES_VAR int32_t GET_FEATURES_IDENTIFIER = -1;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -661,6 +661,12 @@ extern "C"
     #define ACTIVATE_DEFERRED_FW_VAR getOptBool activateDeferredFW = goFalse;
     #define ACTIVATE_DEFERRED_FW_LONG_OPT_STRING "activateFW"
     #define ACTIVATE_DEFERRED_FW_LONG_OPT { ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, no_argument, &ACTIVATE_DEFERRED_FW_FLAG, goTrue }
+
+    //Win10 allow flexible use of Win10 api for any supported command to any device on any interface (removes strict requirement that the matching command to device type and interface type is required)
+    #define WIN10_FLEXIBLE_API_USE_FLAG windows10AllowFlexibleUseOfWinFWDLAPI
+    #define WIN10_FLEXIBLE_API_USE_VAR getOptBool WIN10_FLEXIBLE_API_USE_FLAG = goFalse;
+    #define WIN10_FLEXIBLE_API_USE_LONG_OPT_STRING "allowFlexibleFWDLAPIUse"
+    #define WIN10_FLEXIBLE_API_USE_LONG_OPT { WIN10_FLEXIBLE_API_USE_LONG_OPT_STRING, no_argument, &WIN10_FLEXIBLE_API_USE_FLAG, goTrue }
 
     //FW slot
     #define FIRMWARE_SLOT_FLAG firmwareSlot

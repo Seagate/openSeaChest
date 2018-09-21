@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.5.3";
+const char *buildVersion = "2.5.4";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -96,6 +96,7 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAGS_UTIL_VARS
     //tool specific
     DOWNLOAD_FW_VARS
+    WIN10_FLEXIBLE_API_USE_VAR
     FIRMWARE_SLOT_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
@@ -157,6 +158,7 @@ int32_t main(int argc, char *argv[])
         SHOW_FWDL_SUPPORT_LONG_OPT,
         ACTIVATE_DEFERRED_FW_LONG_OPT,
         FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
+        WIN10_FLEXIBLE_API_USE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -251,6 +253,14 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
                 FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
+				if (FIRMWARE_SLOT_FLAG > 7)
+				{
+					if (g_verbosity > VERBOSITY_QUIET)
+					{
+						printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
+                    }
+					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+				}
             }
             break;
         case ':'://missing required argument
@@ -630,7 +640,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {
@@ -778,6 +788,13 @@ int32_t main(int argc, char *argv[])
         {
 			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
+
+#if defined (_WIN32) && WINVER >= SEA_WIN32_WINNT_WIN10
+        if (WIN10_FLEXIBLE_API_USE_FLAG)
+        {
+            deviceList[deviceIter].os_info.fwdlIOsupport.allowFlexibleUseOfAPI = true;
+        }
+#endif
 
         //now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
@@ -1138,9 +1155,8 @@ void utility_Usage(bool shortUsage)
     //utility options - alphabetized
     printf("Utility Options\n");
     printf("===============\n");
-#if defined (ENABLE_CSMI)
-	print_CSMI_Force_Flags_Help(shortUsage);
-	print_CSMI_Verbose_Help(shortUsage);
+#if defined (_WIN32)
+    print_FWDL_Allow_Flexible_Win10_API_Use_Help(shortUsage);
 #endif
     print_Echo_Command_Line_Help(shortUsage);
     print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
@@ -1163,6 +1179,10 @@ void utility_Usage(bool shortUsage)
     //the test options
     printf("\nUtility Arguments\n");
     printf("=================\n");
+#if defined (ENABLE_CSMI)
+    print_CSMI_Force_Flags_Help(shortUsage);
+    print_CSMI_Verbose_Help(shortUsage);
+#endif
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);

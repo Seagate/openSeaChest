@@ -92,7 +92,7 @@ int32_t main(int argc, char *argv[])
     //tool specific
     DEVICE_STATISTICS_VAR
     SMART_ATTRIBUTES_VARS
-	SCSI_DEFECTS_VARS
+    SCSI_DEFECTS_VARS
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -823,7 +823,6 @@ int32_t main(int argc, char *argv[])
 
         if (DEVICE_STATISTICS_FLAG)
         {
-            int devStatsRet = NOT_SUPPORTED;
             deviceStatistics deviceStats;
             memset(&deviceStats, 0, sizeof(deviceStatistics));
             switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))

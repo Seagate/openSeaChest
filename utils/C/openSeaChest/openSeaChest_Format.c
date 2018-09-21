@@ -710,7 +710,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {

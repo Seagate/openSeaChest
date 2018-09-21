@@ -784,7 +784,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {
@@ -906,7 +906,7 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < g_verbosity)
         {
-			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
 
         //now start looking at what operations are going to be performed and kick them off
