@@ -833,7 +833,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {
@@ -956,7 +956,7 @@ int32_t main(int argc, char *argv[])
         if (VERBOSITY_QUIET < g_verbosity)
         {
 			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
-		}
+        }
 
         //now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
@@ -2072,7 +2072,7 @@ int32_t main(int argc, char *argv[])
             }
         }
     }
-    return exitCode;
+    exit(exitCode);
 }
 
 //-----------------------------------------------------------------------------
@@ -2155,7 +2155,7 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSATA Only:\n\t=========\n");
     print_Disable_ATA_Security_Password_Help(shortUsage, util_name);
     //SAS Only Options
-    //printf("\n\tSAS Only:\n\n");
+    //printf("\n\tSAS Only:\n\t=========\n");
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");

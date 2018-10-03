@@ -101,7 +101,6 @@ int32_t main(int argc, char *argv[])
     ABORT_IDD_VAR
     IDD_TEST_VARS
     DST_AND_CLEAN_VAR
-    SEAGATE_CLEAN_VAR
     SMART_FEATURE_VARS
     SMART_ATTR_AUTOSAVE_FEATURE_VARS
     SMART_INFO_VAR
@@ -161,7 +160,6 @@ int32_t main(int argc, char *argv[])
         IDD_TEST_LONG_OPT,
         ERROR_LIMIT_LONG_OPT,
         DST_AND_CLEAN_LONG_OPT,
-        SEAGATE_CLEAN_LONG_OPT,
         SMART_FEATURE_LONG_OPT,
         SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT,
         SMART_INFO_LONG_OPT,
@@ -736,7 +734,6 @@ int32_t main(int argc, char *argv[])
         || (PROGRESS_CHAR != NULL)
         || RUN_IDD_FLAG
         || DST_AND_CLEAN_FLAG
-        || SEAGATE_CLEAN_FLAG
         || SMART_FEATURE_FLAG
         || SMART_ATTR_AUTOSAVE_FEATURE_FLAG
         || SMART_INFO_FLAG

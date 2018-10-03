@@ -60,8 +60,11 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char       g_timeString[64] = { 0 };
     char       *g_timeStringPtr = g_timeString;
     printf("==========================================================================================\n");
-    printf(" %s - openSeaChest drive utilities\n", utilityName);
-    printf(" Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    printf(" %s - openSeaChest drive utilities", utilityName);
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+	printf(" - NVMe Enabled");
+#endif
+    printf("\n Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
@@ -1276,6 +1279,18 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
     }
 }
 
+void print_NVMe_Get_Tele_Help(bool shortHelp)
+{
+    printf("\t--%s [ HOST | CTRL ] --%s [ 1 | 2 | 3 ]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the NVMe Telemetry\n");
+        printf("\t\tSupported Modes:\n");
+        printf("\t\t\tHOST    - get Host Telemetry\n");
+        printf("\t\t\tCTRL    - get Ctrl Telemetry\n\n");
+    }
+}
+
 void print_NVMe_Temp_Stats_Help(bool shortHelp)
 {
     printf("\t--%s   \n", NVME_TEMP_STATS_LONG_OPT_STRING);
@@ -1372,14 +1387,16 @@ void print_Set_SSC_Help(bool shortHelp)
 
 void print_Set_Ready_LED_Help(bool shortHelp)
 {
-    printf("\t--%s [on | off | default] (SAS Only)\n", SET_READY_LED_LONG_OPT_STRING);
+    printf("\t--%s [info | on | off | default] (SAS Only)\n", SET_READY_LED_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to change the behavior of the ready LED.\n");
+        printf("\t\tUse this option to get the current state or change the\n");
+        printf("\t\tbehavior of the ready LED.\n");
 		printf("\t\tSee the SPL spec for full details on how this changes LED\n");
-		printf("\t\t    on - sets the ready LED to usually on unless\n");
+        printf("\t\t    info - gets the current state of the ready LED.\n");
+		printf("\t\t    on - sets the ready LED to usually off unless\n");
 		printf("\t\t         processing a command.\n");
-		printf("\t\t    off - sets the ready LED to usually off unless\n");
+		printf("\t\t    off - sets the ready LED to usually on unless\n");
 		printf("\t\t          processing a command\n");
 		printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
     }
@@ -2068,7 +2085,7 @@ void print_NVME_Format_Unit_Help(bool shortHelp)
 
 void print_Low_Current_Spinup_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the low current spinup\n");
@@ -2977,5 +2994,23 @@ void print_SMART_Error_Log_Format_Help(bool shortHelp)
         printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
         printf("\t\toption. The default mode is \"detailed\"\n");
         printf("\n");
+    }
+}
+
+void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp)
+{
+    printf("\t--%s\n", WIN10_FLEXIBLE_API_USE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to control when to use the Windows 10+\n");
+        printf("\t\tFirmware Download API calls. Default behaviour is to only\n");
+        printf("\t\tuse this call when the interface and drive and command all\n");
+        printf("\t\tmatch. The default behaviour means that only ATA drives on\n");
+        printf("\t\tan ATA interface with a ATA download command will use this call\n");
+        printf("\t\tSCSI drives with a supported write buffer command will also use\n");
+        printf("\t\tthis call.\n");
+        printf("\t\tUsing this option allows a detected ATA drive on any interface to\n");
+        printf("\t\tuse this call if the OS/driver supports it regardless of the command\n");
+        printf("\t\tbeing sent by the opensea-transport library.\n\n");
     }
 }

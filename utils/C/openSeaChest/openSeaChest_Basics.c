@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.7.3";
+const char *buildVersion = "2.7.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -349,18 +349,24 @@ int32_t main(int argc, char *argv[])
 				(strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
 				)
             {
-                SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
+                    SET_READY_LED_FLAG = true;
                     SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_READY_LED_MODE = false;
+                    SET_READY_LED_FLAG = true;
+                    SET_READY_LED_MODE = true;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_READY_LED_MODE = true;
+                    SET_READY_LED_FLAG = true;
+                    SET_READY_LED_MODE = false;
+                }
+                else if (strcmp(optarg, "info") == 0)
+                {
+                    READY_LED_INFO_FLAG = true;
                 }
                 else
                 {
@@ -741,6 +747,7 @@ int32_t main(int argc, char *argv[])
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
         || SET_READY_LED_FLAG
+        || READY_LED_INFO_FLAG
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
@@ -1332,7 +1339,6 @@ int32_t main(int argc, char *argv[])
                     }
                     fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
 
-					dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
 					dlOptions.dlMode = DOWNLOAD_FW_MODE;					
 					dlOptions.segmentSize = 0;
 					dlOptions.firmwareFileMem = firmwareMem;
@@ -1400,7 +1406,6 @@ int32_t main(int argc, char *argv[])
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-                dlOptions.useDMA = deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported;
                 dlOptions.dlMode = DL_FW_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
@@ -1463,6 +1468,41 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("Failed to set the PHY speed of the device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (READY_LED_INFO_FLAG)
+        {
+            bool readyLEDValue = false;
+            switch (get_Ready_LED_State(&deviceList[deviceIter], &readyLEDValue))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    if (readyLEDValue)
+                    {
+                        printf("Ready LED is set to \"On\"\n");
+                    }
+                    else
+                    {
+                        printf("Ready LED is set to \"Off\"\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Unable to read ready LED info on this device or this device type.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Failed to read ready LED info!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
