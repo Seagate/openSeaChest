@@ -45,7 +45,7 @@ ifeq ($(UNAME),SunOS)
     LFLAGS +=
     TCGLFLAGS +=
 endif
-ifeq (($UNAME),FreeBSD)
+ifeq ($(UNAME),FreeBSD)
     LFLAGS += -lcam
     TCGLFLAGS += -lcam
 endif
