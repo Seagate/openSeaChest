@@ -131,7 +131,7 @@ int32_t main(int argc, char *argv[])
         //tool specific options go here
         DEVICE_STATISTICS_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
-        SCSI_DEFECTS_LONG_OPT,
+        SCSI_DEFECTS_LONG_OPTS,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
