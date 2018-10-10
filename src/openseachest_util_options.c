@@ -1257,20 +1257,20 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [ Error | SMART | FWSlots | SuppCmds | SelfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [ error | smart | fwSlots | suppCmds | selfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
         printf("\t\tSupported Modes:\n");
-        printf("\t\t\tError   - lists the valid entries found in the\n");
+        printf("\t\t\terror   - lists the valid entries found in the\n");
         printf("\t\t\t          Error Information Log.\n");
-        printf("\t\t\tSMART   - lists information found in the \n");
+        printf("\t\t\tsmart   - lists information found in the \n");
         printf("\t\t\t          SMART/Health Information Log\n");
-        printf("\t\t\tFWSlots - lists currently active Firmware slot\n");
+        printf("\t\t\tfwSlots - lists currently active Firmware slot\n");
         printf("\t\t\t          and Firmware Revision in each slot.\n");
-        printf("\t\t\tSuppCmds - lists the commands that the controller\n");
+        printf("\t\t\tsuppCmds - lists the commands that the controller\n");
         printf("\t\t\t          supports and the effects of those commands.\n");
-        printf("\t\t\tSelfTest - lists the status of any device\n");
+        printf("\t\t\tselfTest - lists the status of any device\n");
         printf("\t\t\t          self-test operation in progress\n");
         printf("\t\t\t          and the results of the last 20 device\n");
         printf("\t\t\t          self-test operations.\n");

@@ -265,23 +265,23 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (strncmp("Error", optarg, strlen(optarg)) == 0)
+                    if (strncmp("error", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_ERROR_ID;
                     }
-                    else if (strncmp("SMART", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("smart", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_SMART_ID;
                     }
-                    else if (strncmp("FWSlots", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("fwSlots", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_FW_SLOT_ID;
                     }
-                    else if (strncmp("SuppCmds", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("suppCmds", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_CMD_SPT_EFET_ID;
                     }
-                    else if (strncmp("SelfTest", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("selfTest", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
                     }
