@@ -39,7 +39,7 @@ ifeq ($(UNAME),SunOS)
     FWDLLFLAGS += 
     export AR=gar
 endif
-ifeq (($UNAME),FreeBSD)
+ifeq ($(UNAME),FreeBSD)
     FWDLLFLAGS += -lcam
 endif
 
