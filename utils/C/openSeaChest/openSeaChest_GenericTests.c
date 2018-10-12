@@ -1443,7 +1443,7 @@ void utility_Usage(bool shortUsage)
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
     //utility options - alphabetized
-    printf("Utility Options\n");
+    printf("\nUtility Options\n");
     printf("===============\n");
 #if defined (ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
