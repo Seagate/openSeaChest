@@ -295,11 +295,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GET_NVME_TELE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_NVME_TELE_LONG_OPT_STRING))) == 0)
             {
-                if (strncmp("HOST", optarg, strlen(optarg)) == 0)
+                if (strncmp("host", optarg, strlen(optarg)) == 0)
                 {
                     GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
                 }
-                else if (strncmp("CTRL", optarg, strlen(optarg)) == 0)
+                else if (strncmp("ctrl", optarg, strlen(optarg)) == 0)
                 {
                     GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
                 }

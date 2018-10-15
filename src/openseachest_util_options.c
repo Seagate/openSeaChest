@@ -1281,13 +1281,19 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
-    printf("\t--%s [ HOST | CTRL ] --%s [ 1 | 2 | 3 ]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    printf("\t--%s [ host | ctrl ] --%s [ 1 | 2 | 3 ]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe Telemetry\n");
         printf("\t\tSupported Modes:\n");
-        printf("\t\t\tHOST    - get Host Telemetry\n");
-        printf("\t\t\tCTRL    - get Ctrl Telemetry\n\n");
+        printf("\t\t\thost    - get Host Telemetry\n");
+        printf("\t\t\tctrl    - get Ctrl Telemetry\n\n");
+        printf("\n");
+        printf("\t\tSupported Data Area.\n");
+        printf("\t\t1 - get minimal telemetry data\n");
+        printf("\t\t2 - get telemetry data additional to data area 1\n");
+        printf("\t\t3 - get telemetry data additional to data area 2 (default data area)\n");
+        printf("\n");
     }
 }
 
