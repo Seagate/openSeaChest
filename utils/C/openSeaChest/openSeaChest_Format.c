@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_FormatUnit";
-const char *buildVersion = "1.2.0";
+const char *buildVersion = "1.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -679,6 +679,9 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
+#if defined(VMK_CROSS_COMP)
+            deviceList[handleIter].os_info.nvmeFd = NULL;
+#endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
@@ -695,7 +698,13 @@ int32_t main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-            if ((deviceList[handleIter].os_info.fd < 0) || (ret == FAILURE || ret == PERMISSION_DENIED))
+#if !defined(VMK_CROSS_COMP)
+            if ((deviceList[handleIter].os_info.fd < 0) || 
+#else
+            if (((deviceList[handleIter].os_info.fd < 0) && 
+                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+#endif
+            (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -710,7 +719,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {
@@ -733,14 +742,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strncmp(MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.product_identification, M_Min(strlen(MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.product_identification))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for fw match
         if (FW_MATCH_FLAG)
@@ -758,14 +767,14 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strncmp(CHILD_MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, M_Min(strlen(CHILD_MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
@@ -850,20 +859,7 @@ int32_t main(int argc, char *argv[])
 
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (DISPLAY_LBA_FLAG)

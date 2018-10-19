@@ -55,7 +55,16 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_SMART*
 
 ### Source
+Depend on your git version & client you can use either of the following two commands to clone the repository. 
 
+git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git
+
+or
+
+git clone --recursive https://github.com/Seagate/openSeaChest.git
+
+
+Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules. 
 
 ### Building
 

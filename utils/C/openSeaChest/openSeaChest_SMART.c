@@ -32,11 +32,12 @@
 #include "dst.h"
 #include "drive_info.h"
 #include "seagate_operations.h"
+#include "defect.h"
 ////////////////////////
 //  Global Variables  //
 //////////////////////// 
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.9.1";
+const char *buildVersion = "1.11.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -100,7 +101,6 @@ int32_t main(int argc, char *argv[])
     ABORT_IDD_VAR
     IDD_TEST_VARS
     DST_AND_CLEAN_VAR
-    SEAGATE_CLEAN_VAR
     SMART_FEATURE_VARS
     SMART_ATTR_AUTOSAVE_FEATURE_VARS
     SMART_INFO_VAR
@@ -109,7 +109,9 @@ int32_t main(int argc, char *argv[])
     CONVEYANCE_DST_VAR
     SET_MRIE_MODE_VARS
     ERROR_LIMIT_VAR
-
+	SCSI_DEFECTS_VARS
+    SHOW_SMART_ERROR_LOG_VARS
+    SMART_ERROR_LOG_FORMAT_VAR
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -158,7 +160,6 @@ int32_t main(int argc, char *argv[])
         IDD_TEST_LONG_OPT,
         ERROR_LIMIT_LONG_OPT,
         DST_AND_CLEAN_LONG_OPT,
-        SEAGATE_CLEAN_LONG_OPT,
         SMART_FEATURE_LONG_OPT,
         SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT,
         SMART_INFO_LONG_OPT,
@@ -166,6 +167,9 @@ int32_t main(int argc, char *argv[])
         SHOW_DST_LOG_LONG_OPT,
         CONVEYANCE_DST_LONG_OPT,
         SET_MRIE_MODE_LONG_OPT,
+        SCSI_DEFECTS_LONG_OPTS,
+        SHOW_SMART_ERROR_LOG_LONG_OPT,
+        SMART_ERROR_LOG_FORMAT_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -330,6 +334,103 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
+            {
+                uint8_t counter = 0;
+                SCSI_DEFECTS_FLAG = true;
+                while (counter < strlen(optarg))
+                {
+                    if (optarg[counter] == 'p' || optarg[counter] == 'P')
+                    {
+                        SCSI_DEFECTS_PRIMARY_LIST = true;
+                    }
+                    else if (optarg[counter] == 'g' || optarg[counter] == 'G')
+                    {
+                        SCSI_DEFECTS_GROWN_LIST = true;
+                    }
+                    ++counter;
+                }
+                if (!SCSI_DEFECTS_PRIMARY_LIST && !SCSI_DEFECTS_GROWN_LIST)
+                {
+                    printf("\n Error in option --%s. You must specify showing primary (p) or grown (g) defects or both\n", SCSI_DEFECTS_LONG_OPT_STRING);
+                    printf("Use -h option to view command line help\n");
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
+            {
+                //check for integer value or string that specifies the correct mode.
+                if (strlen(optarg) == 1 && isdigit(optarg[0]))
+                {
+                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
+                }
+                else
+                {
+                    if (strcmp("shortBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 0;
+                    }
+                    else if (strcmp("longBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 3;
+                    }
+                    else if (strcmp("xbfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 1;
+                    }
+                    else if (strcmp("xchs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 2;
+                    }
+                    else if (strcmp("bfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 4;
+                    }
+                    else if (strcmp("chs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 5;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING))) == 0)
+            {
+                SHOW_SMART_ERROR_LOG_FLAG = true;
+                if (strcmp("summary", optarg) == 0)
+                {
+                    SHOW_SMART_ERROR_LOG_MODE = 0;
+                }
+                else if (strcmp("comprehensive", optarg) == 0 || strcmp("extComprehensive", optarg) == 0)
+                {
+                    SHOW_SMART_ERROR_LOG_MODE = 1;
+                }
+                else
+                {
+                    SHOW_SMART_ERROR_LOG_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp("raw", optarg) == 0 || strcmp("generic", optarg) == 0)
+                {
+                    SMART_ERROR_LOG_FORMAT_FLAG = true;
+                }
+                else if (strcmp("detailed", optarg) == 0)
+                {
+                    SMART_ERROR_LOG_FORMAT_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -633,7 +734,6 @@ int32_t main(int argc, char *argv[])
         || (PROGRESS_CHAR != NULL)
         || RUN_IDD_FLAG
         || DST_AND_CLEAN_FLAG
-        || SEAGATE_CLEAN_FLAG
         || SMART_FEATURE_FLAG
         || SMART_ATTR_AUTOSAVE_FEATURE_FLAG
         || SMART_INFO_FLAG
@@ -641,6 +741,8 @@ int32_t main(int argc, char *argv[])
         || SHOW_DST_LOG_FLAG
         || CONVEYANCE_DST_FLAG
         || SET_MRIE_MODE_FLAG
+        || SCSI_DEFECTS_FLAG
+        || SHOW_SMART_ERROR_LOG_FLAG
         //check for other tool specific options here
         ))
     {
@@ -737,6 +839,9 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
+#if defined(VMK_CROSS_COMP)
+            deviceList[handleIter].os_info.nvmeFd = NULL;
+#endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
@@ -753,7 +858,13 @@ int32_t main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-            if ((deviceList[handleIter].os_info.fd < 0) || (ret == FAILURE || ret == PERMISSION_DENIED))
+#if !defined(VMK_CROSS_COMP)
+            if ((deviceList[handleIter].os_info.fd < 0) || 
+#else
+            if (((deviceList[handleIter].os_info.fd < 0) && 
+                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+#endif
+            (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -791,14 +902,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strncmp(MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.product_identification, M_Min(strlen(MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.product_identification))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for fw match
         if (FW_MATCH_FLAG)
@@ -816,14 +927,14 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strncmp(CHILD_MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, M_Min(strlen(CHILD_MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
@@ -930,22 +1041,29 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SCSI_DEFECTS_FLAG)
+        {
+            ptrSCSIDefectList defects = NULL;
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            {
+            case SUCCESS:
+                print_SCSI_Defect_List(defects);
+                free_Defect_List(&defects);
+                break;
+            case NOT_SUPPORTED:
+                printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                printf("Failed to retrieve SCSI defect list from this device\n");
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (SMART_CHECK_FLAG)
@@ -1013,6 +1131,72 @@ int32_t main(int argc, char *argv[])
                     printf("A failure occured while trying to get SMART attributes\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_SMART_ERROR_LOG_FLAG)
+        {
+            switch (SHOW_SMART_ERROR_LOG_MODE)
+            {
+            case 0://summary
+            {
+                summarySMARTErrorLog sumErrorLog;
+                memset(&sumErrorLog, 0, sizeof(summarySMARTErrorLog));
+                switch (get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog))
+                {
+                case SUCCESS:
+                    print_ATA_Summary_SMART_Error_Log(&sumErrorLog, SMART_ERROR_LOG_FORMAT_FLAG);
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("SMART Summary Error log is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to read the SMART Summary Error log!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            break;
+            case 1://(ext) comprehensive
+            {
+                comprehensiveSMARTErrorLog compErrorLog;
+                memset(&compErrorLog, 0, sizeof(comprehensiveSMARTErrorLog));
+                switch (get_ATA_Comprehensive_SMART_Error_Log(&deviceList[deviceIter], &compErrorLog, false /*force reading SMART comprehensive log is turned off right now*/))
+                {
+                case SUCCESS:
+                    print_ATA_Comprehensive_SMART_Error_Log(&compErrorLog, SMART_ERROR_LOG_FORMAT_FLAG);
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("SMART (Ext) Comprehensive Error log is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < g_verbosity)
+                    {
+                        printf("Failed to read the SMART (Ext) Comprehensive Error log!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+                break;
+            default://error
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Unknown SMART Error Log specified!\n");
+                }
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 break;
             }
         }
@@ -1803,11 +1987,15 @@ void utility_Usage(bool shortUsage)
     print_SMART_Attributes_Help(shortUsage);
     print_SMART_Attribute_Autosave_Help(shortUsage);
     print_SMART_Auto_Offline_Help(shortUsage);
+    print_Show_SMART_Error_Log_Help(shortUsage);
+    print_SMART_Error_Log_Format_Help(shortUsage);
     print_SMART_Info_Help(shortUsage);
 
     //SAS Only
     printf("\n\tSAS Only:\n\t=========\n");
+    print_SCSI_Defects_Format_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
+    print_SCSI_Defects_Help(shortUsage);
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");

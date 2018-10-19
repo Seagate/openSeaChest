@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.12.0";
+const char *buildVersion = "1.12.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -223,18 +223,24 @@ int32_t main(int argc, char *argv[])
             }
 			else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
             {
-                SET_READY_LED_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
+                    SET_READY_LED_FLAG = true;
                     SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
                 {
-                    SET_READY_LED_MODE = false;
+                    SET_READY_LED_FLAG = true;
+                    SET_READY_LED_MODE = true;
                 }
                 else if (strcmp(optarg, "off") == 0)
                 {
-                    SET_READY_LED_MODE = true;
+                    SET_READY_LED_FLAG = true;
+                    SET_READY_LED_MODE = false;
+                }
+                else if (strcmp(optarg, "info") == 0)
+                {
+                    READY_LED_INFO_FLAG = true;
                 }
                 else
                 {
@@ -775,6 +781,7 @@ int32_t main(int argc, char *argv[])
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
         || SET_READY_LED_FLAG
+        || READY_LED_INFO_FLAG
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
@@ -889,6 +896,9 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
+#if defined(VMK_CROSS_COMP)
+            deviceList[handleIter].os_info.nvmeFd = NULL;
+#endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
@@ -905,7 +915,13 @@ int32_t main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-            if ((deviceList[handleIter].os_info.fd < 0) || (ret == FAILURE || ret == PERMISSION_DENIED))
+#if !defined(VMK_CROSS_COMP)
+            if ((deviceList[handleIter].os_info.fd < 0) || 
+#else
+            if (((deviceList[handleIter].os_info.fd < 0) && 
+                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+#endif
+            (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -920,7 +936,7 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         if (ONLY_SEAGATE_FLAG)
         {
@@ -943,14 +959,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strncmp(MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.product_identification, M_Min(strlen(MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.product_identification))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for fw match
         if (FW_MATCH_FLAG)
@@ -968,14 +984,14 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strncmp(CHILD_MODEL_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, M_Min(strlen(CHILD_MODEL_STRING_FLAG), strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN))))
-            {
-                if (VERBOSITY_QUIET < g_verbosity)
-                {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-                }
-                continue;
-            }
+			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+			{
+				if (VERBOSITY_QUIET < g_verbosity)
+				{
+					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+				}
+				continue;
+			}
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
@@ -1043,7 +1059,7 @@ int32_t main(int argc, char *argv[])
         if (VERBOSITY_QUIET < g_verbosity)
         {
 			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
-		}
+        }
 
         //now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
@@ -1060,20 +1076,7 @@ int32_t main(int argc, char *argv[])
 
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = g_verbosity;
-                printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.acq, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (SET_PHY_SPEED_FLAG)
@@ -1166,12 +1169,46 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (READY_LED_INFO_FLAG)
+        {
+            bool readyLEDValue = false;
+            switch (get_Ready_LED_State(&deviceList[deviceIter], &readyLEDValue))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    if (readyLEDValue)
+                    {
+                        printf("Ready LED is set to \"On\"\n");
+                    }
+                    else
+                    {
+                        printf("Ready LED is set to \"Off\"\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Unable to read ready LED info on this device or this device type.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < g_verbosity)
+                {
+                    printf("Failed to read ready LED info!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SET_READY_LED_FLAG)
         {
             switch (change_Ready_LED(&deviceList[deviceIter], SET_READY_LED_DEFAULT, SET_READY_LED_MODE))
             {
             case SUCCESS:
-                exitCode = 0;
                 if (VERBOSITY_QUIET < g_verbosity)
                 {
                     printf("Successfully changed Ready LED behavior!\n");
@@ -2006,7 +2043,7 @@ void utility_Usage(bool shortUsage)
     printf("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
+    printf("\nExamples\n");
     printf("========\n");
     //example usage
     printf("\t%s --scan\n", util_name);

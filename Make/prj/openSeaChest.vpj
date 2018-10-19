@@ -91,6 +91,8 @@
                     <F N="../../utils/C/openSeaChest/openSeaChest_Format.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_GenericTests.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_Info.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Logs.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_NVMe.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_PowerControl.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_Sample.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_SMART.c"/>
