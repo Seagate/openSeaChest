@@ -1276,7 +1276,7 @@ int32_t main(int argc, char *argv[])
             time_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
             if (VERBOSITY_QUIET < g_verbosity)
             {
-                printf("Starting Random read test\n");
+                printf("Starting Random test\n");
             }
             switch (random_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, randomReadSeconds, NULL, NULL, HIDE_LBA_COUNTER))
             {
