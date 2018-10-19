@@ -836,8 +836,8 @@ int32_t main(int argc, char *argv[])
 	                if (logBuffer != NULL)
 	                {
 	                    cmdOpts.nsid = NVME_ALL_NAMESPACES;
-	                    cmdOpts.addr = (uint64_t)logBuffer;
-	                    cmdOpts.dataLen = size;
+	                    cmdOpts.addr = logBuffer;
+	                    cmdOpts.dataLen = (uint32_t)size;
 	                    cmdOpts.lid = GET_NVME_LOG_IDENTIFIER;
 	                    if(nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts)==SUCCESS)
 	                    {
@@ -845,7 +845,7 @@ int32_t main(int argc, char *argv[])
 	                        {
 	                            printf("Log Page %d Buffer:\n",GET_NVME_LOG_IDENTIFIER);
 	                            printf("================================\n");
-	                            print_Data_Buffer((uint8_t *)logBuffer,size,true);
+	                            print_Data_Buffer((uint8_t *)logBuffer,(uint32_t)size,true);
 	                            printf("================================\n");
 	                        }
 	                        else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
@@ -863,7 +863,7 @@ int32_t main(int argc, char *argv[])
 	                                fclose(pLogFile);
 	                                if (VERBOSITY_QUIET < g_verbosity)
 	                                {
-	                                    printf("Created %s with Log Page %d Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
+	                                    printf("Created %s with Log Page %" PRId32 " Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
 	                                }
 	                            }
 	                            else
@@ -879,7 +879,7 @@ int32_t main(int argc, char *argv[])
 	                        {
 	                            if (VERBOSITY_QUIET < g_verbosity)
 	                            {
-	                                printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
+	                                printf("Error: Unknown/Unsupported output mode %" PRId32 "\n", OUTPUT_MODE_IDENTIFIER);
 	                            }
 	                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                        }
@@ -888,7 +888,7 @@ int32_t main(int argc, char *argv[])
 	                    {
 	                        if (VERBOSITY_QUIET < g_verbosity)
 	                        {
-	                            printf("Error: Could not retrieve Log Page %d\n", GET_NVME_LOG_IDENTIFIER);
+	                            printf("Error: Could not retrieve Log Page %" PRId32 "\n", GET_NVME_LOG_IDENTIFIER);
 	                        }
 	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                    }
@@ -898,7 +898,7 @@ int32_t main(int argc, char *argv[])
 	                {
 	                    if (VERBOSITY_QUIET < g_verbosity)
 	                    {
-	                        printf("Couldn't allocate %ld bytes buffer needed for Log Page %d\n", size, GET_NVME_LOG_IDENTIFIER);
+	                        printf("Couldn't allocate %" PRIu64 " bytes buffer needed for Log Page %" PRId32 "\n", size, GET_NVME_LOG_IDENTIFIER);
 	                    }
 	                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                }
@@ -1425,7 +1425,6 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        }
 	    }
-	
 	
 	    if (FORMAT_UNIT_FLAG)
 	    {

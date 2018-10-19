@@ -167,7 +167,7 @@ int32_t main(int argc, char *argv[])
         SHOW_DST_LOG_LONG_OPT,
         CONVEYANCE_DST_LONG_OPT,
         SET_MRIE_MODE_LONG_OPT,
-        SCSI_DEFECTS_LONG_OPT,
+        SCSI_DEFECTS_LONG_OPTS,
         SHOW_SMART_ERROR_LOG_LONG_OPT,
         SMART_ERROR_LOG_FORMAT_LONG_OPT,
 #if defined (ENABLE_CSMI)

@@ -1276,7 +1276,7 @@ int32_t main(int argc, char *argv[])
             time_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
             if (VERBOSITY_QUIET < g_verbosity)
             {
-                printf("Starting Random read test\n");
+                printf("Starting Random test\n");
             }
             switch (random_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, randomReadSeconds, NULL, NULL, HIDE_LBA_COUNTER))
             {
@@ -1443,7 +1443,7 @@ void utility_Usage(bool shortUsage)
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
     //utility options - alphabetized
-    printf("Utility Options\n");
+    printf("\nUtility Options\n");
     printf("===============\n");
 #if defined (ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
