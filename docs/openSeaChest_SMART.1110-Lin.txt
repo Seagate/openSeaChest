@@ -1,11 +1,9 @@
-make clear that BGMS is a Seagate feature not the whole industry
-
-openSeaChest_SMART.Lin.txt                                Revision: 09-Nov-2017
+openSeaChest_SMART.Lin.txt                                Revision: 25-Oct-2018
 ===============================================================================
  openSeaChest_SMART for Linux - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_SMART Version: 1.9.1
- Build Date: Nov 02 2017
+ openSeaChest_SMART Version: 1.11.0
+ Build Date: Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -240,6 +238,15 @@ Utility arguments
         --abortDST
                 Abort a diagnostic Drive Self Test that is in progress.
 
+        --captive or --foreground
+                Use this option to run a DST operation in captive/foreground
+                mode. This mode may allow a device to test more of itself and
+                may be slightly faster than offline/background mode since it
+                does not need to service additional command during the test.
+                When using this mode, the utility must wait the entire time for
+                the DST to complete and progress cannot be indicated during
+                this time.
+
         --showDSTLog
                 This option will show the entries in the DST log. Up to 21
                 entries may be shown (pending drive support) and will be shown
@@ -289,7 +296,7 @@ Utility arguments
                 will go check itself for issues and update attributes. Uncommon
                 and not supported on most drives.
 
-        --idd [short | long | repair]    (Seagate Only)
+        --idd [short | long]    (Seagate Only)
                 Start an In Drive Diagnostic (IDD) test on a Seagate SATA
                 drive. Not all tests are supported by all products. If a
                 selected test is not supported, the utility will return
@@ -312,7 +319,15 @@ Utility arguments
         --abortIDD (Seagate Only)
                 Abort a Seagate In Drive Diagnostic (IDD) that is in progress.
 
-        --setMRIE [ default | 0 - 6 ]  (SAS Only) (Seagate Only)
+        --errorLimit [limit in number of LBAs]
+                Use this option to specify a different error limit for DST and
+                Clean. This must be a number of logical LBAs to have errors. If
+                a drive has multiple logical sectors per physical sector, this
+                number will be adjusted for you to reflect the drive
+                architecture.
+
+SAS Only:
+                --setMRIE [ default | 0 - 6 ]  (SAS Only) (Seagate Only)
                 Use this option to change the MRIE mode on the informational
                 exceptions mode page.
                     default - set to the drive default
@@ -324,12 +339,36 @@ Utility arguments
                     5 - Generate no sense
                     6 - Report on request
 
-        --errorLimit [limit in number of LBAs]
-                Use this option to specify a different error limit for DST and
-                Clean. This must be a number of logical LBAs to have errors. If
-                a drive has multiple logical sectors per physical sector, this
-                number will be adjusted for you to reflect the drive
-                architecture.
+        --showSCSIDefects [ p | g | pg ]        (SAS Only)
+                This option will display the SCSI defects on the screen. The
+                arguments to this will tell whether to get the grown, primary,
+                or primary and grown defects from the drive. Use the
+                --defectFormat option to specify the mode to display the
+                defects. If no mode is specified, physical cylinder-head-sector
+                mode is assumed.
+
+                Arguments:
+                p - use this option to pull and display the primary (factory)
+                    defects
+                g - use this option to pull and display the grown (reallocated)
+                    defects
+                pg - the options can be combined to pull and display both
+                    defect lists.
+
+        --defectFormat [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ] (SAS Only)
+                This option set the format of the defects to output. Not all
+                drives will support all defect modes. SSDs will only support
+                block modes.
+
+                Arguments: show the defects in either name or # mode
+                shortBlock | 0    short block address mode (drives < 32bit LBA)
+                xbfi       | 1    extended bytes from index mode
+                xchs       | 2    extended physical cylinder-head-sector mode
+                longBlock  | 3    long block address mode (drives > 32bit LBA)
+                bfi        | 4    bytes from index mode
+                chs        | 5    physical cylinder-head-sector mode
+
+                Examples: --defectFormat 3, or --defectFormat longBlock
 
 Utility Options
 ===============
@@ -378,7 +417,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -1042,6 +1081,38 @@ openSeaChest Version History
 ============================
 v1.9.1  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
+v1.9.1  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v1.10.0 25-Jul-2018  Adds --defectFormat, --showSCSIDefects
+v1.11.0 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command. Adds --showSMARTErrorLog, --smartErrorLogFormat.
+v1.11.0 18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1158,7 +1229,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

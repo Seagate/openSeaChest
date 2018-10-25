@@ -1,11 +1,9 @@
-remove CFS CFG features
-
-openSeaChest_Firmware.Lin.txt                             Revision: 09-Nov-2017
+openSeaChest_Firmware.Win.txt                             Revision: 25-Oct-2018
 ===============================================================================
- openSeaChest_Firmware for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Firmware Version: 2.5.2
- Build Date: Nov 02 2017
+ openSeaChest_Firmware for Windows - Seagate drive utilities
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_Firmware Version: 2.5.4
+ Build Date: Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -73,25 +71,30 @@ Seagate is not responsible for lost user data.
 
 NOTE: openSeaChest_Firmware may not be fully functional on non-Seagate drives.
 
+NOTE: Windows severely restricts downloading firmware to SATA drives.  Please
+see the section below "Windows Restrictions Over SATA Firmware Downloads".
+openSeaChest_Firmware may not be fully functional on non-Seagate drives.
+
 Usage
 =====
-        openSeaChest_Firmware [-d <sg_device>] {arguments} {options}
+        openSeaChest_Firmware [-d <device>] {arguments} {options}
 
 Examples
 ========
         openSeaChest_Firmware --scan
-        openSeaChest_Firmware -d /dev/sg2 -i
-        openSeaChest_Firmware -d /dev/sg2 --fwdlInfo
-        openSeaChest_Firmware -d /dev/sg2 --downloadFW fwfilename
-        openSeaChest_Firmware -d /dev/sg2 --fwdlConfig configfile.cfg
+        openSeaChest_Firmware -d PD2 -i
+        openSeaChest_Firmware -d PD2 --fwdlInfo
+        openSeaChest_Firmware -d PD2 --downloadFW fwfilename
+        openSeaChest_Firmware -d PD2 --fwdlConfig configfile.cfg
+
 
 Utility arguments
 =================
         -s, --scan
-                Scan the system and list all storage devices with logical
-                /dev/sg? assignments. Shows model, serial and firmware
-                numbers. If your device is not listed on a scan immediately
-                after booting, then wait 10 seconds and run it again.
+                Scan the system and list all storage devices with Physical
+                Device assignments. Shows model, serial and firmware numbers.
+                If your device is not listed on a scan immediately after
+                booting, then wait 10 seconds and run it again.
 
         -S, --Scan   (note the capital letter S)
                 This option is the same as --scan or -s, however it will also
@@ -108,14 +111,16 @@ Utility arguments
         -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
-                     sd             - show /dev/sd? device handles
-                     sgtosd         - show the sd and sg device handle mapping
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
 
                 Examples of combining two options:
                      -s --scanFlags usb scsi  - show only USB and SAS devices
@@ -124,11 +129,11 @@ Utility arguments
 
         -d, --device <device handle>
                 Use this option with all commands, except --scan, to specify
-                the sg device handle (target drive) on which to perform an
-                operation. See the section below 'Tool Usage Hints' for
-                information about defining multiple device handles.
+                the PD physical device handle (target drive) on which to
+                perform an operation. See the section below 'Tool Usage Hints'
+                for information about defining multiple device handles.
 
-                Example: -d /dev/sg5
+                Example: -d PD0, or -d PD3
 
         -i, --deviceInfo
                 Show information and features for the storage device. USB
@@ -159,6 +164,9 @@ Utility arguments
                 use segmented download by default. Use the --downloadMode
                 option to specify a different download mode.
 
+                Please see the section below "Windows Restrictions Over SATA
+                Firmware Downloads".
+
         --downloadMode [full | segmented | deferred]    (Seagate Only)
                 Use this command along with the --downloadFW option to set the
                 firmware download mode.
@@ -182,7 +190,7 @@ Utility arguments
                 Use this option to issue the command to activate code that was
                 sent to the drive using a deferred download command. This will
                 immediately activate the new code on the drive. You can use
-                this along with a --downloadFW and --downloadMode to
+                this along with a --downloadFW and --downloadMode deferred to
                 automatically issue the activate command after the deferred
                 download has completed.
 
@@ -218,6 +226,18 @@ Utility arguments
                 (NVMe & SCSI) options.  If this option is not used, a value of
                 zero will be used instead, which means the drive will
                 automatically select the slot number.
+
+        --allowFlexibleFWDLAPIUse
+                This option is used to control when to use the Windows 10+
+                Firmware Download API calls. Default behavior is to only use
+                this call when the interface and drive and command all match.
+                The default behavior means that only ATA drives on an ATA
+                interface with a ATA download command will use this call. SCSI
+                SAS drives with a supported write buffer command will also use
+                this call. Using this option allows a detected ATA drive on any
+                interface to use this call if the OS/driver supports it
+                regardless of the command being sent by the opensea-transport
+                library.
 
 Utility Options
 ===============
@@ -266,7 +286,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -316,6 +336,28 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
+
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
+
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
+
 Return codes
 ============
         0       No Error Found
@@ -344,24 +386,27 @@ Tool Usage Hints
 ================
 See Sample Output examples below.
 
-First, run the openSeaChest -s option to determine what /dev/sg? device handle
+First, run the openSeaChest -s option to determine what physical device
 assignment lines up to your disk drive. This option will also show you other
 details about the drive including the current firmware revision. Like this:
 
-Vendor     Handle       Model Number       Serial Number     FwRev
-ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
-SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
+
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
 
 All utility arguments will require you to identify the specific drive by
-providing the sg device handle (-d, --device).
-For example, openSeaChest_Firmware -d /dev/sg1 --shortDST poll
+providing the physical device handle (-d, --device).
+
+For example, openSeaChest_Firmware -d PD2 --shortDST poll
 
 You may combine multiple tests with a single command line.  For example,
-openSeaChest_Firmware -d /dev/sg0 -i --smartCheck runs both identify and SMART.
+openSeaChest_Firmware -d PD0 -i --smartCheck runs both identify and SMART.
 
-Multiple device handles can be given by adding -d /dev/sg# for each additional
+Multiple device handles can be given by adding -d PD# for each additional
 handle.  Devices are processed in sequential order.  For example,
-SeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two devices.
+SeaChest_Basics -d PD0 -d PD3 -i runs identify on these two devices.
 
 Caution: All device handles may be specified.  However, great care should be
 taken to fully anticipate the consequences of running a command on all storage
@@ -371,18 +416,55 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
+
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
 accidental data loss or the commitment of long test times. The longer command
-arguments are similar to -I-understand-this-command-will-take-a-long-time or
--I-understand-this-command-will-erase-all-data.
+arguments are similar to "I-understand-this-command-will-take-a-long-time" or
+"I-understand-this-command-will-erase-all-data".
 
 Advanced SAS installations may use dual ports.  These are listed as Port 0 and
 Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
+
+Windows Restrictions Over SATA Firmware Downloads
+-------------------------------------------------
+You should not attempt downloading firmware to a SATA disk drive in the Windows
+operating system unless the drive supports the 'deferred' mode.  You define the
+mode with the openSeaChest command line option '--downloadMode deferred'.  If
+the drive does not support deferred mode then the command will be aborted.
+Windows may not be so restrictive on secondary, non-boot SATA drives or SATA
+drives attached to host bus adapters (HBAs, controllers, USB, etc).
+
+If you force a primary SATA boot drive to download firmware in Windows using a
+different --downloadMode setting, then the result will likely be a BSOD (blue
+screen of death) system crash.  This is because the legacy SATA firmware
+download modes require the drive to spin down and then back up and the
+momentary disappearance of the drive causes the operating system to crash.
+Windows is actually protecting the system when it thinks the drive has stopped
+responding (see wikis about Ring 0 Protection).
+
+The 'deferred' mode does not spin down the drive.  Instead, the drive waits for
+a future reboot of the system and self-activates the firmware at that time.
+Other operating systems may utilize the openSeaChest --activateFW command to
+trigger the switch to the new firmware version.
 
 ============================
 Firmware Configuration Files
@@ -458,78 +540,37 @@ configuration file and if they do not match then the procedure will abort.
 ===================
 General Usage Hints
 ===================
-Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
-
-Display a file listing with the Linux command: ls -lah
-
-The tool will require root privileges to run using either sudo or su commands.
+The tool will require Administrative privileges to run.
 Also, verify that the tool has executable rights.
 
-A dot slash is a dot followed immediately by a forward slash (./). It is used
-in Linux to execute a compiled program in the current directory when it is not
-a built-in command or found in your path.
-
-For example, ./openSeaChest -d /dev/sg0 --shortDST poll
-or, sudo ./openSeaChest -d /dev/sg0 --shortDST poll
-
-Shut down the files system and remove the power with the command:
-poweroff
-
-See previous screen history with the key combination:
-Shift+PgUp or Shift+PgDn
+Remember that the command line arguments are cAsE SeNsiTiVe.
 
 Save a log file by redirecting the screen output to a text file by adding space
 &>test.log at the end of your command line. Choose your own file name. To
 append the screen output to an existing log file use >>test.log.
 
 To save a log and display results at the conclusion of the tests, you can use
-the "tee" command. Tee command writes to the STDOUT and to a file.
-For example,
-openSeaChest --echoCommandLine -d /dev/sg0 -i --smartCheck | tee -a mySeaChestLog.txt
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
 
-Display a log or text file with the Linux "less" command: less myfile.log
-Press the letter q to quit displaying the file.  Similarly, you can easily
-read the Seagate License agreement by piping the output to the less
-command with openSeaChest --license |less
+For example:
+powershell ".\openSeaChest --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
 
-Display a list of sg (SCSI generic) devices with the command:
-cat /sys/class/scsi_generic/sg*/device/model
-or
-ls /dev/sg*
+Manual Launch for Windows
+-------------------------
+An individual openSeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the openSeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
 
-sg devices include the following interfaces: SATA, USB, SCSI (SCSI, SAS and FC)
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
 
-Add the command word 'time' on the same command line before the openSeaChest
-command to see how much time it takes to run a test.
-For example, time ./openSeaChest -d /dev/sg0 --shortDST poll
-
-When drives are not detected by openSeaChest
---------------------------------------------
-The problem is that the sg driver isn't loaded on the system on boot.  You can
-test if it is loaded by doing "ls /dev/sg*" and see if anything shows up. If
-nothing shows up then the SG driver is missing (which is required by
-openSeaChest to issue commands).
-
-You need to do "modprobe sg" as root to load the sg module (since it wasn't
-compiled into the kernel), then you will get sg devices that we can scan and
-find. Once you run the modprobe command and sg is successfully loaded, then you
-can re-run "ls /dev/sg*" and see SG device nodes. openSeaChest tools should
-then be able to find devices once again.
-
-How to control the amount of runtime kernel messages
-----------------------------------------------------
-When testing more drives than a system can hold, careful use of host adapters
-and hot-plugging batches of drives (but never to direct motherboard
-connections!) can help speed the process.  The Linux operating system will
-display various system error messages, or none, when storage devices are
-powered down and exchanged with the next drives.  The amount of information
-contained in the OS error messages can be reviewed using the Linux utility
-command "sysctl kernel.printk".  The default setting is defined by the
-particular distro.  Tiny Core Linux, for example may set "4 4 1 7".  To hide
-hot-plugging messages try "3 4 1 7", to increase the messaging to include
-device details like model numbers try "6 4 1 7".  The command to set is 'sudo
-sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
-parameters at runtime" for more.
+Then change drives or directory to where the openSeaChest utility is located and
+run the tool file name from there.
 
 =============
 Sample Output
@@ -537,7 +578,7 @@ Sample Output
 
 SATA HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest_Firmware -i -d /dev/sg1
+openSeaChest_Firmware -i -d PD1
 ===============================================================================
  openSeaChest_Firmware - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -612,7 +653,7 @@ SATA HDD Device Information:
 
 SATA SSD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest_Firmware -d /dev/sg1 -i
+openSeaChest_Firmware -d PD2 -i
 ===============================================================================
  openSeaChest_Firmware - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -651,7 +692,7 @@ SATA SSD Device Information:
         Drive Reported Utilization (%): Not Reported
         Encryption Support: Not Supported
         Cache Size (MiB): Not Reported
-        Percentage Used Endurance Indicator (%): 1.00437
+        Percentage Used Endurance Indicator (%): 0.00000
         Read Look-Ahead: Enabled
         Write Cache: Enabled
         SMART Status: Good
@@ -678,7 +719,7 @@ SATA SSD Device Information:
 
 SAS HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest_Firmware -i -d /dev/sg2
+openSeaChest_Firmware -i -d PD0
 ===============================================================================
  openSeaChest_Firmware - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -741,7 +782,7 @@ SAS HDD Device Information:
 
 SAS SSD: Device Information
 
-[sysop@localhost ~]$ sudo ./openSeaChest_Firmware -d /dev/sg3 -i
+openSeaChest_Firmware -d PD3 -i
 ===============================================================================
  openSeaChest_Firmware - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -807,7 +848,7 @@ SAS SSD: Device Information
 ===============
 Version History
 ===============
-v0.0.1  22-Mar-2016  1_9_1 libraries.  SeaChest_Firmware Linux, initial beta
+v0.0.1  22-Mar-2016  1_9_1 libraries.  SeaChest_Firmware Windows, initial beta
                      test release.  Branched from SeaChest_Basics v1.1.0.  Adds
                      firmware download batch modes by model number and various
                      firmware revision checks.
@@ -846,7 +887,9 @@ v2.2.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      setting, and Sanitize erase patterns.
 v2.3.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --fwdlDryRun.
+                     passthrough IOCTLs. Add --fwdlDryRun. New -F, --scanFlags
+                     [options: ignoreCSMI allowDuplicates] for Windows tools.
+                     Add CSMI support to all Windows version tools.
 v2.3.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
                      for SAS features.
 v2.3.2  09-Mar-2017  Fixes to config file processing.
@@ -860,8 +903,10 @@ v2.4.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
-                     Adds the child drive matching options --childModelMatch,
-                     --childOnlyFW, and --childNewFW.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.
 v2.5.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
@@ -901,6 +946,48 @@ openSeaChest Version History
 ============================
 v2.5.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
+v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v2.5.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v2.5.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command. Add --allowFlexibleFWDLAPIUse.
+v2.5.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1017,7 +1104,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

@@ -1,0 +1,1581 @@
+openSeaChest_GenericTests.Win.txt                         Revision: 25-Oct-2018
+===============================================================================
+ openSeaChest_GenericTests for Windows - Seagate drive utilities
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_GenericTests Version: 1.7.3
+ Build Date: Oct 18 2018
+===============================================================================
+Welcome to the openSeaChest open source project!
+
+This collection of storage device utility software is branched (forked) off of
+an original utility collection called the Seagate SeaChest Utilities by Seagate
+Technology LLC.  The original SeaChest Utilities are still available at
+www.seagate.com or https://github.com/Seagate/ToolBin/tree/master/SeaChest.
+Binary versions are available for Linux or Windows, with the Windows versions
+signed by Seagate Technology LLC.
+
+BINARIES and SOURCE CODE files of the openSeaChest open source project have
+been made available to you under the Mozilla Public License 2.0 (MPL).  The
+openSeaChest project repository is maintained at
+https://github.com/Seagate/openSeaChest.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your storage product. It
+includes several tests that will examine the physical media on your storage
+device.
+
+Many tests and commands are completely data safe, while others will change the
+drive (like firmware download or data erasure or setting the maximum capacity,
+etc).  Be careful using openSeaChest because some of the features, like the
+data erasure options, will cause data loss.   Some commands, like setting the
+maximum LBA, may cause existing data on the drive to become inaccessible.  Some
+commands, like disabling the read look ahead buffer, may affect the performance
+of the drive.  Seagate is not responsible for lost user data.
+
+openSeaChest diagnostics are command line utilities which are available for
+expert users.  These command line tools assume the user is knowledgeable about
+running software from the operating system command prompt. CLI tools are in the
+English language only and use "command line arguments" to define the various
+tasks and specific devices.  openSeaChest diagnostics are available for both
+Linux and Windows environments.
+
+One of the fundamental units of data on a storage device like a disk drive is
+the sector.  In the case of a hard disk drive, a sector is a physical section
+of a circular magnetized track accessed by read write heads over the rotating
+media.  The original hard drive sectors are 512 bytes each.  If you take the
+number or logical sectors on a disk drive and multiply it by 512 you get the
+total capacity of the drive in bytes.  Since the mid-1990's the term sector has
+been replaced by an acronym synonym LBA, which stands for Logical Block
+Address.  All drives start with LBA 0 and count up to the full capacity of the
+drive.
+
+In the example above, the physical sector size is 512 bytes and logical sector
+size is also 512 bytes.  Beginning around the year 2010 disk drives have been
+manufactured with a physical sector size of 4096 bytes but the disk drive
+delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
+expects 512 and is not concerned about the actual physical size.  These drives
+are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
+are manufactured with 4096 byte for both physical and logical block sizes.
+
+openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
+unreadable.
+
+It may be possible to repair a problem when a generic read test fails due to
+failure to read a particular sector (LBA).  You might consider the
+--repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
+options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
+Found" for more information on this subject.
+
+This User Guide file contains important information about openSeaChest
+GenericTests.  Please read this entire file before using this software.
+
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
+drives.
+
+Usage
+=====
+        openSeaChest_GenericTests [-d <device>] {arguments} {options}
+
+Examples
+========
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d PD0 -i
+        openSeaChest_GenericTests -d PD1 --shortDST poll
+
+Utility arguments
+=================
+        -s, --scan
+                Scan the system and list all storage devices with Physical
+                Device assignments. Shows model, serial and firmware numbers.
+                If your device is not listed on a scan immediately after
+                booting, then wait 10 seconds and run it again.
+
+        -S, --Scan   (note the capital letter S)
+                This option is the same as --scan or -s, however it will also
+                perform a low level rescan to pick up other devices. This
+                low-level rescan may wake devices from low power states and may
+                cause the OS to re-enumerate them. Use this diagnostic option
+                when a device is plugged in and not discovered in a normal scan.
+
+                NOTE: A low-level rescan may not be available on all interfaces
+                or all OSs.  The low-level rescan is not guaranteed to find
+                additional devices in the system when the device is unable to
+                come to a ready state.
+
+        -F, --scanFlags [option list]
+                Use this option with -s to control the output from scan with the
+                options listed below. Multiple options can be combined.
+                     ata            - show only ATA (SATA) devices
+                     usb            - show only USB devices
+                     scsi           - show only SCSI (SAS)) devices
+                     interfaceATA   - show devices on an ATA interface
+                     interfaceUSB   - show devices on a USB interface
+                     interfaceSCSI  - show devices on a SCSI or SAS interface
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
+
+                Examples of combining two options:
+                     -s --scanFlags usb scsi  - show only USB and SAS devices
+                     --scan -F ata interfaceSCSI  - show only SATA nearline
+                        drives on a SAS adapter
+
+        -d, --device <device handle>
+                Use this option with all commands, except --scan, to specify
+                the PD physical device handle (target drive) on which to
+                perform an operation. See the section below 'Tool Usage Hints'
+                for information about defining multiple device handles.
+
+                Example: -d PD0, or -d PD3
+
+        -i, --deviceInfo
+                Show information and features for the storage device. USB
+                devices will show the product name, serial and firmware numbers
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo
+                to display details about the drive within the USB enclosure.
+
+        --SATInfo                       (SATA only)
+                Displays SATA device information on any interface using both
+                SCSI Inquiry/VPD/Log reported data (translated according to
+                SAT) and the ATA Identify/Log reported data.
+
+        --testUnitReady
+                A simple check to see if the device responds to commands from
+                interface.  Ready or Not Ready are the outputs.  Not Ready
+                results will also include the full SCSI Sense Code.
+
+        --bufferTest
+                This option will perform a test using the device's echo buffer.
+                The write buffer and read buffer commands are used to send &
+                receive different data patterns.  The patterns are compared and
+                interface CRC errors are also checked (when available).  Test
+                patterns performed are all 0's, all F's, all 5's, all A's,
+                walking 1's, walking 0's, and random data patterns.  At
+                completion, a count of the number of errors will be displayed.
+
+        --genericMode [ read | write (Seagate Only) | verify ]
+                This options allows selection of the type of commands to use
+                while performing a generic test.  If this option is omitted
+                then read is the default mode.
+
+                Supported modes are:
+                  read - performs a generic test using read commands, data safe
+                  write - performs a generic test using write commands, any
+                          data on sectors written during the test will be
+                          lost.  Seagate is not responsible for lost user
+                          data. --confirm acknowledgment command will be
+                          required. (Seagate Only)
+                  verify - performs a generic test using verify commands, data
+                           safe, sometimes faster than read commands.
+
+        --shortGeneric
+                This option will run a short generic read test on a specified
+                device. A short generic read test has 3 components. A
+                sequential read at the Outer Diameter (OD) of the drive for 1%
+                the LBAs (sectors), then a sequential read at the Inner
+                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
+                read of 5000 LBAs. This test will stop on the first read error
+                that occurs.
+
+        --twoMinuteGeneric
+                This option will run a 2 minute generic read test on a
+                specified device. There are 3 components to this test. A read
+                at the Outer Diameter (OD) of the drive for 45 seconds, then a
+                read at the Inner Diameter of the drive for 45 seconds, and
+                lastly a random read test for 30 seconds. This test will stop
+                on the first read error that occurs.
+
+        --longGeneric
+                This option will run a long generic read test on a specified
+                device. A long generic read test sequentially reads every LBA
+                on the device and gives a report of error LBAs at the end of
+                the test, or when the error limit has been reached. Using the
+                --stopOnError option will make this test stop on the first read
+                error that occurs. The default error limit is 50 x number of
+                logical sectors per physical sector.
+
+                Example error limits are as follows:
+
+                        512L/512P: error limit = 50
+                        4096L/4096P: error limit = 50
+                        512L/4096P: error limit = 400 (50 * 8)
+
+        --userGenericStart [starting LBA | maxLBA]
+                Use this option to specify the starting LBA number for a
+                generic read test. The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The --userGenericRange or
+                timed (--hours, minutes, seconds) options must be used with
+                this one in order to start the test. Use the --stopOnError
+                repair flag and/or --errorLimit flags to further customize this
+                test.
+
+        --userGenericRange [LBA count]
+                Use this option to specify the range for a generic read test.
+                See the --userGenericStart help for additional information
+                about using the User Generic Read tests.
+
+        --diameterTest [O | M | I]
+                Use this option to perform a generic read/write/verify test at
+                the specified diameter of the drive. The different diameters
+                can be combined or run individually. Use the time options to
+                specify a time-based test or the --diameterTestRange option for
+                a range-based test. If --diameterTestRange is omitted the
+                default is a one minute test.
+
+                    O - outer diameter
+                    M - middle diameter
+                    I - inner diameter
+
+                Ex1: --diameterTest OMI
+                Ex2: --diameterTest O
+                Ex3: --diameterTest MI
+
+        --diameterTestRange [range]
+                Use this option with the --diameterTest option to perform a
+                range based test. If a range is specified without any units, it
+                is assumed to be an LBA count. Valid units are KB, KiB, MB,
+                MiB, GB, GiB, TB and TiB.
+
+                Ex1: "--diameterTestRange 1234567" for an LBA count
+                Ex2: "--diameterTestRange 2GB" for a 2GB range.
+
+        --stopOnError
+                Use this option to make a generic read test stop on the first
+                error found. Please see the section below "Sector Repair
+                Commands".
+
+        --errorLimit [limit in number of LBAs]
+                Use this option to specify a different error limit for a user
+                generic or long generic read test. This must be a number of
+                logical LBAs to have errors. If a drive has multiple logical
+                sectors per physical sector, this number will be adjusted for
+                you to reflect the drive architecture.
+
+        --randomTest
+                Use this option to start a random read test. This is a timed
+                operation. Use the time options to control how long to run this
+                test. The default time for this test is 1 minute.  This test
+                should be limited to 1 minute or less.
+
+                Example: --randomTest --seconds 10
+
+        --butterflyTest
+                Use this option to start a butterfly read test.  A butterfly
+                read test is a read test that moves back and forth between the
+                OD and ID of the drive over and over again until the time has
+                expired.  This is a timed operation. Use the time options to
+                control how long to run this test. The default time for this
+                test is 1 minute.  This test should be limited to 1 minute
+                or less.
+
+Utility Options
+===============
+        -h, --help
+                Show utility options and example usage (this output you see now)
+
+        -v [0-4], --verbose [0 | 1 | 2 | 3 | 4]
+                Show verbose information. Verbosity levels are
+                0 - quiet
+                1 - default
+                2 - command descriptions
+                3 - command descriptions and values
+                4 - command descriptions, values, and data buffers.
+
+                Example: -v 3 or --verbose 3
+
+        -q, --quiet
+                Run SeaChest in quiet mode. This is the same as -v0
+                or --verbose 0
+
+        -V, --version
+                Show SeaChest version and copyright information & exit
+
+        --license
+                Display the Seagate End User License Agreement (EULA).
+
+        --echoCommandLine
+                Shows the command line above the banner in the standard output.
+                Useful when saving output to logs.
+
+        --enableLegacyUSBPassthrough
+                Only use this option on old USB or IEEE1394 (Firewire) products
+                that do not otherwise work with the tool. This option will
+                enable a trial and error method that attempts sending various
+                ATA Identify commands through vendor specific means. Because of
+                this, certain products may respond in unintended ways since
+                they may interpret these commands differently than the bridge
+                chip the command was designed for.
+
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
+        --sat12byte
+                This forces the lower layer code to issue SAT spec ATA
+                Pass-through 12-byte commands when possible instead of 16-byte
+                commands.  By default, 16-byte commands are always used for ATA
+                Pass-through.  USB products may need this option as a
+                workaround if the default does not perform.
+
+        --onlySeagate
+                Use this option to match only Seagate drives for the options
+                provided. May also be used with the --scan command.
+
+        --modelMatch [model Number]
+                Use this option to run on all drives matching the provided
+                model number. This option will provide a closest match although
+                an exact match is preferred. Ex: ST500 will match ST500LM0001.
+                The option --childModelMatch may be used to match drives in USB
+                enclosures.
+
+                Note: See the section below 'Tool Usage Hints' for information
+                about defining multiple device handles.
+
+        --onlyFW [firmware revision]
+                Use this option to run on all drives matching the provided
+                firmware revision. This option will only do an exact match.
+                The option --childOnlyFW may be used to match drives in USB
+                enclosures.
+
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
+
+        --forceATA
+                Using this option will force the current drive to be treated as
+                a ATA drive. Only ATA commands will be used to talk to the
+                drive.
+
+        --forceATADMA   (SATA Only)
+                Using this option will force the tool to issue SAT commands to
+                ATA device using the protocol set to DMA whenever possible (on
+                DMA commands). This option can be combined with --forceATA.
+
+        --forceATAPIO   (SATA Only)
+                Using this option will force the tool to issue PIO commands to
+                ATA device when possible. This option can be combined with
+                --forceATA.
+
+        --forceATAUDMA  (SATA Only)
+                Using this option will force the tool to issue SAT commands to
+                ATA device using the protocol set to UDMA whenever possible (on
+                DMA commands). This option can be combined with --forceATA.
+
+        --forceSCSI
+                Using this option will force the current drive to be treated as
+                a SCSI drive. Only SCSI commands will be used to talk to the
+                drive.
+
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
+
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
+
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
+
+Sector Repair Commands
+======================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+        --confirm I-understand-this-command-will-erase ... etc
+
+        --repairOnFly           (Seagate Only)
+                Use this option to repair any bad sectors found during a long
+                or user generic read test as they are found.
+
+        --repairAtEnd           (Seagate Only)
+                Use this option to repair any bad sectors found during a long
+                or user generic read test at the end of the test.
+
+See the section below "Bad LBA (Sector) Found" for more information on this
+subject.
+
+Return codes
+============
+        0       No Error Found
+        1       Error in command line options
+        2       Invalid Device Handle or Missing Device Handle
+        3       Operation Failure
+        4       Operation not supported
+        5       Operation Aborted
+        6       File Path Not Found
+        7       Cannot Open File
+        8       File Already Exists
+        Anything else = unknown error
+
+================
+Tool Usage Hints
+================
+See Sample Output examples below.
+
+First, run the SeaChest -s option to determine what physical device assignment
+lines up to your disk drive. This option will also show you other details about
+the drive including the current firmware revision. Like this:
+
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
+
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
+
+All utility arguments will require you to identify the specific drive by
+providing the physical device handle (-d, --device).
+
+For example, openSeaChest_GenericTests -d PD2 --shortDST poll
+
+You may combine multiple tests with a single command line.  For example,
+openSeaChest_GenericTests -d PD0 -i --smartCheck runs both identify and SMART.
+
+Multiple device handles can be given by adding -d PD# for each additional
+handle.  Devices are processed in sequential order.  For example,
+SeaChest_Basics -d PD0 -d PD3 -i runs identify on these two devices.
+
+Caution: All device handles may be specified.  However, great care should be
+taken to fully anticipate the consequences of running a command on all storage
+devices in a system.  For example, a command to erase data on all drives could
+be catastrophic or exactly what you want. The shortcut to select all devices is
+-d all.  Seagate is not responsible for lost user data.  Along with the
+designation for all devices, you can narrow the tasks to specific types of
+drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then SeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
+
+Tests which alter the firmware or erase user data on the drive are limited to
+Seagate-only products which include Seagate, Maxtor, Samsung and LaCie.
+
+Tests which take a very long time to complete or erase all user data on the
+drive will require a longer command line argument than indicated in the --help
+output to the screen.  This approach is taken to eliminate the possibility of
+accidental data loss or the commitment of long test times. The longer command
+arguments are similar to "I-understand-this-command-will-take-a-long-time" or
+"I-understand-this-command-will-erase-all-data".
+
+Advanced SAS installations may use dual ports.  These are listed as Port 0 and
+Port 1 on the device information report. When both ports are active, each one
+may have a unique /dev/sg designation.  The scan option may indicate that there
+are two drives in the system with the same serial number.  Dual port
+installations will also report two different Worldwide Numbers (WWN).
+
+======================
+Bad LBA (Sector) Found
+======================
+IMPORTANT: Please read and carefully consider all of the following information
+about your "Bad LBA (Logical Block Address, or Sector) Found" options.
+
+A bad sector is a small 512-byte area on the disk drive that is reporting
+errors and cannot be accessed properly. New bad sectors, sometimes called grown
+defects, are often caused by some kind of physical damage. If a file or folder
+uses this sector, then the file is already incomplete or corrupt because the
+bytes are not readable.
+
+**** NOTE **** The following information applies only to Seagate Technology,
+Maxtor, Samsung and LaCie brand disk drives:
+
+When SeaChest discovers a bad LBA (sector) through reading, it displays a count
+of the bad sectors.
+
+Sectors are often not in use. If a sector is in use, then that file is
+incomplete or corrupt. When a bad sector happens to align with a folder or
+directory listing structure, then the links to files and sub-folders it manages
+may be broken.
+
+You should carefully consider the importance of your data. While the sector is
+currently unreadable, if the file or folder is important to you then you may
+need professional recovery services to possibly reclaim the data. In this case,
+select to scan without trying to repair sectors on the drive.
+
+If you have decided that the file or folder is replaceable, already backed up
+or just not important to you, then you can tell SeaChest to attempt to attempt
+to repair the sector.  See the Sector Repair Commands section above.
+
+By design, modern disk drives maintain spare sectors for reallocation purposes.
+Usually, sectors become difficult to read long before they become impossible to
+read. In this situation the actual data bytes in the sector are preserved and
+transferred to the new spare during a sector reallocation. Similarly, when a
+disk drive writes data and encounters a problem, the drive firmware retires the
+problem sector and activates a replacement before giving successful write
+status.
+
+If you give permission to attempt to repair a bad sector, then SeaChest will
+attempt to write a 512-byte pattern of zeros to that single error sector.
+Usually, this action will assist the disk drive firmware in managing the
+problem by retiring the problem sector and activating a spare in its place. If
+the attempted repair fails to reallocate the LBA to an available spare, then
+the test is a FAIL and the drive is bad.
+
+Note: Seagate Technology is not responsible for lost user data.
+
+===================
+General Usage Hints
+===================
+The tool will require Administrative privileges to run.
+Also, verify that the tool has executable rights.
+
+Remember that the command line arguments are cAsE SeNsiTiVe.
+
+Save a log file by redirecting the screen output to a text file by adding space
+&>test.log at the end of your command line. Choose your own file name. To
+append the screen output to an existing log file use >>test.log.
+
+To save a log and display results at the conclusion of the tests, you can use
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
+
+For example:
+powershell ".\openSeaChest_GenericTests --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
+
+Setup for Windows
+-----------------
+The SeaChest Utilities Setup places all of the files at "C:\Program
+Files\Seagate\SeaChest" and adds an icon on the Desktop.  Clicking the icon
+will open a Windows command prompt in Administrator mode at this location.
+From there you will need to type the full command line for the tool and device
+and options to run the test you require.  See the various SeaChest Help
+documentation for descriptions and examples of the various commands.
+
+Manual Launch for Windows
+-------------------------
+An individual SeaChest utility for Windows cannot be launched by just clicking
+on the file name. If started that way, the SeaChest utility will briefly show a
+black window box and quickly close.  That is what happens when trying to run it
+from the Windows File Manager.
+
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
+
+Then change drives or directory to where the SeaChest utility is located and
+run the tool file name from there.
+
+=============
+Sample Output
+=============
+
+SATA HDD Device Information:
+
+[sysop@localhost ~]$ sudo ./SeaChest_Basics -i -d /dev/sg1
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST4000DX001-1CE168
+        Serial Number: ZQ3034X7R
+        Firmware Revision: CC44
+        World Wide Name: 500Q0C5007A5FCF19
+        Drive Capacity (TB/TiB): 4.00/3.64
+        Native Drive Capacity (TB/TiB): 4.00/3.64
+        Temperature Data:
+                Current Temperature (C): 25
+                Highest Temperature (C): 40
+                Lowest Temperature (C): 18
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  4 days 1 hour
+        Power On Hours: 97.00
+        MaxLBA: 7814037167
+        Native MaxLBA: 7814037167
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): 5900
+        Form Factor (inch): 3.5
+        Last DST information:
+                Time since last DST (hours): 0.00
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Max Speed (Gb/s): 6.0
+                Negotiated Speed (Gb/s): 6.0
+        Annualized Workload Rate (TB/yr): 2.51
+        Total Bytes Read (GB): 6.65
+        Total Bytes Written (GB): 21.27
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): 64.00
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Supported, Frozen
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented
+        Specifications Supported:
+                ACS-2
+                ATA8-ACS
+                ATA/ATAPI-7
+                ATA/ATAPI-6
+                ATA/ATAPI-5
+                ATA/ATAPI-4
+                SATA 3.1
+                SATA 3.0
+                SATA 2.6
+                SATA 2.5
+                SATA II: Extensions
+                SATA 1.0a
+        Features Supported:
+                NCQ
+                HPA
+                Power Management
+                Security
+                SMART
+                DCO
+                48bit Address
+                APM
+                GPL
+                Free-fall Control
+                Write-Read-Verify
+
+SATA SSD Device Information:
+
+[sysop@localhost ~]$ sudo ./SeaChest_Basics -d /dev/sg1 -i
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST120FP0021
+        Serial Number: PQ57011BD
+        Firmware Revision: B770
+        World Wide Name: 5000C501005A16633
+        Drive Capacity (GB/GiB): 120.03/111.79
+        Native Drive Capacity (GB/GiB): 120.03/111.79
+        Temperature Data:
+                Current Temperature (C): 26
+                Highest Temperature (C): 0
+                Lowest Temperature (C): 17
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  2 days 23 hours
+        Power On Hours: 71.00
+        MaxLBA: 234441647
+        Native MaxLBA: 234441647
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): SSD
+        Form Factor (inch): 2.5
+        Last DST information:
+                Not supported
+        Interface speed:
+                Max Speed (Gb/s): 6.0
+                Negotiated Speed (Gb/s): 3.0
+        Annualized Workload Rate (TB/yr): 299.80
+        Total Bytes Read (TB): 2.35
+        Total Bytes Written (GB): 90.19
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): Not Reported
+        Percentage Used Endurance Indicator (%): 1.00437
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Supported, Frozen
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented
+        Specifications Supported:
+                ATA8-ACS
+                ATA/ATAPI-7
+                ATA/ATAPI-6
+                ATA/ATAPI-5
+                ATA/ATAPI-4
+                SATA 3.0
+        Features Supported:
+                Sanitize
+                NCQ
+                HPA
+                Power Management
+                Security
+                SMART
+                48bit Address
+                GPL
+                TRIM
+
+SAS HDD Device Information:
+
+[sysop@localhost ~]$ sudo ./SeaChest_Basics -i -d /dev/sg2
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST4000NM0043
+        Serial Number: Z1QZ04KVG
+        Firmware Revision: 0004
+        World Wide Name: 500Q0C5005594AEFB
+        Copyright: Copyright (c) 2014 Seagate All rights reserved
+        Drive Capacity (TB/TiB): 4.00/3.64
+        Temperature Data:
+                Current Temperature (C): 28
+                Highest Temperature (C): Not Reported
+                Lowest Temperature (C): Not Reported
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  61 days 11 hours 14 minutes
+        Power On Hours: 1475.23
+        MaxLBA: 7814037167
+        Native MaxLBA: Not Reported
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 512
+        Sector Alignment: 0
+        Rotation Rate (RPM): 7200
+        Form Factor (inch): 3.5
+        Last DST information:
+                Time since last DST (hours): 548.23
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Port 0 (Current Port)
+                        Max Speed (GB/s): 6.0
+                        Negotiated Speed (Gb/s): 3.0
+                Port 1
+                        Max Speed (GB/s): 6.0
+                        Negotiated Speed (Gb/s): Not Reported
+        Annualized Workload Rate (TB/yr): 0.02
+        Total Bytes Read (GB): 2.27
+        Total Bytes Written (GB): 2.39
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Self Encrypting
+        Cache Size (MiB): Not Reported
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Not Supported
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate
+        Specifications Supported:
+                SPC-4
+        Features Supported:
+                EPC
+                TCG
+                Self Test
+                Informational Exceptions
+                Format Unit
+                Sanitize
+
+SAS SSD: Device Information
+
+[sysop@localhost ~]$ sudo ./SeaChest_Basics -d /dev/sg3 -i
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+        Model Number: ST400FM0053
+        Serial Number: P3QF13026
+        Firmware Revision: 0006
+        World Wide Name: 5000QC50069010B4B
+        Copyright: Copyright (c) 2014 Seagate All rights reserved -
+        Drive Capacity (GB/GiB): 400.09/372.61
+        Temperature Data:
+                Current Temperature (C): 34
+                Highest Temperature (C): Not Reported
+                Lowest Temperature (C): Not Reported
+        Humidity Data:
+                Current Humidity (%): Not Reported
+                Highest Humidity (%): Not Reported
+                Lowest Humidity (%): Not Reported
+        Power On Time:  30 days 21 hours 29 minutes
+        Power On Hours: 741.48
+        MaxLBA: 781422767
+        Native MaxLBA: Not Reported
+        Logical Sector Size (B): 512
+        Physical Sector Size (B): 4096
+        Sector Alignment: 0
+        Rotation Rate (RPM): SSD
+        Form Factor (inch): 2.5
+        Last DST information:
+                Time since last DST (hours): 434.48
+                DST Status/Result: 0x0
+                DST Test run: 0x1
+        Interface speed:
+                Port 0 (Current Port)
+                        Max Speed (GB/s): 12.0
+                        Negotiated Speed (Gb/s): 3.0
+                Port 1
+                        Max Speed (GB/s): 12.0
+                        Negotiated Speed (Gb/s): Not Reported
+        Annualized Workload Rate (TB/yr): 9.48
+        Total Bytes Read (GB): 24.62
+        Total Bytes Written (GB): 837.41
+        Drive Reported Utilization (%): Not Reported
+        Encryption Support: Not Supported
+        Cache Size (MiB): Not Reported
+        Percentage Used Endurance Indicator (%): 1.00000
+        Read Look-Ahead: Enabled
+        Write Cache: Enabled
+        SMART Status: Good
+        ATA Security Information: Not Supported
+        Zoned Device Type: Not a Zoned Device
+        Firmware Download Support: Immediate, Segmented, Deferred
+        Specifications Supported:
+                SPC-4
+        Features Supported:
+                EPC
+                Power Comsumption
+                UNMAP
+                Self Test
+                Informational Exceptions
+                Format Unit
+                Sanitize
+
+===============
+Version History
+===============
+SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
+
+v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
+                     sequential read tests. Added Random and Butterfly read
+                     tests.  Added sector repair on Long and user defined
+                     generic read tests.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
+                     Corrections to verbose output.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+                     Added -sat12byte to increase compatibility.  Added
+                     --SATInfo to compare ATA vs SCSI identification
+                     differences.
+v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
+                     --onlySeagate restriction.  Added --modelMatch and
+                     --onlyFW filters. Added --genericMode.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     Fixed a bug where we could accidentally clear some stored
+                     identify data from the device structure. Fixed continuing
+                     on when there was a permission denied error opening a
+                     drive.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     commands. Fixed bugs with --modelMatch and --onlyFW
+                     filters.
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     functions, format polling, endianess detection, buffer
+                     size fixes, SAS device statistics, Win32 IOCTL
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     and --forceATAUDMA  (SATA Only).
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
+                     the -i --SATInfo output.
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+                     --enableLegacyUSBPassthrough
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+                     settings.
+v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+                     the corresponding command range option, SAS power mode
+                     setting, and Sanitize erase patterns.
+v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+                     22.5Gb/s physical bus speeds, support for double buffered
+                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
+                     --diameterTestRange. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools. Random Range scaling
+                     has less biasing.
+v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features. --userGenericStart now able to use timed
+                     options.
+v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
+v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     should exit with code = 1; added detection of parallel ATA
+                     and SCSI speeds; temperature data on ATA now uses the
+                     values from the SCT status log or device statistics log.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix user generic test start LBA gets reset when a defect
+                     is encountered.
+v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Sense Data Reporting feature enabled, changes to how we
+                     interpret the completion status from the drive, new Sense
+                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
+                     note the capital S) aggressive system scan.
+v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+                     reading remanufacture time for SAS when the drive reports
+                     a time, fixed SAS --abortDST.
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+                     SAS adapters, added NVMe read, write & Flush commands.
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+                     device, SAT library strings, and fixes to Read-Buffer
+                     error history (ISL). Updated copyright notice, invalid
+                     command line options now only display an error instead of
+                     long help.
+v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+
+The above history is provided as a courtesy to show the orginal SeaChest
+development activity.
+
+============================
+openSeaChest Version History
+============================
+v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.  Added --bufferTest.
+v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+
+=======================================
+About SeaChest Command Line Diagnostics
+=======================================
+Seagate offers both graphical user interface (GUI) and command line interface
+(CLI) diagnostic tools for our storage devices.  SeaTools for Windows and
+SeaTools Bootable for end users are the two most popular GUI tools.  These
+tools support 15 languages.
+
+SeaChest diagnostics are command line utilities which are available for expert
+users.  These command line tools assume the user is knowledgeable about running
+software from the operating system command prompt.  CLI tools are in the
+English language only and use "command line arguments" to define the various
+tasks and specific devices.  SeaChest diagnostics are available for both Linux
+and Windows environments.
+
+Linux versions of SeaChest tools are available as stand alone 32 or 64-bit
+executables you can copy to your own system.  Windows OS versions of SeaChest
+diagnostics are installed through a typical setup wizard and can be removed via
+the Control Panel.
+
+In addition, Seagate offers a tool to build a bootable USB SeaChest flash drive
+which boots to a 32-bit Linux command prompt.  This is a Windows executable
+file which formats a USB Flash drive you provide.  It copies over all the files
+needed to use it as a bootable device for the SeaChest diagnostic software.
+All data on the USB Flash drive will be erased so be sure to protect any
+valuable files.
+
+Technical Support for SeaChest drive utilities is not available.  If you have
+the time to send us some feedback about this software, especially if you notice
+something we should fix or improve, we would greatly appreciate hearing from
+you.  To report your comments and suggestions, please use this email
+seaboard@seagate.com.  Please let us know the name and version of the tool you
+are using.
+
+SeaChest drive utilities support SATA, SAS and USB interface devices.
+
+SeaChest Basics - Contains the most important tests and tools.
+
+Other SeaChest "break out" utilities are available and listed below which offer
+more in-depth functionality in specific areas. These are:
+
+SeaChest Configure - Tools to control various settings on the drives are
+brought together into this one tool.  Typical commands, for example, include
+Write Cache and Read Lookahead Cache enable or disable.
+
+SeaChest Erase - The focus is on data erasure.  There are many different
+choices for erasing data from simple boot track erase to full cryptographic
+erasure (when supported).  Be sure to back up important data before using this
+tool.  Seagate is not responsible for lost user data.  This tool only works on
+Seagate drives.
+
+SeaChest Firmware - Seagate products are run by firmware.  Having the latest
+firmware can improve performance and or reliability of your product.  Seagate
+recommends applying new firmware to enhance the performance and or reliability
+of your drive.  Most products may see one or two firmware updates within the
+early life of the product.
+
+SeaChest FormatUnit - Storage products which utilize the SAS, SCSI or Fibre
+Channel interfaces are able to perform a full low-level media format in the
+field.  The SCSI Format Unit command offers many specialty options to
+accommodate a variety of conditions and to fine tune the procedure.  This
+complex command deserves its own "break out" utility.
+
+SeaChest GenericTests - Read Tests are the original disk drive diagnostic which
+is to just read every sector on the drive, sequentially.  This tool offers
+several common read tests which can be defined by either time or range.  In
+addition, the Long Generic test has the ability to repair problem sectors,
+possibly eliminating an unnecessary drive return.
+
+SeaChest Info - Historical generic activity logs (like total bytes written and
+power on hours) and performance logs (like temperature) are available for
+analytical review.  Identification and inquiry data stored on the drive is also
+provided.  A view of SMART and device statistics is available when supported by
+the drive.
+
+SeaChest PowerChoice - Seagate disk drives offer a multitude of options to
+manage power.  This tool manipulates the various power modes.
+
+SeaChest Security - Various settings are available on modern Seagate disk
+drives which may be locked and unlocked.  These settings may interact with the
+operating systems and systems BIOS.  Options also include cryptographic erase
+for Self-Encrypting Drives (SED).
+
+SeaChest SMART - This tool provides a closer look at the collected SMART
+attributes data.  SMART stands for Self-Monitoring, Analysis and Reporting
+Technology.  Short Drive Self Test is included as one of the standard SMART
+commands. In addition, the DST & Clean test has the ability to repair problem
+sectors, possibly eliminating an unnecessary drive return.
+
+=================================
+Support and Open Source Statement
+=================================
+SeaTools for Windows is available to download firmware to SAS drives, provided
+they are not obscured by RAID controllers.
+
+Seagate offers technical support for disk drive installation.  If you have any
+questions related to Seagate products and technologies, feel free to submit
+your request on our web site. See the web site for a list of world-wide
+telephone numbers.
+
+Seagate Support:
+http://www.seagate.com/support-home/
+Contact Us:
+http://www.seagate.com/contacts/
+
+Please report bugs/suggestions to seaboard@seagate.com. Include the output of
+--version information in the email. See the user guide section 'General Usage
+Hints' for information about saving output to a log file.
+
+This software uses open source packages obtained with permission from the
+relevant parties. For a complete list of open source components, sources and
+licenses, please see our Linux USB Boot Maker Utility FAQ for additional
+information.
+
+This Windows version of SeaChest uses an open source project named wingetopt,
+license shown below.
+
+The newest online version of the SeaChest Utilities documentation, open source
+usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can be
+found at:
+http://support.seagate.com/firmware/usbbootmaker_faq.html
+
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+======================================================================
+
+                        END USER LICENSE AGREEMENT
+                            FOR SEAGATE SOFTWARE
+
+
+PLEASE READ THIS END USER LICENSE AGREEMENT ("EULA") CAREFULLY.  BY CLICKING
+"I AGREE" OR TAKING ANY STEP TO DOWNLOAD, SET-UP, INSTALL OR USE ALL OR ANY
+PORTION OF THIS PRODUCT (INCLUDING, BUT NOT LIMITED TO, THE SOFTWARE AND
+ASSOCIATED FILES (THE "SOFTWARE"), HARDWARE ("HARDWARE"), DISK (S), OR OTHER
+MEDIA) (COLLECTIVELY, THE "PRODUCT") YOU AND YOUR COMPANY ACCEPT ALL THE
+TERMS AND CONDITIONS OF THIS EULA.  IF YOU ACQUIRE THIS PRODUCT FOR YOUR
+COMPANY’S USE, YOU REPRESENT THAT YOU ARE AN AUTHORIZED REPRESENTATIVE WHO
+HAS THE AUTHORITY TO LEGALLY BIND YOUR COMPANY TO THIS EULA.  IF YOU DO NOT
+AGREE, DO NOT CLICK "I AGREE" AND DO NOT DOWNLOAD, SET-UP, INSTALL OR USE THE
+SOFTWARE.
+
+
+1.  Ownership.  This EULA applies to the Software and Products of Seagate
+Technology LLC and the affiliates controlled by, under common control with,
+or controlling Seagate Technology LLC, including but not limited to
+affiliates operating under the LaCie name or brand, (collectively, "Seagate",
+"we", "us", "our").  Seagate and its suppliers own all right, title, and
+interest in and to the Software, including all intellectual property rights
+therein.  The Software is licensed, not sold.  The structure, organization,
+and code of the Software are the valuable trade secrets and confidential
+information of Seagate and its suppliers.  The Software is protected by
+copyright and other intellectual property laws and treaties, including,
+without limitation, the copyright laws of the United States and other
+countries. The term "Software" does not refer to or include "Third-Party
+Software".  "Third-Party Software" means certain software licensed by Seagate
+from third parties that may be provided with the specific version of Software
+that you have licensed.  The Third-Party Software is generally not governed
+by the terms set forth below but is subject to different terms and conditions
+imposed by the licensors of such Third-Party Software.  The terms of your use
+of the Third-Party Software are subject to and governed by the respective
+license terms, except that this Section 1 and Sections 5 and 6 of this
+Agreement also govern your use of the Third-Party Software.  You may identify
+and view the relevant licenses and/or notices for such Third-Party Software
+for the Software you have received pursuant to this EULA at
+http://www.seagate.com/support/by-topic/downloads/ , or at
+http://www.lacie.com/support/ for LaCie branded product. You agree to comply
+with the terms and conditions contained in all such Third-Party Software
+licenses with respect to the applicable Third-Party Software. Where
+applicable, the URLs for sites where you may obtain source code for the Third
+Party Software can be found at
+http://www.seagate.com/support/by-topic/downloads/, or at
+http://www.lacie.com/support/ for LaCie branded product.
+
+2.  Product License.  Subject to your compliance with the terms of this EULA,
+Seagate grants you a personal, non-exclusive, non-transferable, limited
+license to install and use one (1) copy of the Software on one (1) device
+residing on your premises, internally and only for the purposes described in
+the associated documentation. Use of some third party software included on
+the media provided with the Product may be subject to terms and conditions of
+a separate license agreement; this license agreement may be contained in a
+"Read Me" file located on the media that accompanies that Product.  The
+Software includes components that enable you to link to and use certain
+services provided by third parties ("Third Party Services").  Your use of the
+Third Party Services is subject to your agreement with the applicable third
+party service provider.  Except as expressly stated herein, this EULA does
+not grant you any intellectual property rights in the Product. Seagate and
+its suppliers reserve all rights not expressly granted to you.  There are no
+implied rights.
+
+2.1     Software.  You are also permitted to make a single copy of the
+Software strictly for backup and disaster recovery purposes.  You may not
+alter or modify the Software or create a new installer for the Software.  The
+Software is licensed and distributed by Seagate for use with its storage
+products only, and may not be used with non-Seagate storage product.
+
+3.  Restrictions.  You are not licensed to do any of the following:
+        a.      Create derivative works based on the Product or any part or
+                component thereof, including, but not limited to, the
+                Software;
+
+        b.      Reproduce the Product, in whole or in part;
+
+        c.      Except as expressly authorized by Section 11 below, sell,
+                assign, license, disclose, or otherwise transfer or make
+                available the Product, in whole or in part, to any third
+                party;
+
+        d.      Alter, translate, decompile, or attempt to reverse engineer
+                the Product or any part or component thereof, except and only
+                to the extent that such activity is expressly permitted by
+                applicable law notwithstanding this contractual prohibition;
+
+        e.      Use the Product to provide services to third parties;
+
+        f.      Take any actions that would cause the Software to become
+                subject to any open source license agreement if it is not
+                already subject to such an agreement; and
+
+        g.      Remove or alter any proprietary notices or marks on the
+                Product.
+
+4.  Updates.  If you receive an update or an upgrade to, or a new version of,
+any Software ("Update") you must possess a valid license to the previous
+version in order to use the Update.  All Updates provided to you shall be
+subject to the terms and conditions of this EULA.  If you receive an Update,
+you may continue to use the previous version(s) of the Software in your
+possession, custody or control.  Seagate shall have no obligation to support
+the previous versions of the Software upon availability of an Update. Seagate
+has no obligation to provide support, maintenance, Updates, or modifications
+under this EULA.
+
+5.  NO WARRANTY.  THE PRODUCT AND THE THIRD-PARTY SOFTWARE ARE OFFERED ON AN
+"AS-IS" BASIS AND NO WARRANTY, EITHER EXPRESS OR IMPLIED, IS GIVEN.  SEAGATE
+AND ITS SUPPLIERS EXPRESSLY DISCLAIM ALL WARRANTIES OF ANY KIND, WHETHER
+STATUTORY, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NON-INFRINGEMENT.  SEAGATE DOES NOT PROVIDE THE THIRD PARTY SERVICES AND
+MAKES NO WARRANTIES WITH RESPECT TO THE THIRD PARTY SERVICES.  YOUR USE OF
+THE THIRD PARTY SERVICES IS AT YOUR RISK.
+
+6.  EXCLUSION OF INCIDENTAL, CONSEQUENTIAL, AND CERTAIN OTHER DAMAGES.  TO
+THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL SEAGATE OR
+ITS LICENSORS OR SUPPLIERS BE LIABLE FOR ANY SPECIAL, INCIDENTAL, PUNITIVE,
+INDIRECT, OR CONSEQUENTIAL DAMAGES WHATSOEVER (INCLUDING, BUT NOT LIMITED TO,
+DAMAGES FOR LOSS OF PROFITS OR CONFIDENTIAL OR OTHER INFORMATION, FOR
+BUSINESS INTERRUPTION, FOR PERSONAL INJURY, FOR LOSS OF PRIVACY, FOR FAILURE
+TO MEET ANY DUTY INCLUDING OF GOOD FAITH OR REASONABLE CARE, FOR NEGLIGENCE,
+AND FOR ANY OTHER PECUNIARY OR OTHER LOSS WHATSOEVER) ARISING OUT OF OR IN
+ANY WAY RELATED TO THE USE OF OR INABILITY TO USE THE PRODUCT OR ANY PART OR
+COMPONENT THEREOF OR RELATED SERVICE OR ANY THIRD PARTY SERVICES, OR
+OTHERWISE UNDER OR IN CONNECTION WITH ANY PROVISION OF THE EULA, EVEN IN THE
+EVENT OF THE FAULT, TORT (INCLUDING NEGLIGENCE), MISREPRESENTATION, STRICT
+LIABILITY, BREACH OF CONTRACT, OR BREACH OF WARRANTY OF SEAGATE OR ITS
+LICENSORS OR SUPPLIERS, AND EVEN IF SEAGATE OR ITS LICENSOR OR SUPPLIER HAS
+BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES AND NOTWITHSTANDING ANY
+FAILURE OF THE ESSENTIAL PURPOSE OF THIS AGREEMENT OR ANY REMEDY.
+
+7.  LIMITATION OF LIABILITY.  NOTWITHSTANDING ANY DAMAGES THAT YOU MIGHT
+INCUR FOR ANY REASON WHATSOEVER, THE ENTIRE LIABILITY OF SEAGATE UNDER ANY
+PROVISION OF THIS EULA AND YOUR EXCLUSIVE REMEDY HEREUNDER SHALL BE LIMITED
+TO, AND IN NO EVENT WILL SEAGATE'S TOTAL CUMULATIVE DAMAGES EXCEED, THE FEES
+PAID BY THE LICENSEE TO SEAGATE FOR THE PRODUCT.  ADDITIONALLY, IN NO EVENT
+SHALL SEAGATE'S LICENSORS OR SUPPLIERS BE LIABLE FOR ANY DAMAGES OF ANY KIND.
+
+8.  Privacy.  Seagate’s collection, use and disclosure of personally
+identifiable information in connection with your use of the Product is
+governed by Seagate’s Privacy Policy which is located at
+http://www.seagate.com/legal-privacy/privacy-policy/As further described in
+Seagate’s Privacy Policy, certain Products may include a Product dashboard
+which allows users to manage Product settings, including but not limited to
+use of anonymous statistical usage data in connection with personally
+identifiable information. You agree to Seagate’s collection, use, and
+disclosure of your data in accordance with the Product dashboard settings
+selected by you for the Product, or in the case of transfer as described in
+Section 11, you agree to the settings selected by the prior licensee unless
+or until you make changes to the settings.
+
+9.  Indemnification.  By accepting the EULA, you agree to indemnify and
+otherwise hold harmless Seagate, its officers, employees, agents,
+subsidiaries, affiliates, and other partners from any direct, indirect,
+incidental, special, consequential or exemplary damages arising out of,
+relating to, or resulting from your use of the Product or any other matter
+relating to the Product, including, without limitation, use of any of the
+Third Party Services.
+
+10.  International Trade Compliance.  The Software and any related technical
+data made available for download under this EULA are subject to the customs
+and export control laws and regulations of the United States ("U.S.") and may
+also be subject to the customs and export laws and regulations of the country
+in which the download is contemplated.  Further, under U.S. law, the Software
+and any related technical data made available for download under this EULA
+may not be sold, leased or otherwise transferred to restricted countries, or
+used by a restricted end-user (as determined on any one of the U.S.
+government restricted parties lists, found at
+http://www.bis.doc.gov/complianceandenforcement/liststocheck.htm) or an
+end-user engaged in activities related to weapons of mass destruction
+including, without limitation, activities related to designing, developing,
+producing or using nuclear weapons, materials, or facilities, missiles or
+supporting missile projects, or chemical or biological weapons.  You
+acknowledge that you are not a citizen, national, or resident of, and are not
+under control of the governments of Cuba, Iran, North Korea, Sudan or Syria;
+are not otherwise a restricted end-user as defined by U.S. export control
+laws; and are not engaged in proliferation activities.  Further, you
+acknowledge that you will not download or otherwise export or re-export the
+Software or any related technical data directly or indirectly to the
+above-mentioned countries or to citizens, nationals, or residents of those
+countries, or to any other restricted end user or for any restricted end-use.
+
+11.  General.  This EULA between Licensee and Seagate is governed by and
+construed in accordance with the laws of the State of California without
+regard to conflict of laws principles.  The EULA constitutes the entire
+agreement between Seagate and you relating to the Product and governs your
+use of the Product, superseding any prior agreement between you and Seagate
+relating to the subject matter hereof.  If any provision of this EULA is held
+by a court of competent jurisdiction to be contrary to law, such provision
+will be changed and interpreted so as to best accomplish the objectives of
+the original provision to the fullest extent allowed by law and the remaining
+provisions of the EULA will remain in force and effect.  The Product and any
+related technical data are provided with restricted rights.  Use,
+duplication, or disclosure by the U.S. government is subject to the
+restrictions as set forth in subparagraph (c)(1)(iii) of DFARS 252.227-7013
+(The Rights in Technical Data and Computer Product) or subparagraphs (c)(1)
+and (2) of 48 CFR 52.227-19 (Commercial Computer Product – Restricted
+Rights), as applicable.  The manufacturer is Seagate.  You may not transfer
+or assign this EULA or any rights under this EULA, except that you may make a
+one-time, permanent transfer of this EULA and the Software to another end
+user, provided that (i) you do not retain any copies of the Software, the
+Hardware, the media and printed materials, Upgrades (if any), and this EULA,
+and (ii) prior to the transfer, the end user receiving this EULA and the
+Software agrees to all the EULA terms.  Any attempted assignment in violation
+of this Section is void.  Seagate, the Seagate logo, and other Seagate names
+and logos are the trademarks of Seagate.
+
+5.4.2016
+
+===========================================================================
+
+GNU LESSER GENERAL PUBLIC LICENSE
+
+Version 3, 29 June 2007
+
+Copyright (c) 2007 Free Software Foundation, Inc. <http://fsf.org/>
+
+Everyone is permitted to copy and distribute verbatim copies of this license
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented
+by the additional permissions listed below.
+
+0. Additional Definitions.
+
+As used herein, "this License" refers to version 3 of the GNU Lesser General
+Public License, and the "GNU GPL" refers to version 3 of the GNU General
+Public License.
+
+"The Library" refers to a covered work governed by this License, other than
+an Application or a Combined Work as defined below.
+
+An "Application" is any work that makes use of an interface provided by the
+Library, but which is not otherwise based on the Library. Defining a subclass
+of a class defined by the Library is deemed a mode of using an interface
+provided by the Library.
+
+A "Combined Work" is a work produced by combining or linking an Application
+with the Library. The particular version of the Library with which the
+Combined Work was made is also called the "Linked Version".
+
+The "Minimal Corresponding Source" for a Combined Work means the
+Corresponding Source for the Combined Work, excluding any source code for
+portions of the Combined Work that, considered in isolation, are based on the
+Application, and not on the Linked Version.
+
+The "Corresponding Application Code" for a Combined Work means the object
+code and/or source code for the Application, including any data and utility
+programs needed for reproducing the Combined Work from the Application, but
+excluding the System Libraries of the Combined Work.
+
+1. Exception to Section 3 of the GNU GPL.
+
+You may convey a covered work under sections 3 and 4 of this License without
+being bound by section 3 of the GNU GPL.
+
+2. Conveying Modified Versions.
+
+If you modify a copy of the Library, and, in your modifications, a facility
+refers to a function or data to be supplied by an Application that uses the
+facility (other than as an argument passed when the facility is invoked),
+then you may convey a copy of the modified version:
+
+* a) under this License, provided that you make a good faith effort to ensure
+that, in the event an Application does not supply the function or data, the
+facility still operates, and performs whatever part of its purpose remains
+meaningful, or
+
+* b) under the GNU GPL, with none of the additional permissions of this
+License applicable to that copy.
+
+3. Object Code Incorporating Material from Library Header Files.
+
+The object code form of an Application may incorporate material from a header
+file that is part of the Library. You may convey such object code under terms
+of your choice, provided that, if the incorporated material is not limited to
+numerical parameters, data structure layouts and accessors, or small macros,
+inline functions and templates (ten or fewer lines in length), you do both of
+the following:
+
+* a) Give prominent notice with each copy of the object code that the Library
+is used in it and that the Library and its use are covered by this License.
+
+* b) Accompany the object code with a copy of the GNU GPL and this license
+document.
+
+4. Combined Works.
+
+You may convey a Combined Work under terms of your choice that, taken
+together, effectively do not restrict modification of the portions of the
+Library contained in the Combined Work and reverse engineering for debugging
+such modifications, if you also do each of the following:
+
+* a) Give prominent notice with each copy of the Combined Work that the
+Library is used in it and that the Library and its use are covered by this
+License.
+
+* b) Accompany the Combined Work with a copy of the GNU GPL and this license
+document.
+
+* c) For a Combined Work that displays copyright notices during execution,
+include the copyright notice for the Library among these notices, as well as
+a reference directing the user to the copies of the GNU GPL and this license
+document.
+
+* d) Do one of the following:
+  o 0) Convey the Minimal Corresponding Source under the terms of this
+License, and the Corresponding Application Code in a form suitable for, and
+under terms that permit, the user to recombine or relink the Application
+with a modified version of the Linked Version to produce a modified
+Combined Work, in the manner specified by section 6 of the GNU GPL for
+conveying Corresponding Source.
+  o 1) Use a suitable shared library mechanism for linking with the Library.
+A suitable mechanism is one that (a) uses at run time a copy of the Library
+already present on the user's computer system, and (b) will operate
+properly with a modified version of the Library that is
+interface-compatible with the Linked Version.
+
+* e) Provide Installation Information, but only if you would otherwise be
+required to provide such information under section 6 of the GNU GPL, and only
+to the extent that such information is necessary to install and execute a
+modified version of the Combined Work produced by recombining or relinking
+the Application with a modified version of the Linked Version. (If you use
+option 4d0, the Installation Information must accompany the Minimal
+Corresponding Source and Corresponding Application Code. If you use option
+4d1, you must provide the Installation Information in the manner specified by
+section 6 of the GNU GPL for conveying Corresponding Source.)
+
+5. Combined Libraries.
+
+You may place library facilities that are a work based on the Library side by
+side in a single library together with other library facilities that are not
+Applications and are not covered by this License, and convey such a combined
+library under terms of your choice, if you do both of the following:
+
+* a) Accompany the combined library with a copy of the same work based on the
+Library, uncombined with any other library facilities, conveyed under the
+terms of this License.
+
+* b) Give prominent notice with the combined library that part of it is a
+work based on the Library, and explaining where to find the accompanying
+uncombined form of the same work.
+
+6. Revised Versions of the GNU Lesser General Public License.
+
+The Free Software Foundation may publish revised and/or new versions of the
+GNU Lesser General Public License from time to time. Such new versions will
+be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+Each version is given a distinguishing version number. If the Library as you
+received it specifies that a certain numbered version of the GNU Lesser
+General Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that published version
+or of any later version published by the Free Software Foundation. If the
+Library as you received it does not specify a version number of the GNU
+Lesser General Public License, you may choose any version of the GNU Lesser
+General Public License ever published by the Free Software Foundation.
+
+If the Library as you received it specifies that a proxy can decide whether
+future versions of the GNU Lesser General Public License shall apply, that
+proxy's public statement of acceptance of any version is permanent
+authorization for you to choose that version for the Library.
+
+===========================================================================
+
+SeaChest tools for Windows utilize wingetopt
+(https://github.com/alex85k/wingetopt).
+
+getopt library for Windows compilers
+
+This library was created to allow compilation linux-based software on Windows.
+http://en.wikipedia.org/wiki/Getopt
+
+The sources were taken from MinGW-runtime project.
+
+AUTHORS:
+
+Todd C. Miller Todd.Miller@courtesan.com
+The NetBSD Foundation, Inc.
+LICENSE
+
+Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
+
+Permission to use, copy, modify, and distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+
+Sponsored in part by the Defense Advanced Research Projects
+Agency (DARPA) and Air Force Research Laboratory, Air Force
+Materiel Command, USAF, under agreement number F39502-99-1-0512.
+Copyright (c) 2000 The NetBSD Foundation, Inc.
+All rights reserved.
+
+This code is derived from software contributed to The NetBSD Foundation by
+Dieter Baron and Thomas Klausner.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+===========================================================================
+

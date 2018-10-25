@@ -1,9 +1,9 @@
-openSeaChest_GenericTests.Lin.txt                         Revision: 09-Nov-2017
+openSeaChest_GenericTests.Lin.txt                         Revision: 25-Oct-2018
 ===============================================================================
  openSeaChest_GenericTests for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_GenericTests Version: 1.7.1
- Build Date: Nov 02 2017
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_GenericTests Version: 1.7.3
+ Build Date: Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -68,6 +68,11 @@ Found" for more information on this subject.
 
 This User Guide file contains important information about openSeaChest
 GenericTests.  Please read this entire file before using this software.
+
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
 
 Important note: Many tests in this tool directly reference storage device data
 sectors, also known as Logical Block Addresses (LBA). Test arguments may
@@ -166,6 +171,15 @@ Utility arguments
                 A simple check to see if the device responds to commands from
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
+
+        --bufferTest
+                This option will perform a test using the device's echo buffer.
+                The write buffer and read buffer commands are used to send &
+                receive different data patterns.  The patterns are compared and
+                interface CRC errors are also checked (when available).  Test
+                patterns performed are all 0's, all F's, all 5's, all A's,
+                walking 1's, walking 0's, and random data patterns.  At
+                completion, a count of the number of errors will be displayed.
 
         --genericMode [ read | write (Seagate Only) | verify ]
                 This options allows selection of the type of commands to use
@@ -334,7 +348,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -433,6 +447,8 @@ details about the drive including the current firmware revision. Like this:
 Vendor     Handle       Model Number       Serial Number     FwRev
 ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
 SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
+
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
 
 All utility arguments will require you to identify the specific drive by
 providing the sg device handle (-d, --device).
@@ -957,7 +973,44 @@ v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
 v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
+The above history is provided as a courtesy to show the orginal SeaChest
+development activity.
+
+============================
+openSeaChest Version History
+============================
 v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.  Added --bufferTest.
+v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 =======================================
 About SeaChest Command Line Diagnostics
@@ -1075,7 +1128,7 @@ usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can be
 found at:
 http://support.seagate.com/firmware/usbbootmaker_faq.html
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
                         END USER LICENSE AGREEMENT
