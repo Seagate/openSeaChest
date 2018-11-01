@@ -1205,7 +1205,7 @@ void print_Firmware_Activate_Help(bool shortHelp)
 
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-	printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+	printf("\t--%s [full | segmented | deferred]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
 	if (!shortHelp)
 	{
 		printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
@@ -1224,7 +1224,7 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
 
 void print_Output_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s   [ raw | binary ]\n", OUTPUT_MODE_LONG_OPT_STRING);
+    printf("\t--%s   [raw | binary]\n", OUTPUT_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with others options such as --%s\n",GET_NVME_LOG_LONG_OPT_STRING);
@@ -1241,7 +1241,7 @@ void print_Output_Mode_Help(bool shortHelp)
 
 void print_Get_Features_Help(bool shortHelp)
 {
-    printf("\t--%s  [ help | list | # ]\n", GET_FEATURES_LONG_OPT_STRING);
+    printf("\t--%s  [help | list | #]\n", GET_FEATURES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to list the NVMe features\n");
@@ -1257,7 +1257,7 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [ error | smart | fwSlots | suppCmds | selfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [error | smart | fwSlots | suppCmds | selfTest | #]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
@@ -1281,7 +1281,7 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
-    printf("\t--%s [ host | ctrl ] --%s [ 1 | 2 | 3 ]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    printf("\t--%s [host | ctrl] --%s [1 | 2 | 3]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe Telemetry\n");
@@ -1318,7 +1318,7 @@ void print_NVMe_Pci_Stats_Help(bool shortHelp)
 
 void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [ immediate | deferred | activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t--%s [immediate | deferred | activate]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
@@ -1793,7 +1793,7 @@ void print_DST_And_Clean_Help(bool shortHelp)
 
 void print_Generic_Test_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [ read | write | verify ]\n", GENERIC_TEST_LONG_OPT_STRING);
+    printf("\t--%s [read | write | verify]\n", GENERIC_TEST_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis options allows selection of the type of commands\n");
@@ -1916,7 +1916,7 @@ void print_Format_Security_Initialize_Help(bool shortHelp)
 
 void print_Format_Protection_Type_Help(bool shortHelp)
 {
-    printf("\t--%s [ 0 | 1 | 2 | 3 ]\n", FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING);
+    printf("\t--%s [0 | 1 | 2 | 3]\n", FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the protection type to format the\n");
@@ -1927,7 +1927,7 @@ void print_Format_Protection_Type_Help(bool shortHelp)
 
 void print_Format_Protection_Interval_Exponent_Help(bool shortHelp)
 {
-    printf("\t--%s [ exponent value ]\n", FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING);
+    printf("\t--%s [exponent value]\n", FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the protection interval exponent\n");
@@ -2091,7 +2091,7 @@ void print_NVME_Format_Unit_Help(bool shortHelp)
 
 void print_Low_Current_Spinup_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    printf("\t--%s [enable | disable]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the low current spinup\n");
@@ -2195,7 +2195,7 @@ void print_Disable_APM_Help(bool shortHelp)
 
 void print_PUIS_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [enable | disable]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the power up in standby\n");
@@ -2219,7 +2219,7 @@ void print_Show_EPC_Settings_Help(bool shortHelp)
 
 void print_SMART_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the SMART\n");
@@ -2230,7 +2230,7 @@ void print_SMART_Feature_Help(bool shortHelp)
 
 void print_Set_MRIE_Help(bool shortHelp)
 {
-    printf("\t--%s [ default | 0 - 6 ]  (SAS Only)\n", SET_MRIE_MODE_LONG_OPT_STRING);
+    printf("\t--%s [default | 0 - 6]  (SAS Only)\n", SET_MRIE_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the MRIE mode on the informational\n");
@@ -2248,7 +2248,7 @@ void print_Set_MRIE_Help(bool shortHelp)
 
 void print_SMART_Attribute_Autosave_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable SMART\n");
@@ -2269,7 +2269,7 @@ void print_SMART_Info_Help(bool shortHelp)
 
 void print_SMART_Auto_Offline_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable SMART\n");
@@ -2790,7 +2790,7 @@ void print_Show_Locked_Regions_Help(bool shortHelp)
 
 void print_Seagate_Power_Balance_Help(bool shortHelp)
 {
-    printf("\t--%s [ info | enable | disable ]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
+    printf("\t--%s [info | enable | disable]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to see the state of the Seagate Power Balance\n");
@@ -2810,7 +2810,7 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
 
 void print_DIPM_Help(bool shortHelp)
 {
-    printf("\t--%s [info | enable | disable ]\t(SATA Only)\n", SATA_DIPM_LONG_OPT_STRING);
+    printf("\t--%s [info | enable | disable]\t(SATA Only)\n", SATA_DIPM_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the SATA Device Initiated\n");
@@ -2824,7 +2824,7 @@ void print_DIPM_Help(bool shortHelp)
 
 void print_DAPS_Help(bool shortHelp)
 {
-    printf("\t--%s [info | enable | disable ]\t(SATA Only)\n", SATA_DAPS_LONG_OPT_STRING);
+    printf("\t--%s [info | enable | disable]\t(SATA Only)\n", SATA_DAPS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the SATA Device Automatic\n");
@@ -2858,7 +2858,7 @@ void print_Free_Fall_Help(bool shortHelp)
 
 void print_SCSI_Defects_Help(bool shortHelp)
 {
-    printf("\t--%s [ p | g | pg ]\t(SAS Only)\n", SCSI_DEFECTS_LONG_OPT_STRING);
+    printf("\t--%s [p | g | pg]\t(SAS Only)\n", SCSI_DEFECTS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will display the SCSI defects on the screen.\n");
@@ -2875,7 +2875,7 @@ void print_SCSI_Defects_Help(bool shortHelp)
 
 void print_SCSI_Defects_Format_Help(bool shortHelp)
 {
-    printf("\t--%s [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+    printf("\t--%s [# | shortBlock | longBlock | xbfi | xchs | bfi | chs]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option set the format of the defects to output.\n");
@@ -2978,7 +2978,7 @@ void print_FARM_Log_Help(bool shortHelp)
 
 void print_Show_SMART_Error_Log_Help(bool shortHelp)
 {
-    printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+    printf("\t--%s [summary | comprehensive]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will display the ATA SMART Error log on the screen.\n");
@@ -2994,7 +2994,7 @@ void print_Show_SMART_Error_Log_Help(bool shortHelp)
 
 void print_SMART_Error_Log_Format_Help(bool shortHelp)
 {
-    printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
+    printf("\t--%s [raw | detailed]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);

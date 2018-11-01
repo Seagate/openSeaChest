@@ -1,5 +1,5 @@
 //
-// SeaChest_NVMe.c
+// openSeaChest_NVMe.c
 //
 // Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // **************************************************************************************
-// \file SeaChest_NVMe.c Binary command line that performs various erase methods on a device.
+// \file openSeaChest_NVMe.c Binary command line that performs various erase methods on a device.
 
 //////////////////////
 //  Included files  //
@@ -37,7 +37,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "SeaChest_NVMe";
+const char *util_name = "openSeaChest_NVMe";
 const char *buildVersion = "0.0.3";
 
 ////////////////////////////
@@ -1521,6 +1521,16 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
+    //utility options
+    printf("\nUtility Options\n");
+    printf("===============\n");
+    print_Verbose_Help(shortUsage);
+    print_Quiet_Help(shortUsage, util_name);
+    print_Version_Help(shortUsage, util_name);
+    print_License_Help(shortUsage);
+    print_Echo_Command_Line_Help(shortUsage);
+    print_Help_Help(shortUsage);
+
     //the test options
     printf("Utility arguments\n");
     printf("=================\n");
@@ -1548,16 +1558,5 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_NVME_Format_Unit_Help(shortUsage);
-
-    //utility options
-    printf("\nUtility Options\n");
-    printf("===============\n");
-    print_Verbose_Help(shortUsage);
-    print_Quiet_Help(shortUsage, util_name);
-    print_Version_Help(shortUsage, util_name);
-    print_License_Help(shortUsage);
-    print_Echo_Command_Line_Help(shortUsage);
-    print_Help_Help(shortUsage);
-
 
 }
