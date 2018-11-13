@@ -1,4 +1,4 @@
-openSeaChest_Basics.Win.txt                               Revision: 25-Oct-2018
+openSeaChest_Basics.Win.txt                               Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_Basics for Windows - Seagate drive utilities
  Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -218,7 +218,7 @@ Utility arguments
         --abortIDD (Seagate Only)
                 Abort a Seagate In Drive Diagnostic (IDD) that is in progress.
 
-        --downloadFW [fwfilename]    (Seagate Only)
+        --downloadFW [fwfilename]
                 Download firmware to a Seagate storage product. Use only
                 Seagate authorized firmware data files which are designated for
                 the specific model drive. Improper use of this option may harm
@@ -230,7 +230,7 @@ Utility arguments
                 Please see the section below "Windows Restrictions Over SATA
                 Firmware Downloads".
 
-        --downloadMode [full | segmented | deferred]    (Seagate Only)
+        --downloadMode [full | segmented | deferred]
                 Use this command along with the --downloadFW option to set the
                 firmware download mode.
 
@@ -249,7 +249,7 @@ Utility arguments
                 may assist in creating commands to update multiple similar
                 drives.
 
-        --activateFW     (Seagate Only)
+        --activateFW
                 Use this option to issue the command to activate code that was
                 sent to the drive using a deferred download command. This will
                 immediately activate the new code on the drive. You can use
@@ -290,7 +290,7 @@ Utility arguments
                 operating system selects the drive. This means that an active
                 drive will not stay spun down.
 
-        --phySpeed [0 | 1 | 2 | 3 | 4 | 5] (Seagate Only)
+        --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
                 Use this option to change the PHY speed to a new maximum value.
                 This change persists over power cycles and resets. On SAS, this
                 option will set all phys to the specified speed unless the
@@ -462,7 +462,7 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
-Data Destructive Commands (Seagate Only)
+Data Destructive Commands
 ========================================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
@@ -534,7 +534,7 @@ entire drive.
                 command is omitted then the end of the drive is assumed and the
                 test will end at the MaxLBA.
 
-        --provision [newMaxLBA | maxLBA]        (Seagate Only)
+        --provision [newMaxLBA | maxLBA]
                 Provision your drive to a new max LBA to any value less than
                 the device's current max LBA. The predefined text string
                 "maxLBA" (without quotes) may be entered to indicate the last

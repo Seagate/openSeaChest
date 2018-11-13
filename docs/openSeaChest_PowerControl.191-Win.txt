@@ -1,4 +1,4 @@
-openSeaChest_PowerControl.Win.txt                          Revision: 25-Oct-2018
+openSeaChest_PowerControl.Win.txt                          Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_PowerControl for Windows - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -309,7 +309,7 @@ Utility arguments
                 that value.
 
         --setPowerConsumption [default | highest | intermediate | lowest |
-          watt value]   (SAS Only) (Seagate Only)
+          watt value]   (SAS Only)
                 This option will set the power consumption rate of the device
                 to the value input.
                 Options:
@@ -341,7 +341,7 @@ Utility arguments
                 Use this option to disable the current Advanced Power Management
                 (APM) level of a device
 
-        --powerBalanceFeature [ info | enable | disable ]   (SATA Only)(Seagate Only)
+        --powerBalanceFeature [ info | enable | disable ]   (SATA Only)
                 Use this option to see the state of the Seagate PowerBalance
                 feature or to change its state. Seagate's PowerBalance feature
                 will adjust drive performance during random operations to

@@ -1,4 +1,4 @@
-openSeaChest_Info.Win.txt                                 Revision: 25-Oct-2018
+openSeaChest_Info.Win.txt                                 Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_Info for Windows - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved

@@ -1,4 +1,4 @@
-openSeaChest_Erase.Lin.txt                                Revision: 25-Oct-2018
+openSeaChest_Erase.Lin.txt                                Revision: 13-Nov-2018
 ===============================================================================
 openSeaChest_Erase for Linux - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -200,12 +200,6 @@ Utility arguments
                 below 'Interpreting Head Health and Status' for more
                 information.
 
-        --forceSeagateDepop (Seagate Only)
-                Use this option to force using Seagate's vendor unique method
-                of seeing and removing storage elements from use. This is a
-                legacy method and the default mode is to use the ACS4 or SBC4
-                methods when available.
-
 Utility Options
 ===============
         -h, --help
@@ -312,7 +306,7 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
-Data Destructive Commands (Seagate Only)
+Data Destructive Commands
 ========================================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
@@ -320,7 +314,7 @@ Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --performQuickestErase (Seagate Only)
+        --performQuickestErase
                 This option checks the drive to determine which methods of data
                 erasure are supported and determines which is the quickest to
                 erase ALL data on the drive. It then starts the quickest erase.
@@ -346,7 +340,8 @@ Seagate is not responsible for lost user data.
                 less than one (1) second, while on other SSDs it can take
                 longer than 30 seconds. It performs a physical low level block
                 erase operation on all current, past and potential user data
-                making previous data irretrievable.
+                making previous data irretrievable. Consider using the --poll
+                option to monitor % completion.
 
                 * cryptoerase is very fast at less than one (1) second. It
                 changes the internal encryption keys that are used for user
@@ -501,7 +496,7 @@ Seagate is not responsible for lost user data.
                 omitted then the end of the drive is assumed and the test will
                 end at the MaxLBA.
 
-        --formatUnit [current | new sector size]    (SAS Only) (Seagate Only)
+        --formatUnit [current | new sector size]    (SAS Only)
                 This option will start a format unit operation on a SAS drive
                 Use "current" to perform a format unit operation with the
                 Sector size currently being used, otherwise enter a new sector
@@ -583,7 +578,7 @@ Seagate is not responsible for lost user data.
                         pattern. The file option will get truncated to a 32bit
                         pattern for SATA products.
 
-        --removePhysicalElement [element #] (Seagate Only)
+        --removePhysicalElement [element #]
                 Use this option to remove a storage element from use on a
                 drive. When this is done, the drive will erase all user data
                 and lower the capacity to a new point where the drive is still

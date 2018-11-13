@@ -1,4 +1,4 @@
-openSeaChest_Format.Win.txt                               Revision: 25-Oct-2018
+openSeaChest_Format.Win.txt                               Revision: 13-Nov-2018
 ===============================================================================
 openSeaChest_Format for Windows - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -314,7 +314,7 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
-Data Destructive Commands (Seagate Only)
+Data Destructive Commands
 ========================================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
@@ -322,7 +322,7 @@ Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --formatUnit [current | new sector size]    (SAS Only) (Seagate Only)
+        --formatUnit [current | new sector size]    (SAS Only)
                 This option will start a format unit operation on a SAS drive
                 Use "current" to perform a format unit operation with the
                 Sector size currently being used, otherwise enter a new sector
@@ -372,7 +372,7 @@ Seagate is not responsible for lost user data.
                       to determine if it supports the sub-command.  (See the
                       help topic below: About FastFormat)
 
-        --setSectorSize [new sector size]        (Seagate Only)
+        --setSectorSize [new sector size]
                 This option is only available for drives that support sector
                 size changes. On SATA Drives, the Set Sector Configuration
                 command must be supported. On SAS Drives, Fast Format must be

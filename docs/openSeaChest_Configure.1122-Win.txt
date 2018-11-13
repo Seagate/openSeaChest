@@ -1,4 +1,4 @@
-openSeaChest_Configure.Win.txt                            Revision: 25-Oct-2018
+openSeaChest_Configure.Win.txt                            Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_Configure for Windows - Seagate drive utilities
  Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -170,7 +170,7 @@ Utility arguments
                 size. A power cycle is required after this command before
                 setting a new max LBA.
 
-        --phySpeed [0 | 1 | 2 | 3 | 4 | 5] (Seagate Only)
+        --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
                 Use this option to change the PHY speed to a new maximum value.
                 This change persists over power cycles and resets. On SAS, this
                 option will set all phys to the specified speed unless the
@@ -208,7 +208,7 @@ Utility arguments
                 the read look ahead feature.  This change is not preserved over
                 power cycles.
 
-        --sctReadTimer [info | value] (SATA Only) (Seagate Only)
+        --sctReadTimer [info | value] (SATA Only)
                 Use this option to set the SMART command transport read command
                 timer value for synchronous commands and NCQ commands with
                 in-order data delivery enabled. Note: this timer starts at the
@@ -259,7 +259,7 @@ Utility arguments
                 of the policy.
 
         --sctWriteCache [info | enable | disable | default]
-                (SATA Only) (Seagate Only)
+                (SATA Only)
                 Use this option to enable or disable write cache support on a
                 drive using SMART command transport. When using this option,
                 the setting is non-volatile. Use this with the --volatile flag
@@ -273,7 +273,7 @@ Utility arguments
                 due to HBA/bridge limitations.
 
         --sctWriteCacheReordering [info | enable | disable | default]
-                (SATA Only) (Seagate Only)
+                (SATA Only)
                 Use this option to enable or disable write cache reordering
                 support on a drive using SMART command transport. Write cache
                 reordering allows the drive to reorder moving data out of cache
@@ -286,7 +286,7 @@ Utility arguments
                 HBAs/bridges, status will not be able to be determined due to
                 HBA/bridge limitations.
 
-        --sctWriteTimer [info | value] (SATA Only) (Seagate Only)
+        --sctWriteTimer [info | value] (SATA Only)
                 Use this option to set the SMART command transport write
                 command timer value for synchronous commands and NCQ commands
                 with in-order data delivery enabled. Note: this timer starts at
@@ -310,19 +310,19 @@ Utility arguments
 
                 Note: see additional information above for --sctReadTimer.
 
-        --lowCurrentSpinup [ enable | disable ]  (SATA Only) (Seagate Only)
+        --lowCurrentSpinup [ enable | disable ]  (SATA Only)
                 Use this option to enable or disable the low current spinup
                 feature on Seagate SATA drives. Note: This feature is not
                 available on every drive.
 
-        --puisFeature [enable | disable]  (SATA Only) (Seagate Only)
+        --puisFeature [enable | disable]  (SATA Only)
                 Use this option to enable or disable the Power Up In Standby
                 (PUIS) feature on SATA drives.
                 Note: If this is configured on the drive with a jumper, this
                       command will fail.
                 Note2: Not all products support this feature.
 
-        --sscFeature [info | default | enable | disable] (SATA Only) (Seagate Only)
+        --sscFeature [info | default | enable | disable] (SATA Only)
                 Use this option to change or view the SSC (Spread Spectrum
                 Clocking) mode on a Seagate SATA drive. Only change this
                 setting if you are experiencing compatibility problems with the
@@ -459,7 +459,7 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
-Data Destructive Commands (Seagate Only)
+Data Destructive Commands
 ========================================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
@@ -467,7 +467,7 @@ Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --provision [newMaxLBA | maxLBA]        (Seagate Only)
+        --provision [newMaxLBA | maxLBA]
                 Provision your drive to a new max LBA to any value less than
                 the device's current max LBA. The predefined text string
                 "maxLBA" (without quotes) may be entered to indicate the last

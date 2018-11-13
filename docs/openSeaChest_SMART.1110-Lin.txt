@@ -1,4 +1,4 @@
-openSeaChest_SMART.Lin.txt                                Revision: 25-Oct-2018
+openSeaChest_SMART.Lin.txt                                Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_SMART for Linux - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -256,7 +256,7 @@ Utility arguments
                 This option will show SMART information reported by a given
                 device.
 
-        --smartFeature [enable | disable]            (SATA Only) (Seagate Only)
+        --smartFeature [enable | disable]            (SATA Only)
                 Use this option to enable or disable the SMART feature on a
                 SATA drive.  When disabled, the entire SMART feature set, minus
                 the enable command, is turned off.  This includes all SMART
@@ -278,7 +278,7 @@ Utility arguments
                 tripped. Seagate Support does not help to analyze SMART
                 attributes.
 
-        --smartAttributeAutosave [enable | disable]  (SATA Only) (Seagate Only)
+        --smartAttributeAutosave [enable | disable]  (SATA Only)
                 Use this option to enable or disable SMART attribute auto-save
                 on an ATA drive.  This is the drive's ability to update the
                 attributes on it's own without the "update attributes" command.
@@ -286,7 +286,7 @@ Utility arguments
                 no-op.
                 Note: This command is declared obsolete in ACS4.
 
-        --smartAutoOffline [enable | disable]  (SATA Only) (Seagate Only)
+        --smartAutoOffline [enable | disable]  (SATA Only)
                 Use this option to enable or disable SMART auto-offline feature
                 on an ATA drive.  This command was never officially adopted by
                 ATA committee, but was in the original SMART spec from
@@ -327,7 +327,7 @@ Utility arguments
                 architecture.
 
 SAS Only:
-                --setMRIE [ default | 0 - 6 ]  (SAS Only) (Seagate Only)
+                --setMRIE [ default | 0 - 6 ]  (SAS Only)
                 Use this option to change the MRIE mode on the informational
                 exceptions mode page.
                     default - set to the drive default
@@ -473,14 +473,6 @@ Seagate is not responsible for lost user data.
                 possible. This continues until all errors reported by DST are
                 fixed, or when the error limit is reached. The default limit is
                 50 errors.  See --errorLimit to change limit.
-
-        --seagateClean                  (Seagate Only)
-                Checks logs for errors and repairs them if possible. After
-                repairing all errors, each error is read around to check for
-                other errors to repair. Finally, a DST & Clean operation is run
-                to verify the drive is good and no more errors exist. Test will
-                stop when the error limit is reached. The default limit is 50
-                errors.  See --errorLimit to change limit.
 
 See the section below "Bad LBA (Sector) Found" for more information on this
 subject.

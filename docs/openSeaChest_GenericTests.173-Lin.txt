@@ -1,4 +1,4 @@
-openSeaChest_GenericTests.Lin.txt                         Revision: 25-Oct-2018
+openSeaChest_GenericTests.Lin.txt                         Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_GenericTests for Linux - Seagate drive utilities
  Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
@@ -181,7 +181,7 @@ Utility arguments
                 walking 1's, walking 0's, and random data patterns.  At
                 completion, a count of the number of errors will be displayed.
 
-        --genericMode [ read | write (Seagate Only) | verify ]
+        --genericMode [ read | write  | verify ]
                 This options allows selection of the type of commands to use
                 while performing a generic test.  If this option is omitted
                 then read is the default mode.
@@ -192,7 +192,7 @@ Utility arguments
                           data on sectors written during the test will be
                           lost.  Seagate is not responsible for lost user
                           data. --confirm acknowledgment command will be
-                          required. (Seagate Only)
+                          required.
                   verify - performs a generic test using verify commands, data
                            safe, sometimes faster than read commands.
 
@@ -411,11 +411,11 @@ Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --repairOnFly           (Seagate Only)
+        --repairOnFly
                 Use this option to repair any bad sectors found during a long
                 or user generic read test as they are found.
 
-        --repairAtEnd           (Seagate Only)
+        --repairAtEnd
                 Use this option to repair any bad sectors found during a long
                 or user generic read test at the end of the test.
 
