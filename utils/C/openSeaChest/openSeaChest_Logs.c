@@ -159,7 +159,7 @@ int32_t main(int argc, char *argv[])
         LONG_OPT_TERMINATOR
     };
 
-    g_verbosity = VERBOSITY_DEFAULT;
+    eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
     atexit(print_Final_newline);
 
@@ -336,15 +336,15 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                g_verbosity = atoi(optarg);
-                if (g_verbosity > VERBOSITY_COMMAND_VERBOSE)
+                toolVerbosity = atoi(optarg);
+                if (toolVerbosity > VERBOSITY_COMMAND_VERBOSE)
                 {
-                    g_verbosity = VERBOSITY_COMMAND_NAMES;
+                    toolVerbosity = VERBOSITY_COMMAND_NAMES;
                 }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
-            g_verbosity = VERBOSITY_QUIET;
+            toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
             SCAN_FLAGS_SUBOPT_PARSING;
@@ -377,7 +377,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < g_verbosity)
+    if (VERBOSITY_QUIET < toolVerbosity)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -478,7 +478,7 @@ int32_t main(int argc, char *argv[])
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
@@ -491,7 +491,7 @@ int32_t main(int argc, char *argv[])
 #endif
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
@@ -500,7 +500,7 @@ int32_t main(int argc, char *argv[])
     }
     else if (DEVICE_LIST_COUNT == 0)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
@@ -550,7 +550,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
     if (!DEVICE_LIST)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Unable to allocate memory\n");
         }
@@ -609,14 +609,14 @@ int32_t main(int argc, char *argv[])
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
@@ -676,7 +676,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
@@ -696,7 +696,7 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
                 }
@@ -715,7 +715,7 @@ int32_t main(int argc, char *argv[])
         {
 			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
 			{
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
 				}
@@ -727,7 +727,7 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
                 }
@@ -739,7 +739,7 @@ int32_t main(int argc, char *argv[])
         {
 			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
 			{
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
 				}
@@ -751,7 +751,7 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
@@ -760,7 +760,7 @@ int32_t main(int argc, char *argv[])
         }
         if (FORCE_SCSI_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing SCSI Drive\n");
             }
@@ -769,7 +769,7 @@ int32_t main(int argc, char *argv[])
         
         if (FORCE_ATA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing ATA Drive\n");
             }
@@ -778,7 +778,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_PIO_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
@@ -792,7 +792,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_DMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
@@ -801,14 +801,14 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_UDMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
 
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
 			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
@@ -818,7 +818,7 @@ int32_t main(int argc, char *argv[])
         {
             if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: failed to get device information\n");
                 }
@@ -836,11 +836,11 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                eVerbosityLevels tempVerbosity = g_verbosity;
+                eVerbosityLevels tempVerbosity = toolVerbosity;
                 printf("NOT READY\n");
-                g_verbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
+                toolVerbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
                 check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.asc, returnedStatus.ascq, returnedStatus.fru);
-                g_verbosity = tempVerbosity;//restore it back to what it was now that this is done.
+                toolVerbosity = tempVerbosity;//restore it back to what it was now that this is done.
             }
         }
 
@@ -851,7 +851,7 @@ int32_t main(int argc, char *argv[])
 			case SUCCESS:
 				break;
 			case NOT_SUPPORTED:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("\nListing supported logs is not supported for device %s.\n", \
 						deviceList[deviceIter].drive_info.serialNumber);
@@ -859,7 +859,7 @@ int32_t main(int argc, char *argv[])
 				exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 				break;
 			default:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("\nFailed to list logs for device %s\n", \
 						deviceList[deviceIter].drive_info.serialNumber);
@@ -875,7 +875,7 @@ int32_t main(int argc, char *argv[])
 			case SUCCESS:
 				break;
 			case NOT_SUPPORTED:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("\nListing supported error history buffer IDs is not supported for device %s.\n", \
 						deviceList[deviceIter].drive_info.serialNumber);
@@ -883,7 +883,7 @@ int32_t main(int argc, char *argv[])
 				exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 				break;
 			default:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("\nFailed to list error history buffer IDs for device %s\n", \
 						deviceList[deviceIter].drive_info.serialNumber);
@@ -897,7 +897,7 @@ int32_t main(int argc, char *argv[])
 			switch (pull_Generic_Log(&deviceList[deviceIter], (uint32_t)GENERIC_LOG_DATA_SET, (uint32_t)GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
 			{
 			case SUCCESS:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
@@ -910,7 +910,7 @@ int32_t main(int argc, char *argv[])
 				}
 				break;
 			case NOT_SUPPORTED:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
@@ -925,7 +925,7 @@ int32_t main(int argc, char *argv[])
 				exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 				break;
 			case MEMORY_FAILURE:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
@@ -939,7 +939,7 @@ int32_t main(int argc, char *argv[])
 				exitCode = UTIL_EXIT_OPERATION_FAILURE;
 				break;
 			default:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
@@ -965,27 +965,27 @@ int32_t main(int argc, char *argv[])
             switch (pull_Generic_Error_History(&deviceList[deviceIter], (uint8_t) GENERIC_ERROR_HISTORY_BUFFER_ID, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
 			{
 			case SUCCESS:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     printf("\nSuccessfully pulled buffer ID %" PRIu64 " from %s\n", GENERIC_ERROR_HISTORY_BUFFER_ID, deviceList[deviceIter].drive_info.serialNumber);
 				}
 				break;
 			case NOT_SUPPORTED:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     printf("\nBuffer ID %" PRIu64 " not supported by %s\n", GENERIC_ERROR_HISTORY_BUFFER_ID, deviceList[deviceIter].drive_info.serialNumber);
 				}
 				exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 				break;
 			case MEMORY_FAILURE:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     printf("\nFailed to allocate memory for buffer ID %"PRIu64"\n", GENERIC_ERROR_HISTORY_BUFFER_ID);
 				}
 				exitCode = UTIL_EXIT_OPERATION_FAILURE;
 				break;
 			default:
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
                     printf("\nFailed to pull buffer ID %" PRIu64 " from %s\n", GENERIC_ERROR_HISTORY_BUFFER_ID, deviceList[deviceIter].drive_info.serialNumber);
 				}
@@ -1001,7 +1001,7 @@ int32_t main(int argc, char *argv[])
 
         if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\nPulling vendor unique logs is only supported for Seagate devices\n");
             }
@@ -1013,20 +1013,20 @@ int32_t main(int argc, char *argv[])
             switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully pulled FARM log\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("FARM log not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull FARM log\n");
                 }
@@ -1040,20 +1040,20 @@ int32_t main(int argc, char *argv[])
             switch (get_DST_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Self Test Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Self Test Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull Self Test Log from this device!\n");
                 }
@@ -1066,20 +1066,20 @@ int32_t main(int argc, char *argv[])
             switch (get_Identify_Device_Data_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Identify Device Data Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Identify Device Data Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull Identify Device Data Log from this device!\n");
                 }
@@ -1092,20 +1092,20 @@ int32_t main(int argc, char *argv[])
             switch (get_SATA_Phy_Event_Counters_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SATA Phy Event Counters Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SATA Phy Event Counters Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull SATA Phy Event Counters Log from this device!\n");
                 }
@@ -1118,20 +1118,20 @@ int32_t main(int argc, char *argv[])
             switch (get_Device_Statistics_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Device Statistics Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Device Statistics Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull Device Statistics Log from this device!\n");
                 }
@@ -1144,20 +1144,20 @@ int32_t main(int argc, char *argv[])
             switch (pull_SCSI_Informational_Exceptions_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
             {
             case SUCCESS:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SCSI Informational Exceptions Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SCSI Informational Exceptions Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull SCSI Informational Exceptions Log from this device!\n");
                 }

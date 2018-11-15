@@ -108,10 +108,7 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
 
 void print_Final_newline(void)
 {
-    if (VERBOSITY_QUIET < g_verbosity)
-    {
-        printf("\n");
-    }
+    printf("\n");
 }
 
 void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSpecificxitCode toolSpecificExitCodeList, const char * toolName)
