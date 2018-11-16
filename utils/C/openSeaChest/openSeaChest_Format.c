@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "1.2.1";
+const char *buildVersion = "1.3.0";
 
 ////////////////////////////
 //  functions to declare  //

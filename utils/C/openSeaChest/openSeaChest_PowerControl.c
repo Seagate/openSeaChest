@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.9.1";
+const char *buildVersion = "1.10.0";
 
 ////////////////////////////
 //  functions to declare  //

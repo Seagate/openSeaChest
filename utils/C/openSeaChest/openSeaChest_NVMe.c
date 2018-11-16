@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "SeaChest_NVMe";
-const char *buildVersion = "0.0.3";
+const char *buildVersion = "0.1.0";
 
 ////////////////////////////
 //  functions to declare  //

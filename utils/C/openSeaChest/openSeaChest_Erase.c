@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "1.7.4";
+const char *buildVersion = "1.8.0";
 
 ////////////////////////////
 //  functions to declare  //
