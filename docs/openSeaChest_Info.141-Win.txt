@@ -1,9 +1,9 @@
-openSeaChest_Configure.Lin.txt                            Revision: 09-Nov-2017
+openSeaChest_Info.Win.txt                                 Revision: 13-Nov-2018
 ===============================================================================
- openSeaChest_Configure for Linux - Seagate drive utilities
+ openSeaChest_Info for Windows - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Configure Version: 1.11.0
- Build Date: Nov 02 2017
+ openSeaChest_Info Version: 1.4.1
+ Build Date: Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -18,6 +18,14 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
+
+This User Guide file contains important information about openSeaChest Info.
+Please read this entire file before using this software.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your storage product. It
+includes several tests that will examine the physical media on your storage
+device.
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -34,39 +42,49 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-openSeaChest_Configure is a comprehensive command line tool that can be used to
-configure, change or set various properties on Seagate disk drives (this
-includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
-data on the drive to become inaccessible.  Some commands may affect the
-performance of the drive.
+Disk drives are constantly monitoring and analyzing their own performance,
+integrity and environment.  The current state of this technology is the result
+of more than 20 years of innovative Seagate engineering focused on self-testing.
 
-NOTE: openSeaChest_Configure may not be fully functional on non-Seagate drives.
+With the backing of personal computer manufacturers, the disk drive industry
+adopted an analysis system in the 1990's called Self Monitoring Analysis and
+Reporting Technology, or SMART. The idea then and today is to predict a failure
+before it happens. Various attributes are being monitored and measured against
+certain threshold limits. If any one attribute exceeds a threshold then a
+general SATA SMART Status test will change from Pass to Fail.
 
-This User Guide file contains important information about
-openSeaChest_Configure.  Please read this entire file before using this
-software.
+Many computers automatically check SATA SMART Status when they start up which is
+when most people become aware of the issue. If still under warranty, then SMART
+Status FAIL is a valid condition for warranty replacement.
+
+You can use openSeaChest_Basics or openSeaChest_SMART software with -smartCheck
+to test the SATA SMART status of the drive.
+
+When a SMART Status test has a FAIL it is extremely important that you back up
+all of your important data. SMART Status FAIL is a near-term prediction of
+drive failure and the drive usually functions like normal. Unfortunately, there
+is no way to specifically predict when the failure will occur, so your best
+response is to back up your data as soon as possible.
+
+SMART attributes are also supplemented by SATA Device Statistics Notification
+(DSN) feature set, including a set of Device Statistics Notifications log
+pages.  This data provides further insight into a drive's performance and can
+be used to help measure its usage and potentially identify problem areas of
+concern.
+
+Likewise, SAS SCSI and FibreChannel interface products collect ongoing
+performance data and save this information in many different "vital data" and
+"log" pages, also call Vital Product Data (VPD). This data is similar and
+overlaps most of the same data collection categories as the SATA interface.
+
+openSeaChest does not interpret attributes or thresholds.  As a practical matter,
+the technology supporting SMART is constantly being improved.  Each new design
+incorporates improvements that increase the accuracy of the SMART prediction.
+As a matter of policy, Seagate does not publish attributes and thresholds.
+Seagate Support does not help to analyze SMART attributes.
 
 If this is your drive, you should always keep a current backup of your
 important data.
-
-Be very careful using openSeaChest_Configure. Power failure during a
-configuration change may cause data loss. Seagate is not responsible for lost
-user data.
-
-Important note: Many tests in this tool directly reference storage device data
-sectors, also known as Logical Block Addresses (LBA). Test arguments may
-require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
-refers to the last sector on the drive.  Many older SATA and SAS storage
-controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
-limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
-2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
-2.1TB limitation either will result in an error or simply the last readable LBA
-(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
-limitation can have important consequences.  For example, if you intended to
-erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
-even twice!) and the last 2TB will remain untouched.  You should carefully
-evaluate your system hardware to understand if your storage controllers provide
-support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -79,20 +97,21 @@ size. See this FAQ for more information
 
 Usage
 =====
-        openSeaChest_Configure [-d <sg_device>] {arguments} {options}
+        openSeaChest_Info [-d <device>] {arguments} {options}
 
 Examples
 ========
-        openSeaChest_Configure --scan
-        openSeaChest_Configure -d /dev/sg2 --downloadFW fwfilename
+        openSeaChest_Info --scan
+        openSeaChest_Info -d PD0 -i
+        openSeaChest_Info -d PD1 --shortDST --poll
 
 Utility arguments
 =================
         -s, --scan
-                Scan the system and list all storage devices with logical
-                /dev/sg? assignments. Shows model, serial and firmware
-                numbers. If your device is not listed on a scan immediately
-                after booting, then wait 10 seconds and run it again.
+                Scan the system and list all storage devices with Physical
+                Device assignments. Shows model, serial and firmware numbers.
+                If your device is not listed on a scan immediately after
+                booting, then wait 10 seconds and run it again.
 
         -S, --Scan   (note the capital letter S)
                 This option is the same as --scan or -s, however it will also
@@ -109,14 +128,16 @@ Utility arguments
         -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
-                     sd             - show /dev/sd? device handles
-                     sgtosd         - show the sd and sg device handle mapping
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
 
                 Examples of combining two options:
                      -s --scanFlags usb scsi  - show only USB and SAS devices
@@ -125,17 +146,25 @@ Utility arguments
 
         -d, --device <device handle>
                 Use this option with all commands, except --scan, to specify
-                the sg device handle (target drive) on which to perform an
-                operation. See the section below 'Tool Usage Hints' for
-                information about defining multiple device handles.
+                the PD physical device handle (target drive) on which to
+                perform an operation. See the section below 'Tool Usage Hints'
+                for information about defining multiple device handles.
 
-                Example: -d /dev/sg5
+                Example: -d PD0, or -d PD3
 
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
                 as communicated by the USB-SATA bridge.  Add --usbChildInfo
                 to display details about the drive within the USB enclosure.
+
+        --csmiInfo
+                Use this option to show some information reported by the CSMI
+                compliant driver. This includes driver information, controller
+                information, PHY information, SAS address, and SATA signature
+                as they were reported by the driver. This information can be
+                useful when troubleshooting CSMI system/driver compatibility
+                issues.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -147,167 +176,58 @@ Utility arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --setMaxLBA [newMaxLBA | maxLBA]
-                Set the max accessible address of your drive to any value less
-                than the device's default native size. A power cycle is
-                required after this command before resetting or setting a new
-                max LBA. The final capacity will depend on the logical sector
-                size.  If the Logical Block Address (LBA) is set to 1953125 and
-                the sector size is 512, then the capacity is 1,000,000,000
-                bytes. If the logical sector size is 4096, then the capacity is
-                8,000,000,000 bytes.  If the logical sector size is 512 but the
-                physical sector size is 4096 (called Advanced Format), then
-                normal practice is to pick an LBA value which is divisible by
-                8. Use the -i, --deviceInfo to show logical and physical sector
-                sizes.  The predefined text string "maxLBA" (without quotes)
-                may be entered to indicate the last sector on the drive,
-                otherwise see --restoreMaxLBA.
+        --deviceStatistics
+                Use this option to display the device statistics reported by
+                the device. On SATA, this uses the Device Statistics log, and
+                the notifications log (if DSN feature is supported) to display
+                these statistics. On SAS, various log pages are read to collect
+                a bunch of equivalent reported parameter information.
 
-        --restoreMaxLBA
-                Restore the max accessible address of your drive to its native
-                size. A power cycle is required after this command before
-                setting a new max LBA.
 
-        --phySpeed [0 | 1 | 2 | 3 | 4 | 5] (Seagate Only)
-                Use this option to change the PHY speed to a new maximum value.
-                This change persists over power cycles and resets. On SAS, this
-                option will set all phys to the specified speed unless the
-                --sasPhy option is given to select a specific phy.
+        SATA Only:
+        =========
+        --smartAttributes [raw | analyzed]   (SATA only)
+                The drive will display its list of supported SMART attributes.
+                Some attributes names are commonly standard and most others are
+                vendor unique. In either case, the attribute thresholds are
+                always vendor unique. Most attributes are informational and not
+                used to determine a warranty return. Use the --smartCheck
+                command found in SeaChest_SMART to determine if one of the
+                warranty attributes has been tripped. Seagate Support does not
+                help to analyze SMART attributes.
 
-                0 - allow full negotiation (default drive behavior)
-                1 - allow negotiation up to 1.5Gb/s
-                2 - allow negotiation up to 3.0Gb/s
-                3 - allow negotiation up to 6.0Gb/s
-                4 - allow negotiation up to 12.0Gb/s (SAS Only)
-                5 - allow negotiation up to 22.5Gb/s (SAS Only)
+        SAS Only:
+        =========
+        --showSCSIDefects [ p | g | pg ]        (SAS Only)
+                This option will display the SCSI defects on the screen. The
+                arguments to this will tell whether to get the grown, primary,
+                or primary and grown defects from the drive. Use the
+                --defectFormat option to specify the mode to display the
+                defects. If no mode is specified, physical cylinder-head-sector
+                mode is assumed.
 
-        --sasPhy [identifier value]
-                Use this option to specify a specific phy to use with another
-                option that uses a phy identifier value. Some tool options will
-                assume all SAS Phys when this option is not present. Others
-                will produce an error when a specific phy is needed for an
-                operation. Use the -i option to learn more about the supported
-                phys.
+                Arguments:
+                p - use this option to pull and display the primary (factory)
+                    defects
+                g - use this option to pull and display the grown (reallocated)
+                    defects
+                pg - the options can be combined to pull and display both
+                    defect lists.
 
-        --pin11 [on | off | default] (SAS Only)
-                Use this option to change the behavior of pin 11, the ready
-                LED. Setting to "on" means we are setting the bit to 1 on mode
-                page 19h. See the SPL spec for details on how this changes LED
-                behavior. Setting to "off" sets the ready LED bit to 0. Using
-                "default" reads the drive default setting and sets the bit
-                according to defaults.
+        --defectFormat [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ] (SAS Only)
+                This option set the format of the defects to output. Not all
+                drives will support all defect modes. SSDs will only support
+                block modes.
 
-        --readLookAhead [info | enable | disable]
-                Use this option to enable or disable read look-ahead support on
-                a drive.  Use the "info" argument to get the current status of
-                the read look ahead feature.  This change is not preserved over
-                power cycles.
+                Arguments: show the defects in either name or # mode
+                shortBlock | 0    short block address mode (drives < 32bit LBA)
+                xbfi       | 1    extended bytes from index mode
+                xchs       | 2    extended physical cylinder-head-sector mode
+                longBlock  | 3    long block address mode (drives > 32bit LBA)
+                bfi        | 4    bytes from index mode
+                chs        | 5    physical cylinder-head-sector mode
 
-        --sctReadTimer [info | value] (SATA Only) (Seagate Only)
-                Use this option to set the read command timer value for
-                synchronous commands and NCQ commands with in-order data
-                delivery enabled. Note: this timer starts at the time that the
-                drive processes the command, not the time it is received. This
-                timer value is volatile and is cleared at each power cycle. Use
-                the "info" argument to get the current status of the read
-                timer. A value of 0 means that all possible error recovery will
-                be performed before returning status (i.e. the Read Command
-                Timer is disabled). Other values should include a unit to know
-                the time to use. If no unit is provided, it is assumed to be
-                the value * 100 ms. The maximum time that can be specified is 1
-                hour, 49 minutes, 13 seconds. Note: On some SAT HBAs/bridges,
-                status will not be able to be determined due to HBA/bridge
-                limitations.
-
-                Ex1: --sctReadTimer 15s for a 15 second timer.
-                Ex2: --sctReadTimer 15000ms for a 15 second timer expressed in
-                     milliseconds
-                Ex2: --sctReadTimer 150 for a 15 second timer with no units
-                     specified
-
-        --writeCache [info | enable | disable]
-                Use this option to enable or disable write cache support on a
-                drive.  Use the "info" argument to get the current status of
-                the write cache feature.  This change is not preserved over
-                power cycles.
-
-        --sctWriteCache [info | enable | disable | default]
-                (SATA Only) (Seagate Only)
-                Use this option to enable or disable write cache support on a
-                drive using SMART command transport. When using this option,
-                the setting is non-volatile. Use this with the --volatile flag
-                to make the setting volatile. When using this option, the
-                --writeCache will always return success, but no write cache
-                changes will occur. This follows ATA spec. Using the "default"
-                argument returns the drive to default settings and allowing the
-                --writeCache option to work again. Use the "info" argument to
-                get the current status of the write cache feature. Note: On
-                some SAT HBAs/bridges, status will not be able to be determined
-                due to HBA/bridge limitations.
-
-        --sctWriteCacheReordering [info | enable | disable | default]
-                (SATA Only) (Seagate Only)
-                Use this option to enable or disable write cache reordering
-                support on a drive using SMART command transport. Write cache
-                reordering allows the drive to reorder moving data out of cache
-                to media for better performance on synchronous commands.
-                Asynchronous commands are only affected when in-order data
-                delivery is enabled. When using this option, the setting is
-                non-volatile. Use this with the --volatile flag to make the
-                setting volatile. Use the "info" argument to get the current
-                status of the write cache reordering feature. Note: On some SAT
-                HBAs/bridges, status will not be able to be determined due to
-                HBA/bridge limitations.
-
-        --sctWriteTimer [info | value] (SATA Only) (Seagate Only)
-                Use this option to set the write command timer value for
-                synchronous commands and NCQ commands with in-order data
-                delivery enabled. Note: this timer starts at the time that the
-                drive processes the command, not the time it is received. This
-                timer value is volatile and is cleared at each power cycle. Use
-                the "info" argument to get the current status of the write
-                timer. A value of 0 means that all possible error recovery will
-                be performed before returning status (i.e. the Write Command
-                Timer is disabled). Other values should include a unit to know
-                the time to use. If no unit is provided, it is assumed to be
-                the value * 100 ms. The maximum time that can be specified is 1
-                hour, 49 minutes, 13 seconds. Note: On some SAT HBAs/bridges,
-                status will not be able to be determined due to HBA/bridge
-                limitations.
-
-                Ex1: --sctWriteTimer 15s for a 15 second timer.
-                Ex2: --sctWriteTimer 15000ms for a 15 second timer expressed in
-                     milliseconds
-                Ex2: --sctWriteTimer 150 for a 15 second timer with no units
-                     specified
-
-        --lowCurrentSpinup [ enable | disable ]  (SATA Only) (Seagate Only)
-                Use this option to enable or disable the low current spinup
-                feature on Seagate SATA drives. Note: This feature is not
-                available on every drive.
-
-        --puisFeature [enable | disable]  (SATA Only) (Seagate Only)
-                Use this option to enable or disable the Power Up In Standby
-                (PUIS) feature on SATA drives.
-                Note: If this is configured on the drive with a jumper, this
-                      command will fail.
-                Note2: Not all products support this feature.
-
-        --showSupportedSectorSizes
-                This option will show the supported sector sizes of a device if
-                it reports them. If the device does not report supported sector
-                sizes, please consult your product manual.
-
-        --sscFeature [info | default | enable | disable] (SATA Only) (Seagate Only)
-                Use this option to change or view the SSC (Spread Spectrum
-                Clocking) mode on a Seagate SATA drive. Only change this
-                setting if you are experiencing compatibility problems with the
-                drive in a system.
-
-                info - show current SSC state
-                default - set to drive default mode
-                enable - enable SSC
-                disable - disable SSC
+                Examples: --defectFormat 3, or --defectFormat longBlock
 
 Utility Options
 ===============
@@ -356,7 +276,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -399,26 +319,27 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
-Data Destructive Commands (Seagate Only)
-========================================
-Data destructive commands will require additional command line arguments as
-confirmation of your understanding that data will be lost on the drive.
-Seagate is not responsible for lost user data.
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
 
-        --confirm I-understand-this-command-will-erase ... etc
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
 
-        --provision [newMaxLBA | maxLBA]        (Seagate Only)
-                Provision your drive to a new max LBA to any value less than
-                the device's current max LBA. The predefined text string
-                "maxLBA" (without quotes) may be entered to indicate the last
-                sector on the drive instead of the specific LBA number.  A
-                power cycle is required after this command before resetting the
-                max LBA or changing the provisioning again. This command erases
-                all data between the new maxLBA specified and the current
-                maxLBA of the device. TRIM (SATA) or UNMAP (SAS) will be used
-                when supported by the device, including SSDs.  For most HDDs
-                this test will write 0's to the device and possibly take a very
-                long time to complete.
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
 
 Return codes
 ============
@@ -438,24 +359,25 @@ Tool Usage Hints
 ================
 See Sample Output examples below.
 
-First, run the openSeaChest -s option to determine what /dev/sg? device handle
+First, run the openSeaChest -s option to determine what physical device
 assignment lines up to your disk drive. This option will also show you other
 details about the drive including the current firmware revision. Like this:
 
-Vendor     Handle       Model Number       Serial Number     FwRev
-ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
-SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
 
 All utility arguments will require you to identify the specific drive by
-providing the sg device handle (-d, --device).
-For example, openSeaChest_Configure -d /dev/sg1 --shortDST poll
+providing the physical device handle (-d, --device).
+
+For example, openSeaChest_Info -d PD2 --shortDST poll
 
 You may combine multiple tests with a single command line.  For example,
-openSeaChest_Configure -d /dev/sg0 -i --smartCheck runs both identify and SMART.
+openSeaChest_Info -d PD0 -i --smartCheck runs both identify and SMART.
 
-Multiple device handles can be given by adding -d /dev/sg# for each additional
+Multiple device handles can be given by adding -d PD# for each additional
 handle.  Devices are processed in sequential order.  For example,
-openSeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two devices.
+SeaChest_Basics -d PD0 -d PD3 -i runs identify on these two devices.
 
 Caution: All device handles may be specified.  However, great care should be
 taken to fully anticipate the consequences of running a command on all storage
@@ -465,12 +387,28 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  openSeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
+
+Tests which alter the firmware or erase user data on the drive are limited to
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
 accidental data loss or the commitment of long test times. The longer command
-arguments are similar to -I-understand-this-command-will-take-a-long-time or
--I-understand-this-command-will-erase-all-data.
+arguments are similar to "I-understand-this-command-will-take-a-long-time" or
+"I-understand-this-command-will-erase-all-data".
 
 Advanced SAS installations may use dual ports.  These are listed as Port 0 and
 Port 1 on the device information report. When both ports are active, each one
@@ -481,78 +419,37 @@ installations will also report two different Worldwide Numbers (WWN).
 ===================
 General Usage Hints
 ===================
-Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
-
-Display a file listing with the Linux command: ls -lah
-
-The tool will require root privileges to run using either sudo or su commands.
+The tool will require Administrative privileges to run.
 Also, verify that the tool has executable rights.
 
-A dot slash is a dot followed immediately by a forward slash (./). It is used
-in Linux to execute a compiled program in the current directory when it is not
-a built-in command or found in your path.
-
-For example, ./openSeaChest -d /dev/sg0 --shortDST poll
-or, sudo ./openSeaChest -d /dev/sg0 --shortDST poll
-
-Shut down the files system and remove the power with the command:
-poweroff
-
-See previous screen history with the key combination:
-Shift+PgUp or Shift+PgDn
+Remember that the command line arguments are cAsE SeNsiTiVe.
 
 Save a log file by redirecting the screen output to a text file by adding space
 &>test.log at the end of your command line. Choose your own file name. To
 append the screen output to an existing log file use >>test.log.
 
 To save a log and display results at the conclusion of the tests, you can use
-the "tee" command. Tee command writes to the STDOUT and to a file.
-For example,
-openSeaChest --echoCommandLine -d /dev/sg0 -i --smartCheck | tee -a mySeaChestLog.txt
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
 
-Display a log or text file with the Linux "less" command: less myfile.log
-Press the letter q to quit displaying the file.  Similarly, you can easily
-read the Seagate License agreement by piping the output to the less
-command with openSeaChest --license |less
+For example:
+powershell ".\openSeaChest_Info --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
 
-Display a list of sg (SCSI generic) devices with the command:
-cat /sys/class/scsi_generic/sg*/device/model
-or
-ls /dev/sg*
+Manual Launch for Windows
+-------------------------
+An individual openSeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the openSeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
 
-sg devices include the following interfaces: SATA, USB, SCSI (SCSI, SAS and FC)
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
 
-Add the command word 'time' on the same command line before the openSeaChest
-command to see how much time it takes to run a test.
-For example, time ./openSeaChest -d /dev/sg0 --shortDST poll
-
-When drives are not detected by openSeaChest
---------------------------------------------
-The problem is that the sg driver isn't loaded on the system on boot.  You can
-test if it is loaded by doing "ls /dev/sg*" and see if anything shows up. If
-nothing shows up then the SG driver is missing (which is required by
-openSeaChest to issue commands).
-
-You need to do "modprobe sg" as root to load the sg module (since it wasn't
-compiled into the kernel), then you will get sg devices that we can scan and
-find. Once you run the modprobe command and sg is successfully loaded, then you
-can re-run "ls /dev/sg*" and see SG device nodes. openSeaChest tools should
-then be able to find devices once again.
-
-How to control the amount of runtime kernel messages
-----------------------------------------------------
-When testing more drives than a system can hold, careful use of host adapters
-and hot-plugging batches of drives (but never to direct motherboard
-connections!) can help speed the process.  The Linux operating system will
-display various system error messages, or none, when storage devices are
-powered down and exchanged with the next drives.  The amount of information
-contained in the OS error messages can be reviewed using the Linux utility
-command "sysctl kernel.printk".  The default setting is defined by the
-particular distro.  Tiny Core Linux, for example may set "4 4 1 7".  To hide
-hot-plugging messages try "3 4 1 7", to increase the messaging to include
-device details like model numbers try "6 4 1 7".  The command to set is 'sudo
-sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
-parameters at runtime" for more.
+Then change drives or directory to where the openSeaChest utility is located and
+run the tool file name from there.
 
 =============
 Sample Output
@@ -560,9 +457,9 @@ Sample Output
 
 SATA HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./SeaChest_Configure -i -d /dev/sg1
+[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg1
 ===============================================================================
- SeaChest_Configure - Seagate drive utilities
+ openSeaChest - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000DX001-1CE168
@@ -635,9 +532,9 @@ SATA HDD Device Information:
 
 SATA SSD Device Information:
 
-[sysop@localhost ~]$ sudo ./SeaChest_Configure -d /dev/sg1 -i
+[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg1 -i
 ===============================================================================
- SeaChest_Configure - Seagate drive utilities
+ openSeaChest - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST120FP0021
@@ -701,9 +598,9 @@ SATA SSD Device Information:
 
 SAS HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./SeaChest_Configure -i -d /dev/sg2
+[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg2
 ===============================================================================
- SeaChest_Configure - Seagate drive utilities
+ openSeaChest - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000NM0043
@@ -764,9 +661,9 @@ SAS HDD Device Information:
 
 SAS SSD: Device Information
 
-[sysop@localhost ~]$ sudo ./SeaChest_Configure -d /dev/sg3 -i
+[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg3 -i
 ===============================================================================
- SeaChest_Configure - Seagate drive utilities
+ openSeaChest - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST400FM0053
@@ -827,83 +724,111 @@ SAS SSD: Device Information
                 Format Unit
                 Sanitize
 
+SATA SSD SMART Attributes example.
+
+The drive will display its list of supported SMART attributes. Some attributes
+are industry standard and most others are vendor unique. Most attributes are
+informational and not used to determine a warranty return. Use the --smartCheck
+command to determine if one of the warranty attributes has been tripped.
+
+Reminder: Seagate Support does not help to analyze SMART attributes.
+
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+===============================================================================
+Attribute Name:                   Status: Nominal: Worst:     Raw (hex):
+  1 Read Error Rate               0x000F    0x75    0x63      0x0000000969AFB4
+  3 Spin Up Time                  0x0003    0x61    0x61      0x00000000000000
+  4 Start/Stop Count              0x0032    0x63    0x63      0x0000000000079E
+  5 Retired Sectors Count         0x0033    0x64    0x64      0x00000000000000
+  7 Seek Error Rate               0x000F    0x52    0x3C      0x0000000A4D0DAA
+  9 Power On Hours                0x0032    0x5D    0x5D      0x00000000001A84
+ 10 Spin Retry Count              0x0013    0x64    0x64      0x00000000000000
+ 12 Drive Power Cycle Count       0x0032    0x63    0x63      0x000000000007A5
+184 IOEDC Count                   0x0032    0x55    0x55      0x0000000000000F
+187 Reported Un-correctable       0x0032    0x64    0x64      0x00000000000000
+188 Command Timeout               0x0032    0x64    0xFD      0x00000000000000
+189 High Fly Writes               0x003A    0x64    0x64      0x00000000000000
+190 Airflow Temperature           0x0022    0x40    0x2E      0x00000026110024
+191 Shock Sensor Counter          0x0032    0x64    0x64      0x00000000000000
+192 Emergency Retract Count       0x0032    0x64    0x64      0x00000000000042
+193 Load-Unlock Count             0x0032    0x44    0x44      0x0000000000FA61
+194 Temperature                   0x0022    0x24    0x36      0x00000A00000024
+195 ECC On The Fly Count          0x001A    0x2D    0x29      0x0000000969AFB4
+197 Pending-Sparing Count         0x0012    0x64    0x64      0x00000000000000
+198 Offline Uncorrectable Sectors 0x0010    0x64    0x64      0x00000000000000
+199 Ultra DMA CRC Error           0x003E    0xC8    0xC8      0x00000000000000
+
 ===============
 Version History
 ===============
-v1.0.0  02-May-2016  1_9_1 libraries.  SeaChest_Configure Windows, initial beta
-                     test release.  Branched from SeaChest_Basics v2.0.0.
-                     Added --lowCurrentSpinup
-v1.1.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
-                     Fixed a bug where we could accidentally clear some stored
-                     identify data from the device structure. Fixed continuing
-                     on when there was a permission denied error opening a
-                     drive. Adjustments to --setSectorSize. Added
-                     --sctWriteCache, --sctWriteCacheReordering.
-v1.1.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
-                     commands. Fixed bugs with --modelMatch and --onlyFW
-                     filters.  Support SATA non-volatile WCE.
-v1.3.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
-                     --puisFeature.
-v1.3.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+SeaChest_Info is branched off from SeaChest Basics v2.0.3.
+
+v0.0.1  02-Jun-2016  Initial SeaChest_Info using 1_9_4 libraries.
+v0.0.1  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
+v0.0.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added support for
-                     maxLBA keyword.
-v1.4.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     pass-through fix on Win8 and higher.
+v0.1.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
                      minor bug fixes. Fixed --SATInfo command.
-v1.4.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+v0.1.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v1.5.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.5.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.0.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.0.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v1.5.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.0.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v1.5.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.0.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v1.5.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.0.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
-v1.7.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+v1.1.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --sasPhy, --sscFeature.
-v1.7.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features.
-v1.8.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     passthrough IOCTLs. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools.
+v1.1.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features.  Add --csmiInfo.
+v1.2.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
-                     Adds the child drive matching options --childModelMatch,
-                     --childOnlyFW, and --childNewFW.
-v1.9.0  06-Jul-2017  Added --sctReadTimer, --sctWriteTimer.
-v1.10.0 14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.
+v1.3.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
                      Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
                      note the capital S) aggressive system scan.
-v1.10.0 27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.10.0 19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+v1.3.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.3.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.10.0 25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.3.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-v1.11.0 10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.3.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Removed --setSectorSize now in SeaChest_Format.
-v1.11.0 12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.11.0 26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help.
+v1.3.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.3.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v1.11.0 31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.3.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v1.11.0 02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.3.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the orginal SeaChest
 development activity.
@@ -911,8 +836,40 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v1.11.0 12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+v1.3.1  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
+v1.3.1  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v1.4.0  25-Jul-2018  Adds --defectFormat, --showSCSIDefects
+v1.4.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.4.1  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

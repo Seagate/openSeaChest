@@ -37,8 +37,8 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "0.0.3";
+const char *util_name = "SeaChest_NVMe";
+const char *buildVersion = "0.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -140,10 +140,9 @@ int32_t main(int argc, char *argv[])
         LONG_OPT_TERMINATOR
     };
 
-    g_verbosity = VERBOSITY_DEFAULT;
+    eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
     DOWNLOAD_FW_MODE = DL_FW_UNKNOWN;
 
-    atexit(print_Final_newline);
 
     ////////////////////////
     //  Argument Parsing  //
@@ -152,9 +151,9 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
+        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    opterr = 0;//hide getopt parsing errors and let us handle them in the '?' case or ':' case
     //get options we know we need
     while (1) //changed to while 1 in order to parse multiple options when longs options are involved
     {
@@ -342,30 +341,34 @@ int32_t main(int argc, char *argv[])
                     //check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Option %c requires an argument\n", optopt);
                 }
                 utility_Usage(true);
-                return exitCode;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
+                exit(exitCode);
             }
             break;
         case DEVICE_SHORT_OPT: //device
@@ -373,6 +376,10 @@ int32_t main(int argc, char *argv[])
             {
                 //Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
                 exit(255);
             }
             break;
@@ -388,26 +395,37 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                g_verbosity = atoi(optarg);
+                toolVerbosity = atoi(optarg);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
-            g_verbosity = VERBOSITY_QUIET;
+            toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
+            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_NO_ERROR);
         default:
             break;
         }
     }
 
+    atexit(print_Final_newline);
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -423,7 +441,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < g_verbosity)
+    if (VERBOSITY_QUIET < toolVerbosity)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -526,7 +544,7 @@ int32_t main(int argc, char *argv[])
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
@@ -540,7 +558,7 @@ int32_t main(int argc, char *argv[])
     {
         if (SUCCESS != get_Device_Count(&numberOfDevices, 0))
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
@@ -549,7 +567,7 @@ int32_t main(int argc, char *argv[])
     }
     else if (DEVICE_LIST_COUNT == 0)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
@@ -585,7 +603,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
     if (!DEVICE_LIST)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Unable to allocate memory\n");
         }
@@ -620,19 +638,23 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
+        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+        {
+            DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
+        }
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
@@ -657,6 +679,8 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
             deviceList[handleIter].dFlags = flags;
+
+            deviceList[handleIter].deviceVerbosity = toolVerbosity;
             /*get the device for the specified handle*/
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
@@ -674,7 +698,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
@@ -684,13 +708,14 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
     	if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
                 }
@@ -703,7 +728,7 @@ int32_t main(int argc, char *argv[])
         {
 			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
 			{
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
 				}
@@ -715,7 +740,7 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
                 }
@@ -730,7 +755,7 @@ int32_t main(int argc, char *argv[])
 	        {
 	            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("ERROR: failed to get device information\n");
 	                }
@@ -757,7 +782,7 @@ int32_t main(int argc, char *argv[])
 	                fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
 	                fflush(pIdentifyFile);
 	                fclose(pIdentifyFile);
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Created %s file with Controller Information\n",fileNameUsed);
 	                }
@@ -768,14 +793,14 @@ int32_t main(int argc, char *argv[])
 	                    fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
 	                    fflush(pIdentifyFile);
 	                    fclose(pIdentifyFile);    
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Created %s file with Namespace Information\n",fileNameUsed);
 	                    }
 	                }
 	                else
 	                {
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("ERROR: failed to open file to write namespace information\n");
 	                    }
@@ -785,7 +810,7 @@ int32_t main(int argc, char *argv[])
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("ERROR: failed to open file to write controller information\n");
 	                }
@@ -809,7 +834,7 @@ int32_t main(int argc, char *argv[])
 	            //Get the feature 
 	            if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES_IDENTIFIER, NVME_CURRENT_FEAT_SEL ) != SUCCESS)
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("ERROR: failed to get details for feature id %d\n",GET_FEATURES_IDENTIFIER);
 	                }
@@ -861,14 +886,14 @@ int32_t main(int argc, char *argv[])
 	                                fwrite(logBuffer, sizeof(uint8_t), size, pLogFile);
 	                                fflush(pLogFile);
 	                                fclose(pLogFile);
-	                                if (VERBOSITY_QUIET < g_verbosity)
+	                                if (VERBOSITY_QUIET < toolVerbosity)
 	                                {
 	                                    printf("Created %s with Log Page %" PRId32 " Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
 	                                }
 	                            }
 	                            else
 	                            {
-	                                    if (VERBOSITY_QUIET < g_verbosity)
+	                                    if (VERBOSITY_QUIET < toolVerbosity)
 	                                    {
 	                                        printf("ERROR: failed to open file to write Log Page Information\n");
 	                                    }
@@ -877,7 +902,7 @@ int32_t main(int argc, char *argv[])
 	                        }
 	                        else
 	                        {
-	                            if (VERBOSITY_QUIET < g_verbosity)
+	                            if (VERBOSITY_QUIET < toolVerbosity)
 	                            {
 	                                printf("Error: Unknown/Unsupported output mode %" PRId32 "\n", OUTPUT_MODE_IDENTIFIER);
 	                            }
@@ -886,7 +911,7 @@ int32_t main(int argc, char *argv[])
 	                    }
 	                    else
 	                    {
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("Error: Could not retrieve Log Page %" PRId32 "\n", GET_NVME_LOG_IDENTIFIER);
 	                        }
@@ -896,7 +921,7 @@ int32_t main(int argc, char *argv[])
 	                }
 	                else
 	                {
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Couldn't allocate %" PRIu64 " bytes buffer needed for Log Page %" PRId32 "\n", size, GET_NVME_LOG_IDENTIFIER);
 	                    }
@@ -905,7 +930,7 @@ int32_t main(int argc, char *argv[])
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
 	                }
@@ -923,7 +948,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get SMART/Health Information Log\n");
 	                        }
@@ -938,7 +963,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Error Information Log\n");
 	                        }
@@ -953,7 +978,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get FW Slot Information Log\n");
 	                        }
@@ -968,7 +993,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
 	                        }
@@ -983,7 +1008,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Device Self-test Information Log\n");
 	                        }
@@ -992,7 +1017,7 @@ int32_t main(int argc, char *argv[])
 	                    }
 	                break;
 	                default:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
 	                    }
@@ -1011,7 +1036,7 @@ int32_t main(int argc, char *argv[])
 
             if ((NVME_TELE_DATA_AREA < 1) && (NVME_TELE_DATA_AREA > 3)) 
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%d is an invalid temetry data area. \n", NVME_TELE_DATA_AREA);
                 }
@@ -1089,7 +1114,7 @@ int32_t main(int argc, char *argv[])
 
                                 if(rtnVal != SUCCESS) 
                                 {
-                                    if (VERBOSITY_QUIET < g_verbosity)
+                                    if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                     }
@@ -1127,7 +1152,7 @@ int32_t main(int argc, char *argv[])
 
                                     if(rtnVal != SUCCESS) 
                                     {
-                                        if (VERBOSITY_QUIET < g_verbosity)
+                                        if (VERBOSITY_QUIET < toolVerbosity)
                                         {
                                             printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                         }
@@ -1143,14 +1168,14 @@ int32_t main(int argc, char *argv[])
                                 fclose(pLogFile);
 
 
-                                if (VERBOSITY_QUIET < g_verbosity)
+                                if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Created %s with Log Page %d Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
                                 }
                             }
                             else
                             {
-                                    if (VERBOSITY_QUIET < g_verbosity)
+                                    if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("ERROR: failed to open file to write Log Page Information\n");
                                     }
@@ -1159,7 +1184,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            if (VERBOSITY_QUIET < g_verbosity)
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
                             }
@@ -1168,7 +1193,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (VERBOSITY_QUIET < g_verbosity)
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Error: Could not retrieve Log Page %d\n", GET_NVME_TELE_IDENTIFIER);
                         }
@@ -1178,7 +1203,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (VERBOSITY_QUIET < g_verbosity)
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Couldn't allocate %ld bytes buffer needed for Log Page %d\n", size, GET_NVME_LOG_IDENTIFIER);
                     }
@@ -1195,7 +1220,7 @@ int32_t main(int argc, char *argv[])
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get Error Information Log\n");
                 }
@@ -1212,7 +1237,7 @@ int32_t main(int argc, char *argv[])
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get Error Information Log\n");
                 }
@@ -1251,20 +1276,20 @@ int32_t main(int argc, char *argv[])
 	                switch (firmwareDLResult)
 	                {
 	                case SUCCESS:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download successful\n");
 	                    }
 	                    break;
 	                case NOT_SUPPORTED:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download not supported\n");
 	                    }
 	                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                    break;
 	                default:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download failed\n");
 	                    }
@@ -1275,7 +1300,7 @@ int32_t main(int argc, char *argv[])
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    perror("fopen");
 	                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
@@ -1290,7 +1315,7 @@ int32_t main(int argc, char *argv[])
 	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0))//TODO: Add slot numbers. 
 	            {
 	            case SUCCESS:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate/Commit successful\n");
 	                }
@@ -1309,14 +1334,14 @@ int32_t main(int argc, char *argv[])
 	
 	                break;
 	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate not supported\n");
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                break;
 	            default:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate failed\n");
 	                }
@@ -1331,21 +1356,21 @@ int32_t main(int argc, char *argv[])
 	        switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_STATE_TO) )
 	        {
 	        case SUCCESS:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("\nSuccessfully transitioned to power state %d.\n",TRANSITION_POWER_STATE_TO);
 	                printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
 	            }
 	            break;
 	        case NOT_SUPPORTED:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Transitioning power modes not allowed on this device\n");
 	            }
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	            break;
 	        default:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("ERROR: Could not transition to the new power state %d\n",TRANSITION_POWER_STATE_TO);
 	            }
@@ -1363,14 +1388,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Checking current power mode not supported on this device.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed checking current power mode.\n");
 	            }
@@ -1388,14 +1413,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Extended smart logs not supported.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed fetch Extended smart logs.\n");
 	            }
@@ -1411,14 +1436,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Clear Pcie correctable errors not supported.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed fetch Clear Pcie correctable errors.\n");
 	            }
@@ -1428,7 +1453,7 @@ int32_t main(int argc, char *argv[])
 	
 	    if (FORMAT_UNIT_FLAG)
 	    {
-	        if (VERBOSITY_QUIET < g_verbosity)
+	        if (VERBOSITY_QUIET < toolVerbosity)
 	        {
 	            printf("Format Unit\n");
 	        }
@@ -1450,20 +1475,20 @@ int32_t main(int argc, char *argv[])
 	            switch (run_NVMe_Format(&deviceList[deviceIter], FORMAT_SECTOR_SIZE, formatFlags) )
 	            {
 	            case SUCCESS:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                        printf("Successfully Formated the device.\n");
 	                }
 	                break;
 	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Format Unit Not Supported.\n");
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                break;
 	            default:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Format Unit Failed.\n");
 	                }
@@ -1473,7 +1498,7 @@ int32_t main(int argc, char *argv[])
 	        }
 	        else
 	        {
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("\n");
 	                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);

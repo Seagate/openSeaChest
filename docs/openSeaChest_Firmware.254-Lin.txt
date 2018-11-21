@@ -1,11 +1,9 @@
-remove CFS CFG features
-
-openSeaChest_Firmware.Lin.txt                             Revision: 09-Nov-2017
+openSeaChest_Firmware.Lin.txt                             Revision: 13-Nov-2018
 ===============================================================================
  openSeaChest_Firmware for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Firmware Version: 2.5.2
- Build Date: Nov 02 2017
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_Firmware Version: 2.5.4
+ Build Date:Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -83,7 +81,6 @@ Examples
         openSeaChest_Firmware -d /dev/sg2 -i
         openSeaChest_Firmware -d /dev/sg2 --fwdlInfo
         openSeaChest_Firmware -d /dev/sg2 --downloadFW fwfilename
-        openSeaChest_Firmware -d /dev/sg2 --fwdlConfig configfile.cfg
 
 Utility arguments
 =================
@@ -150,7 +147,7 @@ Utility arguments
                 Use this option to show the firmware download support
                 information for a drive.
 
-        --downloadFW [fwfilename]    (Seagate Only)
+        --downloadFW [fwfilename]
                 Download firmware to a Seagate storage product. Use only
                 Seagate authorized firmware data files which are designated for
                 the specific model drive. Improper use of this option may harm
@@ -159,7 +156,7 @@ Utility arguments
                 use segmented download by default. Use the --downloadMode
                 option to specify a different download mode.
 
-        --downloadMode [full | segmented | deferred]    (Seagate Only)
+        --downloadMode [full | segmented | deferred]
                 Use this command along with the --downloadFW option to set the
                 firmware download mode.
 
@@ -178,7 +175,7 @@ Utility arguments
                 may assist in creating commands to update multiple similar
                 drives.
 
-        --activateFW     (Seagate Only)
+        --activateFW
                 Use this option to issue the command to activate code that was
                 sent to the drive using a deferred download command. This will
                 immediately activate the new code on the drive. You can use
@@ -186,23 +183,7 @@ Utility arguments
                 automatically issue the activate command after the deferred
                 download has completed.
 
-        --fwdlConfig [config file]      (Seagate Only)
-                Use this option to specify a configuration file to perform an
-                update based on a firmware match on multiple drives or a single
-                drive in the system.  You may specify the path if the file is
-                in a different location. Configuration files consist of model
-                numbers, previous compatible firmware and the appropriate
-                matching new firmware.  Configuration files may be written to
-                support multiple models at a time.  See the section below
-                "Firmware Configuration Files" for more information on this
-                subject.
-
-        --fwdlDryRun
-                Use this option to compare a given config file to the drives in
-                a system without performing a firmware update. This can be used
-                to check if any drives in the system require an update.
-
-        --fwdlSegSize [segment size in 512B blocks]     (Seagate Only)
+        --fwdlSegSize [segment size in 512B blocks]
                 Use this option to specify a segment size in 512B blocks to use
                 for a segmented or deferred download. This option will not
                 affect an immediate download (full buffer at once). The default
@@ -212,7 +193,7 @@ Utility arguments
                 compatible, but also slower. Use this option if the default
                 used by the tool is not working correctly for firmware updates.
 
-        --firmwareSlot/--fwBufferID slot#               (Seagate Only)
+        --firmwareSlot/--fwBufferID slot#
                 Use this option to specify a firmware slot (NVMe) or a buffer
                 ID (SCSI) along with the --downloadMode (SCSI) or --activateFW
                 (NVMe & SCSI) options.  If this option is not used, a value of
@@ -266,7 +247,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -383,77 +364,6 @@ Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
-
-============================
-Firmware Configuration Files
-============================
-There are two types of openSeaChest_Firmware configuration (config) files:
-encrypted CFS and plain text CFG.
-
-Seagate-prepared configuration files are encrypted and carry the file extension
-CFS.  Seagate does not decrypt or disclose the contents of its CFS files.
-
-Alternatively, you may prepare your own plain text configuration files which
-must use the file extension CFG.  openSeaChest_Firmware configuration files are
-simple text with multiple lines. Each line defines a model and previous
-firmware match up to a new firmware data file.  The structure of each line is
-this:
-
-  fullModelNumber;$FWREV$oldFwVersion;fwDataFile;(optional)$FWREV$newFwVersion
-
-No spaces, the first $FWREV$ and all three semi-colons (;) are mandatory.
-
-Note: The full model number is the ELECTRONIC version.  The label shows a
-shorter version which may not include all of the necessary digits.  When you
-run openSeaChest -s or --scan the output will display the full electronic model
-number.  For example the label may show ST4000DX001 but the full model is
-actually ST4000DX001-1CE168.  You must use the full model numbers as given by
-the --scan command.
-
-The --scan commmand also shows the current firmware, such as CC46 or SN03 or
-0002 or 0001SDM7.  There are several possible variations.  This corresponds to
-the old firmware version.  You must precede the old firmware version with these
-exact characters $FWREV$, like $FWREV$0001SDM7.
-
-Seagate is the only authorized source for a firmware data file. The file name
-and or other documentation should provide the new firmware version for the file.
-
-The last section of the data line is optional, the new firmware version.  If
-you include this information correctly, then openSeaChest_Firmware may give a
-message stating that the drive already has the new firmware.  If you omit the
-new firmware details then you must still end the text string with a semi-colon
-(;).
-
-For example, this is a four-line configuration file for three different models
-and three different firmware data files (not all model numbers have the longer
-electronic version):
-
-ST4000DX001-1CE168;$FWREV$CC42;BarracudaXT-CC44.LOD;$FWREV$CC44
-ST4000DX001-1CE168;$FWREV$CC43;BarracudaXT-CC44.LOD;$FWREV$CC44
-ST120FP0021;$FWREV$B770;SSD-B775.BIN;
-ST4000NM0043;$FWREV$0004;Constellation3TB-0005.lod;$FWREV$0005
-
-Remember, no spaces, the first $FWREV$ and all three semi-colons (;) are
-mandatory.
-
-Caution:  Firmware download configuration files assume you have knowledge about
-which models are compatible with the associated firmware files.  If you are
-unsure about the compatibility then you should NOT attempt to download the
-firmware to the drive.  Never apply firmware to a drive unless you are certain
-that the firmware data file is specifically prepared for your drive. Be very
-careful using openSeaChest_Firmware. Power failure during a firmware download will
-cause data loss. Seagate is not responsible for lost user data.
-
-Finally, you may optionally add a hash check calculation on the firmware data
-file to the openSeaChest_Firmware configuration file.  Simply, run a MD5
-calculation on the file and then add "@MD5=61b33014f2d2a4f9553f6ef64fb82e31"
-(substituting your calculation) immediately following the file name, before the
-semi-colon (;).  For example:
-
-ST4000DX001-1CE168;$FWREV$CC43;BarracudaXT-CC44.LOD@MD5=61b33014f2d2a4f9553f6ef64fb82e31;$FWREV$CC44
-
-openSeaChest_Firmware will compare its own MD5 calculation to the value in the
-configuration file and if they do not match then the procedure will abort.
 
 ===================
 General Usage Hints
@@ -901,6 +811,48 @@ openSeaChest Version History
 ============================
 v2.5.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
+v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v2.5.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v2.5.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command. Add --allowFlexibleFWDLAPIUse.
+v2.5.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1017,7 +969,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

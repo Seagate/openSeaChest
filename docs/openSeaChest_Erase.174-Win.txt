@@ -1,13 +1,9 @@
-remove PSID feature and TCG enable section
---revert
---revertSP DrivePSID
-
-openSeaChest_Erase.Lin.txt                                Revision: 09-Nov-2017
+openSeaChest_Erase.Win.txt                                Revision: 13-Nov-2018
 ===============================================================================
-openSeaChest_Erase for Linux - Seagate drive utilities
+openSeaChest_Erase for Windows - Seagate drive utilities
  Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Erase Version: 1.7.3
- Build Date: Nov 02 2017
+ openSeaChest_Erase Version: 1.7.4
+ Build Date: Oct 18 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -22,6 +18,9 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
+
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
 
 This User Guide file contains important information about openSeaChest Erase.
 Please read this entire file before using this software.
@@ -83,23 +82,26 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
+
 Usage
 =====
-        openSeaChest_Erase [-d <sg_device>] {arguments} {options}
+        openSeaChest_Erase [-d <device>] {arguments} {options}
 
 Examples
 ========
         openSeaChest_Erase --scan
-        openSeaChest_Erase -d /dev/sg2 -i
-        openSeaChest_Erase --device /dev/sg1 --sanitize info
+        openSeaChest_Erase -d PD2 -i
+        openSeaChest_Erase --device PD1 --sanitize info
 
 Utility arguments
 =================
         -s, --scan
-                Scan the system and list all storage devices with logical
-                /dev/sg? assignments. Shows model, serial and firmware
-                numbers. If your device is not listed on a scan immediately
-                after booting, then wait 10 seconds and run it again.
+                Scan the system and list all storage devices with Physical
+                Device assignments. Shows model, serial and firmware numbers.
+                If your device is not listed on a scan immediately after
+                booting, then wait 10 seconds and run it again.
 
         -S, --Scan   (note the capital letter S)
                 This option is the same as --scan or -s, however it will also
@@ -116,14 +118,16 @@ Utility arguments
         -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
-                     sd             - show /dev/sd? device handles
-                     sgtosd         - show the sd and sg device handle mapping
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
 
                 Examples of combining two options:
                      -s --scanFlags usb scsi  - show only USB and SAS devices
@@ -132,11 +136,11 @@ Utility arguments
 
         -d, --device <device handle>
                 Use this option with all commands, except --scan, to specify
-                the sg device handle (target drive) on which to perform an
-                operation. See the section below 'Tool Usage Hints' for
-                information about defining multiple device handles.
+                the PD physical device handle (target drive) on which to
+                perform an operation. See the section below 'Tool Usage Hints'
+                for information about defining multiple device handles.
 
-                Example: -d /dev/sg5
+                Example: -d PD0, or -d PD3
 
         -i, --deviceInfo
                 Show information and features for the storage device. USB
@@ -204,12 +208,6 @@ Utility arguments
                 below 'Interpreting Head Health and Status' for more
                 information.
 
-        --forceSeagateDepop (Seagate Only)
-                Use this option to force using Seagate's vendor unique method
-                of seeing and removing storage elements from use. This is a
-                legacy method and the default mode is to use the ACS4 or SBC4
-                methods when available.
-
 Utility Options
 ===============
         -h, --help
@@ -261,7 +259,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -316,7 +314,29 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
-Data Destructive Commands (Seagate Only)
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
+
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
+
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
+
+Data Destructive Commands
 ========================================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
@@ -324,7 +344,7 @@ Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --performQuickestErase (Seagate Only)
+        --performQuickestErase
                 This option checks the drive to determine which methods of data
                 erasure are supported and determines which is the quickest to
                 erase ALL data on the drive. It then starts the quickest erase.
@@ -334,11 +354,10 @@ Seagate is not responsible for lost user data.
                 Note 1: Some erase methods require polling and will have polling
                 enabled by default.
 
-                Note 2: If revertSP is the fastest, it will not be started
-                since the drive PSID must be passed in on the command line.
-
                 Note 3: See the section below "When drives are reported Security
                 "Frozen" by openSeaChest".
+
+Note: Windows 8 (and newer) native drivers block Sanitize commands.
 
         --sanitize [info | blockerase | cryptoerase | overwrite | freezelock |
                     antifreezelock]
@@ -353,7 +372,8 @@ Seagate is not responsible for lost user data.
                 less than one (1) second, while on other SSDs it can take
                 longer than 30 seconds. It performs a physical low level block
                 erase operation on all current, past and potential user data
-                making previous data irretrievable.
+                making previous data irretrievable. Consider using the --poll
+                option to monitor % completion.
 
                 * cryptoerase is very fast at less than one (1) second. It
                 changes the internal encryption keys that are used for user
@@ -508,55 +528,7 @@ Seagate is not responsible for lost user data.
                 omitted then the end of the drive is assumed and the test will
                 end at the MaxLBA.
 
-        --revert
-                This command is very fast at less than one (1) second. It
-                changes the internal encryption keys that are used for user
-                data causing all previous data to be useless. This operation
-                performs an Opal SSC specification Revert on a Self Encrypting
-                Drive (SED). This operation is only available on Seagate TCG
-                Opal drives. Seagate SED drives are marked on the label with
-                the words "Seagate Secure".  No all Seagate SED drives are TCG
-                Opal compliant.
-
-                In order to complete this operation, the lockingSP must not be
-                activated, as this option will activate it in order to perform
-                the revert. The value of SID, must also be the value of MSID as
-                this operation must authenticate as SID using the value of
-                MSID. Upon completion, the drive will be "like new" with all
-                user data being cryptographically erased and all other settings
-                set to factory defaults. If this operation fails, use
-                --revertSP instead.
-
-                Note: See the section below "Enabling TCG Commands In Linux".
-
-        --revertSP DrivePSID
-                This command is very fast at less than one (1) second. It
-                changes the internal encryption keys that are used for user
-                data causing all previous data to be useless. This operation
-                performs an Opal SSC specification revertSP on a Self
-                Encrypting Drive (SED). This operation is available on all
-                Seagate SED drives which are marked on the label with the words
-                "Seagate Secure".
-
-                The PSID (Physical Security IDentification number) is a
-                32-digit number & capital letter sequence printed on the label.
-                There is no electronic query for this number, therefore the
-                drive must be removed in order to read the PSID number.  Many
-                drives have a PSID code on the label but are NOT marked as
-                "Seagate Secure"; these drives do not support revertSP
-                cryptographic erase.
-
-                Enter the PSID without spaces. FIVE attempts are allowed before
-                a power cycle is required. It can also be read by 2D barcode
-                reader. Upon completion, the drive will be "like new" with all
-                user data being cryptographically erased and all other settings
-                set to factory defaults.
-
-                Example: --revertSP 123ALL32DIGITS123ALL32DIGITS123A
-
-                Note: See the section below "Enabling TCG Commands In Linux".
-
-        --formatUnit [current | new sector size]    (SAS Only) (Seagate Only)
+        --formatUnit [current | new sector size]    (SAS Only)
                 This option will start a format unit operation on a SAS drive
                 Use "current" to perform a format unit operation with the
                 Sector size currently being used, otherwise enter a new sector
@@ -601,6 +573,11 @@ Seagate is not responsible for lost user data.
                 Example: --formatUnit 512 --fastFormat 1 --confirm I-... etc
                 Example: --formatUnit 4096 --fastFormat 1 --confirm I-... etc
 
+                Note: There is no electronic method to test if a SAS drive
+                      supports Fast Format. Refer to the drive product manual
+                      to determine if it supports the sub-command.  (See the
+                      help topic below: About FastFormat)
+
         --pattern [repeat:asciinospaces | random | increment:startValue |
              file:filename]
                 Use this option with overwrite, sanitize, and format unit
@@ -633,7 +610,7 @@ Seagate is not responsible for lost user data.
                         pattern. The file option will get truncated to a 32bit
                         pattern for SATA products.
 
-        --removePhysicalElement [element #] (Seagate Only)
+        --removePhysicalElement [element #]
                 Use this option to remove a storage element from use on a
                 drive. When this is done, the drive will erase all user data
                 and lower the capacity to a new point where the drive is still
@@ -659,27 +636,25 @@ Tool Usage Hints
 ================
 See Sample Output examples below.
 
-Note: See the section below "Enabling TCG Commands In Linux".
-
-First, run the openSeaChest_Erase -s option to determine what /dev/sg? device handle
+First, run the openSeaChest_Erase -s option to determine what physical device
 assignment lines up to your disk drive. This option will also show you other
 details about the drive including the current firmware revision. Like this:
 
-Vendor     Handle       Model Number       Serial Number     FwRev
-ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
-SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
 
 All utility arguments will require you to identify the specific drive by
-providing the sg device handle (-d, --device).
+providing the physical device handle (-d, --device).
 
-For example, openSeaChest_Erase -d /dev/sg1 --deviceInfo
+For example, openSeaChest_Erase -d PD1 --deviceInfo
 
 You may combine multiple tests with a single command line.  For example,
-SeaChest_Basics -d /dev/sg0 -i --smartCheck runs both identify and SMART.
+SeaChest_SMART -d PD0 -i --smartCheck runs both identify and SMART.
 
-Multiple device handles can be given by adding -d /dev/sg# for each additional
+Multiple device handles can be given by adding -d PD# for each additional
 handle.  Devices are processed in sequential order.  For example,
-SeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two devices.
+SeaChest_Basics -d PD0 -d PD3 -i runs identify on these two devices.
 
 Caution: All device handles may be specified.  However, great care should be
 taken to fully anticipate the consequences of running a command on all storage
@@ -688,6 +663,21 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
@@ -768,147 +758,58 @@ unique behavior that once started it must finish.  If power is interrupted
 during a Sanitize Overwrite it will pick up again where it left off when power
 returns.
 
-==============================
-Enabling TCG Commands In Linux
-==============================
-Abstract
---------
-The openSeaChest_Erase --revert and --revertSP commands require specific support be
-enabled in the Linux kernel.  This document describes the process to enable
-support for sending ATA Trusted Trusted Computing Group (TCG) commands in
-Linux. The focus is on how to do this through Ubuntu Linux 14.04LTS, however,
-the process should apply to other Linux’s as well although others may vary
-slightly.
+================
+About FastFormat
+================
+A FastFormat (quickly changing the logical sector size) may take a few minutes
+for the process to complete. The disk activity LED may show activity during the
+conversion.  The larger the drive, the longer it takes.
 
-Modifying The GRUB Configuration File (Ubuntu example used)
------------------------------------------------------------
-In order to make the change to allow TCG commands persist across reboots, you
-must modify the kernel boot parameters. In Ubuntu, this is accomplished by
-modifying the GRUB 2 configuration file. This section references the Grub2
-configuration documentation from the Ubuntu Community:
-https://help.ubuntu.com/community/Grub2/Setup#Configuring_GRUB_2
-
-Follow these steps to perform this modification in Ubuntu (other Linux’s may be
-similar).
-
-1. You must modify the file /etc/default/grub. You can do this by running "sudo
-gedit /etc/default/grub"
-
-2. Once this file is open in the editor of your choice, add
-"libata.allow_tpm=1" to the line  that begins with "GRUB_CMDLINE_LINUX_DEFAULT"
-(or which ever line in grub is the one you use to boot your kernel, but this is
-the default).
-
-3. Close your editor
-
-4. Run the command "sudo update-grub" to apply your changes to the grub boot
-configuration (the file modified in these steps is a config file for the config
-file).
-
-5. Restart your computer to make this active
-
-Temporarily Enabling TCG Commands In Linux
-------------------------------------------
-You can temporarily enable TCG commands without modifying the kernel boot
-parameters. This can be accomplished by modifying the libata parameters file.
-Below is a sample script that can be run to do this.
-
-Sample Script:
-
-cd /sys/module/libata/parameters
-sudo chmod 644 allow_tpm
-echo 1 | sudo dd of=./allow_tpm
-sudo chmod 444 allow_tpm
-
-Tiny Core - Enabling TCG Commands
-------------------------------------------
-Follow these steps to enable TCG commands on a Tiny Core bootable USB flash
-drive.
-
-1. Leave the USB flash drive in after you run the Windows-based USB boot maker
-tool.
-
-2. Using a (Windows) text editor go to USB:/boot/syslinux.cfg and in there, add
-libata.allow_tpm=1 on the append line with the other kernel boot parameters.
-
-3. Using a (Windows) text editor go to USB:/EFI/boot/refind.conf and add
-libata.allow_tpm=1 on the options line with the other kernel boot parameters
+NOTE: Operating systems do a device discovery during start up and set various
+parameters, like total sectors and sector size, into the storage device
+descriptions. The logical sector size times the number or logical sectors
+defines the drive capacity.  You should expect to see OS I/O errors if you
+change the logical sector size on a drive and then perform read or write
+operations before the OS has updated its storage device descriptions.  Some
+operating systems will throw an error after accessing a drive that has just run
+a FastFormat but during its error recovery routines it may re-discover the
+device parameters and update the system logs.  A system restart, however, is
+the most reliable way to refresh the storage device descriptions.
 
 ===================
 General Usage Hints
 ===================
-Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
-
-Display a file listing with the Linux command: ls -lah
-
-The tool will require root privileges to run using either sudo or su commands.
+The tool will require Administrative privileges to run.
 Also, verify that the tool has executable rights.
 
-A dot slash is a dot followed immediately by a forward slash (./). It is used
-in Linux to execute a compiled program in the current directory when it is not
-a built-in command or found in your path.
-
-For example, ./openSeaChest -d /dev/sg0 --shortDST poll
-or, sudo ./openSeaChest -d /dev/sg0 --shortDST poll
-
-Shut down the files system and remove the power with the command:
-poweroff
-
-See previous screen history with the key combination:
-Shift+PgUp or Shift+PgDn
+Remember that the command line arguments are cAsE SeNsiTiVe.
 
 Save a log file by redirecting the screen output to a text file by adding space
 &>test.log at the end of your command line. Choose your own file name. To
 append the screen output to an existing log file use >>test.log.
 
 To save a log and display results at the conclusion of the tests, you can use
-the "tee" command. Tee command writes to the STDOUT and to a file.
-For example,
-openSeaChest --echoCommandLine -d /dev/sg0 -i --smartCheck | tee -a mySeaChestLog.txt
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
 
-Display a log or text file with the Linux "less" command: less myfile.log
-Press the letter q to quit displaying the file.  Similarly, you can easily
-read the Seagate License agreement by piping the output to the less
-command with openSeaChest --license |less
+For example:
+powershell ".\openSeaChest_Erase --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
 
-Display a list of sg (SCSI generic) devices with the command:
-cat /sys/class/scsi_generic/sg*/device/model
-or
-ls /dev/sg*
+Manual Launch for Windows
+-------------------------
+An individual openSeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the openSeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
 
-sg devices include the following interfaces: SATA, USB, SCSI (SCSI, SAS and FC)
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
 
-Add the command word 'time' on the same command line before the openSeaChest
-command to see how much time it takes to run a test.
-For example, time ./openSeaChest -d /dev/sg0 --shortDST poll
-
-When drives are not detected by openSeaChest
---------------------------------------------
-The problem is that the sg driver isn't loaded on the system on boot.  You can
-test if it is loaded by doing "ls /dev/sg*" and see if anything shows up. If
-nothing shows up then the SG driver is missing (which is required by
-openSeaChest to issue commands).
-
-You need to do "modprobe sg" as root to load the sg module (since it wasn't
-compiled into the kernel), then you will get sg devices that we can scan and
-find. Once you run the modprobe command and sg is successfully loaded, then you
-can re-run "ls /dev/sg*" and see SG device nodes. openSeaChest tools should
-then be able to find devices once again.
-
-How to control the amount of runtime kernel messages
-----------------------------------------------------
-When testing more drives than a system can hold, careful use of host adapters
-and hot-plugging batches of drives (but never to direct motherboard
-connections!) can help speed the process.  The Linux operating system will
-display various system error messages, or none, when storage devices are
-powered down and exchanged with the next drives.  The amount of information
-contained in the OS error messages can be reviewed using the Linux utility
-command "sysctl kernel.printk".  The default setting is defined by the
-particular distro.  Tiny Core Linux, for example may set "4 4 1 7".  To hide
-hot-plugging messages try "3 4 1 7", to increase the messaging to include
-device details like model numbers try "6 4 1 7".  The command to set is 'sudo
-sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
-parameters at runtime" for more.
+Then change drives or directory to where the openSeaChest utility is located and
+run the tool file name from there.
 
 =============
 Sample Output
@@ -1188,7 +1089,7 @@ Version History
 ===============
 SeaChest_Erase is branched off from SeaChest Basics v1.0.3.
 
-v0.0.1  14-Apr-2015  Added --writeSame, --revertSP and TCG --revert.
+v0.0.1  14-Mar-2015  Added --writeSame, --revertSP and TCG --revert.
 v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
 v0.0.3  12-Aug-2015  Modified some commands to consist of two parts - starting
                      LBA and LBA range count.  Improved device discovery.
@@ -1242,7 +1143,9 @@ v1.4.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      passthrough IOCTLs. --showEraseSupport now gives overwrite
                      erase time estimate.  --progress support for writesame
                      removed (caused test to abort), use --poll instead. Add
-                     --hideLBACounter.
+                     --hideLBACounter. New -F, --scanFlags [options: ignoreCSMI
+                     allowDuplicates] for Windows tools. Add CSMI support to
+                     all Windows version tools.
 v1.4.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
                      for SAS features.
 v1.5.0  24-May-2017  1_14_3 libraries. Added "Storage Element Depopulation" if
@@ -1252,10 +1155,13 @@ v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
-                     Adds the child drive matching options --childModelMatch,
-                     --childOnlyFW, and --childNewFW.  Bug fix with
-                     --showEraseSupport showing non-ascii characters.  Added
-                     --showPhysicalElementStatus and --removePhysicalElement.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix with --showEraseSupport showing non-ascii characters.
+                     Added --showPhysicalElementStatus and
+                     --removePhysicalElement.
 v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
@@ -1294,6 +1200,19 @@ openSeaChest Version History
 ============================
 v1.7.1  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
+v1.7.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.7.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1410,7 +1329,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have
