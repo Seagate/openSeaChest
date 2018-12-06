@@ -653,10 +653,10 @@ Sample Output
 
 SATA HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg1
+openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -728,10 +728,10 @@ SATA HDD Device Information:
 
 SATA SSD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg1 -i
+openSeaChest_Basics -d PD2 -i
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -767,7 +767,7 @@ SATA SSD Device Information:
         Drive Reported Utilization (%): Not Reported
         Encryption Support: Not Supported
         Cache Size (MiB): Not Reported
-        Percentage Used Endurance Indicator (%): 1.00437
+        Percentage Used Endurance Indicator (%): 0.00000
         Read Look-Ahead: Enabled
         Write Cache: Enabled
         SMART Status: Good
@@ -794,10 +794,10 @@ SATA SSD Device Information:
 
 SAS HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg2
+openSeaChest_Basics -i -d PD0
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -857,10 +857,10 @@ SAS HDD Device Information:
 
 SAS SSD: Device Information
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg3 -i
+openSeaChest_Basics -d PD3 -i
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
