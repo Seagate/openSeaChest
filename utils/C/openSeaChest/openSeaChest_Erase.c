@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "1.8.0";
+const char *buildVersion = "1.9.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -105,13 +105,18 @@ int32_t main(int argc, char *argv[])
     //tool specific command line flags
     //generic erase
     POLL_VAR
+#if !defined(DISABLE_TCG_SUPPORT)
     //tcg revert SP
     TCG_REVERT_SP_VARS
     //tcg revert
     TCG_REVERT_VAR
+#endif
     //ata security
-    ATA_SECURITY_ERASE_UTIL_VARS
-    ATA_SECURITY_ERASE_DISABLE_PW_UTIL_VARS
+    ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR
+    ATA_SECURITY_PASSWORD_VARS
+    ATA_SECURITY_USING_MASTER_PW_VAR
+    ATA_SECURITY_ERASE_OP_VARS
+    ATA_SECURITY_FORCE_SAT_VARS
     //sanitize
     SANITIZE_UTIL_VARS
     //write same
@@ -183,10 +188,10 @@ int32_t main(int argc, char *argv[])
         OVERWRITE_LONG_OPTS,
         TRIM_LONG_OPTS,
         UNMAP_LONG_OPTS,
+#if !defined(DISABLE_TCG_SUPPORT)
         TCG_REVERT_SP_LONG_OPT,
         TCG_REVERT_LONG_OPT,
-        { "secureErase",            required_argument,          NULL,           'y'     }, //has a purposely unadvertized short option
-        { "disableATASecurityPW",   required_argument,          NULL,           'D'     }, //has a purposely unadvertized short option
+#endif
         { "sanitize",               required_argument,          NULL,           'e'     }, //has a purposely unadvertized short option
         WRITE_SAME_LONG_OPTS,
         SHOW_ERASE_SUPPORT_LONG_OPT,
@@ -199,6 +204,11 @@ int32_t main(int argc, char *argv[])
         SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT,
+        ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT,
+        ATA_SECURITY_PASSWORD_LONG_OPT,
+        ATA_SECURITY_USING_MASTER_PW_LONG_OPT,
+        ATA_SECURITY_ERASE_OP_LONG_OPT,
+        ATA_SECURITY_FORCE_SAT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -336,11 +346,13 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
+            #if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, TCG_REVERT_SP_LONG_OPT_STRING) == 0)
             {
                 TCG_REVERT_SP_FLAG = true;
                 TCG_REVERT_SP_PSID_FLAG = strdup(optarg);
             }
+            #endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_FLAG = true;
@@ -373,6 +385,181 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
                 FAST_FORMAT_FLAG = (eFormatType)atoi(optarg);
+            }
+            else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
+            {
+                ATA_SECURITY_FORCE_SAT_VALID = true;
+                if (strcmp(optarg, "enable") == 0)
+                {
+                    ATA_SECURITY_FORCE_SAT = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    ATA_SECURITY_FORCE_SAT = false;
+                }
+                else
+                {
+                    ATA_SECURITY_FORCE_SAT_VALID = false;
+                    //error in command line
+                    print_Error_In_Cmd_Line_Args(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_ERASE_OP_LONG_OPT_STRING))) == 0)
+            {
+                ATA_SECURITY_ERASE_OP = true;
+                if (strcmp(optarg, "enhanced") == 0)
+                {
+                    ATA_SECURITY_ERASE_ENHANCED = true;
+                }
+                else if (strcmp(optarg, "normal") == 0)
+                {
+                    ATA_SECURITY_ERASE_ENHANCED = false;
+                }
+                else
+                {
+                    ATA_SECURITY_ERASE_OP = false;
+                    //error in command line
+                    print_Error_In_Cmd_Line_Args(ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp(optarg, "master") == 0)
+                {
+                    ATA_SECURITY_USING_MASTER_PW = true;
+                }
+                else if (strcmp(optarg, "user") == 0)
+                {
+                    ATA_SECURITY_USING_MASTER_PW = false;
+                }
+                else
+                {
+                    //error in command line
+                    print_Error_In_Cmd_Line_Args(ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_LONG_OPT_STRING))) == 0)
+            {
+                ATA_SECURITY_USER_PROVIDED_PASS = true;
+                if (strcmp(optarg, "empty") == 0)
+                {
+                    //the modification option can change this to all F's if desired instead of zeros.
+                    memset(&ATA_SECURITY_PASSWORD[0], 0, 32);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = 32;
+                }
+                else if (strcmp(optarg, "SeaChest") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = strlen("SeaChest");
+                    memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
+                }
+                else
+                {
+                    //If the user quoted their password when putting on the cmdline, then we can accept spaces. Otherwise spaces cannot be picked up.
+                    //TODO: If comma separated values were given, then we need to parse the input differently!!!
+                    if (strlen(optarg) > 32)
+                    {
+                        print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    //printf("User entered \"%s\" for their password\n", optarg);
+                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = M_Min(strlen(optarg), 32);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp(optarg, "byteswap") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped = true;
+                }
+                else if (strcmp(optarg, "zeropad") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "spacepad") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "fpad") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "leftAlign") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "rightAlign") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "uppercase") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "lowercase") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+                else if (strcmp(optarg, "invertcase") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase = true;
+                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
+                    {
+                        //todo: print error saying invalid argument combination.
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+#if defined (MD5_PASSWORD_SUPPORTED)
+                else if (strcmp(optarg, "md5") == 0)
+                {
+                    ATA_SECURITY_PASSWORD_MODIFICATIONS.md5Hash = true;
+                }
+#endif
+                //TODO: handle other modifications
+                //TODO: handle bad combinations of modifications
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -420,7 +607,12 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile);
+                        if(0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                        {
+                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
+                            fclose(patternFile);
+                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                        }
                         //close file
                         fclose(patternFile);
                         safe_Free(filename);
@@ -478,9 +670,9 @@ int32_t main(int argc, char *argv[])
         case SCAN_SHORT_OPT: //scan
             SCAN_FLAG = true;
             break;
-		case AGRESSIVE_SCAN_SHORT_OPT:
-			AGRESSIVE_SCAN_FLAG = true;
-			break;
+        case AGRESSIVE_SCAN_SHORT_OPT:
+            AGRESSIVE_SCAN_FLAG = true;
+            break;
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
@@ -512,14 +704,8 @@ int32_t main(int argc, char *argv[])
                 printf("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
-        case 'D': //disableATASecurityPW [SeaChest | ASCIIPW] [user | master]
-            ATA_SECURITY_ERASE_DISABLE_PW_SUBOPT_PARSE
-            break;
         case 'e': //sanitize
             SANITIZE_SUBOPT_PARSE
-            break;
-        case 'y': //secure erase
-            ATA_SECURITY_ERASE_SUBOPT_PARSE
             break;
         default:
             break;
@@ -641,6 +827,98 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_NO_ERROR);
     }
 
+    //set any ATA security password modifications that we may need.
+    if (ATA_SECURITY_USER_PROVIDED_PASS)
+    {
+        //check if any password modifications were given and apply them here.
+        //check if forcing a specific case before we do things that would make it more difficult for opensea-common to modify
+        if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
+        {
+            //change all to uppercase
+            char thePassword[33] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            convert_String_To_Upper_Case(thePassword);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+        }
+        else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
+        {
+            //change all to lowercase
+            char thePassword[33] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            convert_String_To_Lower_Case(thePassword);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+        }
+        else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+        {
+            //swap case from upper to lower and lower to upper.
+            char thePassword[33] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            convert_String_To_Inverse_Case(thePassword);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+        }
+        //check if byteswapping what was entered
+        if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
+        {
+            for (uint8_t iter = 0; iter < 32; iter += 2)
+            {
+                uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
+                ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
+                ATA_SECURITY_PASSWORD[iter] = temp;
+            }
+        }
+        //check alignment next.
+        if (ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
+        {
+            //nothing to do, already aligned this way
+        }
+        else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+        {
+            //memcpy and memset based on how many characters were provided by the caller.
+            memmove(&ATA_SECURITY_PASSWORD[32 - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memset(&ATA_SECURITY_PASSWORD[0], 0, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+        }
+        //now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
+        if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
+        {
+            //we already zero pad. nothing to do.
+        }
+        else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded)
+        {
+            //convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
+            if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+            {
+                memset(&ATA_SECURITY_PASSWORD[0], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            }
+            else
+            {
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            }
+        }
+        else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+        {
+            if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+            {
+                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            }
+            else
+            {
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            }
+        }
+#if defined (MD5_PASSWORD_SUPPORTED)
+        if (ATA_SECURITY_PASSWORD_MODIFICATIONS.md5Hash)
+        {
+            //TODO: call the md5 hash routine in mbedtls
+        }
+#endif
+    }
+    else
+    {
+        //user did not set a password, so we need to set "SeaChest"
+        ATA_SECURITY_PASSWORD_BYTE_COUNT = strlen("SeaChest");
+        memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
+    }
+
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
@@ -695,14 +973,15 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+#if !defined(DISABLE_TCG_SUPPORT)
         || TCG_REVERT_SP_FLAG
         || TCG_REVERT_FLAG
+#endif
         || sanitize
         || RUN_WRITE_SAME_FLAG
-        || runSecureErase
+        || ATA_SECURITY_ERASE_OP
         || RUN_OVERWRITE_FLAG
         || RUN_TRIM_UNMAP_FLAG
-        || disableATAPassword
         || (PROGRESS_CHAR != NULL)
         || SHOW_ERASE_SUPPORT_FLAG
         || PERFORM_FASTEST_ERASE_FLAG
@@ -1102,6 +1381,7 @@ int32_t main(int argc, char *argv[])
 
                 switch (eraseMethodList[0].eraseIdentifier)
                 {
+#if !defined(DISABLE_TCG_SUPPORT)
                 case ERASE_TCG_REVERT:
                     TCG_REVERT_FLAG = true;
                     break;
@@ -1111,6 +1391,7 @@ int32_t main(int argc, char *argv[])
                         printf("\nFastest Erase is RevertSP. Please use the --%s option with the drive PSID to perform this erase.\n", TCG_REVERT_SP_LONG_OPT_STRING);
                     }
                     break;
+#endif                
                 case ERASE_TRIM_UNMAP:
                     RUN_TRIM_UNMAP_FLAG = true;
                     TRIM_UNMAP_START_FLAG = 0;
@@ -1129,11 +1410,12 @@ int32_t main(int argc, char *argv[])
                     sancryptoErase = true;
                     break;
                 case ERASE_ATA_SECURITY_ENHANCED:
-                    runSecureErase = true;
-                    enhanced = true;
+                    ATA_SECURITY_ERASE_OP = true;
+                    ATA_SECURITY_ERASE_ENHANCED = true;
                     break;
                 case ERASE_ATA_SECURITY_NORMAL:
-                    runSecureErase = true;
+                    ATA_SECURITY_ERASE_OP = true;
+                    ATA_SECURITY_ERASE_ENHANCED = false;
                     break;
                 case ERASE_WRITE_SAME:
                     RUN_WRITE_SAME_FLAG = true;
@@ -1662,38 +1944,37 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (runSecureErase)
+        if (ATA_SECURITY_ERASE_OP)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Secure Erase\n");
+                printf("\nATA Security Erase\n");
             }
             if (DATA_ERASE_FLAG)
             {
-                if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                ataSecurityPassword ataPassword;
+                memset(&ataPassword, 0, sizeof(ataSecurityPassword));
+                ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
+                memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
+                ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
+                eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
+                if (ATA_SECURITY_ERASE_ENHANCED)
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Security erase is only available on ATA drives.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    ataSecureEraseType = ATA_SECURITY_ERASE_ENHANCED_ERASE;
                 }
-                else
+                switch (run_ATA_Security_Erase(&deviceList[deviceIter], ataSecureEraseType, ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
                 {
-                    switch (run_ATA_Security_Erase(&deviceList[deviceIter], enhanced, false, "SeaChest", POLL_FLAG))
-                    {
-                    case SUCCESS:
-                        break;
-                    case NOT_SUPPORTED:
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    case FROZEN:
-                        exitCode = UTIL_EXIT_OPERATION_ABORTED;
-                        break;
-                    default:
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED:
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case FROZEN:
+                    exitCode = UTIL_EXIT_OPERATION_ABORTED;
+                    break;
+                default:
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
             }
             else
@@ -1703,10 +1984,11 @@ int32_t main(int argc, char *argv[])
                     printf("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a secure erase.\n\n");
-                    printf("e.g.: %s -d %s --secureErase normal --confirm %s\n\n", util_name, deviceHandleExample, DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s normal --confirm %s\n\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
+
         if (RUN_WRITE_SAME_FLAG)
         {
             uint64_t localStartLBA = WRITE_SAME_START_FLAG;
@@ -2011,33 +2293,6 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (disableATAPassword)
-        {
-            switch (run_Disable_ATA_Security_Password(&deviceList[deviceIter], ATAPassword, atauserMasterPW))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Successfully disabled ATA security password!\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Disabling ATA security password is not supported on this device or this device type.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Failed to disable ATA security password!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
         if (PROGRESS_CHAR != NULL)
         {
             int result = UNKNOWN;
@@ -2172,7 +2427,10 @@ void utility_Usage(bool shortUsage)
     print_Show_Physical_Element_Status_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
-    print_Disable_ATA_Security_Password_Help(shortUsage, util_name);
+    print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);
+    print_ATA_Security_Password_Help(shortUsage);
+    print_ATA_Security_Password_Type_Help(shortUsage);
+    print_ATA_Security_Password_Modifications_Help(shortUsage);
     //SAS Only Options
     //printf("\n\tSAS Only:\n\t=========\n");
 
@@ -2184,8 +2442,10 @@ void utility_Usage(bool shortUsage)
     print_Overwrite_Range_Help(shortUsage);
     print_Pattern_Help(shortUsage);
     print_Perform_Quickest_Erase_Help(shortUsage);
+    #if !defined(DISABLE_TCG_SUPPORT)
     print_Revert_Help(shortUsage);
     print_RevertSP_Help(shortUsage);
+    #endif
     print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Sanitize_Help(shortUsage, util_name);
     print_Trim_Unmap_Help(shortUsage);
@@ -2194,7 +2454,7 @@ void utility_Usage(bool shortUsage)
     print_Writesame_Range_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
-    print_ATA_Security_Erase_Help(shortUsage, util_name);
+    print_ATA_Security_Erase_Help(shortUsage, "SeaChest");
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
     print_Fast_Format_Help(shortUsage);

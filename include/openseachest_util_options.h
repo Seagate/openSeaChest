@@ -109,11 +109,11 @@ extern "C"
     #define SCAN_LONG_OPT_STRING "scan"
     #define SCAN_LONG_OPT { SCAN_LONG_OPT_STRING, no_argument, NULL, SCAN_SHORT_OPT }
 
-	#define AGRESSIVE_SCAN_FLAG agressiveScan
-	#define AGRESSIVE_SCAN_FLAG_VAR bool AGRESSIVE_SCAN_FLAG = false;
-	#define AGRESSIVE_SCAN_SHORT_OPT 'S'
-	#define AGRESSIVE_SCAN_LONG_OPT_STRING "Scan"
-	#define AGRESSIVE_SCAN_LONG_OPT { AGRESSIVE_SCAN_LONG_OPT_STRING, no_argument, NULL, AGRESSIVE_SCAN_SHORT_OPT }
+    #define AGRESSIVE_SCAN_FLAG agressiveScan
+    #define AGRESSIVE_SCAN_FLAG_VAR bool AGRESSIVE_SCAN_FLAG = false;
+    #define AGRESSIVE_SCAN_SHORT_OPT 'S'
+    #define AGRESSIVE_SCAN_LONG_OPT_STRING "Scan"
+    #define AGRESSIVE_SCAN_LONG_OPT { AGRESSIVE_SCAN_LONG_OPT_STRING, no_argument, NULL, AGRESSIVE_SCAN_SHORT_OPT }
 
     #define SCAN_FLAGS_SHORT_OPT 'F'
     #define SCAN_FLAGS_LONG_OPT_STRING "scanFlags"
@@ -1448,6 +1448,100 @@ extern "C"
     #define SMART_ERROR_LOG_FORMAT_VAR bool SMART_ERROR_LOG_FORMAT_FLAG = false;
     #define SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING "smartErrorLogFormat"
     #define SMART_ERROR_LOG_FORMAT_LONG_OPT { SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //These defines make it easy to access the variable name
+    #define ATA_SECURITY_USER_PROVIDED_PASS     atSecurityPasswordProvidedByUser
+    #define ATA_SECURITY_PASSWORD               ataSecPassword
+    #define ATA_SECURITY_PASSWORD_BYTE_COUNT    ataSecPasswordBytesProvided //count of how many bytes of password were given by the user so that when the modificaions are performed, they are done based on this value.
+    #define ATA_SECURITY_USING_MASTER_PW        ataSecurityUsingMasterPW
+    #define ATA_SECURITY_ERASE_ENHANCED         ataSecEnhancedErase
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY   ataMasterPWCap
+    #define ATA_SECURITY_MASTER_PW_ID           masterPasswordIdentifier
+    #define ATA_SECURITY_FORCE_SAT              forceATASecViaSAT
+    #define ATA_SECURITY_FORCE_SAT_VALID        forceATASecSATValid
+
+    typedef struct _ataSecPWModifications
+    {
+        bool byteSwapped;
+        bool md5Hash;//Hash should ALWAYS be performed last of the mods so that everything can be combined nicely
+        bool zeroPadded;//default padding
+        bool spacePadded;//padded with spaces
+        bool fpadded;//Pad with FFh
+        bool leftAligned;
+        bool rightAligned;
+        bool forceUppercase;
+        bool forceLowercase;
+        bool invertCase;
+        //TODO: add other modifications as we find or hear other that work with some odd BIOS chips.
+    }ataSecPWModifications;
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS passwordModificationType
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR ataSecPWModifications ATA_SECURITY_PASSWORD_MODIFICATIONS = { false, false, false, false, false, false, false };
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING "ataSecPWMod"
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT { ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //These defines are to put the variable definitions in a file
+    #define ATA_SECURITY_PASSWORD_VARS \
+    bool ATA_SECURITY_USER_PROVIDED_PASS = false;\
+    uint8_t ATA_SECURITY_PASSWORD[32] = { 0 }; \
+    uint8_t ATA_SECURITY_PASSWORD_BYTE_COUNT = 0;
+    #define ATA_SECURITY_PASSWORD_LONG_OPT_STRING "ataSecPassword" //agrs are: password in quotes, SeaChest, or the word empty
+    #define ATA_SECURITY_PASSWORD_LONG_OPT { ATA_SECURITY_PASSWORD_LONG_OPT_STRING, required_argument, NULL, 0 }
+                                                                                          //
+    #define ATA_SECURITY_USING_MASTER_PW_VAR    bool ATA_SECURITY_USING_MASTER_PW = false;//false means user password. True means master password
+    #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING "ataSecPassType"
+    #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT { ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //TODO: This needs to handle the request to do secure erase AND which TYPE of secure erase
+    #define ATA_SECURITY_ERASE_OP performATASecurityErase
+    #define ATA_SECURITY_ERASE_OP_VARS \
+    bool ATA_SECURITY_ERASE_OP = false; \
+    bool ATA_SECURITY_ERASE_ENHANCED = false;//false = normal erase, true - enhanced erase
+    #define ATA_SECURITY_ERASE_OP_LONG_OPT_STRING "ataSecureErase"
+    #define ATA_SECURITY_ERASE_OP_LONG_OPT { ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_VAR   bool ATA_SECURITY_MASTER_PW_CAPABILITY = false;//false = high, true = maximum
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING "ataSecCapability"
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT { ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_MASTER_PW_ID_VAR       uint16_t ATA_SECURITY_MASTER_PW_ID = 0;//value set by the user
+    #define ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING "ataSecMasterPWID"
+    #define ATA_SECURITY_MASTER_PW_ID_LONG_OPT { ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING "ataSATsecurityProtocol"
+    #define ATA_SECURITY_FORCE_SAT_LONG_OPT { ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define ATA_SECURITY_FORCE_SAT_VARS \
+    bool ATA_SECURITY_FORCE_SAT_VALID = false;\
+    bool ATA_SECURITY_FORCE_SAT = false;//false = turn OFF SAT security protocol commands. true = turn ON SAT security protocol commands
+
+    //set password
+    #define ATA_SECURITY_SET_PASSWORD_OP setATASecurityPassword
+    #define ATA_SECURITY_SET_PASSWORD_OP_VAR getOptBool ATA_SECURITY_SET_PASSWORD_OP = goFalse;
+    #define ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING "setATASecPW"
+    #define ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT { ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_SET_PASSWORD_OP, goTrue }
+
+    //unlock
+    #define ATA_SECURITY_UNLOCK_OP unlockATASecurity
+    #define ATA_SECURITY_UNLOCK_OP_VAR getOptBool ATA_SECURITY_UNLOCK_OP = goFalse;
+    #define ATA_SECURITY_UNLOCK_OP_LONG_OPT_STRING "unlockATASec"
+    #define ATA_SECURITY_UNLOCK_OP_LONG_OPT { ATA_SECURITY_UNLOCK_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_UNLOCK_OP, goTrue }
+
+    //disable the password
+    #define ATA_SECURITY_DISABLE_OP disableATASecurityPW
+    #define ATA_SECURITY_DISABLE_OP_VAR getOptBool ATA_SECURITY_DISABLE_OP = goFalse;
+    #define ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING "disableATASecPW"
+    #define ATA_SECURITY_DISABLE_OP_LONG_OPT { ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_DISABLE_OP, goTrue }
+
+    //freezelock
+    #define ATA_SECURITY_FREEZELOCK_OP freezelockATASecurity
+    #define ATA_SECURITY_FREEZELOCK_OP_VAR getOptBool ATA_SECURITY_FREEZELOCK_OP = goFalse;
+    #define ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING "ataSecFreeze"
+    #define ATA_SECURITY_FREEZELOCK_OP_LONG_OPT { ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_FREEZELOCK_OP, goTrue }
+
+    //ata security info
+    #define ATA_SECURITY_INFO_OP ataSecurityInfo
+    #define ATA_SECURITY_INFO_OP_VAR getOptBool ATA_SECURITY_INFO_OP = goFalse;
+    #define ATA_SECURITY_INFO_OP_LONG_OPT_STRING "ataSecurityInfo"
+    #define ATA_SECURITY_INFO_OP_LONG_OPT { ATA_SECURITY_INFO_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_INFO_OP, goTrue }
     
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2626,7 +2720,7 @@ extern "C"
 
     void print_Set_SSC_Help(bool shortHelp);
 
-	void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
+    void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
 
     void print_Buffer_Test_Help(bool shortHelp);
 
@@ -2795,6 +2889,29 @@ extern "C"
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
     void print_SMART_Error_Log_Format_Help(bool shortHelp);
+
+    void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Modifications_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Type_Help(bool shortHelp);
+
+    void print_ATA_Security_Master_Password_Capability_Help(bool shortHelp);
+
+    void print_ATA_Security_Master_Password_ID_Help(bool shortHelp);
+
+    void print_ATA_Security_Force_SAT_Security_Protocol_Help(bool shortHelp);
+
+    void print_ATA_Security_Set_Password_Help(bool shortHelp);
+
+    void print_ATA_Security_Unlock_Help(bool shortHelp);
+
+    void print_ATA_Security_Freezelock_Help(bool shortHelp);
+
+    void print_ATA_Security_Info_Help(bool shortHelp);
+
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 
@@ -3110,81 +3227,6 @@ if (optarg != NULL)                                                             
     }                                                                                                                       \
     optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
 }
-
-#define ATA_SECURITY_ERASE_UTIL_VARS \
-bool runSecureErase = false;\
-bool enhanced = false;
-
-#define ATA_SECURITY_ERASE_SUBOPT_PARSE                                                                                     \
-if (optarg != NULL)                                                                                                         \
-{                                                                                                                           \
-    int  index = optind - 1;                                                                                                \
-    char *nextSubOpt = NULL;                                                                                                \
-    while (index < argc)                                                                                                    \
-    {                                                                                                                       \
-        nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-        if (strncmp("-", nextSubOpt, 1) != 0) /*check if optarg is next switch so that we break out of parsing suboptions*/ \
-        {                                                                                                                   \
-            if (strncmp("enhanced", nextSubOpt, strlen(nextSubOpt)) == 0)                                                   \
-            {                                                                                                               \
-                runSecureErase = true;                                                                                      \
-                enhanced = true;                                                                                            \
-            }                                                                                                               \
-            else if (strncmp("normal", nextSubOpt, strlen(nextSubOpt)) == 0)                                                \
-            {                                                                                                               \
-                runSecureErase = true;                                                                                      \
-            }                                                                                                               \
-        }                                                                                                                   \
-        else                                                                                                                \
-        {                                                                                                                   \
-            break;                                                                                                          \
-        }                                                                                                                   \
-        index++;                                                                                                            \
-    }                                                                                                                       \
-    optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-}
-
-#define ATA_SECURITY_ERASE_DISABLE_PW_UTIL_VARS \
-bool disableATAPassword = false; \
-const char *ATAPassword = NULL; \
-bool atauserMasterPW = false;/*false = user, true = master*/
-
-    #define ATA_SECURITY_ERASE_DISABLE_PW_SUBOPT_PARSE                                                                          \
-    if (optarg != NULL)                                                                                                         \
-    {                                                                                                                           \
-        disableATAPassword = true;                                                                                              \
-        int  index = optind - 1;                                                                                                \
-        char *nextSubOpt = NULL;                                                                                                \
-        while (index < argc)                                                                                                    \
-        {                                                                                                                       \
-            nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-            if (strncmp("-", nextSubOpt, 1) != 0) /*check if optarg is next switch so that we break out of parsing suboptions*/ \
-            {                                                                                                                   \
-                if (strncmp("SeaChest", nextSubOpt, strlen(nextSubOpt)) == 0)                                                   \
-                {                                                                                                               \
-                    ATAPassword = "SeaChest";                                                                                    \
-                }                                                                                                               \
-                else if (strncmp("user", nextSubOpt, strlen(nextSubOpt)) == 0)                                                  \
-                {                                                                                                               \
-                    atauserMasterPW = false;                                                                                    \
-                }                                                                                                               \
-                else if (strncmp("master", nextSubOpt, strlen(nextSubOpt)) == 0)                                                \
-                {                                                                                                               \
-                    atauserMasterPW = true;                                                                                     \
-                }                                                                                                               \
-                else /*assume they have given an ACSII password to use*/                                                        \
-                {                                                                                                               \
-                    ATAPassword = nextSubOpt;                                                                                   \
-                }                                                                                                               \
-            }                                                                                                                   \
-            else                                                                                                                \
-            {                                                                                                                   \
-                break;                                                                                                          \
-            }                                                                                                                   \
-            index++;                                                                                                            \
-        }                                                                                                                       \
-        optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-    }
 
 #if defined (__cplusplus)
 }

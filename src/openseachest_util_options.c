@@ -57,8 +57,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
 {
     eArchitecture architecture = get_Compiled_Architecture();
     time_t g_curTime = time(NULL);
-    char       g_timeString[64] = { 0 };
-    char       *g_timeStringPtr = g_timeString;
+    //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
 #if !defined (DISABLE_NVME_PASSTHROUGH)
@@ -71,7 +70,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Build Date: %s\n", __DATE__);
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
-    strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
+    //strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -293,35 +292,6 @@ void print_OutputPath_Help(bool shortHelp)
     }
 }
 
-void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
-{
-    printf("\t--secureErase [normal | enhanced]\t\t(SATA only)\n");
-    if (!shortHelp)
-    {
-        printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
-        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
-        printf("\t\tATA Security Erase takes a very long time to complete at\n");
-        printf("\t\tapproximately three (3) hours per Terabyte (HDD). Some Seagate\n");
-        printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
-        printf("\t\tmode and the time for completion is reported as 2 minutes by\n");
-        printf("\t\tthe drive, but will take only seconds. This industry\n");
-        printf("\t\tstandard command begins by locking the drive with a temporary\n");
-        printf("\t\tpassword which is cleared at the end of the erasure. Do not run\n");
-        printf("\t\tthis command unless you have ample time to allow it to run\n");
-        printf("\t\tthrough to the end. If the procedure is interrupted prior to\n");
-        printf("\t\tcompletion, then the drive will remain in a locked state and\n");
-        printf("\t\tyou must manually restart from the beginning again. The\n");
-        printf("\t\tpassword to unlock the drive is \"%s\", plain ASCII\n", password);
-        printf("\t\tletters without the quotes\n\n");
-        printf("\t\t* normal writes binary zeroes (0) or ones (1) to all user\n");
-        printf("\t\tdata areas.\n\n");
-        printf("\t\t* enhanced will fill all user data areas and reallocated\n");
-        printf("\t\tuser data with a vendor specific pattern. Some Seagate\n");
-        printf("\t\tInstant Secure Erase will perform a cryptographic\n");
-        printf("\t\terase instead of an overwrite.\n\n");
-    }
-}
-
 void print_Erase_Range_Help(bool shortHelp)
 {
     printf("\t--eraseRange [startLBA] [endLBA] [forceWrites]\n");
@@ -353,24 +323,6 @@ void print_Erase_Time_Help(bool shortHelp)
         printf("\t\tmore control of the starting and ending LBAs.  This test always\n");
         printf("\t\tissues write commands to the drive. No TRIM or UNMAP commands\n");
         printf("\t\tare used during this operation.\n\n");
-    }
-}
-
-void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName)
-{
-    printf("\t--disableATASecurityPW [SeaChest | ASCIIPW] [user | master]\n");
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to disable an ATA security password.\n");
-        printf("\t\tIf a drive lost power during an ATA Security Erase in\n");
-        printf("\t\t%s, then using the option \"SeaChest\" will remove\n", utilName);
-        printf("\t\tthe password used by the utility. To disable a\n");
-        printf("\t\tpassword set by a BIOS, the BIOS must have set the\n");
-        printf("\t\tpassword in ASCII. A BIOS may choose to hash the\n");
-        printf("\t\tpassword typed in the configuration however it\n");
-        printf("\t\tchooses and this utility has no idea how to match what\n");
-        printf("\t\tthe BIOS has done so it may not always work to remove\n");
-        printf("\t\ta password set by something other than this utility.\n\n");
     }
 }
 
@@ -3015,5 +2967,210 @@ void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp)
         printf("\t\tUsing this option allows a detected ATA drive on any interface to\n");
         printf("\t\tuse this call if the OS/driver supports it regardless of the command\n");
         printf("\t\tbeing sent by the opensea-transport library.\n\n");
+    }
+}
+
+void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
+{
+    printf("\t--%s [normal | enhanced]\t\t(SATA only)\n", ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
+        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
+        printf("\t\tATA Security Erase takes a very long time to complete at\n");
+        printf("\t\tapproximately three (3) hours per Terabyte (HDD). Some Seagate\n");
+        printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
+        printf("\t\tmode and the time for completion is reported as 2 minutes by\n");
+        printf("\t\tthe drive, but will take only seconds. This industry\n");
+        printf("\t\tstandard command begins by locking the drive with a temporary\n");
+        printf("\t\tpassword which is cleared at the end of the erasure. Do not run\n");
+        printf("\t\tthis command unless you have ample time to allow it to run\n");
+        printf("\t\tthrough to the end. If the procedure is interrupted prior to\n");
+        printf("\t\tcompletion, then the drive will remain in a locked state and\n");
+        printf("\t\tyou must manually restart from the beginning again. The\n");
+        printf("\t\ttool will attempt to automatically clear the password that was set\n");
+        printf("\t\tupon failure. The default password used by the tool is\n");
+        printf("\t\t\"%s\", plain ASCII letters without the quotes\n\n", password);
+        printf("\t\t* normal writes binary zeroes (0) or ones (1) to all user\n");
+        printf("\t\tdata areas.\n\n");
+        printf("\t\t* enhanced will fill all user data areas and reallocated\n");
+        printf("\t\tuser data with a vendor specific pattern. Some Seagate\n");
+        printf("\t\tInstant Secure Erase will perform a cryptographic\n");
+        printf("\t\terase instead of an overwrite.\n\n");
+    }
+}
+
+void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName)
+{
+    printf("\t--%s\t\t(SATA Only)\n", ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to disable an ATA security password.\n");
+        printf("\t\tIf the drive is in high security mode, either user or\n");
+        printf("\t\tmaster password may be provided. In maximum security mode\n");
+        printf("\t\tonly the user password can be provided to unlock and disable the\n");
+        printf("\t\tATA security password. The master may only be used to erase the drive\n");
+        printf("\t\tin maximum security mode.\n");
+        printf("\t\tUse the --%s option to provide the password to use and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+        printf("\t\t--%s to specify whether it is the user or master password.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\tIf a drive lost power during an ATA Security Erase in\n");
+        printf("\t\t%s, then providing --%s SeaChest\n", utilName, ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+        printf("\t\twill use the default SeaChest password used during the erase.\n");
+        printf("\t\t To disable a password set by a BIOS, the BIOS must have set the\n");
+        printf("\t\tpassword in ASCII. A BIOS may choose to hash or modify the\n");
+        printf("\t\tpassword typed in the configuration however it\n");
+        printf("\t\tchooses and this utility has no idea how to match what\n");
+        printf("\t\tthe BIOS has done so it may not always work to remove\n");
+        printf("\t\ta password set by something other than this utility.\n\n");
+    }
+}
+
+void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
+{
+    printf("\t--%s [", ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
+    #if defined MD5_PASSWORD_SUPPORTED
+    printf("md5 | ");
+    #endif
+    printf("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] (SATA Only)\n");
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to have the utility make modifications to\n");
+        printf("\t\tthe ATA security password to attempt other various ways it may\n");
+        printf("\t\tbe sent by a system bios. These are not guaranteed to work, but\n");
+        printf("\t\tmay help unlock a drive that was locked by a BIOS that encoded\n");
+        printf("\t\tthe password in a unique way.\n");
+        printf("\t\tThis option can be presented multiple times to select multiple modificaitons.\n");
+        printf("\t\tEX: --%s byteswapped --%s invertcase\n", ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
+        #if defined MD5_PASSWORD_SUPPORTED
+        printf("\t\t  md5 - sends a md5 sum of the password as the password\n");//Internal SeaChest only since this requires mbedtls library!!!
+        #endif
+        printf("\t\t  byteswapped - byteswaps the password. EX: blah -> lbha\n");
+        printf("\t\t  zeropad - zero pads the password if less than 32 characters\n");
+        printf("\t\t  spacepad - space pads the password if less than 32 characters\n");
+        printf("\t\t  fpad - pads the passwords with Fh (all 1's) if less than 32characters\n");
+        printf("\t\t  leftAlign - left aligns the password in the buffer\n");
+        printf("\t\t  rightAlign - right aligns the password in the buffer\n");
+        printf("\t\t  uppercase - sends the password as all uppercase\n");
+        printf("\t\t  lowercase - sends the password as all lowercase\n");
+        printf("\t\t  invertcase - switches uppercase for lower, and lowercase for upper\n");
+        printf("\n");
+    }
+}
+
+void print_ATA_Security_Password_Help(bool shortHelp)
+{
+    printf("\t--%s [\"ASCII password\" | SeaChest | empty]\t\t(SATA only)\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify a password to use with an ATA security\n");
+        printf("\t\toperation. If specifying a password with spaces, quotes must be used.\n");
+        printf("\t\tIf SeaChest is given, the default SeaChest password will be used.\n");
+        printf("\t\tIf empty is given, an empty password will be used.\n");
+        printf("\t\tExamples:\n");
+        printf("\t\t  \"This is a valid password\"\n");
+        printf("\t\t  ThisIsAlsoValid\n");
+        printf("\t\t  \"This password uses \\\"quotes\\\"\n");
+        printf("\t\t  \"This password is \\/\\/eird\"\n");
+        #if defined (_WIN32)
+        printf("\t\tIn Windows PE, MS will allow issuing secure erase using the following\n");
+        printf("\t\tas a USER password: AutoATAWindowsString12345678901\n");
+        #endif
+        printf("\n");
+    }
+}
+void print_ATA_Security_Password_Type_Help(bool shortHelp)
+{
+    printf("\t--%s [user | master]\t\t(SATA only)\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify if the password being given with the\n");
+        printf("\t\t--%s option is a user or a master password.\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+        printf("\t\tIf this option is not provided, user is assumed.\n\n");
+    }
+}
+void print_ATA_Security_Master_Password_Capability_Help(bool shortHelp)
+{
+    printf("\t--%s [high | maximum]\t\t(SATA only)\n", ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the master password capability when setting\n");
+        printf("\t\tan ATA security user password. In high security mode, either password\n");
+        printf("\t\tmay be used to unlock and disable the password on a drive.\n");
+        printf("\t\tIn maximum security mode, the master password can only be used to erase\n");
+        printf("\t\tthe drive for repurposing it.\n");
+        printf("\t\tIf this option is not provided, high security is assumed.\n\n");
+    }
+}
+
+void print_ATA_Security_Master_Password_ID_Help(bool shortHelp)
+{
+    printf("\t--%s [numberic ID]\t\t(SATA only)\n", ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when setting a master password to also set this value\n");
+        printf("\t\tas a numeric hint to remember/recover the drive using the master password.\n\n");
+    }
+}
+
+void print_ATA_Security_Force_SAT_Security_Protocol_Help(bool shortHelp)
+{
+    printf("\t--%s [enable | disable]\t\t(SATA only)\n", ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option can be used to force enable or disable using the\n");
+        printf("\t\tATA security protocol as specified in the SAT specification.\n");
+        printf("\t\tBy default, the tool will use this method when it is supported \n");
+        printf("\t\tto allow the SATL to understand and manage the security commands\n");
+        printf("\t\tbeing performed and prevent other issues.\n\n");
+    }
+}
+
+void print_ATA_Security_Set_Password_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t(SATA only)\n", ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option along with the --%s option and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+        printf("\t\t--%s option to set an ATA security password on a drive.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\tIf setting the master password, it is strongly recommended\n");
+        printf("\t\tthat a master password identifier is specified with the\n");
+        printf("\t\t--%s option as well.\n", ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING);
+        printf("\t\tThe --%s option can be provided to set the drive to\n", ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING);
+        printf("\t\tmaximum security mode when setting the user password.\n\n");
+    }
+}
+
+void print_ATA_Security_Unlock_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t(SATA only)\n", ATA_SECURITY_UNLOCK_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option along with the --%s option and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
+        printf("\t\t--%s option to unlock a drive with the provided password.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\tIf the drive is in maximum security mode, only the user password\n");
+        printf("\t\tmay be used to unlock the device.\n\n");
+    }
+}
+void print_ATA_Security_Freezelock_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t(SATA only)\n", ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will send the ATA security freezelock command to\n");
+        printf("\t\ta device. This command prevents all other ATA security commands\n");
+        printf("\t\tfrom being processed until the next reset or power cycle.\n\n");
+    }
+}
+
+void print_ATA_Security_Info_Help(bool shortHelp)
+{
+    printf("\t--%s\t\t(SATA only)\n", ATA_SECURITY_INFO_OP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option shows information about the ATA security\n");
+        printf("\t\tfeature on ATA devices. It will show the security state and\n");
+        printf("\t\tflags related to the state, Master password capability & ID,\n");
+        printf("\t\ttime to perform a secure erase, whether user data is encrypted,\n");
+        printf("\t\tand whether sanitize can override ATA security to repurpose a drive.\n\n");
     }
 }
