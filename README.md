@@ -10,6 +10,10 @@ been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
 
+Compiled binary versions of the openSeaChest utilities for various operating
+systems may be found at
+https://github.com/Seagate/ToolBin/tree/master/openSeaChest
+
 This collection of storage device utility software is branched (forked) off of
 an original utility collection called the Seagate SeaChest Utilities by Seagate
 Technology LLC.  The original SeaChest Utilities are still available at
@@ -17,11 +21,8 @@ www.seagate.com or https://github.com/Seagate/ToolBin/tree/master/SeaChest.
 Binary versions are available for Linux or Windows, with the Windows versions
 signed by Seagate Technology LLC.
 
-This User Guide file contains important information about openSeaChest Basics.
-Please read this entire file before using this software.
-
 openSeaChest is a collection of programming libraries for storage devices and
-comprehensive, easy-to-use command line diagnostic tool that helps you quickly
+comprehensive, easy-to-use command line diagnostic tools that helps you quickly
 determine the health and status of your storage product. It includes several
 tests that will examine the physical media on your storage device.
 
@@ -51,11 +52,13 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_Firmware*
 * *openSeaChest_Format*
 * *OpenSeaChest_GenericTests*
+* *OpenSeaChest_Logs*
+* *OpenSeaChest_NVMe*
 * *openSeaChest_PowerControl*
 * *openSeaChest_SMART*
 
 ### Source
-Depend on your git version & client you can use either of the following two commands to clone the repository. 
+Depend on your git version & client you can use either of the following two commands to clone the repository.
 
 git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git
 
@@ -64,7 +67,7 @@ or
 git clone --recursive https://github.com/Seagate/openSeaChest.git
 
 
-Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules. 
+Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules.
 
 ### Building
 
@@ -165,13 +168,6 @@ maximum LBA, may cause existing data on the drive to become inaccessible.  Some
 commands, like disabling the read look ahead buffer, may affect the performance
 of the drive.  Seagate is not responsible for lost user data.
 
-openSeaChest diagnostics are command line utilities which are available for
-expert users.  These command line tools assume the user is knowledgeable about
-running software from the operating system command prompt. CLI tools are in the
-English language only and use "command line arguments" to define the various
-tasks and specific devices.  openSeaChest diagnostics are available for both
-Linux and Windows environments.
-
 **Important note:** Many tests in this tool directly reference storage device data
 sectors, also known as Logical Block Addresses (LBA). Test arguments may
 require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
@@ -212,15 +208,7 @@ both Linux and Windows environments.
 
 Linux versions of openSeaChest tools are available as stand alone 32 or 64-bit
 executables you can copy to your own system.  Windows OS versions of
-openSeaChest diagnostics are installed through a typical setup wizard and can
-be removed via the Control Panel.
-
-In addition, Seagate offers a tool to build a bootable USB openSeaChest flash
-drive which boots to a 32-bit Linux command prompt.  This is a Windows
-executable file which formats a USB Flash drive you provide.  It copies over
-all the files needed to use it as a bootable device for the openSeaChest
-diagnostic software. All data on the USB Flash drive will be erased so be sure
-to protect any valuable files.
+openSeaChest diagnostics are also available.
 
 Technical Support for openSeaChest drive utilities is not available.  If you
 have the time to send us some feedback about this software, especially if you
@@ -229,7 +217,7 @@ from you.  To report your comments and suggestions, please use this email
 seaboard@seagate.com.  Please let us know the name and version of the tool you
 are using.
 
-openSeaChest drive utilities support SATA, SAS and USB interface devices.
+openSeaChest drive utilities support SATA, SAS, NVMe and USB interface devices.
 
 **openSeaChest_Basics** - Contains the most important tests and tools.
 
@@ -269,6 +257,10 @@ and power on hours) and performance logs (like temperature) are available for
 analytical review.  Identification and inquiry data stored on the drive is also
 provided.  A view of SMART and device statistics is available when supported by
 the drive.
+
+**openSeaChest_Logs** -
+
+**openSeaChest_NVMe** -
 
 **openSeaChest_PowerControl** - Seagate disk drives offer a multitude of options to
 manage power.  This tool manipulates the various power modes.
