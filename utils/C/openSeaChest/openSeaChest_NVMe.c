@@ -91,6 +91,8 @@ int32_t main(int argc, char *argv[])
     NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
+    CHILD_MODEL_MATCH_VARS
+    CHILD_FW_MATCH_VARS
     ONLY_SEAGATE_VAR
     //POWER_MODE_VAR
     //scan output flags
@@ -134,6 +136,10 @@ int32_t main(int argc, char *argv[])
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
         EXT_SMART_LOG_LONG_OPT1,
+        MODEL_MATCH_LONG_OPT,
+        FW_MATCH_LONG_OPT,
+        CHILD_MODEL_MATCH_LONG_OPT,
+        CHILD_FW_MATCH_LONG_OPT,
         CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         NVME_TEMP_STATS_LONG_OPT,
         NVME_PCI_STATS_LONG_OPT,
@@ -322,6 +328,26 @@ int32_t main(int argc, char *argv[])
                     printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
                     printf("Please use -h option to print help\n\n");
                 }
+            }
+            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                MODEL_MATCH_FLAG = true;
+                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+            }
+            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                FW_MATCH_FLAG = true;
+                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+            }
+            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                CHILD_MODEL_MATCH_FLAG = true;
+                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+            }
+            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                CHILD_FW_MATCH_FLAG = true;
+                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
@@ -746,6 +772,11 @@ int32_t main(int argc, char *argv[])
                 }
                 continue;
             }
+        }
+
+        if (VERBOSITY_QUIET < toolVerbosity)
+        {
+			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
         
 	    //now start looking at what operations are going to be performed and kick them off
@@ -1549,12 +1580,12 @@ void utility_Usage(bool shortUsage)
     //utility options
     printf("\nUtility Options\n");
     printf("===============\n");
-    print_Verbose_Help(shortUsage);
-    print_Quiet_Help(shortUsage, util_name);
-    print_Version_Help(shortUsage, util_name);
-    print_License_Help(shortUsage);
     print_Echo_Command_Line_Help(shortUsage);
     print_Help_Help(shortUsage);
+    print_License_Help(shortUsage);
+    print_Quiet_Help(shortUsage, util_name);
+    print_Verbose_Help(shortUsage);
+    print_Version_Help(shortUsage, util_name);
 
     //the test options
     printf("Utility arguments\n");
@@ -1568,10 +1599,12 @@ void utility_Usage(bool shortUsage)
     print_Check_Power_Mode_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);
+    print_Model_Match_Help(shortUsage);
     print_NVMe_Firmware_Download_Mode_Help(shortUsage);
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
     print_NVMe_Get_Tele_Help(shortUsage);
+    print_Firmware_Revision_Match_Help(shortUsage);
     print_pcierr_Help(shortUsage);
     print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);

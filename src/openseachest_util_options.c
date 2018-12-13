@@ -15,9 +15,15 @@
 #include "openseachest_util_options.h"
 
 #if defined (__linux__)
+#if defined (VMK_CROSS_COMP)
+const char *deviceHandleExample = "vmhba1";
+const char *deviceHandleName = "<deviceHandle>";
+const char *commandWindowType = "terminal";
+#else
 const char *deviceHandleExample = "/dev/sg?";
 const char *deviceHandleName = "<sg_device>";
 const char *commandWindowType = "terminal";
+#endif
 #elif defined (__FreeBSD__)
 const char *deviceHandleExample = "/dev/da?";
 const char *deviceHandleName = "<da_device>";
@@ -292,6 +298,35 @@ void print_OutputPath_Help(bool shortHelp)
     }
 }
 
+void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
+{
+    printf("\t--secureErase [normal | enhanced]\t\t(SATA only)\n");
+    if (!shortHelp)
+    {
+        printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
+        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
+        printf("\t\tATA Security Erase takes a very long time to complete at\n");
+        printf("\t\tapproximately three (3) hours per Terabyte (HDD). Some Seagate\n");
+        printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
+        printf("\t\tmode and the time for completion is reported as 2 minutes by\n");
+        printf("\t\tthe drive, but will take only seconds. This industry\n");
+        printf("\t\tstandard command begins by locking the drive with a temporary\n");
+        printf("\t\tpassword which is cleared at the end of the erasure. Do not run\n");
+        printf("\t\tthis command unless you have ample time to allow it to run\n");
+        printf("\t\tthrough to the end. If the procedure is interrupted prior to\n");
+        printf("\t\tcompletion, then the drive will remain in a locked state and\n");
+        printf("\t\tyou must manually restart from the beginning again. The\n");
+        printf("\t\tpassword to unlock the drive is \"%s\", plain ASCII\n", password);
+        printf("\t\tletters without the quotes\n\n");
+        printf("\t\t* normal writes binary zeroes (0) or ones (1) to all user\n");
+        printf("\t\tdata areas.\n\n");
+        printf("\t\t* enhanced will fill all user data areas and reallocated\n");
+        printf("\t\tuser data with a vendor specific pattern. Some Seagate\n");
+        printf("\t\tInstant Secure Erase will perform a cryptographic\n");
+        printf("\t\terase instead of an overwrite.\n\n");
+    }
+}
+
 void print_Erase_Range_Help(bool shortHelp)
 {
     printf("\t--eraseRange [startLBA] [endLBA] [forceWrites]\n");
@@ -323,6 +358,24 @@ void print_Erase_Time_Help(bool shortHelp)
         printf("\t\tmore control of the starting and ending LBAs.  This test always\n");
         printf("\t\tissues write commands to the drive. No TRIM or UNMAP commands\n");
         printf("\t\tare used during this operation.\n\n");
+    }
+}
+
+void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName)
+{
+    printf("\t--disableATASecurityPW [SeaChest | ASCIIPW] [user | master]\n");
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to disable an ATA security password.\n");
+        printf("\t\tIf a drive lost power during an ATA Security Erase in\n");
+        printf("\t\t%s, then using the option \"SeaChest\" will remove\n", utilName);
+        printf("\t\tthe password used by the utility. To disable a\n");
+        printf("\t\tpassword set by a BIOS, the BIOS must have set the\n");
+        printf("\t\tpassword in ASCII. A BIOS may choose to hash the\n");
+        printf("\t\tpassword typed in the configuration however it\n");
+        printf("\t\tchooses and this utility has no idea how to match what\n");
+        printf("\t\tthe BIOS has done so it may not always work to remove\n");
+        printf("\t\ta password set by something other than this utility.\n\n");
     }
 }
 
@@ -780,7 +833,7 @@ void print_extSmatLog_Help(bool shortHelp)
     printf("\t--%s\n", EXT_SMART_LOG_LONG_OPT_STRING1);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to Extract the Extended Smart Log Attributes.\n");
+        printf("\t\tUse this option to Extract the Extended Smart Log Attributes.\n\n");
     }
 }
 
@@ -789,7 +842,7 @@ void print_pcierr_Help (bool shortHelp)
     printf("\t--%s\n", CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to clear correctable errors.\n");
+        printf("\t\tUse this option to clear correctable errors.\n\n");
     }    
 }
 
@@ -1230,13 +1283,26 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
-    printf("\t--%s [host | ctrl] --%s [1 | 2 | 3]\n", GET_NVME_TELE_LONG_OPT_STRING, NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    printf("\t--%s [host | ctrl]\n", GET_NVME_TELE_LONG_OPT_STRING);
+    
     if (!shortHelp)
     {
-        printf("\t\tUse this option to get the NVMe Telemetry\n");
+        printf("\t\tUse this option to get the NVMe Telemetry data for a device.\n");
+        printf("\t\tUse the --telemetryDataArea option to control the amount of \n");
+        printf("\t\tdata collected. \n\n");
         printf("\t\tSupported Modes:\n");
-        printf("\t\t\thost    - get Host Telemetry\n");
-        printf("\t\t\tctrl    - get Ctrl Telemetry\n\n");
+        printf("\t\t\thost - get Host Telemetry\n");
+        printf("\t\t\tctrl - get Ctrl Telemetry\n\n");
+        printf("\n");
+    }
+
+    printf("\t--%s [1 | 2 | 3]\n", NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+
+    if(!shortHelp) 
+    {
+        printf("\t\tThis is a sub-command which defines the amount of data \n");
+        printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_NVME_TELE_LONG_OPT_STRING);
+        printf("\t\tif this option is not used. \n");
         printf("\n");
         printf("\t\tSupported Data Area.\n");
         printf("\t\t1 - get minimal telemetry data\n");
@@ -1251,7 +1317,7 @@ void print_NVMe_Temp_Stats_Help(bool shortHelp)
     printf("\t--%s   \n", NVME_TEMP_STATS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to get the NVMe Temperature Statistics\n");
+        printf("\t\tUse this option to get the NVMe Temperature Statistics\n\n");
     }
 }
 
@@ -1260,7 +1326,7 @@ void print_NVMe_Pci_Stats_Help(bool shortHelp)
     printf("\t--%s   \n", NVME_PCI_STATS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to get the NVMe PCIe Statistics\n");
+        printf("\t\tUse this option to get the NVMe PCIe Statistics\n\n");
     }
 }
 
