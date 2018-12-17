@@ -1,8 +1,26 @@
 language: c
-os: linux
-sudo: false
-compiler: gcc
-dist: xenial
-before_script: cd Make/gcc
-script: 
-- make release
+
+branches:
+  only:
+  - master
+  - develop
+
+matrix:
+  include:
+    - os: linux
+      sudo: false
+      compiler: gcc
+      dist: xenial
+      before_script: 
+        cd Make/gcc
+      script: 
+        make
+    - os: windows
+      env:
+        - MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+      before_script: 
+        cd "Make\VS.2017"
+      script: 
+        - export PATH=$MSBUILD_PATH:$PATH 
+        - MSBuild.exe //p:Configuration=Release //p:Platform=x64
+
