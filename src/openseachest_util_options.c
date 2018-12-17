@@ -298,35 +298,6 @@ void print_OutputPath_Help(bool shortHelp)
     }
 }
 
-void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
-{
-    printf("\t--secureErase [normal | enhanced]\t\t(SATA only)\n");
-    if (!shortHelp)
-    {
-        printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
-        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
-        printf("\t\tATA Security Erase takes a very long time to complete at\n");
-        printf("\t\tapproximately three (3) hours per Terabyte (HDD). Some Seagate\n");
-        printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
-        printf("\t\tmode and the time for completion is reported as 2 minutes by\n");
-        printf("\t\tthe drive, but will take only seconds. This industry\n");
-        printf("\t\tstandard command begins by locking the drive with a temporary\n");
-        printf("\t\tpassword which is cleared at the end of the erasure. Do not run\n");
-        printf("\t\tthis command unless you have ample time to allow it to run\n");
-        printf("\t\tthrough to the end. If the procedure is interrupted prior to\n");
-        printf("\t\tcompletion, then the drive will remain in a locked state and\n");
-        printf("\t\tyou must manually restart from the beginning again. The\n");
-        printf("\t\tpassword to unlock the drive is \"%s\", plain ASCII\n", password);
-        printf("\t\tletters without the quotes\n\n");
-        printf("\t\t* normal writes binary zeroes (0) or ones (1) to all user\n");
-        printf("\t\tdata areas.\n\n");
-        printf("\t\t* enhanced will fill all user data areas and reallocated\n");
-        printf("\t\tuser data with a vendor specific pattern. Some Seagate\n");
-        printf("\t\tInstant Secure Erase will perform a cryptographic\n");
-        printf("\t\terase instead of an overwrite.\n\n");
-    }
-}
-
 void print_Erase_Range_Help(bool shortHelp)
 {
     printf("\t--eraseRange [startLBA] [endLBA] [forceWrites]\n");
@@ -358,24 +329,6 @@ void print_Erase_Time_Help(bool shortHelp)
         printf("\t\tmore control of the starting and ending LBAs.  This test always\n");
         printf("\t\tissues write commands to the drive. No TRIM or UNMAP commands\n");
         printf("\t\tare used during this operation.\n\n");
-    }
-}
-
-void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName)
-{
-    printf("\t--disableATASecurityPW [SeaChest | ASCIIPW] [user | master]\n");
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to disable an ATA security password.\n");
-        printf("\t\tIf a drive lost power during an ATA Security Erase in\n");
-        printf("\t\t%s, then using the option \"SeaChest\" will remove\n", utilName);
-        printf("\t\tthe password used by the utility. To disable a\n");
-        printf("\t\tpassword set by a BIOS, the BIOS must have set the\n");
-        printf("\t\tpassword in ASCII. A BIOS may choose to hash the\n");
-        printf("\t\tpassword typed in the configuration however it\n");
-        printf("\t\tchooses and this utility has no idea how to match what\n");
-        printf("\t\tthe BIOS has done so it may not always work to remove\n");
-        printf("\t\ta password set by something other than this utility.\n\n");
     }
 }
 

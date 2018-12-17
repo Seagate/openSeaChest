@@ -228,7 +228,7 @@ int32_t main(int argc, char *argv[])
                     SET_READY_LED_DEFAULT = true;
                 }
                 else if (strcmp(optarg, "on") == 0)
-                {
+				{
                     SET_READY_LED_FLAG = true;
                     SET_READY_LED_MODE = true;
                 }
@@ -495,7 +495,7 @@ int32_t main(int argc, char *argv[])
                 {
                     uint64_t value = 0;
                     //this is a value to read in.
-                    if (SUCCESS != get_And_Validate_Integer_Input(optarg, &value))
+                    if (get_And_Validate_Integer_Input(optarg, &value))
                     {
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
@@ -584,9 +584,9 @@ int32_t main(int argc, char *argv[])
         case SCAN_SHORT_OPT: //scan
             SCAN_FLAG = true;
             break;
-		case AGRESSIVE_SCAN_SHORT_OPT:
-			AGRESSIVE_SCAN_FLAG = true;
-			break;
+        case AGRESSIVE_SCAN_SHORT_OPT:
+            AGRESSIVE_SCAN_FLAG = true;
+            break;
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
@@ -727,7 +727,7 @@ int32_t main(int argc, char *argv[])
 		{
 			scanControl |= SCAN_SEAGATE_ONLY;
 		}
-        scan_And_Print_Devs(scanControl, NULL);
+        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.

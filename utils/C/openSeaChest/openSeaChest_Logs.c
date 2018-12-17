@@ -461,7 +461,7 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
-        scan_And_Print_Devs(scanControl, NULL);
+        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
 #if defined (ENABLE_HWRAID_SUPPORT)
         scan_And_Print_Raid_Devs(scanControl, NULL);
 #endif
