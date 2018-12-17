@@ -5,4 +5,4 @@ compiler: gcc
 dist: xenial
 before_script: cd Make/gcc
 script: 
-- make -f Makefile.seachest release
+- make release
