@@ -22,5 +22,5 @@ matrix:
         cd "Make\VS.2017"
       script: 
         - export PATH=$MSBUILD_PATH:$PATH 
-        - MSBuild.exe //p:Configuration=Release //p:Platform=x64
+        - MSBuild.exe //p:Configuration=Static-Release //p:Platform=x64
 
