@@ -1,3 +1,4 @@
+# CI for openseaChest
 language: c
 
 branches:
