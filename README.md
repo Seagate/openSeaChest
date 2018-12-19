@@ -3,6 +3,8 @@
 
 #### Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
+[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
+
 Welcome to the openSeaChest open source project!
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have
@@ -25,8 +27,6 @@ openSeaChest is a collection of programming libraries for storage devices and
 comprehensive, easy-to-use command line diagnostic tools that helps you quickly
 determine the health and status of your storage product. It includes several
 tests that will examine the physical media on your storage device.
-
-[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 
 ### The libraries:
 
