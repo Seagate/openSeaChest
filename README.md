@@ -26,7 +26,7 @@ comprehensive, easy-to-use command line diagnostic tools that helps you quickly
 determine the health and status of your storage product. It includes several
 tests that will examine the physical media on your storage device.
 
-[![Build Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
+[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 
 ### The libraries:
 
