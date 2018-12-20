@@ -156,15 +156,15 @@ extern "C"
     #define FORCE_DRIVE_TYPE_VARS\
     getOptBool FORCE_SCSI_FLAG = goFalse;\
     getOptBool FORCE_ATA_FLAG = goFalse;\
-	getOptBool FORCE_ATA_PIO_FLAG = goFalse;\
+    getOptBool FORCE_ATA_PIO_FLAG = goFalse;\
     getOptBool FORCE_ATA_DMA_FLAG = goFalse;\
     getOptBool FORCE_ATA_UDMA_FLAG = goFalse;
     #define FORCE_SCSI_LONG_OPT_STRING "forceSCSI"
     #define FORCE_SCSI_LONG_OPT { FORCE_SCSI_LONG_OPT_STRING, no_argument, &FORCE_SCSI_FLAG, goTrue }
     #define FORCE_ATA_LONG_OPT_STRING "forceATA"
     #define FORCE_ATA_LONG_OPT { FORCE_ATA_LONG_OPT_STRING, no_argument, &FORCE_ATA_FLAG, goTrue }
-	#define FORCE_ATA_PIO_LONG_OPT_STRING "forceATAPIO"
-	#define FORCE_ATA_PIO_LONG_OPT { FORCE_ATA_PIO_LONG_OPT_STRING, no_argument, &FORCE_ATA_PIO_FLAG, goTrue }
+    #define FORCE_ATA_PIO_LONG_OPT_STRING "forceATAPIO"
+    #define FORCE_ATA_PIO_LONG_OPT { FORCE_ATA_PIO_LONG_OPT_STRING, no_argument, &FORCE_ATA_PIO_FLAG, goTrue }
     #define FORCE_ATA_DMA_LONG_OPT_STRING "forceATADMA"
     #define FORCE_ATA_DMA_LONG_OPT { FORCE_ATA_DMA_LONG_OPT_STRING, no_argument, &FORCE_ATA_DMA_FLAG, goTrue }
     #define FORCE_ATA_UDMA_LONG_OPT_STRING "forceATAUDMA"
@@ -198,8 +198,8 @@ extern "C"
     #define OUTPUTPATH_FLAG outputPathPtr
     #define OUTPUTPATH_VAR char *OUTPUTPATH_FLAG = NULL;
 
-	#define PATH_LONG_OPT_STRING "outputPath"
-	#define OUTPUTPATH_LONG_OPT { PATH_LONG_OPT_STRING, required_argument, NULL, 0}
+    #define PATH_LONG_OPT_STRING "outputPath"
+    #define OUTPUTPATH_LONG_OPT { PATH_LONG_OPT_STRING, required_argument, NULL, 0}
 
     #define LICENSE_FLAG showLicense
     #define LICENSE_VAR getOptBool LICENSE_FLAG = goFalse;
