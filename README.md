@@ -1,7 +1,7 @@
 # openSeaChest
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
-#### Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#### Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 
@@ -154,7 +154,7 @@ a cross platform compiler:
         x86
         x86_64
 
-This project can be build under Windows Visual Studio 2013 & 2015 solution
+This project can be built under Windows Visual Studio 2013 & 2015 solution
 files for x86 and x64 targets.
 
 ### Important Notes:
@@ -287,19 +287,20 @@ imply endorsement.
 
 ### Support and Open Source Statement
 
-Seagate offers technical support for disk drive installation.  If you have any
-questions related to Seagate products and technologies, feel free to submit
-your request on our web site. See the web site for a list of world-wide
-telephone numbers.
+Support from Seagate Technology for open source projects is different than traditional Technical Support.  If possible, please use the **Issues tab** in the individual software projects so that others may benefit from the questions and answers.  Include the output of --version information in the message. See the user guide section 'General Usage Hints' for information about saving output to a log file.
 
-Seagate Support:
-http://www.seagate.com/support-home/
-Contact Us:
+
+If you need to contact us through email, please choose one of these
+two email addresses:
+
+- opensource@seagate.com   for general questions and bug reports
+- opensea-build@seagate.com   for specific questions about programming and building the software
+
+Seagate offers technical support for drive installation.  If you have any questions related to Seagate products and technologies, feel free to submit your request on our web site. See the web site for a list of world-wide telephone numbers.
+
+- http://www.seagate.com/support-home/
+- Contact Us:
 http://www.seagate.com/contacts/
-
-Please report bugs/suggestions to https://github.com/Seagate/openSeaChest.
-Include the output of --version information in the email. See the user guide
-section 'General Usage Hints' for information about saving output to a log file.
 
 This software uses open source packages obtained with permission from the
 relevant parties. For a complete list of open source components, sources and
@@ -310,7 +311,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 -----------------------------------------
 
