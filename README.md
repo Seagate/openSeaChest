@@ -53,9 +53,9 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_Erase*
 * *openSeaChest_Firmware*
 * *openSeaChest_Format*
-* *OpenSeaChest_GenericTests*
-* *OpenSeaChest_Logs*
-* *OpenSeaChest_NVMe*
+* *openSeaChest_GenericTests*
+* *openSeaChest_Logs*
+* *openSeaChest_NVMe*
 * *openSeaChest_PowerControl*
 * *openSeaChest_SMART*
 
@@ -78,12 +78,14 @@ Required Tools:
 * gcc
 * make
 
-From a terminal, change directory to "OpenSeaChest/Make/gcc".
+From a terminal, change directory to "openSeaChest/Make/gcc".
 
-Run the command "make release" to build the release version of the OpenSeaChest tools.
+Run the command "make release" to build the release version of the openSeaChest tools.
 After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
 
 #### Windows
+Your system will require the latest [Microsoft Visual C++ 2017 Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to run the compiled openSeaChest tools.
+
 Required Tools:
 * Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
   * Windows 8/8.1 SDK for Visual Studio 2013
@@ -92,14 +94,14 @@ Required Tools:
   * Windows 10 SDK version 10.0.16299.0 for Visual Studio 2017 (ARM and ARM64)
 
   ##### Visual Studio
-  Open the solution file in "OpenSeaChest/Make/VS.(version)/openseachest.sln".
+  Open the solution file in "openSeaChest/Make/VS.(version)/openseachest.sln".
   Set the desired build configuration.
   Press "F7" to build all of the tools and libraries, or select "Build->Build All" from the menu.
-  The tools will be output into "OpenSeaChest/Make/VS.(version)/(platform)/(build type)".
+  The tools will be output into "openSeaChest/Make/VS.(version)/(platform)/(build type)".
 
-  Example: "OpenSeaChest/Make/VS.2017/x64/Release"
+  Example: "openSeaChest/Make/VS.2017/x64/Release"
   ##### msbuild
-  From the developer command prompt for the version of visual studio that installed msbuild, change directory to "OpenSeaChest/Make/VS.(version)".
+  From the developer command prompt for the version of visual studio that installed msbuild, change directory to "openSeaChest/Make/VS.(version)".
 
   Build with the command "msbuild /p:Configuration=(build type) /p:Platform=(platform)".
 
@@ -122,9 +124,9 @@ Required Tools:
 * gcc
 * gmake
 
-From a terminal, change directory to "OpenSeaChest/Make/gcc".
+From a terminal, change directory to "openSeaChest/Make/gcc".
 
-Run the command "gmake release" to build the release version of the OpenSeaChest tools.
+Run the command "gmake release" to build the release version of the openSeaChest tools.
 After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
 
 #### Documentation
