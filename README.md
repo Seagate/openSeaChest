@@ -54,6 +54,7 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_Firmware*
 * *openSeaChest_Format*
 * *openSeaChest_GenericTests*
+* *openSeaChest_Info*
 * *openSeaChest_Logs*
 * *openSeaChest_NVMe*
 * *openSeaChest_PowerControl*
