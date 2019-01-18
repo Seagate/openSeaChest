@@ -28,6 +28,14 @@ comprehensive, easy-to-use command line diagnostic tools that helps you quickly
 determine the health and status of your storage product. It includes several
 tests that will examine the physical media on your storage device.
 
+Here is an overview presentation we gave at the *Storage Networking Industry Association - Storage Developer Conference 2018* that describes the design architecture for the **_opensea API_** and **_openSeaChest_** storage resource management utilities:
+
+[![Video: SDC 2018 - What's better than sg3_utils, hdparm, sdparm?](https://img.youtube.com/vi/LMt8Ztlj5oQ/hqdefault.jpg)][video]
+
+(Note: The openSeaChest team has the utmost respect for the highly regarded [sg3_utils](http://sg.danny.cz/sg/sg3_utils.html), [hdparm](https://sourceforge.net/projects/hdparm/), [sdparm](http://sg.danny.cz/sg/sdparm.html) and [nvme-cli](https://github.com/linux-nvme/nvme-cli) open source projects.  Since this is all pretty low-level stuff, we chose the presentation title *"What's better than sg3_utils, hdparm, sdparm?"* only to grab the attention of a few extra people attending the [SNIA SDC 2018 conference](https://www.snia.org/events/storage-developer/presentations18).)
+
+[video]: https://www.youtube.com/watch?v=LMt8Ztlj5oQ
+
 ### The libraries:
 
 **opensea-common**      - Operating System common operations, not specific to
