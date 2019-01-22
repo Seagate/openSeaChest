@@ -10,6 +10,15 @@ matrix:
   include:
     - os: linux
       sudo: false
+      compiler: clang
+      dist: xenial
+      before_script: 
+        cd Make/gcc
+      script: 
+        make
+        
+    - os: linux
+      sudo: false
       compiler: gcc
       dist: xenial
       before_script: 
