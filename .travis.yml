@@ -1,4 +1,4 @@
-# CI for openseaChest
+# CI for openseaChest through Travis CI
 language: c
 
 branches:
