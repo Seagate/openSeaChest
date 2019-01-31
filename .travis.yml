@@ -30,8 +30,8 @@ matrix:
             - openseachest_exes/openSeaChest_Firmware
         skip_cleanup: true
         on:
-        repo: Seagate/openSeaChest
-        branch: develop
+            repo: Seagate/openSeaChest
+            branch: develop
 
   - os: windows
     env:
