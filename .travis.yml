@@ -5,32 +5,37 @@ branches:
   only:
   - master
   - develop
+  - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 matrix:
   include:
-    - os: linux
-      sudo: false
-      compiler: clang
-      dist: xenial
-      before_script:
-        cd Make/gcc
-      script:
-        make
+  - os: linux
+    sudo: false
+    compiler: clang
+    dist: xenial
+    before_script: cd Make/gcc
+    script: make release
+  - os: linux
+    sudo: false
+    compiler: gcc
+    dist: xenial
+    before_script: cd Make/gcc
+    script: make release
+    deploy:
+    provider: releases
+    api_key: 
+        secure: y64joY94mpw7fPOvusIBxQbut+I1mTs9t4ymoOYBQ6HWPixCfFOXoB+UYl4ksI1sI597IpMYTxQScxkfQlBlIUcGpY6DV7+nmbgX3tiRWEsIugEHVj67XXnsD+azMxXXce9Uy0qGfCJk4w0AWMWyF9Lvo+R4dTCpt6e5IKr+qNTTwo4AnNEWiCTkeIhOyEbCjw5vtrbj6kD9MutfnYTXaeOLWRlvvti6roQdvcAs7U+/4CmDif2Cx4iaiCLUsk1F7/3T/3u7Yi9gXKzOD2a6z+aEUO7ZBE9co8BejfcyycuOX3UDEFSOhA/JRLs+EQ3Zr/K5h0zBkaw1k7YjRj5q8tTZgi6HxCwUiCRMKZdpwY13xCsbUuPhHSbtippmeLrLurVKtM9OYLuc5uxsajA8KqHFLu8m5anuYICQS6IBSm/xcEOQc6vSmBLpLd7QcMKOdupOv8JCepsaezDK5zzyMnBSJ6iQv+uCNlqSFe4S60LPAjM0K39Vi3oS3h7QTg52mDWCAsgErO2rTLmhF724bBNL/PL4N/fK1THQ/LgtfEg9DNuE+eExAcC9HEOx8TzuG28cN/lJ4Y86ZfTE74gtwXDQvfzA4WIRoQmMynuCYXuWmSS/JAhvctVLvIXb65lZqV3y9LTQs2twLaqHIIXds/0iXO53Ljg8EaWi2f6x0E4=
+    file: 
+        - Make/gcc/openseachest_exes/openSeaChest_SMART
+        - Make/gcc/openseachest_exes/openSeaChest_Firmware
+    on:
+       repo: Seagate/openSeaChest
+       branch: develop
 
-    - os: linux
-      sudo: false
-      compiler: gcc
-      dist: xenial
-      before_script:
-        cd Make/gcc
-      script:
-        make
-    - os: windows
-      env:
-        - MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
-      before_script:
-        cd "Make\VS.2017"
-      script:
-        - export PATH=$MSBUILD_PATH:$PATH
-        - MSBuild.exe //p:Configuration=Static-Release //p:Platform=x64
-
+  - os: windows
+    env:
+    - MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+    before_script: cd "Make\VS.2017"
+    script:
+    - export PATH=$MSBUILD_PATH:$PATH
+    - MSBuild.exe //p:Configuration=Static-Release //p:Platform=x64
