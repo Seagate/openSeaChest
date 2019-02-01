@@ -1884,7 +1884,7 @@ void print_Format_Security_Initialize_Help(bool shortHelp)
 
 void print_Format_Protection_Type_Help(bool shortHelp)
 {
-    printf("\t--%s [0 | 1 | 2 | 3]\n", FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING);
+    printf("\t--%s [ 0 | 1 | 2 | 3 ]\n", FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the protection type to format the\n");
@@ -1895,7 +1895,7 @@ void print_Format_Protection_Type_Help(bool shortHelp)
 
 void print_Format_Protection_Interval_Exponent_Help(bool shortHelp)
 {
-    printf("\t--%s [exponent value]\n", FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING);
+    printf("\t--%s [ exponent value ]\n", FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the protection interval exponent\n");
@@ -2059,7 +2059,7 @@ void print_NVME_Format_Unit_Help(bool shortHelp)
 
 void print_Low_Current_Spinup_Help(bool shortHelp)
 {
-    printf("\t--%s [enable | disable]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the low current spinup\n");
@@ -2067,6 +2067,18 @@ void print_Low_Current_Spinup_Help(bool shortHelp)
         printf("\t\tavailable on every drive.\n\n");
     }
 }
+
+void print_Ultra_Low_Current_Spinup_Help(bool shortHelp)
+{
+    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to enable or disable the ultra low current spinup\n");
+        printf("\t\tfeature on Seagate SATA drives. Note: This feature is not\n");
+        printf("\t\tavailable on every drive.\n\n");
+    }
+}
+
 
 void print_Disable_Data_Locking_Help(bool shortHelp)
 {
@@ -2946,7 +2958,7 @@ void print_FARM_Log_Help(bool shortHelp)
 
 void print_Show_SMART_Error_Log_Help(bool shortHelp)
 {
-    printf("\t--%s [summary | comprehensive]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+    printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will display the ATA SMART Error log on the screen.\n");
@@ -2962,7 +2974,7 @@ void print_Show_SMART_Error_Log_Help(bool shortHelp)
 
 void print_SMART_Error_Log_Format_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | detailed]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
+    printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
@@ -3191,5 +3203,143 @@ void print_ATA_Security_Info_Help(bool shortHelp)
         printf("\t\tflags related to the state, Master password capability & ID,\n");
         printf("\t\ttime to perform a secure erase, whether user data is encrypted,\n");
         printf("\t\tand whether sanitize can override ATA security to repurpose a drive.\n\n");
+    }
+}
+
+void print_SCSI_MP_Reset_Help(bool shortHelp)
+{
+    printf("\t--%s [page# | page-subpage#]\t\t(SAS only)\n", SCSI_MP_RESET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will reset the specified mode page(s) to their default\n");
+        printf("\t\tsettings. Valid page numbers range from 0 to 3Fh. Valid subpage numbers\n");
+        printf("\t\trange from 0 to FFh.\n");
+        printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to reset all mode pages.\n");
+        printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will reset all those subpages.\n");
+        printf("\t\tUsing both MP 3Fh and SP FFh will reset all pages and subpages on a device.\n\n");
+    }
+}
+
+void print_SCSI_MP_Restore_Help(bool shortHelp)
+{
+    printf("\t--%s [page# | page-subpage#]\t\t(SAS only)\n", SCSI_MP_RESTORE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will restore the specified mode page(s) to their saved\n");
+        printf("\t\tsettings. Valid page numbers range from 0 to 3Fh. Valid subpage numbers\n");
+        printf("\t\trange from 0 to FFh.\n");
+        printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to restore all mode pages.\n");
+        printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will restore all those subpages.\n");
+        printf("\t\tUsing both MP 3Fh and SP FFh will restore all pages and subpages on a device.\n\n");
+    }
+}
+
+void print_SCSI_MP_Save_Help(bool shortHelp)
+{
+    printf("\t--%s [page# | page-subpage#]\t\t(SAS only)\n", SCSI_MP_SAVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will save the current specified mode page(s) to the saved\n");
+        printf("\t\tsettings. Valid page numbers range from 0 to 3Fh. Valid subpage numbers\n");
+        printf("\t\trange from 0 to FFh.\n");
+        printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to save all mode pages.\n");
+        printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will save all those subpages.\n");
+        printf("\t\tUsing both MP 3Fh and SP FFh will save all pages and subpages on a device.\n\n");
+    }
+}
+
+void print_SCSI_Show_MP_Help(bool shortHelp)
+{
+    printf("\t--%s [page# | page-subpage#]\t\t(SAS only)\n", SCSI_SHOW_MP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will display the specified mode page on the screen as raw\n");
+        printf("\t\thexadecimal data bytes. Use --%s to control the output.\n", SCSI_SHOW_MP_MPC_LONG_OPT_STRING);
+        printf("\t\tIf --%s is not provided, the current values will be shown.\n\n", SCSI_SHOW_MP_MPC_LONG_OPT_STRING);
+    }
+}
+
+void print_SCSI_Show_MP_Control_Help(bool shortHelp)
+{
+    printf("\t--%s [current | default | saved | changeable | all]\t\t(SAS only)\n", SCSI_SHOW_MP_MPC_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to control the output of the --%s option.\n", SCSI_SHOW_MP_LONG_OPT_STRING);
+        printf("\t\t    current - show the current values of the mode page.\n");
+        printf("\t\t    default - show the default values of the mode page.\n");
+        printf("\t\t    saved   - show the saved values of the mode page.\n");
+        printf("\t\t    changeable - show the changable fields in a mode page.\n");
+        printf("\t\t    all - show all of the above formats for a given mode page.\n\n");
+    }
+}
+
+void print_SCSI_Reset_LP_Help(bool shortHelp)
+{
+    printf("\t--%s [cumulative | threshold | defCumulative | defThreshold | all]\t\t(SAS only)\n", SCSI_RESET_LP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to reset all SCSI Log Pages.\n");
+        printf("\t\tIf the device is compliant with SPC4 or later, the\n");
+        printf("\t\t--%s option may be used to specify a specific page to reset.\n", SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
+        printf("\t\tThe --%s option may also be passed to prevent saving changes.\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\t    cumulative - reset the cumulative values\n");
+        printf("\t\t    threshold  - reset the threshold values\n");
+        printf("\t\t    defCumulative - reset the cumulative values to default without saving.\n");
+        printf("\t\t    defThreshold  - reset the threshold values to default without saving.\n");
+        printf("\t\t    all - sends the log page reset command to all of the above control values\n\n");
+    }
+}
+
+void print_SCSI_Reset_LP_Page_Help(bool shortHelp)
+{
+    printf("\t--%s [page# | page-subpage#]\t\t(SAS only)\n", SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to specify a specific page, and/or subpage\n");
+        printf("\t\tto be used with the --%s option.\n", SCSI_RESET_LP_LONG_OPT_STRING);
+        printf("\t\tNOTE: This option will only work on newer drives compliant with\n");
+        printf("\t\tthe SPC4 specification.\n\n");
+    }
+}
+
+void print_Set_SCSI_MP_Help(bool shortHelp)
+{
+    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only) (Seagate Only)\n", SCSI_SET_MP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set a specific field in a mode page to a value.\n");
+        printf("\t\tThere are two argument formats to this option:\n");
+        printf("\t\t1. The first format expects a mode page (in hex), optionally a subpage code (in hex),\n");
+        printf("\t\t   the byte offset that the field starts at (in decimal), the highest bit the field starts\n");
+        printf("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or decimal)\n");
+        printf("\t\t   A maximum of 64bits can be set at a time with this option.\n");
+        printf("\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
+        printf("\t\t   must be separated by a space, new line, or underscore. It is recommended that this file\n");
+        printf("\t\t   is created by copy-pasting the output of the --%s option's default classic view, then modifying\n", SCSI_SHOW_MP_LONG_OPT_STRING);
+        printf("\t\t   after that.");
+        printf("\t\tExample use of the arguments:\n");
+        printf("\t\t1. Setting WCE to zero on caching MP from a file:\n");
+        printf("\t\t   command line: file=cachingModePage.txt\n");
+        printf("\t\t   File contents: 88 12 10 00 FF FF 00 00 FF FF FF FF 90 20 00 00 00 00 00 00\n");
+        printf("\t\t2. Setting WCE to zero on caching MP from command line:\n");
+        printf("\t\t   command line: 08:2:2:1=0\n");
+        printf("\t\t3. Setting DLC to one on Control Extension MP from command line:\n");
+        printf("\t\t   command line: 0A-01:4:3:1=1\n");
+        printf("\n");
+    }
+}
+
+void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s [classic | buffer]\t(SAS Only)\n", SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to control the format of the output when displaying a SCSI mode page.\n");
+        printf("\t\tModes:\n");
+        printf("\t\t  classic - This output is a classic output from old SCSI manuals where the bytes of\n");
+        printf("\t\t            the page are output in a rows across the screen in hexadecimal format.\n");
+        printf("\t\t  buffer  - This output is a formatted buffer showing offsets on the top and side in hex.\n");
+        printf("\t\t            This will output each row with up to 16 bytes of data before moving to the\n");
+        printf("\t\t            next row.\n\n");
     }
 }

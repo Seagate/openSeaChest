@@ -33,11 +33,12 @@
 #include "trim_unmap.h"
 #include "set_sector_size.h"
 #include "smart.h"
+#include "logs.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.13.0";
+const char *util_name = "SeaChest_Configure";
+const char *buildVersion = "1.15.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -98,6 +99,7 @@ int32_t main(int argc, char *argv[])
     PROVISION_VAR
     TRIM_UNMAP_VARS //need these with provision var
     LOW_CURRENT_SPINUP_VARS
+    ULTRA_LOW_CURRENT_SPINUP_VARS
     SCT_WRITE_CACHE_VARS
     SCT_WRITE_CACHE_REORDER_VARS
     VOLATILE_VAR
@@ -109,6 +111,13 @@ int32_t main(int argc, char *argv[])
 #endif
     SCT_ERROR_RECOVERY_CONTROL_VARS
     FREE_FALL_VARS
+
+    SCSI_MP_RESET_VARS
+    SCSI_MP_RESTORE_VARS
+    SCSI_MP_SAVE_VARS
+    SCSI_SHOW_MP_VARS
+    SCSI_RESET_LP_VARS
+    SCSI_SET_MP_VARS
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -155,12 +164,19 @@ int32_t main(int argc, char *argv[])
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
+        ULTRA_LOW_CURRENT_SPINUP_LONG_OPT,
         SCT_WRITE_CACHE_LONG_OPT,
         SCT_WRITE_CACHE_REORDER_LONG_OPT,
         PUIS_FEATURE_LONG_OPT,
         SSC_FEATURE_LONG_OPT,
         SCT_ERROR_RECOVERY_CONTROL_LONG_OPTS,
         FREE_FALL_LONG_OPT,
+        SCSI_MP_RESET_LONG_OPT,
+        SCSI_MP_RESTORE_LONG_OPT,
+        SCSI_MP_SAVE_LONG_OPT,
+        SCSI_SHOW_MP_LONG_OPTS,
+        SCSI_RESET_LP_LONG_OPTS,
+        SCSI_SET_MP_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -298,7 +314,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
                 SET_MAX_LBA_FLAG = true;
-                sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
+                sscanf(optarg, "%" SCNu64 "", &SET_MAX_LBA_VALUE);
                 //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
                 TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
             }
@@ -316,6 +332,23 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING))) == 0)
+            {
+                ULTRA_LOW_CURRENT_SPINUP_FLAG = true;
+                if (strcmp(optarg, "enable") == 0)
+                {
+                    ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -497,14 +530,386 @@ int32_t main(int argc, char *argv[])
                     //this is a value to read in.
                     if (get_And_Validate_Integer_Input(optarg, &value))
                     {
+                        print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     if (value > UINT8_MAX)
                     {
+                        print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     FREE_FALL_FLAG = true;
                     FREE_FALL_SENSITIVITY = (uint8_t)value;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESET_LONG_OPT_STRING) == 0)
+            {
+                SCSI_MP_RESET_OP = true;
+                char * token = strtok(optarg, "-");
+                uint8_t count = 0;
+                bool errorInCL = false;
+                while (token && !errorInCL && count < 2)
+                {
+                    uint64_t value = 0;
+                    if (get_And_Validate_Integer_Input(token, &value))
+                    {
+                        switch (count)
+                        {
+                        case 0:
+                            SCSI_MP_RESET_PAGE_NUMBER = (uint8_t)value;
+                            if (value > MP_RETURN_ALL_PAGES)
+                            {
+                                errorInCL = true;
+                            }
+                            break;
+                        case 1:
+                            SCSI_MP_RESET_SUBPAGE_NUMBER = (uint8_t)value;
+                            break;
+                        default:
+                            errorInCL = true;
+                            break;
+                        }
+                        ++count;
+                        token = strtok(NULL, "-");
+                    }
+                    else
+                    {
+                        errorInCL = true;
+                    }
+                }
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_MP_RESET_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESTORE_LONG_OPT_STRING) == 0)
+            {
+                SCSI_MP_RESTORE_OP = true;
+                char * token = strtok(optarg, "-");
+                uint8_t count = 0;
+                bool errorInCL = false;
+                while (token && !errorInCL && count < 2)
+                {
+                    uint64_t value = 0;
+                    if (get_And_Validate_Integer_Input(token, &value))
+                    {
+                        switch (count)
+                        {
+                        case 0:
+                            SCSI_MP_RESTORE_PAGE_NUMBER = (uint8_t)value;
+                            if (value > MP_RETURN_ALL_PAGES)
+                            {
+                                errorInCL = true;
+                            }
+                            break;
+                        case 1:
+                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = (uint8_t)value;
+                            break;
+                        default:
+                            errorInCL = true;
+                            break;
+                        }
+                        ++count;
+                        token = strtok(NULL, "-");
+                    }
+                    else
+                    {
+                        errorInCL = true;
+                    }
+                }
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_MP_RESTORE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_MP_SAVE_LONG_OPT_STRING) == 0)
+            {
+                SCSI_MP_SAVE_OP = true;
+                char * token = strtok(optarg, "-");
+                uint8_t count = 0;
+                bool errorInCL = false;
+                while (token && !errorInCL && count < 2)
+                {
+                    uint64_t value = 0;
+                    if (get_And_Validate_Integer_Input(token, &value))
+                    {
+                        switch (count)
+                        {
+                        case 0:
+                            SCSI_MP_SAVE_PAGE_NUMBER = (uint8_t)value;
+                            if (value > MP_RETURN_ALL_PAGES)
+                            {
+                                errorInCL = true;
+                            }
+                            break;
+                        case 1:
+                            SCSI_MP_SAVE_SUBPAGE_NUMBER = (uint8_t)value;
+                            break;
+                        default:
+                            errorInCL = true;
+                            break;
+                        }
+                        ++count;
+                        token = strtok(NULL, "-");
+                    }
+                    else
+                    {
+                        errorInCL = true;
+                    }
+                }
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_MP_SAVE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_SHOW_MP_LONG_OPT_STRING) == 0)
+            {
+                SCSI_SHOW_MP_OP = true;
+                char * token = strtok(optarg, "-");
+                uint8_t count = 0;
+                bool errorInCL = false;
+                while (token && !errorInCL && count < 2)
+                {
+                    uint64_t value = 0;
+                    if (get_And_Validate_Integer_Input(token, &value))
+                    {
+                        switch (count)
+                        {
+                        case 0:
+                            SCSI_SHOW_MP_PAGE_NUMBER = (uint8_t)value;
+                            if (value > MP_RETURN_ALL_PAGES)
+                            {
+                                errorInCL = true;
+                            }
+                            break;
+                        case 1:
+                            SCSI_SHOW_MP_SUBPAGE_NUMBER = (uint8_t)value;
+                            break;
+                        default:
+                            errorInCL = true;
+                            break;
+                        }
+                        ++count;
+                        token = strtok(NULL, "-");
+                    }
+                    else
+                    {
+                        errorInCL = true;
+                    }
+                }
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_SHOW_MP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_SET_MP_LONG_OPT_STRING) == 0)
+            {
+                SCSI_SET_MP_OP = true;
+                //first check if they are specifying a file!
+                if (strncmp(optarg, "file", 4) == 0)
+                {
+                    //format is file=filename.txt
+                    int sscanfRes = sscanf(optarg, "file=%s", SCSI_SET_MP_FILENAME);
+                    if (sscanfRes < 1 || sscanfRes == EOF)
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    else
+                    {
+                        if (!os_File_Exists(SCSI_SET_MP_FILENAME))
+                        {
+                            //TODO: print file open error instead???
+                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                        }
+                        //else we open the file later to use
+                    }
+                }
+                else
+                {
+                    //formatted as mp[-sp]:byte:highbit:fieldWidth=value
+                char pageAndSubpage[8] = { 0 };
+                    char *token = strtok(optarg, ":=");
+                    uint8_t tokenCounter = 0;
+                    while (token && tokenCounter < 5)
+                    {
+                        //go through each string and convert it from a string into a value we can use in this tool
+                        //start with page and subpage
+                        switch (tokenCounter)
+                        {
+                        case 0://page-subpage
+                        {
+                            sprintf(pageAndSubpage, "%s", token);
+                            //parse later outside this loop. If we use strtok again in here, we'll break the way the parsing works... :(
+                        }
+                        break;
+                        case 1://byte
+                            SCSI_SET_MP_BYTE = (uint16_t)atoi(token);
+                            break;
+                        case 2://bit
+                            if (atoi(token) > 7)
+                            {
+                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                            SCSI_SET_MP_BIT = (uint8_t)atoi(token);
+                            break;
+                        case 3://field width
+                            if (atoi(token) > 64)
+                            {
+                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                            SCSI_SET_MP_FIELD_LEN_BITS = (uint8_t)atoi(token);
+                            break;
+                        case 4://value
+                            if (!get_And_Validate_Integer_Input(token, &SCSI_SET_MP_FIELD_VALUE))
+                            {
+                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                            break;
+                        default:
+                            //shouldn't get here!!! throw an error?!
+                            break;
+                        }
+                        ++tokenCounter;
+                        token = strtok(NULL, ":=");
+                    }
+                    char *pagetoken = strtok(pageAndSubpage, "-");
+                    if (pagetoken)
+                    {
+                        SCSI_SET_MP_PAGE_NUMBER = (uint8_t)strtoul(pagetoken, NULL, 16);
+                        pagetoken = strtok(NULL, "-");
+                        if (pagetoken)
+                        {
+                            SCSI_SET_MP_SUBPAGE_NUMBER = (uint8_t)strtoul(pagetoken, NULL, 16);
+                        }
+                    }
+                    else //should this be an error condition since strtok failed?
+                    {
+                        //no subpage
+                        SCSI_SET_MP_PAGE_NUMBER = (uint8_t)strtoul(pageAndSubpage, NULL, 16);
+                        SCSI_SET_MP_SUBPAGE_NUMBER = 0;
+                    }
+                    if (SCSI_SET_MP_PAGE_NUMBER > 0x3F)
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_SHOW_MP_MPC_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "all") == 0)
+                {
+                    SCSI_SHOW_MP_MPC_VALUE = 4;//bigger than possible for an actual MPC value, so we can filter below off of this
+                }
+                else if (strcmp(optarg, "current") == 0)
+                {
+                    SCSI_SHOW_MP_MPC_VALUE = MPC_CURRENT_VALUES;
+                }
+                else if (strcmp(optarg, "default") == 0)
+                {
+                    SCSI_SHOW_MP_MPC_VALUE = MPC_DEFAULT_VALUES;
+                }
+                else if (strcmp(optarg, "saved") == 0)
+                {
+                    SCSI_SHOW_MP_MPC_VALUE = MPC_SAVED_VALUES;
+                }
+                else if (strcmp(optarg, "changeable") == 0)
+                {
+                    SCSI_SHOW_MP_MPC_VALUE = MPC_CHANGABLE_VALUES;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "classic") == 0)
+                {
+                    SCSI_SHOW_MP_BUFFER_MODE = false;
+                }
+                else if (strcmp(optarg, "threshold") == 0)
+                {
+                    SCSI_SHOW_MP_BUFFER_MODE = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_RESET_LP_LONG_OPT_STRING) == 0)
+            {
+                SCSI_RESET_LP_OP = true;
+                if (strcmp(optarg, "all") == 0)
+                {
+                    SCSI_RESET_LP_LPC = 4;//bigger than possible for an actual LPC value, so we can filter below off of this
+                }
+                else if (strcmp(optarg, "threshold") == 0)
+                {
+                    SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES;
+                }
+                else if (strcmp(optarg, "cumulative") == 0)
+                {
+                    SCSI_RESET_LP_LPC = LPC_CUMULATIVE_VALUES;
+                }
+                else if (strcmp(optarg, "defThreshold") == 0)
+                {
+                    SCSI_RESET_LP_LPC = LPC_DEFAULT_THRESHOLD_VALUES;
+                }
+                else if (strcmp(optarg, "defCumulative") == 0)
+                {
+                    SCSI_RESET_LP_LPC = LPC_DEFAULT_CUMULATIVE_VALUES;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_RESET_LP_PAGE_LONG_OPT_STRING) == 0)
+            {
+                char * token = strtok(optarg, "-");
+                uint8_t count = 0;
+                bool errorInCL = false;
+                while (token && !errorInCL && count < 2)
+                {
+                    uint64_t value = 0;
+                    if (get_And_Validate_Integer_Input(token, &value))
+                    {
+                        switch (count)
+                        {
+                        case 0:
+                            SCSI_RESET_LP_PAGE_NUMBER = (uint8_t)value;
+                            if (value > 0x3F)
+                            {
+                                errorInCL = true;
+                            }
+                            break;
+                        case 1:
+                            SCSI_RESET_LP_SUBPAGE_NUMBER = (uint8_t)value;
+                            break;
+                        default:
+                            errorInCL = true;
+                            break;
+                        }
+                        ++count;
+                        token = strtok(NULL, "-");
+                    }
+                    else
+                    {
+                        errorInCL = true;
+                    }
+                }
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_PAGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
@@ -804,6 +1209,7 @@ int32_t main(int argc, char *argv[])
         || WRITE_CACHE_INFO
         || PROVISION_FLAG
         || LOW_CURRENT_SPINUP_FLAG
+        || ULTRA_LOW_CURRENT_SPINUP_FLAG
         || SCT_WRITE_CACHE_INFO
         || SCT_WRITE_CACHE_FLAG
         || SCT_WRITE_CACHE_REORDER_FLAG
@@ -817,6 +1223,12 @@ int32_t main(int argc, char *argv[])
         || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER
         || FREE_FALL_FLAG
         || FREE_FALL_INFO
+        || SCSI_MP_RESET_OP
+        || SCSI_MP_RESTORE_OP
+        || SCSI_MP_SAVE_OP
+        || SCSI_SHOW_MP_OP
+        || SCSI_RESET_LP_OP
+        || SCSI_SET_MP_OP
         ))
     {
         utility_Usage(true);
@@ -1101,6 +1513,21 @@ int32_t main(int argc, char *argv[])
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
+
+        if (SCSI_SHOW_MP_OP)
+        {
+            if (SCSI_SHOW_MP_MPC_VALUE > 3)
+            {
+                //showing all MPC values for the page
+                show_SCSI_Mode_Page_All(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, SCSI_SHOW_MP_BUFFER_MODE);
+            }
+            else
+            {
+                //show the specific MPC value
+                show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, SCSI_SHOW_MP_MPC_VALUE, SCSI_SHOW_MP_BUFFER_MODE);
+            }
+        }
+
 
         if (SET_PHY_SPEED_FLAG)
         {
@@ -1895,6 +2322,64 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
+        //ultra low
+        if (ULTRA_LOW_CURRENT_SPINUP_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("Set Ultra Low Current Spinup\n");
+            }
+            if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
+            {
+                ret = enable_Ultra_Low_Current_Spin_Up(&deviceList[deviceIter]);
+            }
+            else
+            {
+                ret = disable_Low_Current_Spin_Up(&deviceList[deviceIter]);
+            }
+            switch (ret)
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully ");
+                    if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
+                    {
+                        printf("Enabled");
+                    }
+                    else
+                    {
+                        printf("Disabled");
+                    }
+                    printf(" Ultra Low Current Spinup!\nA power cycle is required to complete this change.\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Setting Ultra Low Current Spinup not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to ");
+                    if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
+                    {
+                        printf("Enable\n");
+                    }
+                    else
+                    {
+                        printf("Disable\n");
+                    }
+                    printf(" Ultra Low Current Spinup!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
         
         if(PUIS_FEATURE_FLAG)
         {
@@ -2042,6 +2527,379 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+        if (SCSI_MP_RESET_OP)
+        {
+            switch (scsi_Update_Mode_Page(&deviceList[deviceIter], SCSI_MP_RESET_PAGE_NUMBER, SCSI_MP_RESET_SUBPAGE_NUMBER, UPDATE_SCSI_MP_RESET_TO_DEFAULT))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully reset mode page!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Mode page not supported or resetting mode page to defaults not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An Error occurred while trying reset the specified mode page\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCSI_MP_RESTORE_OP)
+        {
+            switch (scsi_Update_Mode_Page(&deviceList[deviceIter], SCSI_MP_RESTORE_PAGE_NUMBER, SCSI_MP_RESTORE_SUBPAGE_NUMBER, UPDATE_SCSI_MP_RESTORE_TO_SAVED))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restored mode page to saved values!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Mode page not supported or restoring mode page to saved values not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An Error occurred while trying restore the specified mode page to its saved values\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCSI_MP_SAVE_OP)
+        {
+            switch (scsi_Update_Mode_Page(&deviceList[deviceIter], SCSI_MP_SAVE_PAGE_NUMBER, SCSI_MP_SAVE_SUBPAGE_NUMBER, UPDATE_SCSI_MP_SAVE_CURRENT))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully saved mode page!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Mode page not supported or saving mode page not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An Error occurred while trying save the specified mode page\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCSI_RESET_LP_OP)
+        {
+            int resetLPResult = SUCCESS;
+            if (SCSI_RESET_LP_LPC > LPC_DEFAULT_CUMULATIVE_VALUES)
+            {
+                //requesting to reset all
+                for (SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES; SCSI_RESET_LP_LPC <= LPC_DEFAULT_CUMULATIVE_VALUES; ++SCSI_RESET_LP_LPC)
+                {
+                    int ret = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                    if (SUCCESS != ret)//this is to catch if any LPC reset value creates an error
+                    {
+                        resetLPResult = ret;
+                    }
+                }
+            }
+            else
+            {
+                //reset just the specified information
+                resetLPResult = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+            }
+            switch (resetLPResult)
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully reset the log page!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Log page reset not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case BAD_PARAMETER:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Resetting a specific log page is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An Error occurred while trying reset the log page\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCSI_SET_MP_OP)
+        {
+            if (strlen(SCSI_SET_MP_FILENAME) > 0)//file was given to be used to set the MP
+            {
+                //need to open the file that was passed, and convert it to an array.
+                //skip all newlines, spaces, underscores, dashes, slashes, etc. We should only be finding hex bytes inside this buffer (no H's or 0x's either)
+                FILE *modePageFile = fopen(SCSI_SET_MP_FILENAME, "r");
+                if (modePageFile)
+                {
+                    //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
+                    long fileLength = get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
+                    uint8_t *modePageBuffer = (uint8_t*)calloc(fileLength, sizeof(uint8_t));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                    char *fileBuf = (char*)calloc(fileLength, sizeof(char));
+                    if (modePageBuffer && fileBuf)
+                    {
+                        //read the file
+                        fread(fileBuf, sizeof(char), fileLength, modePageFile);
+                        //parse the file
+                        char *delimiters = " \n\r-_\\/|\t:;";
+                        char *token = strtok(fileBuf, delimiters);//add more to the delimiter list as needed
+                        if (token)
+                        {
+                            bool invalidCharacterOrMissingSeparator = false;
+                            uint32_t modeBufferElementCount = 0;
+                            do
+                            {
+                                if (strlen(token) > 2)
+                                {
+                                    invalidCharacterOrMissingSeparator = true;
+                                    break;
+                                }
+                                if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
+                                {
+                                    invalidCharacterOrMissingSeparator = true;
+                                    break;
+                                }
+                                //not an invalid character or a missing separator, so convert the string to an array value.
+                                modePageBuffer[modeBufferElementCount] = (uint8_t)strtoul(token, NULL, 16);
+                                ++modeBufferElementCount;
+                                token = strtok(NULL, delimiters);
+                            } while (token);
+                            if (!invalidCharacterOrMissingSeparator)
+                            {
+                                //file is read, send the change
+                                switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
+                                {
+                                case SUCCESS:
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Successfully set SCSI mode page!\n");
+                                    }
+                                    break;
+                                case NOT_SUPPORTED:
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                    }
+                                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                    break;
+                                default:
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Failed to set the mode page changes that were requested.\n");
+                                    }
+                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("An error occured while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            }
+                        }
+                        else
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("An error occured while trying to parse the file. Please check the file format.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        }
+                        safe_Free(modePageBuffer);
+                    }
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Unable to allocate memory to read the file. Cannot set the mode page.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                    fclose(modePageFile);
+                    safe_Free(modePageBuffer);
+                    safe_Free(fileBuf);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                //inputs were parsed, now we need to turn the inputs into what the user wants to change.
+                //first, figure out how large the mode page is, then read all it's bytes...then start going through and changing things as the user requests (the hard part)
+                uint32_t modePageSize = 0;
+                if (SUCCESS == get_SCSI_Mode_Page_Size(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, &modePageSize))
+                {
+                    uint8_t *modePageBuffer = (uint8_t*)calloc(modePageSize, sizeof(uint8_t));
+                    if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, NULL, NULL, true, modePageBuffer, modePageSize, NULL, NULL))
+                    {
+                        //TODO: some of this code can probably be simplified a bit more than it currently is.
+                        //now we have the data, we can begin modifying the field requested.
+                        if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
+                        {
+                            //not a multi-bye aligned field. Ex: 12 bits or 3 bits, etc
+                            //check if the number of bits is greater than a byte or not and if the starting bit anf field width would break across byte boundaries
+                            if (SCSI_SET_MP_FIELD_LEN_BITS > BITSPERBYTE || (int)((int)SCSI_SET_MP_BIT - (int)SCSI_SET_MP_FIELD_LEN_BITS) < 0)
+                            {
+                                //setting bits within multiple bytes, but not necessarily full bytes!
+                                uint8_t remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;
+                                uint8_t highUnalignedBits = 0;//always least significant bits in this byte
+                                uint8_t lowUnalignedBits = 0;//always most significant bits in this byte
+                                if (SCSI_SET_MP_BIT != 7)
+                                {
+                                    highUnalignedBits = SCSI_SET_MP_BIT + 1;
+                                    remainingBits -= highUnalignedBits;
+                                }
+                                //check how many full bytes worth of bits we'll be setting.
+                                uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
+                                remainingBits -= fullBytesToSet * BITSPERBYTE;
+                                lowUnalignedBits = remainingBits;
+                                //now we know how we need to set things, so lets start at the end (lsb) and work up from there.
+                                //as we set the necessary bits, we will shift the original value to the right to make it easy to set each piece of the bits.
+                                remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;//resetting this to help keep track as we shift through the bits.
+                                uint16_t offset = SCSI_SET_MP_BYTE + fullBytesToSet;
+                                if (lowUnalignedBits > 0)
+                                {
+                                    ++offset;//add one to the offset since these bits are on another byte past the starting offset and any full bytes we need to set
+                                    //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
+                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1);
+                                    //clear the requested bits first
+                                    modePageBuffer[offset] &= ~(mask);
+                                    //now set them as requested
+                                    modePageBuffer[offset] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1)));
+                                    //bits are set, decrease the offset for the next operation
+                                    --offset;
+                                    SCSI_SET_MP_FIELD_VALUE >>= lowUnalignedBits;
+                                }
+                                if (fullBytesToSet > 0)
+                                {
+                                    for (uint8_t byteCnt = 0; byteCnt < fullBytesToSet; ++byteCnt, SCSI_SET_MP_FIELD_VALUE >>= BITSPERBYTE, --offset)
+                                    {
+                                        modePageBuffer[offset] = M_Byte0(SCSI_SET_MP_FIELD_VALUE);
+                                    }
+                                }
+                                if (highUnalignedBits > 0)
+                                {
+                                    //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
+                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1);
+                                    //clear the requested bits first
+                                    modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                    //now set them as requested
+                                    modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1)));
+                                }
+                            }
+                            else
+                            {
+                                //setting bits within a single byte.
+                                uint8_t mask = M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
+                                //clear the requested bits first
+                                modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                //now set them as requested
+                                modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1)));
+                            }
+                        }
+                        else
+                        {
+                            //set full bytes to the value requested.
+                            uint16_t fieldWidthBytes = SCSI_SET_MP_FIELD_LEN_BITS / BITSPERBYTE;
+                            uint8_t byteNumber = 0;
+                            while (fieldWidthBytes >= 1)
+                            {
+                                modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = (uint8_t)((M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
+                                --fieldWidthBytes;
+                                ++byteNumber;
+                            }
+                        }
+                        //buffer is ready to send to the drive!
+                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modePageSize, !VOLATILE_FLAG))
+                        {
+                        case SUCCESS:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Successfully set SCSI mode page!\n");
+                            }
+                            break;
+                        case NOT_SUPPORTED:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                            break;
+                        default:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Failed to set the mode page changes that were requested.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Unable to read the requested mode page...it may not be supported.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    }
+                    safe_Free(modePageBuffer);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Unable to determine length of the requested mode page...it may not be supported.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
+            }
+        }
     }
     exit(exitCode);
 }
@@ -2128,11 +2986,21 @@ void utility_Usage(bool shortUsage)
     print_SCT_Write_Cache_Help(shortUsage);
     print_SCT_Write_Cache_Reordering_Help(shortUsage);
     print_SCT_Error_Recovery_Write_Help(shortUsage);
+    print_Ultra_Low_Current_Spinup_Help(shortUsage);
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");
 	print_Set_Ready_LED_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
+    print_SCSI_Reset_LP_Help(shortUsage);
+    print_SCSI_Reset_LP_Page_Help(shortUsage);
+    print_SCSI_MP_Reset_Help(shortUsage);
+    print_SCSI_MP_Restore_Help(shortUsage);
+    print_SCSI_MP_Save_Help(shortUsage);
+    print_Set_SCSI_MP_Help(shortUsage);
+    print_Show_SCSI_MP_Output_Mode_Help(shortUsage);
+    print_SCSI_Show_MP_Help(shortUsage);
+    print_SCSI_Show_MP_Control_Help(shortUsage);
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
