@@ -164,7 +164,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -182,7 +182,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -200,7 +200,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -219,7 +219,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -240,7 +240,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -262,7 +262,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -284,7 +284,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -307,7 +307,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\wingetopt\src;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;WIN_API_TARGET_VERSION=81000000L;DISABLE_NVME_PASSTHROUGH;</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
