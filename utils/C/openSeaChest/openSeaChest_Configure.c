@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "SeaChest_Configure";
-const char *buildVersion = "1.15.0";
+const char *buildVersion = "1.16.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -99,7 +99,6 @@ int32_t main(int argc, char *argv[])
     PROVISION_VAR
     TRIM_UNMAP_VARS //need these with provision var
     LOW_CURRENT_SPINUP_VARS
-    ULTRA_LOW_CURRENT_SPINUP_VARS
     SCT_WRITE_CACHE_VARS
     SCT_WRITE_CACHE_REORDER_VARS
     VOLATILE_VAR
@@ -164,7 +163,6 @@ int32_t main(int argc, char *argv[])
         READ_LOOK_AHEAD_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
-        ULTRA_LOW_CURRENT_SPINUP_LONG_OPT,
         SCT_WRITE_CACHE_LONG_OPT,
         SCT_WRITE_CACHE_REORDER_LONG_OPT,
         PUIS_FEATURE_LONG_OPT,
@@ -321,34 +319,21 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, LOW_CURRENT_SPINUP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(LOW_CURRENT_SPINUP_LONG_OPT_STRING))) == 0)
             {
                 LOW_CURRENT_SPINUP_FLAG = true;
-                if (strcmp(optarg, "enable") == 0)
+                if (strcmp(optarg, "low") == 0)
                 {
-                    LOW_CURRENT_SPINUP_ENABLE_DISABLE = true;
+                    LOW_CURRENT_SPINUP_STATE = 1;
+                }
+                else if (strcmp(optarg, "ultra") == 0)
+                {
+                    LOW_CURRENT_SPINUP_STATE = 3;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+                    LOW_CURRENT_SPINUP_STATE = 2;
                 }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
-            }
-            else if (strncmp(longopts[optionIndex].name, ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING))) == 0)
-            {
-                ULTRA_LOW_CURRENT_SPINUP_FLAG = true;
-                if (strcmp(optarg, "enable") == 0)
-                {
-                    ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE = true;
-                }
-                else if (strcmp(optarg, "disable") == 0)
-                {
-                    ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -1209,7 +1194,6 @@ int32_t main(int argc, char *argv[])
         || WRITE_CACHE_INFO
         || PROVISION_FLAG
         || LOW_CURRENT_SPINUP_FLAG
-        || ULTRA_LOW_CURRENT_SPINUP_FLAG
         || SCT_WRITE_CACHE_INFO
         || SCT_WRITE_CACHE_FLAG
         || SCT_WRITE_CACHE_REORDER_FLAG
@@ -2272,23 +2256,20 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Set Low Current Spinup\n");
             }
-            if (LOW_CURRENT_SPINUP_ENABLE_DISABLE)
-            {
-                ret = enable_Low_Current_Spin_Up(&deviceList[deviceIter]);
-            }
-            else
-            {
-                ret = disable_Low_Current_Spin_Up(&deviceList[deviceIter]);
-            }
-            switch (ret)
+            bool sctMethodSupported = is_SCT_Low_Current_Spinup_Supported(&deviceList[deviceIter]);
+            switch (set_Low_Current_Spin_Up(&deviceList[deviceIter], sctMethodSupported, LOW_CURRENT_SPINUP_STATE))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully ");
-                    if (LOW_CURRENT_SPINUP_ENABLE_DISABLE)
+                    if (LOW_CURRENT_SPINUP_STATE == 1)
                     {
                         printf("Enabled");
+                    }
+                    else if (LOW_CURRENT_SPINUP_STATE == 3)
+                    {
+                        printf("Enabled Ultra");
                     }
                     else
                     {
@@ -2300,81 +2281,21 @@ int32_t main(int argc, char *argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Setting Low Current Spinup not supported on this device\n");
+                    if (LOW_CURRENT_SPINUP_STATE == 3)
+                    {
+                        printf("Setting Ultra Low Current Spinup not supported on this device\n");
+                    }
+                    else
+                    {
+                        printf("Setting Low Current Spinup not supported on this device\n");
+                    }
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to ");
-                    if (LOW_CURRENT_SPINUP_ENABLE_DISABLE)
-                    {
-                        printf("Enable\n");
-                    }
-                    else
-                    {
-                        printf("Disable\n");
-                    }
-                    printf(" Low Current Spinup!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        //ultra low
-        if (ULTRA_LOW_CURRENT_SPINUP_FLAG)
-        {
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("Set Ultra Low Current Spinup\n");
-            }
-            if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
-            {
-                ret = enable_Ultra_Low_Current_Spin_Up(&deviceList[deviceIter]);
-            }
-            else
-            {
-                ret = disable_Low_Current_Spin_Up(&deviceList[deviceIter]);
-            }
-            switch (ret)
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Successfully ");
-                    if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
-                    {
-                        printf("Enabled");
-                    }
-                    else
-                    {
-                        printf("Disabled");
-                    }
-                    printf(" Ultra Low Current Spinup!\nA power cycle is required to complete this change.\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Setting Ultra Low Current Spinup not supported on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Failed to ");
-                    if (ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE)
-                    {
-                        printf("Enable\n");
-                    }
-                    else
-                    {
-                        printf("Disable\n");
-                    }
-                    printf(" Ultra Low Current Spinup!\n");
+                    printf("Failed to set the Low Current Spinup feature!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2986,7 +2907,6 @@ void utility_Usage(bool shortUsage)
     print_SCT_Write_Cache_Help(shortUsage);
     print_SCT_Write_Cache_Reordering_Help(shortUsage);
     print_SCT_Error_Recovery_Write_Help(shortUsage);
-    print_Ultra_Low_Current_Spinup_Help(shortUsage);
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");

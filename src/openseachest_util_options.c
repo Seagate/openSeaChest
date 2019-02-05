@@ -2059,26 +2059,18 @@ void print_NVME_Format_Unit_Help(bool shortHelp)
 
 void print_Low_Current_Spinup_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    printf("\t--%s [ low | ultra | disable ]  (SATA Only) (Seagate Only)\n", LOW_CURRENT_SPINUP_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to enable or disable the low current spinup\n");
-        printf("\t\tfeature on Seagate SATA drives. Note: This feature is not\n");
-        printf("\t\tavailable on every drive.\n\n");
+        printf("\t\tUse this option to set the state of the low current spinup\n");
+        printf("\t\tfeature on Seagate SATA drives.\n");
+        printf("\t\tWhen this setting is enabled for low or ultra low mode,\n");
+        printf("\t\tthe drive will take longer to spinup and become ready.\n");
+        printf("\t\tNote: This feature is not available on every drive.\n");
+        printf("\t\tNote: Some products will support low, but not the ultra\n");
+        printf("\t\t      low current spinup mode.\n\n");
     }
 }
-
-void print_Ultra_Low_Current_Spinup_Help(bool shortHelp)
-{
-    printf("\t--%s [ enable | disable ]  (SATA Only) (Seagate Only)\n", ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to enable or disable the ultra low current spinup\n");
-        printf("\t\tfeature on Seagate SATA drives. Note: This feature is not\n");
-        printf("\t\tavailable on every drive.\n\n");
-    }
-}
-
 
 void print_Disable_Data_Locking_Help(bool shortHelp)
 {

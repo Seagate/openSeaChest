@@ -1048,21 +1048,12 @@ extern "C"
 
     //low current spinup
     #define LOW_CURRENT_SPINUP_FLAG lowCurrentSpinUp
-    #define LOW_CURRENT_SPINUP_ENABLE_DISABLE enableDisableLowCurrentSpinup
+    #define LOW_CURRENT_SPINUP_STATE lowCurrentSpinupState
     #define LOW_CURRENT_SPINUP_VARS \
     bool LOW_CURRENT_SPINUP_FLAG = false;\
-    bool LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+    int LOW_CURRENT_SPINUP_STATE = 0;
     #define LOW_CURRENT_SPINUP_LONG_OPT_STRING "lowCurrentSpinup"
     #define LOW_CURRENT_SPINUP_LONG_OPT { LOW_CURRENT_SPINUP_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    //ultra low current spinup
-    #define ULTRA_LOW_CURRENT_SPINUP_FLAG ultralowCurrentSpinUp
-    #define ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE enableDisableUltraLowCurrentSpinup
-    #define ULTRA_LOW_CURRENT_SPINUP_VARS \
-    bool ULTRA_LOW_CURRENT_SPINUP_FLAG = false;\
-    bool ULTRA_LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
-    #define ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING "ultraLowCurrentSpinup"
-    #define ULTRA_LOW_CURRENT_SPINUP_LONG_OPT { ULTRA_LOW_CURRENT_SPINUP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //disable data locking
     #define DISABLE_DATA_LOCKING_FLAG disableDataLocking
