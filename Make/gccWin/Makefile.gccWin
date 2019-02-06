@@ -1,5 +1,5 @@
 #
-# Do NOT modify or remove this copyright and license  
+# Do NOT modify or remove this copyright and license
 #
 # Copyright (c) 2012 - 2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 #
@@ -16,7 +16,7 @@
 # choose from BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 # example: BUILD_ALL = firmware   for just firmware
 # BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
-BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd 
+BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 
 UTIL_SRC_DIR = ../../utils/C/openSeaChest
 
@@ -30,7 +30,7 @@ CFLAGS ?= -Wall
 CFLAGS += -Wno-unknown-pragmas -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
-CFLAGS += -isystem  
+CFLAGS += -isystem
 CFLAGS_I686 = -Wall -c -m32
 
 LDFLAGS = -Wall
@@ -42,6 +42,7 @@ LDLIBS = \
 INC_DIR= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../wingetopt/src \
 	-I../../opensea-operations/include \
 	-I../../include
@@ -49,9 +50,9 @@ INC_DIR= \
 UNAME := $(shell uname -s)
 ifneq (,$(findstring MINGW64,$(UNAME)))
     #CFLAGS += -mno-ms-bitfields
-    LDLIBS += ../../wingetopt/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libwingetopt.a 
+    LDLIBS += ../../wingetopt/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libwingetopt.a
     #BR note: pragma comment(lib,"Version.lib") is not supported by gcc, use the below supply the version.lib functions
-    LDFLAGS += -L/msys64/mingw64/x86_64-w64-mingw32/lib 
+    LDFLAGS += -L/msys64/mingw64/x86_64-w64-mingw32/lib
     LDLIBS += -lversion
     LDLIBS += -lcfgmgr32
 endif
@@ -154,7 +155,7 @@ PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
 
 PROJECT_DEFINES += -DENABLE_CSMI
 PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100162990L
-PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT  
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
 PROJECT_DEFINES += #-DDISABLE_NVME_PASSTHROUGH #-D_DEBUG
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
@@ -165,7 +166,7 @@ ifneq (,$(findstring MINGW64,$(UNAME)))
     # PROJECT_DEFINES += -D_WIN32_WINNT=0x0601
     # PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100150630L
     # PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=81000000L
-    # PROJECT_DEFINES += -DWINVER=SEA_WIN32_WINNT_WIN10 
+    # PROJECT_DEFINES += -DWINVER=SEA_WIN32_WINNT_WIN10
 endif
 
 .PHONY: clean clean_all all
@@ -291,7 +292,7 @@ endif
 
 #firmware
 ifneq (,$(findstring firmware,$(BUILD_ALL)))
-    $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir 
+    $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir
 	$(CC) $(FIRMWAREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
@@ -372,7 +373,7 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
-	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin clean 
+	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../wingetopt/Make/gccWin -f Makefile.gccWin clean
