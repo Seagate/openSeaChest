@@ -1048,10 +1048,10 @@ extern "C"
 
     //low current spinup
     #define LOW_CURRENT_SPINUP_FLAG lowCurrentSpinUp
-    #define LOW_CURRENT_SPINUP_ENABLE_DISABLE enableDisableLowCurrentSpinup
+    #define LOW_CURRENT_SPINUP_STATE lowCurrentSpinupState
     #define LOW_CURRENT_SPINUP_VARS \
     bool LOW_CURRENT_SPINUP_FLAG = false;\
-    bool LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+    int LOW_CURRENT_SPINUP_STATE = 0;
     #define LOW_CURRENT_SPINUP_LONG_OPT_STRING "lowCurrentSpinup"
     #define LOW_CURRENT_SPINUP_LONG_OPT { LOW_CURRENT_SPINUP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1542,6 +1542,95 @@ extern "C"
     #define ATA_SECURITY_INFO_OP_VAR getOptBool ATA_SECURITY_INFO_OP = goFalse;
     #define ATA_SECURITY_INFO_OP_LONG_OPT_STRING "ataSecurityInfo"
     #define ATA_SECURITY_INFO_OP_LONG_OPT { ATA_SECURITY_INFO_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_INFO_OP, goTrue }
+
+    //scsi mode page reset/restore/save
+    #define SCSI_MP_RESET_OP resetSCSIModePage
+    #define SCSI_MP_RESET_PAGE_NUMBER resetModePageNumber
+    #define SCSI_MP_RESET_SUBPAGE_NUMBER resetModeSubPageNumber
+    #define SCSI_MP_RESET_VARS \
+    bool SCSI_MP_RESET_OP = false;\
+    uint8_t SCSI_MP_RESET_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_RESET_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_RESET_LONG_OPT_STRING "scsiMPReset"
+    #define SCSI_MP_RESET_LONG_OPT { SCSI_MP_RESET_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define SCSI_MP_RESTORE_OP restoreSCSIModePage
+    #define SCSI_MP_RESTORE_PAGE_NUMBER restoreModePageNumber
+    #define SCSI_MP_RESTORE_SUBPAGE_NUMBER restoreModeSubPageNumber
+    #define SCSI_MP_RESTORE_VARS \
+    bool SCSI_MP_RESTORE_OP = false;\
+    uint8_t SCSI_MP_RESTORE_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_RESTORE_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_RESTORE_LONG_OPT_STRING "scsiMPRestore"
+    #define SCSI_MP_RESTORE_LONG_OPT { SCSI_MP_RESTORE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define SCSI_MP_SAVE_OP saveSCSIModePage
+    #define SCSI_MP_SAVE_PAGE_NUMBER saveModePageNumber
+    #define SCSI_MP_SAVE_SUBPAGE_NUMBER saveModeSubPageNumber
+    #define SCSI_MP_SAVE_VARS \
+    bool SCSI_MP_SAVE_OP = false;\
+    uint8_t SCSI_MP_SAVE_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_SAVE_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_SAVE_LONG_OPT_STRING "scsiMPSave"
+    #define SCSI_MP_SAVE_LONG_OPT { SCSI_MP_SAVE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //show scsi mode page (TODO: different output modes) output modes: classic vs "neat" or some other name...
+    #define SCSI_SHOW_MP_OP showSCSIModePage
+    #define SCSI_SHOW_MP_PAGE_NUMBER showModePageNumber
+    #define SCSI_SHOW_MP_SUBPAGE_NUMBER showModeSubPageNumber
+    #define SCSI_SHOW_MP_MPC_VALUE showSCSIMPmpc
+    #define SCSI_SHOW_MP_BUFFER_MODE showSCSIMPAsBuffer //default to false for classic
+    #define SCSI_SHOW_MP_VARS \
+    bool SCSI_SHOW_MP_OP = false;\
+    uint8_t SCSI_SHOW_MP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_SHOW_MP_SUBPAGE_NUMBER = 0;\
+    bool SCSI_SHOW_MP_BUFFER_MODE = false;\
+    int SCSI_SHOW_MP_MPC_VALUE = 0;//leave at zero to default to current values
+    #define SCSI_SHOW_MP_MPC_LONG_OPT_STRING "showSCSIMPControl"
+    #define SCSI_SHOW_MP_LONG_OPT_STRING "showSCSIMP"
+    #define SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING "showMPOutputMode"
+    #define SCSI_SHOW_MP_LONG_OPT { SCSI_SHOW_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_MPC_LONG_OPT { SCSI_SHOW_MP_MPC_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT { SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_LONG_OPTS SCSI_SHOW_MP_LONG_OPT,SCSI_SHOW_MP_MPC_LONG_OPT,SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT
+
+    //setting a SCSI mode page
+    #define SCSI_SET_MP_OP setSCSIModePage 
+    #define SCSI_SET_MP_FILENAME setSCSIModePageFilename
+    #define SCSI_SET_MP_PAGE_NUMBER setSCSIModePageNumber
+    #define SCSI_SET_MP_SUBPAGE_NUMBER setSCSIModeSubpageNumber
+    #define SCSI_SET_MP_BYTE setSCSIMPByte
+    #define SCSI_SET_MP_BIT setSCSIMPBit
+    #define SCSI_SET_MP_FIELD_LEN_BITS setSCSIMPFieldLen
+    #define SCSI_SET_MP_FIELD_VALUE setSCSIMPFieldVal
+    #define SCSI_SET_MP_VARS \
+    bool SCSI_SET_MP_OP = false;\
+    char SCSI_SET_MP_FILENAME[OPENSEA_PATH_MAX * 2] = { 0 };\
+    uint8_t SCSI_SET_MP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_SET_MP_SUBPAGE_NUMBER = 0;\
+    uint16_t SCSI_SET_MP_BYTE = 0;\
+    uint8_t SCSI_SET_MP_BIT = 0;\
+    uint8_t SCSI_SET_MP_FIELD_LEN_BITS = 0;\
+    uint64_t SCSI_SET_MP_FIELD_VALUE = 0;
+    #define SCSI_SET_MP_LONG_OPT_STRING "setSCSIMP" //mp[-sp]:byte:highestBit:fieldWidthInBits=value OR file=filename.txt
+    #define SCSI_SET_MP_LONG_OPT { SCSI_SET_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+
+    //reset a SCSI Log page
+    #define SCSI_RESET_LP_OP resetSCSILogPage
+    #define SCSI_RESET_LP_LPC resetSCSILogPageControl
+    #define SCSI_RESET_LP_PAGE_NUMBER resetSCSILogPageNumber
+    #define SCSI_RESET_LP_SUBPAGE_NUMBER resetSCSILogSubPageNumber
+    #define SCSI_RESET_LP_VARS \
+    bool SCSI_RESET_LP_OP = false;\
+    uint8_t SCSI_RESET_LP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_RESET_LP_SUBPAGE_NUMBER = 0;\
+    int SCSI_RESET_LP_LPC = 1; /*default to the thresholds*/
+    #define SCSI_RESET_LP_LONG_OPT_STRING "scsiLPReset"
+    #define SCSI_RESET_LP_PAGE_LONG_OPT_STRING "scsiLPResetPage"
+    #define SCSI_RESET_LP_LONG_OPT { SCSI_RESET_LP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_RESET_LP_PAGE_LONG_OPT {SCSI_RESET_LP_PAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_RESET_LP_LONG_OPTS SCSI_RESET_LP_LONG_OPT,SCSI_RESET_LP_PAGE_LONG_OPT
     
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2646,6 +2735,8 @@ extern "C"
 
     void print_Low_Current_Spinup_Help(bool shortHelp);
 
+    void print_Ultra_Low_Current_Spinup_Help(bool shortHelp);
+
     void print_Disable_Data_Locking_Help(bool shortHelp);
 
     void print_Model_Match_Help(bool shortHelp);
@@ -2912,6 +3003,23 @@ extern "C"
 
     void print_ATA_Security_Info_Help(bool shortHelp);
 
+    void print_SCSI_MP_Reset_Help(bool shortHelp);
+
+    void print_SCSI_MP_Restore_Help(bool shortHelp);
+
+    void print_SCSI_MP_Save_Help(bool shortHelp);
+
+    void print_SCSI_Show_MP_Help(bool shortHelp);
+
+    void print_SCSI_Show_MP_Control_Help(bool shortHelp);
+
+    void print_SCSI_Reset_LP_Help(bool shortHelp);
+
+    void print_SCSI_Reset_LP_Page_Help(bool shortHelp);
+
+    void print_Set_SCSI_MP_Help(bool shortHelp);
+
+    void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 

@@ -33,6 +33,7 @@ TCGLFLAGS ?= \
 INC_DIR?= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../include \
 	-I../../opensea-operations/include
 
