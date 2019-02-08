@@ -27,7 +27,7 @@ LIB_FILE_OUTPUT_DIR = lib
 
 CFLAGS ?= -Wall
 #BR note: If you want to hide all of the informational compiler messages, uncomment the line below
-CFLAGS += -Wno-unknown-pragmas -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable
+CFLAGS += -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
 CFLAGS += -isystem
@@ -43,14 +43,12 @@ INC_DIR= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
 	-I../../opensea-transport/include/vendor \
-	-I../../wingetopt/src \
 	-I../../opensea-operations/include \
 	-I../../include
 
 UNAME := $(shell uname -s)
 ifneq (,$(findstring MINGW64,$(UNAME)))
     #CFLAGS += -mno-ms-bitfields
-    LDLIBS += ../../wingetopt/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libwingetopt.a
     #BR note: pragma comment(lib,"Version.lib") is not supported by gcc, use the below supply the version.lib functions
     LDFLAGS += -L/msys64/mingw64/x86_64-w64-mingw32/lib
     LDLIBS += -lversion
@@ -258,7 +256,6 @@ export PROJECT_DEFINES
 opensea-libs:
 	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin
 	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin
-	$(MAKE) -C ../../wingetopt/Make/gccWin -f Makefile.gccWin
 	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin
 
 #basics
@@ -376,7 +373,6 @@ clean_all: clean
 	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin clean
-	$(MAKE) -C ../../wingetopt/Make/gccWin -f Makefile.gccWin clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)
