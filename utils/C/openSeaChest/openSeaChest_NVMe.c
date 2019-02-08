@@ -33,6 +33,7 @@
 #include "power_control.h"
 #include "smart.h"
 #include "logs.h"
+#include "nvme_operations.h"
 
 ////////////////////////
 //  Global Variables  //
@@ -91,8 +92,8 @@ int32_t main(int argc, char *argv[])
     NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
-    CHILD_MODEL_MATCH_VARS
-    CHILD_FW_MATCH_VARS
+    //CHILD_MODEL_MATCH_VARS
+    //CHILD_FW_MATCH_VARS
     ONLY_SEAGATE_VAR
     //POWER_MODE_VAR
     //scan output flags
@@ -114,7 +115,7 @@ int32_t main(int argc, char *argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        //USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -138,8 +139,8 @@ int32_t main(int argc, char *argv[])
         EXT_SMART_LOG_LONG_OPT1,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
-        CHILD_MODEL_MATCH_LONG_OPT,
-        CHILD_FW_MATCH_LONG_OPT,
+//      CHILD_MODEL_MATCH_LONG_OPT,
+//      CHILD_FW_MATCH_LONG_OPT,
         CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         NVME_TEMP_STATS_LONG_OPT,
         NVME_PCI_STATS_LONG_OPT,
@@ -339,16 +340,16 @@ int32_t main(int argc, char *argv[])
                 FW_MATCH_FLAG = true;
                 strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
-            {
-                CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
-            }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
-            {
-                CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
-            }
+//          else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+//          {
+//              CHILD_MODEL_MATCH_FLAG = true;
+//              strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+//          }
+//          else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+//          {
+//              CHILD_FW_MATCH_FLAG = true;
+//              strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+//          }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_FLAG = goTrue;
@@ -867,7 +868,7 @@ int32_t main(int argc, char *argv[])
 	            {
 	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
-	                    printf("ERROR: failed to get details for feature id %d\n",GET_FEATURES_IDENTIFIER);
+	                    printf("ERROR: failed to get details for feature id %d\n", GET_FEATURES_IDENTIFIER);
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	            }
@@ -1080,7 +1081,7 @@ int32_t main(int argc, char *argv[])
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
                 uint64_t offset = 0;
-                uint64_t fullSize;
+                uint64_t fullSize = 0;
                 int rtnVal;
                 nvmeTemetryLogHdr   *teleHdr;
 
@@ -1091,7 +1092,7 @@ int32_t main(int argc, char *argv[])
                 if (logBuffer != NULL)
                 {
                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                    cmdOpts.addr = (uint64_t)logBuffer;
+                    cmdOpts.addr = logBuffer;
                     cmdOpts.dataLen = size;
                     cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                     cmdOpts.offset = offset;
@@ -1135,7 +1136,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 memset(logBuffer, 0, size);
                                 cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                                cmdOpts.addr = (uint64_t)logBuffer;
+                                cmdOpts.addr = logBuffer;
                                 cmdOpts.dataLen = size;
                                 cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                                 cmdOpts.offset = offset;
@@ -1147,7 +1148,7 @@ int32_t main(int argc, char *argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                        printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     break;
@@ -1173,7 +1174,7 @@ int32_t main(int argc, char *argv[])
                                 {
                                     memset(logBuffer, 0, size);
                                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                                    cmdOpts.addr = (uint64_t)logBuffer;
+                                    cmdOpts.addr = logBuffer;
                                     cmdOpts.dataLen = size;
                                     cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                                     cmdOpts.offset = offset;
@@ -1185,7 +1186,7 @@ int32_t main(int argc, char *argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                            printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
@@ -1343,25 +1344,28 @@ int32_t main(int argc, char *argv[])
 	        //If it is not deferred, lets activate
 	        if ( (exitCode != UTIL_EXIT_OPERATION_FAILURE ) && (DOWNLOAD_FW_MODE != DL_FW_DEFERRED) )
 	        {
-	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0))//TODO: Add slot numbers. 
+	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0, false))//TODO: Add slot numbers. 
 	            {
 	            case SUCCESS:
 	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate/Commit successful\n");
 	                }
+                    //NOTE: Removed the following code because the firmware_Download_Activate uses functions that will check the NVMe return status and issue any
+                    //      reset activation required.
+
 	                // This is as of today (02/25/2016) Panther reports. 
-	                switch(deviceList[deviceIter].os_info.last_error & 0x00FF)
-	                {
-	                case NVME_FW_DL_REQUIRES_SYS_RST:
-	                case NVME_FW_DL_REQUIRES_NVM_RST:
-	                case NVME_FW_DL_ON_NEXT_RST:
-	                    printf("\n-- Please power cycle the system --\n\n");
-	                    break;
-	                default:
-	                    printf("\n-- WARN: Firmware Activate/Commit returned Status 0x%X --\n\n",deviceList[deviceIter].os_info.last_error & 0x00FF);
-	                    break;
-	                }
+//                  switch(deviceList[deviceIter].os_info.last_error & 0x00FF)
+//                  {
+//                  case NVME_FW_DL_REQUIRES_SYS_RST:
+//                  case NVME_FW_DL_REQUIRES_NVM_RST:
+//                  case NVME_FW_DL_ON_NEXT_RST:
+//                      printf("\n-- Please power cycle the system --\n\n");
+//                      break;
+//                  default:
+//                      printf("\n-- WARN: Firmware Activate/Commit returned Status 0x%X --\n\n",deviceList[deviceIter].os_info.last_error & 0x00FF);
+//                      break;
+//                  }
 	
 	                break;
 	            case NOT_SUPPORTED:
