@@ -93,10 +93,12 @@ Run the command "make release" to build the release version of the openSeaChest 
 After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
 
 #### Windows
+*** Option #1 - Microsoft tools ***
+
 Your system will require the latest [Microsoft Visual C++ 2017 Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to run the compiled openSeaChest tools.
 
 Required Tools:
-* Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
+  * Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
   * Windows 8/8.1 SDK for Visual Studio 2013
   * Windows 10 SDK version 10.0.14393.0 for Visual Studio 2015
   * Windows 10 SDK version 10.0.15063.0 for Visual Studio 2017 (x86 and x86_84)
@@ -117,16 +119,21 @@ Required Tools:
   Example: "msbuild "msbuild /p:Configuration=Release /p:Platform=x64"
 
   Available Platforms:
-  * Win32
-  * x64
-  * ARM (VS2017 only)
-  * ARM64 (VS2017 only)
+    * Win32
+    * x64
+    * ARM (VS2017 only)
+    * ARM64 (VS2017 only)
 
   Available Build Types:
-  * Release
-  * Debug
-  * Static-Release
-  * Static-Debug
+    * Release
+    * Debug
+    * Static-Release
+    * Static-Debug
+
+
+*** Option #2 - GNU and other open source tools for Windows ***
+
+We support the [MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction) with [MinGW](http://www.mingw.org/) development environments.  Make files are located under the individual ./Make/gccWin folders. Please see the README in the opensSeaChest/Make/gccWin folder for a comprehensive explanation of how to install and utilize these environments.
 
 #### Solaris/OpenSolaris
 Required Tools:
