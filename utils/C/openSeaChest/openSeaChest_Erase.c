@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "1.9.0";
+const char *buildVersion = "2.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -106,6 +106,8 @@ int32_t main(int argc, char *argv[])
     //generic erase
     POLL_VAR
 #if !defined(DISABLE_TCG_SUPPORT)
+    TCG_SID_VARS
+    TCG_PSID_VARS
     //tcg revert SP
     TCG_REVERT_SP_VARS
     //tcg revert
@@ -191,6 +193,8 @@ int32_t main(int argc, char *argv[])
 #if !defined(DISABLE_TCG_SUPPORT)
         TCG_REVERT_SP_LONG_OPT,
         TCG_REVERT_LONG_OPT,
+        TCG_SID_LONG_OPT,
+        TCG_PSID_LONG_OPT,
 #endif
         { "sanitize",               required_argument,          NULL,           'e'     }, //has a purposely unadvertized short option
         WRITE_SAME_LONG_OPTS,
@@ -347,10 +351,13 @@ int32_t main(int argc, char *argv[])
                 }
             }
             #if !defined(DISABLE_TCG_SUPPORT)
-            else if (strcmp(longopts[optionIndex].name, TCG_REVERT_SP_LONG_OPT_STRING) == 0)
+            else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
-                TCG_REVERT_SP_FLAG = true;
-                TCG_REVERT_SP_PSID_FLAG = strdup(optarg);
+                strncpy(TCG_SID_FLAG, optarg, 32);
+            }
+            else if (strcmp(longopts[optionIndex].name, TCG_PSID_LONG_OPT_STRING) == 0)
+            {
+                strncpy(TCG_PSID_FLAG, optarg, 32);
             }
             #endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
@@ -452,7 +459,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = strlen("SeaChest");
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
                     memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
                 }
                 else
@@ -466,7 +473,7 @@ int32_t main(int argc, char *argv[])
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
                     memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = M_Min(strlen(optarg), 32);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)M_Min(strlen(optarg), 32);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING))) == 0)
@@ -915,7 +922,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         //user did not set a password, so we need to set "SeaChest"
-        ATA_SECURITY_PASSWORD_BYTE_COUNT = strlen("SeaChest");
+        ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
         memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
     }
 
@@ -1513,7 +1520,7 @@ int32_t main(int argc, char *argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                if (strlen(TCG_REVERT_SP_PSID_FLAG) < 32)
+                if (strlen(TCG_PSID_FLAG) < 32)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -1521,7 +1528,7 @@ int32_t main(int argc, char *argv[])
                     }
                     return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 }
-                switch (revert_SP(&deviceList[deviceIter], TCG_REVERT_SP_PSID_FLAG))
+                switch (revert_SP(&deviceList[deviceIter], TCG_PSID_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1564,7 +1571,35 @@ int32_t main(int argc, char *argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                switch (revert(&deviceList[deviceIter]))
+                eRevertAuthority authority = REVERT_AUTHORITY_MSID;
+                char *passwordToUse = NULL;
+                if (strlen(TCG_PSID_FLAG) || strlen(TCG_SID_FLAG))
+                {
+                    //user is providing SID or PSID to use.
+                    if (strlen(TCG_PSID_FLAG) > 0 && strlen(TCG_PSID_FLAG) < 32)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("\tPSID too short. PSID must be 32 characters long.\n");
+                        }
+                        return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                    }
+                    else if (strlen(TCG_PSID_FLAG) == 32)
+                    {
+                        authority = REVERT_AUTHORITY_PSID;
+                        passwordToUse = TCG_PSID_FLAG;
+                    }
+                    else if (strlen(TCG_SID_FLAG) > 0)
+                    {
+                        authority = REVERT_AUTHORITY_SID;
+                        passwordToUse = TCG_SID_FLAG;
+                    }
+                    else
+                    {
+                        return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                    }
+                }
+                switch (revert(&deviceList[deviceIter], REVERT_TYPE_ADMINSP, authority, passwordToUse))//Only supporting revert on adminSP at this time.
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2422,9 +2457,15 @@ void utility_Usage(bool shortUsage)
     //multiple interfaces
     print_Time_Hours_Help(shortUsage);
     print_Time_Minutes_Help(shortUsage);
+    #if !defined(DISABLE_TCG_SUPPORT)
+    print_TCG_PSID_Help(shortUsage);
+    #endif
     print_Time_Seconds_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
     print_Show_Physical_Element_Status_Help(shortUsage);
+    #if !defined(DISABLE_TCG_SUPPORT)
+    print_TCG_SID_Help(shortUsage);
+    #endif
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);

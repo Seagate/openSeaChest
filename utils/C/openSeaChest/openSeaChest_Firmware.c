@@ -108,6 +108,7 @@ int32_t main(int argc, char *argv[])
     FWDL_SEGMENT_SIZE_VARS
     SHOW_FWDL_SUPPORT_VAR
     ACTIVATE_DEFERRED_FW_VAR
+    SWITCH_FW_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -157,6 +158,7 @@ int32_t main(int argc, char *argv[])
         FWDL_SEGMENT_SIZE_LONG_OPT,
         SHOW_FWDL_SUPPORT_LONG_OPT,
         ACTIVATE_DEFERRED_FW_LONG_OPT,
+        SWITCH_FW_LONG_OPT,
         FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
         WIN10_FLEXIBLE_API_USE_LONG_OPT,
         LONG_OPT_TERMINATOR
@@ -530,6 +532,7 @@ int32_t main(int argc, char *argv[])
         || DOWNLOAD_FW_FLAG
         || SHOW_FWDL_SUPPORT_INFO_FLAG
         || ACTIVATE_DEFERRED_FW_FLAG
+        || SWITCH_FW_FLAG
         ))
     {
         utility_Usage(true);
@@ -1029,7 +1032,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (ACTIVATE_DEFERRED_FW_FLAG)
+        if (ACTIVATE_DEFERRED_FW_FLAG || SWITCH_FW_FLAG)
         {
             supportedDLModes supportedFWDLModes;
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
@@ -1043,7 +1046,11 @@ int32_t main(int argc, char *argv[])
 				dlOptions.firmwareFileMem = NULL;
 				dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
-				start_Timer(&commandTimer);
+                if (SWITCH_FW_FLAG)
+                {   
+                    dlOptions.existingFirmwareImage = true;
+                }
+                start_Timer(&commandTimer);
 				ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
 				stop_Timer(&commandTimer);
                 switch (ret)
@@ -1052,7 +1059,7 @@ int32_t main(int argc, char *argv[])
                     exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate successful\n");
+                        printf("Firmware activation successful\n");
                         fill_Drive_Info_Data(&deviceList[deviceIter]);
                         if (NEW_FW_MATCH_FLAG)
                         {
@@ -1075,14 +1082,21 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate not supported\n");
+                        if (SWITCH_FW_FLAG && FIRMWARE_SLOT_FLAG == 0)
+                        {
+                            printf("You must specify a valid slot number when switching firmware images.\n");
+                        }
+                        else
+                        {
+                            printf("Firmware activate not supported\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate failed\n");
+                        printf("Firmware activation failed\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1230,4 +1244,5 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Slot_Buffer_ID_Help(shortUsage);
     print_FWDL_Segment_Size_Help(shortUsage);
     print_show_FWDL_Support_Help(shortUsage);
+    print_Firmware_Switch_Help(shortUsage);
 }

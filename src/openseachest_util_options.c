@@ -258,6 +258,15 @@ void print_Version_Help(bool shortHelp, const char *utilName)
     }
 }
 
+void print_Confirm_Help(bool shortHelp)
+{
+    printf("\t--%s %s\n", CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option should be used only with Data Destructive Commands\n\n");
+    }
+}
+
 void print_License_Help(bool shortHelp)
 {
     printf("\t--%s\n", LICENSE_LONG_OPT_STRING);
@@ -427,28 +436,32 @@ void print_Revert_Help(bool shortHelp)
     printf("\t--%s\n", TCG_REVERT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis operation performs an Opal SSC spec Revert on an SED drive.\n");
+        printf("\t\tThis operation performs an Opal SSC spec Revert on the adminSP.\n");
         printf("\t\tThis operation is only available on Seagate TCG Opal drives.\n");
-        printf("\t\tIn order to complete this operation, the lockingSP must not be\n");
-        printf("\t\tactivated, as this option will activate it in order to perform\n");
-        printf("\t\tthe revert. The value of SID, must also be the value of MSID\n");
-        printf("\t\tas this operation must authenticate as SID using the value of\n");
-        printf("\t\tMSID. Upon completion, the drive will be \"like new\" with all\n");
+        printf("\t\tThe --%s flag can be provided to perform the revert with\n", TCG_PSID_LONG_OPT_STRING);
+        printf("\t\tthe PSID authority incase of a lost password.\n");
+        printf("\t\tThe --%s flag can be provided to perform the revert with SID.\n", TCG_SID_LONG_OPT_STRING);
+        printf("\t\tIf neither the --%s or the --%s options are provided, then the\n", TCG_PSID_LONG_OPT_STRING, TCG_SID_LONG_OPT_STRING);
+        printf("\t\trevert will be sent setting SID as the MSID value. This will only work\n");
+        printf("\t\ton a drive not already activated by security software.\n");
+        printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
         printf("\t\tuser data being cryptographically erased and all other settings\n");
-        printf("\t\tset to factory defaults. If this operation fails, use --revertSP\n");
+        printf("\t\tset to factory defaults. If this operation fails, try using --%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
 		printf("\t\tinstead.\n\n");
     }
 }
 
 void print_RevertSP_Help(bool shortHelp)
 {
-    printf("\t--%s DrivePSID\n", TCG_REVERT_SP_LONG_OPT_STRING);
+    printf("\t--%s\t(Seagate Only)\n", TCG_REVERT_SP_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis operation performs an Opal SSC spec revertSP on a Seagate.\n");
-		printf("\t\tSED drive. This operation is available on all Seagate SED\n");
-        printf("\t\tdrives. Upon completion, the drive will be \"like new\" with\n");
-        printf("\t\tall user data being cryptographically erased and all other\n");
+        printf("\t\tThis operation performs a revertSP on a Seagate SED drive\n");
+		printf("\t\tin the adminSP with the PSID.\n");
+        printf("\t\tThe PSID must be provided using the --%s option.\n", TCG_PSID_LONG_OPT_STRING);
+        printf("\t\tThis operation is available on all Seagate SED HDD drives and some SSDs.\n");
+        printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
+        printf("\t\tuser data being cryptographically erased and all other\n");
         printf("\t\tsettings set to factory defaults.\n\n");
     }
 }
@@ -1155,6 +1168,18 @@ void print_Firmware_Activate_Help(bool shortHelp)
         printf("\t\tYou can use this along with a --%s & --%s to\n", DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
         printf("\t\tautomatically issue the activate command after the download has\n");
         printf("\t\tcompleted.\n\n");
+    }
+}
+
+void print_Firmware_Switch_Help(bool shortHelp)
+{
+    printf("\t--%s \t(NVMe Only) (Seagate Only)\n", SWITCH_FW_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to switch to a different firmware slot on an\n");
+        printf("\t\tNVMe drive. You must specify a slot with the --%s option\n", FIRMWARE_SLOT_LONG_OPT_STRING);
+        printf("\t\tor this will fail. The specified slot must already have a\n");
+        printf("\t\tvalid firmware image in it as well.\n\n");
     }
 }
 
@@ -2037,6 +2062,17 @@ void print_TCG_SID_Help(bool shortHelp)
         printf("\t\tThis option can be used to specify the value of SID.\n");
         printf("\t\tThis may be required in order to perform certain TCG\n");
         printf("\t\toperations. If this is not provided, MSID will be used\n\n");
+    }
+}
+
+void print_TCG_PSID_Help(bool shortHelp)
+{
+    printf("\t--%s\n", TCG_PSID_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option can be used to specify the value of the PSID.\n");
+        printf("\t\tThis may be required in order to perform certain TCG\n");
+        printf("\t\toperations.\n\n");
     }
 }
 

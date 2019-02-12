@@ -590,14 +590,28 @@ extern "C"
     #define WRITE_SAME_RANGE_LONG_OPT { WRITE_SAME_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define WRITE_SAME_LONG_OPTS WRITE_SAME_LONG_OPT,WRITE_SAME_RANGE_LONG_OPT
 
+    //TCG SID flag
+    #define TCG_SID_FLAG sid
+    #define TCG_SID_VARS \
+    char sidBuf[33] = { 0 };\
+    char* TCG_SID_FLAG = &sidBuf[0];
+    #define TCG_SID_LONG_OPT_STRING "sid"
+    #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //TCG PSID flag
+    #define TCG_PSID_FLAG psid
+    #define TCG_PSID_VARS \
+    char psidBuf[33] = { 0 };\
+    char* TCG_PSID_FLAG = &psidBuf[0];
+    #define TCG_PSID_LONG_OPT_STRING "psid"
+    #define TCG_PSID_LONG_OPT { TCG_PSID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //revertSP flags
     #define TCG_REVERT_SP_FLAG revertSP
-    #define TCG_REVERT_SP_PSID_FLAG psid
     #define TCG_REVERT_SP_VARS \
-    bool TCG_REVERT_SP_FLAG = false; \
-    char *TCG_REVERT_SP_PSID_FLAG = NULL;
+    getOptBool TCG_REVERT_SP_FLAG = goFalse;
     #define TCG_REVERT_SP_LONG_OPT_STRING "revertSP"
-    #define TCG_REVERT_SP_LONG_OPT { TCG_REVERT_SP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define TCG_REVERT_SP_LONG_OPT { TCG_REVERT_SP_LONG_OPT_STRING, no_argument, &TCG_REVERT_SP_FLAG, goTrue }
 
     //revert flags
     #define TCG_REVERT_FLAG tcgRevert
@@ -662,6 +676,12 @@ extern "C"
     #define ACTIVATE_DEFERRED_FW_LONG_OPT_STRING "activateFW"
     #define ACTIVATE_DEFERRED_FW_LONG_OPT { ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, no_argument, &ACTIVATE_DEFERRED_FW_FLAG, goTrue }
 
+    //switch FW slot (activates firmware already stored on an NVMe drive to a different slot) (NVMe option since it supports multiple slots)
+    #define SWITCH_FW_FLAG switchFW
+    #define SWITCH_FW_VAR getOptBool SWITCH_FW_FLAG = goFalse;
+    #define SWITCH_FW_LONG_OPT_STRING "switchFW"
+    #define SWITCH_FW_LONG_OPT { SWITCH_FW_LONG_OPT_STRING, no_argument, &SWITCH_FW_FLAG, goTrue }
+
     //Win10 allow flexible use of Win10 api for any supported command to any device on any interface (removes strict requirement that the matching command to device type and interface type is required)
     #define WIN10_FLEXIBLE_API_USE_FLAG windows10AllowFlexibleUseOfWinFWDLAPI
     #define WIN10_FLEXIBLE_API_USE_VAR getOptBool WIN10_FLEXIBLE_API_USE_FLAG = goFalse;
@@ -675,7 +695,7 @@ extern "C"
     #define FIRMWARE_BUFFER_ID_LONG_OPT_STRING "fwBufferID"
     #define FIRMWARE_SLOT_LONG_OPT { FIRMWARE_SLOT_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define FIRMWARE_BUFFER_ID_LONG_OPT { FIRMWARE_BUFFER_ID_LONG_OPT_STRING, required_argument, NULL, 0 }
-    #define FIRMWARE_SLOT_BUFFER_ID_LONG_OPT FIRMWARE_BUFFER_ID_LONG_OPT,FIRMWARE_BUFFER_ID_LONG_OPT
+    #define FIRMWARE_SLOT_BUFFER_ID_LONG_OPT FIRMWARE_SLOT_LONG_OPT,FIRMWARE_BUFFER_ID_LONG_OPT
 
     //model number match
     #define MODEL_MATCH_FLAG modelNumberMatch
@@ -1038,13 +1058,6 @@ extern "C"
     #define IEEE1667_PORT_VARS bool IEEE1667_PORT_FLAG = false; bool IEEE1667_PORT_MODE_FLAG = false;
     #define IEEE1667_PORT_LONG_OPT_STRING "ieee1667Port"
     #define IEEE1667_PORT_LONG_OPT { IEEE1667_PORT_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    #define TCG_SID_FLAG sid
-    #define TCG_SID_VARS \
-    char sidBuf[33] = { 0 };\
-    char* TCG_SID_FLAG = &sidBuf[0];
-    #define TCG_SID_LONG_OPT_STRING "sid"
-    #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //low current spinup
     #define LOW_CURRENT_SPINUP_FLAG lowCurrentSpinUp
@@ -1781,6 +1794,21 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Version_Help(bool shortHelp, const char *utilName);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Confirm_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the confirm option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //--------------------------------------------]---------------------------------
+    void print_Confirm_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2725,6 +2753,8 @@ extern "C"
     void print_Set_FWDL_Port_Help(bool shortHelp);
 
     void print_TCG_SID_Help(bool shortHelp);
+
+    void print_TCG_PSID_Help(bool shortHelp);
 
     //TODO: Consolidate with the SAS Format
     void print_NVME_Format_Unit_Help(bool shortHelp);
