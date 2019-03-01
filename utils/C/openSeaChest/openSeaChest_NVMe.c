@@ -889,7 +889,7 @@ int32_t main(int argc, char *argv[])
 	                {
 	                    size = 32 * size; //Get first 32 entries. 
 	                }
-	                logBuffer = calloc(size, 1);
+	                logBuffer = (uint8_t *)calloc((size_t)size, 1);
 	                if (logBuffer != NULL)
 	                {
 	                    cmdOpts.nsid = NVME_ALL_NAMESPACES;
@@ -915,7 +915,7 @@ int32_t main(int argc, char *argv[])
 	                            if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL,\
 	                                                                    logName, "bin", 1, &fileNameUsed) )
 	                            {
-	                                fwrite(logBuffer, sizeof(uint8_t), size, pLogFile);
+	                                fwrite(logBuffer, sizeof(uint8_t), (size_t)size, pLogFile);
 	                                fflush(pLogFile);
 	                                fclose(pLogFile);
 	                                if (VERBOSITY_QUIET < toolVerbosity)
@@ -1077,7 +1077,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                uint64_t size = BLOCK_SIZE; 
+                uint32_t size = BLOCK_SIZE; 
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
                 uint64_t offset = 0;
@@ -1087,7 +1087,7 @@ int32_t main(int argc, char *argv[])
 
                 memset(&cmdOpts,0, sizeof(nvmeGetLogPageCmdOpts));
 
-                logBuffer = calloc(size, 1);
+                logBuffer = (uint8_t*)calloc(size, 1);
 
                 if (logBuffer != NULL)
                 {
