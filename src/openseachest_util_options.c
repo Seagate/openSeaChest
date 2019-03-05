@@ -69,7 +69,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
 #if !defined (DISABLE_NVME_PASSTHROUGH)
 	printf(" - NVMe Enabled");
 #endif
-    printf("\n Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    printf("\n Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");

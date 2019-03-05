@@ -38,7 +38,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "SeaChest_NVMe";
+const char *util_name = "openSeaChest_NVMe";
 const char *buildVersion = "0.1.0";
 
 ////////////////////////////
