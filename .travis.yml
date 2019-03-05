@@ -35,12 +35,12 @@ matrix:
         tags: true
   - os: windows
     env:
-    - MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
-    - MSDEPLOY_PATH="c:\Users\travis\build\Seagate\openSeaChest\Make\VS.2017\x64\Static-Release\*"
+      - MSBUILD_PATH="c:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin"
+      - MSDEPLOY_PATH="c:\Users\travis\build\Seagate\openSeaChest\Make\VS.2017\x64\Static-Release\*"
     before_script: cd "Make\VS.2017"
     script:
-    - export PATH=$MSBUILD_PATH:$PATH
-    - MSBuild.exe //p:Configuration=Static-Release //p:Platform=x64
+      - export PATH=$MSBUILD_PATH:$PATH
+      - MSBuild.exe //p:Configuration=Static-Release //p:Platform=x64
     deploy:
       provider: releases
       file_glob: true
