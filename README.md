@@ -1,3 +1,4 @@
+[![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 # openSeaChest
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
@@ -5,10 +6,10 @@
 
 [![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 
-Welcome to the openSeaChest open source project!
+Welcome to the `openSeaChest` open source project!
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have
-been made available to you under the Mozilla Public License 2.0 (MPL).  The
+been made available to you under the [Mozilla Public License 2.0 (MPL-2.0)](https://opensource.org/licenses/MPL-2.0).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
 
@@ -17,7 +18,7 @@ systems may be found at
 https://github.com/Seagate/ToolBin/tree/master/openSeaChest
 
 This collection of storage device utility software is branched (forked) off of
-an original utility collection called the Seagate SeaChest Utilities by Seagate
+an original utility collection called the `Seagate SeaChest Utilities` by Seagate
 Technology LLC.  The original SeaChest Utilities are still available at
 www.seagate.com or https://github.com/Seagate/ToolBin/tree/master/SeaChest.
 Binary versions are available for Linux or Windows, with the Windows versions
@@ -69,13 +70,13 @@ Here is an overview presentation we gave at the *Storage Networking Industry Ass
 * *openSeaChest_SMART*
 
 ### Source
-Depend on your git version & client you can use either of the following two commands to clone the repository.
+Depending on your git version & client you can use either of the following two commands to clone the repository.
 
-git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git
+`git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git`
 
 or
 
-git clone --recursive https://github.com/Seagate/openSeaChest.git
+`git clone --recursive https://github.com/Seagate/openSeaChest.git`
 
 
 Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules.
@@ -87,10 +88,10 @@ Required Tools:
 * gcc
 * make
 
-From a terminal, change directory to "openSeaChest/Make/gcc".
+From a terminal, change directory to `openSeaChest/Make/gcc`
 
 Run the command "make release" to build the release version of the openSeaChest tools.
-After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
+After compilation is complete, the tools will be output into a subfolder named `openseachest_exes`
 
 #### Windows
 *** Option #1 - Microsoft tools ***
@@ -110,13 +111,13 @@ Required Tools:
   Press "F7" to build all of the tools and libraries, or select "Build->Build All" from the menu.
   The tools will be output into "openSeaChest/Make/VS.(version)/(platform)/(build type)".
 
-  Example: "openSeaChest/Make/VS.2017/x64/Release"
+  Example: `openSeaChest/Make/VS.2017/x64/Release`
   ##### msbuild
   From the developer command prompt for the version of visual studio that installed msbuild, change directory to "openSeaChest/Make/VS.(version)".
 
   Build with the command "msbuild /p:Configuration=(build type) /p:Platform=(platform)".
 
-  Example: "msbuild "msbuild /p:Configuration=Release /p:Platform=x64"
+  Example: `msbuild /p:Configuration=Release /p:Platform=x64`
 
   Available Platforms:
     * Win32
@@ -133,17 +134,17 @@ Required Tools:
 
 *** Option #2 - GNU and other open source tools for Windows ***
 
-We support the [MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction) with [MinGW](http://www.mingw.org/) development environments.  Make files are located under the individual ./Make/gccWin folders. Please see the README in the opensSeaChest/Make/gccWin folder for a comprehensive explanation of how to install and utilize these environments.
+We support the [MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction) with [MinGW](http://www.mingw.org/) development environments.  Make files are located under the individual ./Make/gccWin folders. Please see the README in the `opensSeaChest/Make/gccWin` folder for a comprehensive explanation of how to install and utilize these environments.
 
 #### Solaris/OpenSolaris
 Required Tools:
 * gcc
 * gmake
 
-From a terminal, change directory to "openSeaChest/Make/gcc".
+From a terminal, change directory to `openSeaChest/Make/gcc`
 
-Run the command "gmake release" to build the release version of the openSeaChest tools.
-After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
+Run the command `gmake release` to build the release version of the openSeaChest tools.
+After compilation is complete, the tools will be output into a subfolder named `openseachest_exes`
 
 #### Documentation
 
