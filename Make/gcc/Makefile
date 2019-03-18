@@ -1,7 +1,7 @@
 #
 # Do NOT modify or remove this copyright and license
 #
-# Copyright (c) 2012 - 2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+# Copyright (c) 2012 - 2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 #
 # This software is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,26 +13,27 @@
 #
 
 UTIL_SRC_DIR=../../utils/C/openSeaChest
-CC = gcc
+CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
-STRIP = strip
-CFLAGS = -Wall -c -std=gnu99
-CFLAGS_I686 = -Wall -c -m32
-LFLAGS = \
+STRIP ?= strip
+CFLAGS ?= -Wall -c -std=gnu99
+CFLAGS_I686 ?= -Wall -c -m32
+LFLAGS ?= \
 	-Wall \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
-TCGLFLAGS = \
+TCGLFLAGS ?= \
 	-Wall \
 	../../SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
 	../../SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
-INC_DIR= \
+INC_DIR?= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../include \
 	-I../../opensea-operations/include
 
@@ -112,6 +113,9 @@ FIRMWAREOUTFILE = openSeaChest_Firmware
 #add any defines needed for tool release.
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
 PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
+ifeq ($(UNAME),FreeBSD)
+PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+endif
 
 .PHONY: clean_all all
 

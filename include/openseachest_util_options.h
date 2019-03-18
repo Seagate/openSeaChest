@@ -109,11 +109,11 @@ extern "C"
     #define SCAN_LONG_OPT_STRING "scan"
     #define SCAN_LONG_OPT { SCAN_LONG_OPT_STRING, no_argument, NULL, SCAN_SHORT_OPT }
 
-	#define AGRESSIVE_SCAN_FLAG agressiveScan
-	#define AGRESSIVE_SCAN_FLAG_VAR bool AGRESSIVE_SCAN_FLAG = false;
-	#define AGRESSIVE_SCAN_SHORT_OPT 'S'
-	#define AGRESSIVE_SCAN_LONG_OPT_STRING "Scan"
-	#define AGRESSIVE_SCAN_LONG_OPT { AGRESSIVE_SCAN_LONG_OPT_STRING, no_argument, NULL, AGRESSIVE_SCAN_SHORT_OPT }
+    #define AGRESSIVE_SCAN_FLAG agressiveScan
+    #define AGRESSIVE_SCAN_FLAG_VAR bool AGRESSIVE_SCAN_FLAG = false;
+    #define AGRESSIVE_SCAN_SHORT_OPT 'S'
+    #define AGRESSIVE_SCAN_LONG_OPT_STRING "Scan"
+    #define AGRESSIVE_SCAN_LONG_OPT { AGRESSIVE_SCAN_LONG_OPT_STRING, no_argument, NULL, AGRESSIVE_SCAN_SHORT_OPT }
 
     #define SCAN_FLAGS_SHORT_OPT 'F'
     #define SCAN_FLAGS_LONG_OPT_STRING "scanFlags"
@@ -156,15 +156,15 @@ extern "C"
     #define FORCE_DRIVE_TYPE_VARS\
     getOptBool FORCE_SCSI_FLAG = goFalse;\
     getOptBool FORCE_ATA_FLAG = goFalse;\
-	getOptBool FORCE_ATA_PIO_FLAG = goFalse;\
+    getOptBool FORCE_ATA_PIO_FLAG = goFalse;\
     getOptBool FORCE_ATA_DMA_FLAG = goFalse;\
     getOptBool FORCE_ATA_UDMA_FLAG = goFalse;
     #define FORCE_SCSI_LONG_OPT_STRING "forceSCSI"
     #define FORCE_SCSI_LONG_OPT { FORCE_SCSI_LONG_OPT_STRING, no_argument, &FORCE_SCSI_FLAG, goTrue }
     #define FORCE_ATA_LONG_OPT_STRING "forceATA"
     #define FORCE_ATA_LONG_OPT { FORCE_ATA_LONG_OPT_STRING, no_argument, &FORCE_ATA_FLAG, goTrue }
-	#define FORCE_ATA_PIO_LONG_OPT_STRING "forceATAPIO"
-	#define FORCE_ATA_PIO_LONG_OPT { FORCE_ATA_PIO_LONG_OPT_STRING, no_argument, &FORCE_ATA_PIO_FLAG, goTrue }
+    #define FORCE_ATA_PIO_LONG_OPT_STRING "forceATAPIO"
+    #define FORCE_ATA_PIO_LONG_OPT { FORCE_ATA_PIO_LONG_OPT_STRING, no_argument, &FORCE_ATA_PIO_FLAG, goTrue }
     #define FORCE_ATA_DMA_LONG_OPT_STRING "forceATADMA"
     #define FORCE_ATA_DMA_LONG_OPT { FORCE_ATA_DMA_LONG_OPT_STRING, no_argument, &FORCE_ATA_DMA_FLAG, goTrue }
     #define FORCE_ATA_UDMA_LONG_OPT_STRING "forceATAUDMA"
@@ -198,8 +198,8 @@ extern "C"
     #define OUTPUTPATH_FLAG outputPathPtr
     #define OUTPUTPATH_VAR char *OUTPUTPATH_FLAG = NULL;
 
-	#define PATH_LONG_OPT_STRING "outputPath"
-	#define OUTPUTPATH_LONG_OPT { PATH_LONG_OPT_STRING, required_argument, NULL, 0}
+    #define PATH_LONG_OPT_STRING "outputPath"
+    #define OUTPUTPATH_LONG_OPT { PATH_LONG_OPT_STRING, required_argument, NULL, 0}
 
     #define LICENSE_FLAG showLicense
     #define LICENSE_VAR getOptBool LICENSE_FLAG = goFalse;
@@ -590,14 +590,28 @@ extern "C"
     #define WRITE_SAME_RANGE_LONG_OPT { WRITE_SAME_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define WRITE_SAME_LONG_OPTS WRITE_SAME_LONG_OPT,WRITE_SAME_RANGE_LONG_OPT
 
+    //TCG SID flag
+    #define TCG_SID_FLAG sid
+    #define TCG_SID_VARS \
+    char sidBuf[33] = { 0 };\
+    char* TCG_SID_FLAG = &sidBuf[0];
+    #define TCG_SID_LONG_OPT_STRING "sid"
+    #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //TCG PSID flag
+    #define TCG_PSID_FLAG psid
+    #define TCG_PSID_VARS \
+    char psidBuf[33] = { 0 };\
+    char* TCG_PSID_FLAG = &psidBuf[0];
+    #define TCG_PSID_LONG_OPT_STRING "psid"
+    #define TCG_PSID_LONG_OPT { TCG_PSID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //revertSP flags
     #define TCG_REVERT_SP_FLAG revertSP
-    #define TCG_REVERT_SP_PSID_FLAG psid
     #define TCG_REVERT_SP_VARS \
-    bool TCG_REVERT_SP_FLAG = false; \
-    char *TCG_REVERT_SP_PSID_FLAG = NULL;
+    getOptBool TCG_REVERT_SP_FLAG = goFalse;
     #define TCG_REVERT_SP_LONG_OPT_STRING "revertSP"
-    #define TCG_REVERT_SP_LONG_OPT { TCG_REVERT_SP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define TCG_REVERT_SP_LONG_OPT { TCG_REVERT_SP_LONG_OPT_STRING, no_argument, &TCG_REVERT_SP_FLAG, goTrue }
 
     //revert flags
     #define TCG_REVERT_FLAG tcgRevert
@@ -662,6 +676,12 @@ extern "C"
     #define ACTIVATE_DEFERRED_FW_LONG_OPT_STRING "activateFW"
     #define ACTIVATE_DEFERRED_FW_LONG_OPT { ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, no_argument, &ACTIVATE_DEFERRED_FW_FLAG, goTrue }
 
+    //switch FW slot (activates firmware already stored on an NVMe drive to a different slot) (NVMe option since it supports multiple slots)
+    #define SWITCH_FW_FLAG switchFW
+    #define SWITCH_FW_VAR getOptBool SWITCH_FW_FLAG = goFalse;
+    #define SWITCH_FW_LONG_OPT_STRING "switchFW"
+    #define SWITCH_FW_LONG_OPT { SWITCH_FW_LONG_OPT_STRING, no_argument, &SWITCH_FW_FLAG, goTrue }
+
     //Win10 allow flexible use of Win10 api for any supported command to any device on any interface (removes strict requirement that the matching command to device type and interface type is required)
     #define WIN10_FLEXIBLE_API_USE_FLAG windows10AllowFlexibleUseOfWinFWDLAPI
     #define WIN10_FLEXIBLE_API_USE_VAR getOptBool WIN10_FLEXIBLE_API_USE_FLAG = goFalse;
@@ -675,7 +695,7 @@ extern "C"
     #define FIRMWARE_BUFFER_ID_LONG_OPT_STRING "fwBufferID"
     #define FIRMWARE_SLOT_LONG_OPT { FIRMWARE_SLOT_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define FIRMWARE_BUFFER_ID_LONG_OPT { FIRMWARE_BUFFER_ID_LONG_OPT_STRING, required_argument, NULL, 0 }
-    #define FIRMWARE_SLOT_BUFFER_ID_LONG_OPT FIRMWARE_BUFFER_ID_LONG_OPT,FIRMWARE_BUFFER_ID_LONG_OPT
+    #define FIRMWARE_SLOT_BUFFER_ID_LONG_OPT FIRMWARE_SLOT_LONG_OPT,FIRMWARE_BUFFER_ID_LONG_OPT
 
     //model number match
     #define MODEL_MATCH_FLAG modelNumberMatch
@@ -1039,19 +1059,12 @@ extern "C"
     #define IEEE1667_PORT_LONG_OPT_STRING "ieee1667Port"
     #define IEEE1667_PORT_LONG_OPT { IEEE1667_PORT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define TCG_SID_FLAG sid
-    #define TCG_SID_VARS \
-    char sidBuf[33] = { 0 };\
-    char* TCG_SID_FLAG = &sidBuf[0];
-    #define TCG_SID_LONG_OPT_STRING "sid"
-    #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
-
     //low current spinup
     #define LOW_CURRENT_SPINUP_FLAG lowCurrentSpinUp
-    #define LOW_CURRENT_SPINUP_ENABLE_DISABLE enableDisableLowCurrentSpinup
+    #define LOW_CURRENT_SPINUP_STATE lowCurrentSpinupState
     #define LOW_CURRENT_SPINUP_VARS \
     bool LOW_CURRENT_SPINUP_FLAG = false;\
-    bool LOW_CURRENT_SPINUP_ENABLE_DISABLE = false;
+    int LOW_CURRENT_SPINUP_STATE = 0;
     #define LOW_CURRENT_SPINUP_LONG_OPT_STRING "lowCurrentSpinup"
     #define LOW_CURRENT_SPINUP_LONG_OPT { LOW_CURRENT_SPINUP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1448,6 +1461,189 @@ extern "C"
     #define SMART_ERROR_LOG_FORMAT_VAR bool SMART_ERROR_LOG_FORMAT_FLAG = false;
     #define SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING "smartErrorLogFormat"
     #define SMART_ERROR_LOG_FORMAT_LONG_OPT { SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //These defines make it easy to access the variable name
+    #define ATA_SECURITY_USER_PROVIDED_PASS     atSecurityPasswordProvidedByUser
+    #define ATA_SECURITY_PASSWORD               ataSecPassword
+    #define ATA_SECURITY_PASSWORD_BYTE_COUNT    ataSecPasswordBytesProvided //count of how many bytes of password were given by the user so that when the modificaions are performed, they are done based on this value.
+    #define ATA_SECURITY_USING_MASTER_PW        ataSecurityUsingMasterPW
+    #define ATA_SECURITY_ERASE_ENHANCED         ataSecEnhancedErase
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY   ataMasterPWCap
+    #define ATA_SECURITY_MASTER_PW_ID           masterPasswordIdentifier
+    #define ATA_SECURITY_FORCE_SAT              forceATASecViaSAT
+    #define ATA_SECURITY_FORCE_SAT_VALID        forceATASecSATValid
+
+    typedef struct _ataSecPWModifications
+    {
+        bool byteSwapped;
+        bool md5Hash;//Hash should ALWAYS be performed last of the mods so that everything can be combined nicely
+        bool zeroPadded;//default padding
+        bool spacePadded;//padded with spaces
+        bool fpadded;//Pad with FFh
+        bool leftAligned;
+        bool rightAligned;
+        bool forceUppercase;
+        bool forceLowercase;
+        bool invertCase;
+        //TODO: add other modifications as we find or hear other that work with some odd BIOS chips.
+    }ataSecPWModifications;
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS passwordModificationType
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR ataSecPWModifications ATA_SECURITY_PASSWORD_MODIFICATIONS = { false, false, false, false, false, false, false };
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING "ataSecPWMod"
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT { ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //These defines are to put the variable definitions in a file
+    #define ATA_SECURITY_PASSWORD_VARS \
+    bool ATA_SECURITY_USER_PROVIDED_PASS = false;\
+    uint8_t ATA_SECURITY_PASSWORD[32] = { 0 }; \
+    uint8_t ATA_SECURITY_PASSWORD_BYTE_COUNT = 0;
+    #define ATA_SECURITY_PASSWORD_LONG_OPT_STRING "ataSecPassword" //agrs are: password in quotes, SeaChest, or the word empty
+    #define ATA_SECURITY_PASSWORD_LONG_OPT { ATA_SECURITY_PASSWORD_LONG_OPT_STRING, required_argument, NULL, 0 }
+                                                                                          //
+    #define ATA_SECURITY_USING_MASTER_PW_VAR    bool ATA_SECURITY_USING_MASTER_PW = false;//false means user password. True means master password
+    #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING "ataSecPassType"
+    #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT { ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //TODO: This needs to handle the request to do secure erase AND which TYPE of secure erase
+    #define ATA_SECURITY_ERASE_OP performATASecurityErase
+    #define ATA_SECURITY_ERASE_OP_VARS \
+    bool ATA_SECURITY_ERASE_OP = false; \
+    bool ATA_SECURITY_ERASE_ENHANCED = false;//false = normal erase, true - enhanced erase
+    #define ATA_SECURITY_ERASE_OP_LONG_OPT_STRING "ataSecureErase"
+    #define ATA_SECURITY_ERASE_OP_LONG_OPT { ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_VAR   bool ATA_SECURITY_MASTER_PW_CAPABILITY = false;//false = high, true = maximum
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING "ataSecCapability"
+    #define ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT { ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_MASTER_PW_ID_VAR       uint16_t ATA_SECURITY_MASTER_PW_ID = 0;//value set by the user
+    #define ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING "ataSecMasterPWID"
+    #define ATA_SECURITY_MASTER_PW_ID_LONG_OPT { ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING "ataSATsecurityProtocol"
+    #define ATA_SECURITY_FORCE_SAT_LONG_OPT { ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define ATA_SECURITY_FORCE_SAT_VARS \
+    bool ATA_SECURITY_FORCE_SAT_VALID = false;\
+    bool ATA_SECURITY_FORCE_SAT = false;//false = turn OFF SAT security protocol commands. true = turn ON SAT security protocol commands
+
+    //set password
+    #define ATA_SECURITY_SET_PASSWORD_OP setATASecurityPassword
+    #define ATA_SECURITY_SET_PASSWORD_OP_VAR getOptBool ATA_SECURITY_SET_PASSWORD_OP = goFalse;
+    #define ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING "setATASecPW"
+    #define ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT { ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_SET_PASSWORD_OP, goTrue }
+
+    //unlock
+    #define ATA_SECURITY_UNLOCK_OP unlockATASecurity
+    #define ATA_SECURITY_UNLOCK_OP_VAR getOptBool ATA_SECURITY_UNLOCK_OP = goFalse;
+    #define ATA_SECURITY_UNLOCK_OP_LONG_OPT_STRING "unlockATASec"
+    #define ATA_SECURITY_UNLOCK_OP_LONG_OPT { ATA_SECURITY_UNLOCK_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_UNLOCK_OP, goTrue }
+
+    //disable the password
+    #define ATA_SECURITY_DISABLE_OP disableATASecurityPW
+    #define ATA_SECURITY_DISABLE_OP_VAR getOptBool ATA_SECURITY_DISABLE_OP = goFalse;
+    #define ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING "disableATASecPW"
+    #define ATA_SECURITY_DISABLE_OP_LONG_OPT { ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_DISABLE_OP, goTrue }
+
+    //freezelock
+    #define ATA_SECURITY_FREEZELOCK_OP freezelockATASecurity
+    #define ATA_SECURITY_FREEZELOCK_OP_VAR getOptBool ATA_SECURITY_FREEZELOCK_OP = goFalse;
+    #define ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING "ataSecFreeze"
+    #define ATA_SECURITY_FREEZELOCK_OP_LONG_OPT { ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_FREEZELOCK_OP, goTrue }
+
+    //ata security info
+    #define ATA_SECURITY_INFO_OP ataSecurityInfo
+    #define ATA_SECURITY_INFO_OP_VAR getOptBool ATA_SECURITY_INFO_OP = goFalse;
+    #define ATA_SECURITY_INFO_OP_LONG_OPT_STRING "ataSecurityInfo"
+    #define ATA_SECURITY_INFO_OP_LONG_OPT { ATA_SECURITY_INFO_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_INFO_OP, goTrue }
+
+    //scsi mode page reset/restore/save
+    #define SCSI_MP_RESET_OP resetSCSIModePage
+    #define SCSI_MP_RESET_PAGE_NUMBER resetModePageNumber
+    #define SCSI_MP_RESET_SUBPAGE_NUMBER resetModeSubPageNumber
+    #define SCSI_MP_RESET_VARS \
+    bool SCSI_MP_RESET_OP = false;\
+    uint8_t SCSI_MP_RESET_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_RESET_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_RESET_LONG_OPT_STRING "scsiMPReset"
+    #define SCSI_MP_RESET_LONG_OPT { SCSI_MP_RESET_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define SCSI_MP_RESTORE_OP restoreSCSIModePage
+    #define SCSI_MP_RESTORE_PAGE_NUMBER restoreModePageNumber
+    #define SCSI_MP_RESTORE_SUBPAGE_NUMBER restoreModeSubPageNumber
+    #define SCSI_MP_RESTORE_VARS \
+    bool SCSI_MP_RESTORE_OP = false;\
+    uint8_t SCSI_MP_RESTORE_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_RESTORE_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_RESTORE_LONG_OPT_STRING "scsiMPRestore"
+    #define SCSI_MP_RESTORE_LONG_OPT { SCSI_MP_RESTORE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define SCSI_MP_SAVE_OP saveSCSIModePage
+    #define SCSI_MP_SAVE_PAGE_NUMBER saveModePageNumber
+    #define SCSI_MP_SAVE_SUBPAGE_NUMBER saveModeSubPageNumber
+    #define SCSI_MP_SAVE_VARS \
+    bool SCSI_MP_SAVE_OP = false;\
+    uint8_t SCSI_MP_SAVE_PAGE_NUMBER = 0;\
+    uint8_t SCSI_MP_SAVE_SUBPAGE_NUMBER = 0;
+    #define SCSI_MP_SAVE_LONG_OPT_STRING "scsiMPSave"
+    #define SCSI_MP_SAVE_LONG_OPT { SCSI_MP_SAVE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //show scsi mode page (TODO: different output modes) output modes: classic vs "neat" or some other name...
+    #define SCSI_SHOW_MP_OP showSCSIModePage
+    #define SCSI_SHOW_MP_PAGE_NUMBER showModePageNumber
+    #define SCSI_SHOW_MP_SUBPAGE_NUMBER showModeSubPageNumber
+    #define SCSI_SHOW_MP_MPC_VALUE showSCSIMPmpc
+    #define SCSI_SHOW_MP_BUFFER_MODE showSCSIMPAsBuffer //default to false for classic
+    #define SCSI_SHOW_MP_VARS \
+    bool SCSI_SHOW_MP_OP = false;\
+    uint8_t SCSI_SHOW_MP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_SHOW_MP_SUBPAGE_NUMBER = 0;\
+    bool SCSI_SHOW_MP_BUFFER_MODE = false;\
+    int SCSI_SHOW_MP_MPC_VALUE = 0;//leave at zero to default to current values
+    #define SCSI_SHOW_MP_MPC_LONG_OPT_STRING "showSCSIMPControl"
+    #define SCSI_SHOW_MP_LONG_OPT_STRING "showSCSIMP"
+    #define SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING "showMPOutputMode"
+    #define SCSI_SHOW_MP_LONG_OPT { SCSI_SHOW_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_MPC_LONG_OPT { SCSI_SHOW_MP_MPC_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT { SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_SHOW_MP_LONG_OPTS SCSI_SHOW_MP_LONG_OPT,SCSI_SHOW_MP_MPC_LONG_OPT,SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT
+
+    //setting a SCSI mode page
+    #define SCSI_SET_MP_OP setSCSIModePage 
+    #define SCSI_SET_MP_FILENAME setSCSIModePageFilename
+    #define SCSI_SET_MP_PAGE_NUMBER setSCSIModePageNumber
+    #define SCSI_SET_MP_SUBPAGE_NUMBER setSCSIModeSubpageNumber
+    #define SCSI_SET_MP_BYTE setSCSIMPByte
+    #define SCSI_SET_MP_BIT setSCSIMPBit
+    #define SCSI_SET_MP_FIELD_LEN_BITS setSCSIMPFieldLen
+    #define SCSI_SET_MP_FIELD_VALUE setSCSIMPFieldVal
+    #define SCSI_SET_MP_VARS \
+    bool SCSI_SET_MP_OP = false;\
+    char SCSI_SET_MP_FILENAME[OPENSEA_PATH_MAX * 2] = { 0 };\
+    uint8_t SCSI_SET_MP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_SET_MP_SUBPAGE_NUMBER = 0;\
+    uint16_t SCSI_SET_MP_BYTE = 0;\
+    uint8_t SCSI_SET_MP_BIT = 0;\
+    uint8_t SCSI_SET_MP_FIELD_LEN_BITS = 0;\
+    uint64_t SCSI_SET_MP_FIELD_VALUE = 0;
+    #define SCSI_SET_MP_LONG_OPT_STRING "setSCSIMP" //mp[-sp]:byte:highestBit:fieldWidthInBits=value OR file=filename.txt
+    #define SCSI_SET_MP_LONG_OPT { SCSI_SET_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+
+    //reset a SCSI Log page
+    #define SCSI_RESET_LP_OP resetSCSILogPage
+    #define SCSI_RESET_LP_LPC resetSCSILogPageControl
+    #define SCSI_RESET_LP_PAGE_NUMBER resetSCSILogPageNumber
+    #define SCSI_RESET_LP_SUBPAGE_NUMBER resetSCSILogSubPageNumber
+    #define SCSI_RESET_LP_VARS \
+    bool SCSI_RESET_LP_OP = false;\
+    uint8_t SCSI_RESET_LP_PAGE_NUMBER = 0;\
+    uint8_t SCSI_RESET_LP_SUBPAGE_NUMBER = 0;\
+    int SCSI_RESET_LP_LPC = 1; /*default to the thresholds*/
+    #define SCSI_RESET_LP_LONG_OPT_STRING "scsiLPReset"
+    #define SCSI_RESET_LP_PAGE_LONG_OPT_STRING "scsiLPResetPage"
+    #define SCSI_RESET_LP_LONG_OPT { SCSI_RESET_LP_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_RESET_LP_PAGE_LONG_OPT {SCSI_RESET_LP_PAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SCSI_RESET_LP_LONG_OPTS SCSI_RESET_LP_LONG_OPT,SCSI_RESET_LP_PAGE_LONG_OPT
     
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -1598,6 +1794,21 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Version_Help(bool shortHelp, const char *utilName);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Confirm_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the confirm option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //--------------------------------------------]---------------------------------
+    void print_Confirm_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2543,6 +2754,8 @@ extern "C"
 
     void print_TCG_SID_Help(bool shortHelp);
 
+    void print_TCG_PSID_Help(bool shortHelp);
+
     //TODO: Consolidate with the SAS Format
     void print_NVME_Format_Unit_Help(bool shortHelp);
 
@@ -2551,6 +2764,8 @@ extern "C"
     void print_Output_Mode_Help(bool shortHelp);
 
     void print_Low_Current_Spinup_Help(bool shortHelp);
+
+    void print_Ultra_Low_Current_Spinup_Help(bool shortHelp);
 
     void print_Disable_Data_Locking_Help(bool shortHelp);
 
@@ -2626,7 +2841,7 @@ extern "C"
 
     void print_Set_SSC_Help(bool shortHelp);
 
-	void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
+    void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
 
     void print_Buffer_Test_Help(bool shortHelp);
 
@@ -2795,6 +3010,46 @@ extern "C"
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
     void print_SMART_Error_Log_Format_Help(bool shortHelp);
+
+    void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Modifications_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Help(bool shortHelp);
+
+    void print_ATA_Security_Password_Type_Help(bool shortHelp);
+
+    void print_ATA_Security_Master_Password_Capability_Help(bool shortHelp);
+
+    void print_ATA_Security_Master_Password_ID_Help(bool shortHelp);
+
+    void print_ATA_Security_Force_SAT_Security_Protocol_Help(bool shortHelp);
+
+    void print_ATA_Security_Set_Password_Help(bool shortHelp);
+
+    void print_ATA_Security_Unlock_Help(bool shortHelp);
+
+    void print_ATA_Security_Freezelock_Help(bool shortHelp);
+
+    void print_ATA_Security_Info_Help(bool shortHelp);
+
+    void print_SCSI_MP_Reset_Help(bool shortHelp);
+
+    void print_SCSI_MP_Restore_Help(bool shortHelp);
+
+    void print_SCSI_MP_Save_Help(bool shortHelp);
+
+    void print_SCSI_Show_MP_Help(bool shortHelp);
+
+    void print_SCSI_Show_MP_Control_Help(bool shortHelp);
+
+    void print_SCSI_Reset_LP_Help(bool shortHelp);
+
+    void print_SCSI_Reset_LP_Page_Help(bool shortHelp);
+
+    void print_Set_SCSI_MP_Help(bool shortHelp);
+
+    void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 
@@ -3110,81 +3365,6 @@ if (optarg != NULL)                                                             
     }                                                                                                                       \
     optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
 }
-
-#define ATA_SECURITY_ERASE_UTIL_VARS \
-bool runSecureErase = false;\
-bool enhanced = false;
-
-#define ATA_SECURITY_ERASE_SUBOPT_PARSE                                                                                     \
-if (optarg != NULL)                                                                                                         \
-{                                                                                                                           \
-    int  index = optind - 1;                                                                                                \
-    char *nextSubOpt = NULL;                                                                                                \
-    while (index < argc)                                                                                                    \
-    {                                                                                                                       \
-        nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-        if (strncmp("-", nextSubOpt, 1) != 0) /*check if optarg is next switch so that we break out of parsing suboptions*/ \
-        {                                                                                                                   \
-            if (strncmp("enhanced", nextSubOpt, strlen(nextSubOpt)) == 0)                                                   \
-            {                                                                                                               \
-                runSecureErase = true;                                                                                      \
-                enhanced = true;                                                                                            \
-            }                                                                                                               \
-            else if (strncmp("normal", nextSubOpt, strlen(nextSubOpt)) == 0)                                                \
-            {                                                                                                               \
-                runSecureErase = true;                                                                                      \
-            }                                                                                                               \
-        }                                                                                                                   \
-        else                                                                                                                \
-        {                                                                                                                   \
-            break;                                                                                                          \
-        }                                                                                                                   \
-        index++;                                                                                                            \
-    }                                                                                                                       \
-    optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-}
-
-#define ATA_SECURITY_ERASE_DISABLE_PW_UTIL_VARS \
-bool disableATAPassword = false; \
-const char *ATAPassword = NULL; \
-bool atauserMasterPW = false;/*false = user, true = master*/
-
-    #define ATA_SECURITY_ERASE_DISABLE_PW_SUBOPT_PARSE                                                                          \
-    if (optarg != NULL)                                                                                                         \
-    {                                                                                                                           \
-        disableATAPassword = true;                                                                                              \
-        int  index = optind - 1;                                                                                                \
-        char *nextSubOpt = NULL;                                                                                                \
-        while (index < argc)                                                                                                    \
-        {                                                                                                                       \
-            nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-            if (strncmp("-", nextSubOpt, 1) != 0) /*check if optarg is next switch so that we break out of parsing suboptions*/ \
-            {                                                                                                                   \
-                if (strncmp("SeaChest", nextSubOpt, strlen(nextSubOpt)) == 0)                                                   \
-                {                                                                                                               \
-                    ATAPassword = "SeaChest";                                                                                    \
-                }                                                                                                               \
-                else if (strncmp("user", nextSubOpt, strlen(nextSubOpt)) == 0)                                                  \
-                {                                                                                                               \
-                    atauserMasterPW = false;                                                                                    \
-                }                                                                                                               \
-                else if (strncmp("master", nextSubOpt, strlen(nextSubOpt)) == 0)                                                \
-                {                                                                                                               \
-                    atauserMasterPW = true;                                                                                     \
-                }                                                                                                               \
-                else /*assume they have given an ACSII password to use*/                                                        \
-                {                                                                                                               \
-                    ATAPassword = nextSubOpt;                                                                                   \
-                }                                                                                                               \
-            }                                                                                                                   \
-            else                                                                                                                \
-            {                                                                                                                   \
-                break;                                                                                                          \
-            }                                                                                                                   \
-            index++;                                                                                                            \
-        }                                                                                                                       \
-        optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-    }
 
 #if defined (__cplusplus)
 }

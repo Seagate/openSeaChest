@@ -1,5 +1,5 @@
 //
-// SeaChest_NVMe.c
+// openSeaChest_NVMe.c
 //
 // Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // **************************************************************************************
-// \file SeaChest_NVMe.c Binary command line that performs various erase methods on a device.
+// \file openSeaChest_NVMe.c Binary command line that performs various erase methods on a device.
 
 //////////////////////
 //  Included files  //
@@ -33,12 +33,13 @@
 #include "power_control.h"
 #include "smart.h"
 #include "logs.h"
+#include "nvme_operations.h"
 
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "SeaChest_NVMe";
-const char *buildVersion = "0.0.3";
+const char *util_name = "openSeaChest_NVMe";
+const char *buildVersion = "0.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -91,6 +92,8 @@ int32_t main(int argc, char *argv[])
     NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
+    //CHILD_MODEL_MATCH_VARS
+    //CHILD_FW_MATCH_VARS
     ONLY_SEAGATE_VAR
     //POWER_MODE_VAR
     //scan output flags
@@ -112,7 +115,7 @@ int32_t main(int argc, char *argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        //USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -134,16 +137,19 @@ int32_t main(int argc, char *argv[])
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
         EXT_SMART_LOG_LONG_OPT1,
+        MODEL_MATCH_LONG_OPT,
+        FW_MATCH_LONG_OPT,
+//      CHILD_MODEL_MATCH_LONG_OPT,
+//      CHILD_FW_MATCH_LONG_OPT,
         CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         NVME_TEMP_STATS_LONG_OPT,
         NVME_PCI_STATS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
-    g_verbosity = VERBOSITY_DEFAULT;
+    eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
     DOWNLOAD_FW_MODE = DL_FW_UNKNOWN;
 
-    atexit(print_Final_newline);
 
     ////////////////////////
     //  Argument Parsing  //
@@ -152,9 +158,9 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
+        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    opterr = 0;//hide getopt parsing errors and let us handle them in the '?' case or ':' case
     //get options we know we need
     while (1) //changed to while 1 in order to parse multiple options when longs options are involved
     {
@@ -265,23 +271,23 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (strncmp("Error", optarg, strlen(optarg)) == 0)
+                    if (strncmp("error", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_ERROR_ID;
                     }
-                    else if (strncmp("SMART", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("smart", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_SMART_ID;
                     }
-                    else if (strncmp("FWSlots", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("fwSlots", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_FW_SLOT_ID;
                     }
-                    else if (strncmp("SuppCmds", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("suppCmds", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_CMD_SPT_EFET_ID;
                     }
-                    else if (strncmp("SelfTest", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("selfTest", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
                     }
@@ -295,11 +301,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GET_NVME_TELE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_NVME_TELE_LONG_OPT_STRING))) == 0)
             {
-                if (strncmp("HOST", optarg, strlen(optarg)) == 0)
+                if (strncmp("host", optarg, strlen(optarg)) == 0)
                 {
                     GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
                 }
-                else if (strncmp("CTRL", optarg, strlen(optarg)) == 0)
+                else if (strncmp("ctrl", optarg, strlen(optarg)) == 0)
                 {
                     GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
                 }
@@ -324,6 +330,26 @@ int32_t main(int argc, char *argv[])
                     printf("Please use -h option to print help\n\n");
                 }
             }
+            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                MODEL_MATCH_FLAG = true;
+                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+            }
+            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                FW_MATCH_FLAG = true;
+                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+            }
+//          else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+//          {
+//              CHILD_MODEL_MATCH_FLAG = true;
+//              strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+//          }
+//          else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+//          {
+//              CHILD_FW_MATCH_FLAG = true;
+//              strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+//          }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_FLAG = goTrue;
@@ -342,30 +368,34 @@ int32_t main(int argc, char *argv[])
                     //check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Option %c requires an argument\n", optopt);
                 }
                 utility_Usage(true);
-                return exitCode;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
+                exit(exitCode);
             }
             break;
         case DEVICE_SHORT_OPT: //device
@@ -373,6 +403,10 @@ int32_t main(int argc, char *argv[])
             {
                 //Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
                 exit(255);
             }
             break;
@@ -388,26 +422,37 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                g_verbosity = atoi(optarg);
+                toolVerbosity = atoi(optarg);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
-            g_verbosity = VERBOSITY_QUIET;
+            toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
+            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_NO_ERROR);
         default:
             break;
         }
     }
 
+    atexit(print_Final_newline);
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -423,7 +468,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < g_verbosity)
+    if (VERBOSITY_QUIET < toolVerbosity)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -489,7 +534,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        scan_And_Print_Devs(scanControl, NULL);
+        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -526,7 +571,7 @@ int32_t main(int argc, char *argv[])
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
@@ -540,7 +585,7 @@ int32_t main(int argc, char *argv[])
     {
         if (SUCCESS != get_Device_Count(&numberOfDevices, 0))
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
@@ -549,7 +594,7 @@ int32_t main(int argc, char *argv[])
     }
     else if (DEVICE_LIST_COUNT == 0)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
@@ -585,7 +630,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
     if (!DEVICE_LIST)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Unable to allocate memory\n");
         }
@@ -620,19 +665,23 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
+        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+        {
+            DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
+        }
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
@@ -650,22 +699,33 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
+#if defined(VMK_CROSS_COMP)
+            deviceList[handleIter].os_info.nvmeFd = NULL;
+#endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
             deviceList[handleIter].dFlags = flags;
+
+            deviceList[handleIter].deviceVerbosity = toolVerbosity;
             /*get the device for the specified handle*/
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-            if ((deviceList[handleIter].os_info.fd < 0) || (ret == FAILURE || ret == PERMISSION_DENIED))
+#if !defined(VMK_CROSS_COMP)
+            if ((deviceList[handleIter].os_info.fd < 0) || 
+#else
+            if (((deviceList[handleIter].os_info.fd < 0) && 
+                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+#endif
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
@@ -675,13 +735,14 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
     	if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
                 }
@@ -694,7 +755,7 @@ int32_t main(int argc, char *argv[])
         {
 			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
 			{
-				if (VERBOSITY_QUIET < g_verbosity)
+				if (VERBOSITY_QUIET < toolVerbosity)
 				{
 					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
 				}
@@ -706,12 +767,17 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
                 }
                 continue;
             }
+        }
+
+        if (VERBOSITY_QUIET < toolVerbosity)
+        {
+			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
         
 	    //now start looking at what operations are going to be performed and kick them off
@@ -721,7 +787,7 @@ int32_t main(int argc, char *argv[])
 	        {
 	            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("ERROR: failed to get device information\n");
 	                }
@@ -748,7 +814,7 @@ int32_t main(int argc, char *argv[])
 	                fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
 	                fflush(pIdentifyFile);
 	                fclose(pIdentifyFile);
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Created %s file with Controller Information\n",fileNameUsed);
 	                }
@@ -759,14 +825,14 @@ int32_t main(int argc, char *argv[])
 	                    fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
 	                    fflush(pIdentifyFile);
 	                    fclose(pIdentifyFile);    
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Created %s file with Namespace Information\n",fileNameUsed);
 	                    }
 	                }
 	                else
 	                {
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("ERROR: failed to open file to write namespace information\n");
 	                    }
@@ -776,7 +842,7 @@ int32_t main(int argc, char *argv[])
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("ERROR: failed to open file to write controller information\n");
 	                }
@@ -800,9 +866,9 @@ int32_t main(int argc, char *argv[])
 	            //Get the feature 
 	            if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES_IDENTIFIER, NVME_CURRENT_FEAT_SEL ) != SUCCESS)
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
-	                    printf("ERROR: failed to get details for feature id %d\n",GET_FEATURES_IDENTIFIER);
+	                    printf("ERROR: failed to get details for feature id %d\n", GET_FEATURES_IDENTIFIER);
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	            }
@@ -823,12 +889,12 @@ int32_t main(int argc, char *argv[])
 	                {
 	                    size = 32 * size; //Get first 32 entries. 
 	                }
-	                logBuffer = calloc(size, 1);
+	                logBuffer = (uint8_t *)calloc((size_t)size, 1);
 	                if (logBuffer != NULL)
 	                {
 	                    cmdOpts.nsid = NVME_ALL_NAMESPACES;
-	                    cmdOpts.addr = (uint64_t)logBuffer;
-	                    cmdOpts.dataLen = size;
+	                    cmdOpts.addr = logBuffer;
+	                    cmdOpts.dataLen = (uint32_t)size;
 	                    cmdOpts.lid = GET_NVME_LOG_IDENTIFIER;
 	                    if(nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts)==SUCCESS)
 	                    {
@@ -836,7 +902,7 @@ int32_t main(int argc, char *argv[])
 	                        {
 	                            printf("Log Page %d Buffer:\n",GET_NVME_LOG_IDENTIFIER);
 	                            printf("================================\n");
-	                            print_Data_Buffer((uint8_t *)logBuffer,size,true);
+	                            print_Data_Buffer((uint8_t *)logBuffer,(uint32_t)size,true);
 	                            printf("================================\n");
 	                        }
 	                        else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
@@ -849,17 +915,17 @@ int32_t main(int argc, char *argv[])
 	                            if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL,\
 	                                                                    logName, "bin", 1, &fileNameUsed) )
 	                            {
-	                                fwrite(logBuffer, sizeof(uint8_t), size, pLogFile);
+	                                fwrite(logBuffer, sizeof(uint8_t), (size_t)size, pLogFile);
 	                                fflush(pLogFile);
 	                                fclose(pLogFile);
-	                                if (VERBOSITY_QUIET < g_verbosity)
+	                                if (VERBOSITY_QUIET < toolVerbosity)
 	                                {
-	                                    printf("Created %s with Log Page %d Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
+	                                    printf("Created %s with Log Page %" PRId32 " Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
 	                                }
 	                            }
 	                            else
 	                            {
-	                                    if (VERBOSITY_QUIET < g_verbosity)
+	                                    if (VERBOSITY_QUIET < toolVerbosity)
 	                                    {
 	                                        printf("ERROR: failed to open file to write Log Page Information\n");
 	                                    }
@@ -868,18 +934,18 @@ int32_t main(int argc, char *argv[])
 	                        }
 	                        else
 	                        {
-	                            if (VERBOSITY_QUIET < g_verbosity)
+	                            if (VERBOSITY_QUIET < toolVerbosity)
 	                            {
-	                                printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
+	                                printf("Error: Unknown/Unsupported output mode %" PRId32 "\n", OUTPUT_MODE_IDENTIFIER);
 	                            }
 	                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                        }
 	                    }
 	                    else
 	                    {
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
-	                            printf("Error: Could not retrieve Log Page %d\n", GET_NVME_LOG_IDENTIFIER);
+	                            printf("Error: Could not retrieve Log Page %" PRId32 "\n", GET_NVME_LOG_IDENTIFIER);
 	                        }
 	                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                    }
@@ -887,16 +953,16 @@ int32_t main(int argc, char *argv[])
 	                }
 	                else
 	                {
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
-	                        printf("Couldn't allocate %ld bytes buffer needed for Log Page %d\n", size, GET_NVME_LOG_IDENTIFIER);
+	                        printf("Couldn't allocate %" PRIu64 " bytes buffer needed for Log Page %" PRId32 "\n", size, GET_NVME_LOG_IDENTIFIER);
 	                    }
 	                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
 	                }
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
 	                }
@@ -914,7 +980,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get SMART/Health Information Log\n");
 	                        }
@@ -929,7 +995,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Error Information Log\n");
 	                        }
@@ -944,7 +1010,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get FW Slot Information Log\n");
 	                        }
@@ -959,7 +1025,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
 	                        }
@@ -974,7 +1040,7 @@ int32_t main(int argc, char *argv[])
 	                        //nothing to print here since if it was successful, the log will be printed to the screen
 	                        break;
 	                    default:
-	                        if (VERBOSITY_QUIET < g_verbosity)
+	                        if (VERBOSITY_QUIET < toolVerbosity)
 	                        {
 	                            printf("A failure occured while trying to get Device Self-test Information Log\n");
 	                        }
@@ -983,7 +1049,7 @@ int32_t main(int argc, char *argv[])
 	                    }
 	                break;
 	                default:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
 	                    }
@@ -1002,7 +1068,7 @@ int32_t main(int argc, char *argv[])
 
             if ((NVME_TELE_DATA_AREA < 1) && (NVME_TELE_DATA_AREA > 3)) 
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%d is an invalid temetry data area. \n", NVME_TELE_DATA_AREA);
                 }
@@ -1011,22 +1077,22 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                uint64_t size = BLOCK_SIZE; 
+                uint32_t size = BLOCK_SIZE; 
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
                 uint64_t offset = 0;
-                uint64_t fullSize;
+                uint64_t fullSize = 0;
                 int rtnVal;
                 nvmeTemetryLogHdr   *teleHdr;
 
                 memset(&cmdOpts,0, sizeof(nvmeGetLogPageCmdOpts));
 
-                logBuffer = calloc(size, 1);
+                logBuffer = (uint8_t*)calloc(size, 1);
 
                 if (logBuffer != NULL)
                 {
                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                    cmdOpts.addr = (uint64_t)logBuffer;
+                    cmdOpts.addr = logBuffer;
                     cmdOpts.dataLen = size;
                     cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                     cmdOpts.offset = offset;
@@ -1070,7 +1136,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 memset(logBuffer, 0, size);
                                 cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                                cmdOpts.addr = (uint64_t)logBuffer;
+                                cmdOpts.addr = logBuffer;
                                 cmdOpts.dataLen = size;
                                 cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                                 cmdOpts.offset = offset;
@@ -1080,9 +1146,9 @@ int32_t main(int argc, char *argv[])
 
                                 if(rtnVal != SUCCESS) 
                                 {
-                                    if (VERBOSITY_QUIET < g_verbosity)
+                                    if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                        printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     break;
@@ -1108,7 +1174,7 @@ int32_t main(int argc, char *argv[])
                                 {
                                     memset(logBuffer, 0, size);
                                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
-                                    cmdOpts.addr = (uint64_t)logBuffer;
+                                    cmdOpts.addr = logBuffer;
                                     cmdOpts.dataLen = size;
                                     cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
                                     cmdOpts.offset = offset;
@@ -1118,9 +1184,9 @@ int32_t main(int argc, char *argv[])
 
                                     if(rtnVal != SUCCESS) 
                                     {
-                                        if (VERBOSITY_QUIET < g_verbosity)
+                                        if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Error: Could not retrieve Log Page %d for offset %d\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                            printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
@@ -1134,14 +1200,14 @@ int32_t main(int argc, char *argv[])
                                 fclose(pLogFile);
 
 
-                                if (VERBOSITY_QUIET < g_verbosity)
+                                if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Created %s with Log Page %d Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
                                 }
                             }
                             else
                             {
-                                    if (VERBOSITY_QUIET < g_verbosity)
+                                    if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("ERROR: failed to open file to write Log Page Information\n");
                                     }
@@ -1150,7 +1216,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            if (VERBOSITY_QUIET < g_verbosity)
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
                             }
@@ -1159,7 +1225,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        if (VERBOSITY_QUIET < g_verbosity)
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Error: Could not retrieve Log Page %d\n", GET_NVME_TELE_IDENTIFIER);
                         }
@@ -1169,7 +1235,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (VERBOSITY_QUIET < g_verbosity)
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Couldn't allocate %ld bytes buffer needed for Log Page %d\n", size, GET_NVME_LOG_IDENTIFIER);
                     }
@@ -1186,7 +1252,7 @@ int32_t main(int argc, char *argv[])
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get Error Information Log\n");
                 }
@@ -1203,7 +1269,7 @@ int32_t main(int argc, char *argv[])
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get Error Information Log\n");
                 }
@@ -1242,20 +1308,20 @@ int32_t main(int argc, char *argv[])
 	                switch (firmwareDLResult)
 	                {
 	                case SUCCESS:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download successful\n");
 	                    }
 	                    break;
 	                case NOT_SUPPORTED:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download not supported\n");
 	                    }
 	                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                    break;
 	                default:
-	                    if (VERBOSITY_QUIET < g_verbosity)
+	                    if (VERBOSITY_QUIET < toolVerbosity)
 	                    {
 	                        printf("Firmware Download failed\n");
 	                    }
@@ -1266,7 +1332,7 @@ int32_t main(int argc, char *argv[])
 	            }
 	            else
 	            {
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    perror("fopen");
 	                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
@@ -1278,36 +1344,39 @@ int32_t main(int argc, char *argv[])
 	        //If it is not deferred, lets activate
 	        if ( (exitCode != UTIL_EXIT_OPERATION_FAILURE ) && (DOWNLOAD_FW_MODE != DL_FW_DEFERRED) )
 	        {
-	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0))//TODO: Add slot numbers. 
+	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0, false))//TODO: Add slot numbers. 
 	            {
 	            case SUCCESS:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate/Commit successful\n");
 	                }
+                    //NOTE: Removed the following code because the firmware_Download_Activate uses functions that will check the NVMe return status and issue any
+                    //      reset activation required.
+
 	                // This is as of today (02/25/2016) Panther reports. 
-	                switch(deviceList[deviceIter].os_info.last_error & 0x00FF)
-	                {
-	                case NVME_FW_DL_REQUIRES_SYS_RST:
-	                case NVME_FW_DL_REQUIRES_NVM_RST:
-	                case NVME_FW_DL_ON_NEXT_RST:
-	                    printf("\n-- Please power cycle the system --\n\n");
-	                    break;
-	                default:
-	                    printf("\n-- WARN: Firmware Activate/Commit returned Status 0x%X --\n\n",deviceList[deviceIter].os_info.last_error & 0x00FF);
-	                    break;
-	                }
+//                  switch(deviceList[deviceIter].os_info.last_error & 0x00FF)
+//                  {
+//                  case NVME_FW_DL_REQUIRES_SYS_RST:
+//                  case NVME_FW_DL_REQUIRES_NVM_RST:
+//                  case NVME_FW_DL_ON_NEXT_RST:
+//                      printf("\n-- Please power cycle the system --\n\n");
+//                      break;
+//                  default:
+//                      printf("\n-- WARN: Firmware Activate/Commit returned Status 0x%X --\n\n",deviceList[deviceIter].os_info.last_error & 0x00FF);
+//                      break;
+//                  }
 	
 	                break;
 	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate not supported\n");
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                break;
 	            default:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Firmware Activate failed\n");
 	                }
@@ -1322,21 +1391,21 @@ int32_t main(int argc, char *argv[])
 	        switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_STATE_TO) )
 	        {
 	        case SUCCESS:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("\nSuccessfully transitioned to power state %d.\n",TRANSITION_POWER_STATE_TO);
 	                printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
 	            }
 	            break;
 	        case NOT_SUPPORTED:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Transitioning power modes not allowed on this device\n");
 	            }
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	            break;
 	        default:
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("ERROR: Could not transition to the new power state %d\n",TRANSITION_POWER_STATE_TO);
 	            }
@@ -1354,14 +1423,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Checking current power mode not supported on this device.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed checking current power mode.\n");
 	            }
@@ -1379,14 +1448,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Extended smart logs not supported.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed fetch Extended smart logs.\n");
 	            }
@@ -1402,14 +1471,14 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        case NOT_SUPPORTED:
 	            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Clear Pcie correctable errors not supported.\n");
 	            }
 	            break;
 	        default:
 	            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("Failed fetch Clear Pcie correctable errors.\n");
 	            }
@@ -1417,10 +1486,9 @@ int32_t main(int argc, char *argv[])
 	        }
 	    }
 	
-	
 	    if (FORMAT_UNIT_FLAG)
 	    {
-	        if (VERBOSITY_QUIET < g_verbosity)
+	        if (VERBOSITY_QUIET < toolVerbosity)
 	        {
 	            printf("Format Unit\n");
 	        }
@@ -1442,20 +1510,20 @@ int32_t main(int argc, char *argv[])
 	            switch (run_NVMe_Format(&deviceList[deviceIter], FORMAT_SECTOR_SIZE, formatFlags) )
 	            {
 	            case SUCCESS:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                        printf("Successfully Formated the device.\n");
 	                }
 	                break;
 	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Format Unit Not Supported.\n");
 	                }
 	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 	                break;
 	            default:
-	                if (VERBOSITY_QUIET < g_verbosity)
+	                if (VERBOSITY_QUIET < toolVerbosity)
 	                {
 	                    printf("Format Unit Failed.\n");
 	                }
@@ -1465,7 +1533,7 @@ int32_t main(int argc, char *argv[])
 	        }
 	        else
 	        {
-	            if (VERBOSITY_QUIET < g_verbosity)
+	            if (VERBOSITY_QUIET < toolVerbosity)
 	            {
 	                printf("\n");
 	                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
@@ -1513,6 +1581,16 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
+    //utility options
+    printf("\nUtility Options\n");
+    printf("===============\n");
+    print_Echo_Command_Line_Help(shortUsage);
+    print_Help_Help(shortUsage);
+    print_License_Help(shortUsage);
+    print_Quiet_Help(shortUsage, util_name);
+    print_Verbose_Help(shortUsage);
+    print_Version_Help(shortUsage, util_name);
+
     //the test options
     printf("Utility arguments\n");
     printf("=================\n");
@@ -1525,10 +1603,12 @@ void utility_Usage(bool shortUsage)
     print_Check_Power_Mode_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);
+    print_Model_Match_Help(shortUsage);
     print_NVMe_Firmware_Download_Mode_Help(shortUsage);
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
     print_NVMe_Get_Tele_Help(shortUsage);
+    print_Firmware_Revision_Match_Help(shortUsage);
     print_pcierr_Help(shortUsage);
     print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
@@ -1540,16 +1620,5 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_NVME_Format_Unit_Help(shortUsage);
-
-    //utility options
-    printf("\nUtility Options\n");
-    printf("===============\n");
-    print_Verbose_Help(shortUsage);
-    print_Quiet_Help(shortUsage, util_name);
-    print_Version_Help(shortUsage, util_name);
-    print_License_Help(shortUsage);
-    print_Echo_Command_Line_Help(shortUsage);
-    print_Help_Help(shortUsage);
-
 
 }
