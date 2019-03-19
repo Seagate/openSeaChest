@@ -275,7 +275,7 @@ int32_t main(int argc, char *argv[])
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_ERROR_ID;
                     }
-                    else if (strncmp("smart", optarg, strlen(optarg)) == 0)
+                    else if (strncmp("smart", optarg, strlen(optarg)) == 0 || strncmp("SMART", optarg, strlen(optarg)) == 0)
                     {
                         GET_NVME_LOG_IDENTIFIER = NVME_LOG_SMART_ID;
                     }
