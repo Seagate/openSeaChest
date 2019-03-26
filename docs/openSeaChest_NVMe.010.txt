@@ -1,8 +1,8 @@
-openSeaChest_NVMe.txt                                     Revision: 08-Jan-2019
+openSeaChest_NVMe.txt                                     Revision: 28-Feb-2019
 ===============================================================================
  openSeaChest_NVMe for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_NVMe Version: 1.13.0
+ openSeaChest_NVMe Version: 0.1.0
  Build Date: Jan  7 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
