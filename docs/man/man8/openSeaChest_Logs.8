@@ -12,17 +12,17 @@
 .\" be found. Just type:
 .\" man openSeaChest_<change to actual name>
 .ad l
-.TH OPENSEACHEST_POWERCONTROL "8" "March 2019" "openSeaChest_Utilities" "System Administration Utilities"
+.TH OPENSEACHEST_LOGS "8" "March 2019" "openSeaChest_Utilities" "System Administration Utilities"
 .SH NAME
-openSeaChest_PowerControl
+openSeaChest_Logs
 .SH DESCRIPTION
 ==========================================================================================
 .br
-openSeaChest_PowerControl \- Seagate drive utilities \- NVMe Enabled
+openSeaChest_Logs \- Seagate drive utilities \- NVMe Enabled
 .br
 Copyright (c) 2014\-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 .br
-openSeaChest_PowerControl Version: 1.11.0\-1_19_2 X86_64
+openSeaChest_Logs Version: 1.1.0\-1_19_2 X86_64
 .br
 Build Date: Feb 28 2019
 .br
@@ -32,15 +32,18 @@ Usage
 .br
 =====
 .IP
-openSeaChest_PowerControl [\-d <sg_device>] {arguments} {options}
+openSeaChest_Logs [\-d <sg_device>] {arguments} {options}
 .PP
 Examples
 .br
 ========
 .IP
-openSeaChest_PowerControl \fB\-\-scan\fR
+openSeaChest_Logs \fB\-\-scan\fR
 .br
-openSeaChest_PowerControl \fB\-d\fR /dev/sg? \fB\-i\fR
+openSeaChest_Logs \fB\-d\fR /dev/sg? \fB\-i\fR
+.br
+openSeaChest_Logs \fB\-d\fR /dev/sg1 \fB\-\-farm\fR \fB\-\-outputPath\fR logs
+
 .PP
 Utility Arguments
 .br
@@ -110,235 +113,145 @@ status. If the drive is not ready, the sense key, asc,
 ascq, and fru will be displayed and a human readable
 translation from the SPC spec will be displayed if one
 is available.
+
 .HP
-\fB\-\-active\fR
+\fB\-\-farm\fR
 .IP
-This command will transition a drive to the active power state.
-This uses a ATA read\-verify command to a random LBA, or a SCSI
-start\-stop unit command.
+Pull the Seagate Field Accessible Reliability Metrics (FARM)
+Log from the specified drive.  Saves the binary logs to the
+current directory as <serialnumber>_FARM_<date and time>.bin
 .HP
-\fB\-\-changePower\fR
+\fB\-\-listErrorHistoryIDs\fR
 .IP
-Use this option to enable or disable certain \fB\-\-powerMode\fR and
-their timers. You can also use this option to restore default
-values to the drive.
+Displays a list of all supported error history buffer IDs
+supported by the device.
 .HP
-\fB\-\-checkPowerMode\fR
+\fB\-\-listSupportedLogs\fR
 .IP
-Get the current power mode of a drive.
-On SCSI devices, this will only work if the drive has
-transitioned from active state to another state.
+Displays a list of all supported generic logs by this device
+type.
 .HP
-\fB\-\-defaultMode\fR
+\fB\-\-logMode [raw | bin]\fR
 .IP
-Use this option with the change power mode option restore the
-default settings for a specific power mode.
-.HP
-\fB\-\-disableMode\fR
-.IP
-Use this option with the change power mode option to disable
-a specific power mode.
-.HP
-\fB\-\-EPCfeature\fR [enable | disable]
-.IP
-Enables or disables Extended Power Conditions (EPC) support for
-devices. To disable EPC use \fB\-\-EPCfeature\fR disable. Note that the
-EPC Feature Set is not supported on all devices.
-Use \fB\-\-deviceInfo\fR option to see if EPC is supported.
-.HP
-\fB\-\-enableMode\fR
-.IP
-Use this option with the change power mode option to enable
-a specific power mode.
-.HP
-\fB\-\-idle\fR
-.IP
-This command will transition a drive to the idle power state.
-This command may flush the cache before the transition to this state.
-This command is for non\-EPC enabled drives. If the drive has the EPC
-feature enabled, it is recommended that the \fB\-\-transitionPower\fR option
-be used instead. This option is compatible with EPC enabled drives as well,
-but offers less control over the transition.
-If the operating system selects this drive, it will transition it back to
-an active state.
-.HP
-\fB\-\-idleUnload\fR
-.IP
-This command will transition a drive to the idle, heads unloaded, power state.
-This command may flush the cache before the transition to this state.
-This command is for non\-EPC enabled drives. If the drive has the EPC
-feature enabled, it is recommended that the \fB\-\-transitionPower\fR option
-be used instead. This option is compatible with EPC enabled drives as well,
-but offers less control over the transition.
-If the operating system selects this drive, it will transition it back to
-an active state.
-.HP
-\fB\-\-powerMode\fR [powermode]
-.IP
-Use this option to specify a power mode. This should be used
-with the \fB\-\-transitionPower\fR or \fB\-\-changePower\fR options.
-.IP
-Valid power modes (SAS and SATA):
+Sets the mode to pull the log. Use this option with --pullLog
+to set the desired mode.
 .br
-idle_a
+raw - Pulls log & prints it to the screen as stdout. (default)
 .br
-idle_b
+bin - Pulls log & saves it to a timestamped binary file.  Saves
+the binary logs to the current directory as
+<serialnumber>_GENERIC_LOG-<decimal log number>_<date and
+time>.bin
+.HP
+\fB\-\-logTransferLength [lengthunits (no space)]\fR
+.IP
+Use this option to specify the data transfer length for a log
+transfer. Larger transfer sizes may speed up log retrieval at
+the loss of compatibility. The following units are allowed for
+specifying a transfer length:
 .br
-idle_c
+KiB - length in kibibytes (val * 1024)
 .br
-standby_y (SAS only)
+MiB - length in mebibytes (val * 1048576)
 .br
-standby_z
+KB  - length in kilobytes (val * 1000)      (SAS only)
 .br
-active (SAS only)
+MB  - length in megabytes (val * 1000000)   (SAS only)
 .br
-all (enable or disable only)
+BLOCKS or SECTORS - used to specify a transfer length
+        in device in 512Byte blocks/sectors
+.br
+Warning: Specifying a large size may result in failures due to
+OS, driver, or HBA/bridge specific limitations.
 .IP
-Valid power modes (NVMe): 0 \- 30
+Examples: --logTransferLength 4KiB
+.br
+  --logTransferLength 1MiB
+.br
+  --logTransferLength 1BLOCKS
+.br
+  --logTransferLength 12288SECTORS
+.IP
+Notes: ATA drives must be given a value in 512B increments. If
+--logTransferLength is omitted then various default lengths are
+automatically set by the program depending on the type of log.
 .HP
-\fB\-\-showEPCSettings\fR
+\fB\-\-pullErrorHistoryID [Buffer ID]\fR
 .IP
-Use this option to show the current EPC settings on the screen.
-Only drives supporting the EPC feature will show this data and
-only supported power conditions will be shown.
+Pulls specific error history buffer ID from the device [Buffer
+ID] is required argument & can be passed as an decimal or hex
+value.
+.IP
+WARNING:  Vendor Unique Logs pulled using this option may not
+be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+etc. command fields.
 .HP
-\fB\-\-sleep\fR
+\fB\-\-pullLog [Log Number]\fR
 .IP
-This command will transition a drive to the sleep power state.
-A reset must be sent to wake a drive from sleep state.
-The OS may not be able to wake a drive from this state once it has
-been entered. Use this option with caution!
+Pulls the Host Specific generic log number from the device. [Log
+Number] is a required argument and can be a decimal or hex
+value.  For example, --pullLog FE, --pullLog FEh, --pullLog
+0xFE, --pullLog 254, or --pullLog 0254.  Possible Log Numbers
+are returned by the --listSupportedLogs command.  Also see
+--logMode below.
+.IP
+Example: --pullLog 0x02 --logMode bin
+.br
+gives the file  <serialnumber>_GENERIC_LOG-2_<date and time>.bin
+.IP
+WARNING:  Vendor Unique Logs pulled using this option may not
+be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+etc. command fields.
 .HP
-\fB\-\-spinDown\fR
+\fB\-\-selfTestLog\fR
 .IP
-Removes power to the disk drive motor with the Standby Immediate
-command. Use this before moving a hard disk drive. The drive
-will spin back up if the operating system selects the drive.
-This means that an active drive will not stay spun down.
-.HP
-\fB\-\-standby\fR
-.IP
-This command will transition a drive to the standby power state.
-This command will flush the cache before the transition to this state.
-This command is for non\-EPC enabled drives. If the drive has the EPC
-feature enabled, it is recommended that the \fB\-\-transitionPower\fR option
-be used instead. This option is compatible with EPC enabled drives as well,
-but offers less control over the transition.
-On an HDD, this will cause the spindle motor to stop.
-If the operating system selects this drive, it will transition it back to
-an active state.
-.HP
-\fB\-\-modeTimer\fR [timer value in milliseconds]
-.IP
-Use this option to specify a timer value to use with the
-\fB\-\-changePower\fR mode option.
-.HP
-\fB\-\-transitionPower\fR
-.IP
-Use this option to transition the drive to a specific
-power state
+This option will pull the Self Test Results Log (DST) from a
+device. On ATA drives, this will pull the extended SMART self
+tests result log when it is supported by the device.  Saves the
+binary logs to the current directory as
+<serialnumber>_Ext_SMART_Self_Test_Results_<date and time>.bin
+
 .PP
 SATA Only:
 .br
 =========
 .br
-\fB\-\-powerBalanceFeature\fR [ info | enable | disable ]
+.HP
+\fB\-\-identifyDataLog  (SATA only)\fR
 .IP
-Use this option to see the state of the Seagate Power Balance
-feature or to change its state.
-Seagate's PowerBalance feature will adjust drive performance during
-random operations to reduce power consumption of the drive.
+This option will pull the Identify Device Data Log from an ATA
+drive.  Saves the binary logs to the current directory as
+<serialnumber>_Identify_Device_Data_Log_<date and time>.bin
+.HP
+\fB\-\-SATAPhyCntLog  (SATA only)\fR
 .IP
-info \- will dump the state of the Power Balance feature on the screen
-.br
-enable \- use this to enable Power Balance
-.br
-disable \- use this to disable Power Balance
-.IP
-Note: While this feature is available on some SAS products,
-it is recommended that the \fB\-\-setPowerConsumption\fR option is
-used instead since it allows more levels of control.
-This option and the \fB\-\-setPowerConsumption\fR option are incompatible
-because they use the same mode page fields (1Ah\-01h).
-.TP
-\fB\-\-disableAPM\fR    (SATA Only)
-.IP
-Use this option to disable the APM feature on a device.
-Note: This command is optional and some device may not
-.IP
-disabling the APM feature.
-.TP
-\fB\-\-sataDAPSfeature\fR [info | enable | disable ]    (SATA Only)
-.IP
-Use this option to enable or disable the SATA Device Automatic
-Partial To Slumber Transitions (DAPS) feature. Use the "info"
-option to see the current state of the DIPM feature on the device.
-The use of this feature requires that the DIPM feature is enabled.
-.br
-NOTE: Please ensure that the host adapter/controller/driver can
-handle this before enabling it, otherwise the drive link may
-go down and the device will not be able to communicate.
-.TP
-\fB\-\-sataDIPMfeature\fR [info | enable | disable ]    (SATA Only)
-.IP
-Use this option to enable or disable the SATA Device Initiated
-Power Management (DIPM) feature. Use the "info" option to see
-the current state of the DIPM feature on the device.
-NOTE: Please ensure that the host adapter/controller/driver can
-handle this before enabling it, otherwise the drive link may
-go down and the device will not be able to communicate.
-.TP
-\fB\-\-setAPMLevel\fR [1 \- 254]    (SATA Only)
-.IP
-Use this option to set the APM level of a device.
-Valid values are between 1 and 254.
-.IP
-1 = Minimum power consumption with standby mode
-.br
-2\-127 = Intermediate power management with standby mode
-.br
-128 = Minimum power consumption without standby mode
-.br
-129\-253 = Intermediate power management without standby mode
-.br
-254 = Maximum Performance.
-.TP
-\fB\-\-showAPMLevel\fR    (SATA Only)
-.IP
-Use this option to show the current APM level of a device
+This option will pull the SATA Phy Event Counters Log from a
+SATA drive.  Saves the binary logs to the current directory as
+<serialnumber>_SATA_Phy_Event_Counters_<date and time>.bin
+
 .PP
 SAS Only:
 .br
-=========
+========
 .br
-\fB\-\-setPowerConsumption\fR [default | highest | intermediate | lowest | watt value]  (SAS Only)
+.HP
+\fB\-\-infoExceptionsLog  (SAS only)\fR
 .IP
-This option will set the power consumption rate of
-the device to the value input.
-.br
-Options:
-.br
-default \- sets the device back to default settings
-.br
-highest \- sets the active level to "highest"
-.br
-ntermediate \- sets the active level to "intermediate"
-.br
-lowest \- sets the active level to "lowest"
-.br
-watt value \- sets the device to a nearest watt value
-less than or equal to the value entered.
-.br
-Power consumption watt values are listed with the
-\fB\-\-showPowerConsumption\fR command line option.
-.TP
-\fB\-\-showPowerConsumption\fR    (SAS Only)
+This option will pull the SCSI Informational Exceptions log
+page from a SCSI device.  Saves the binary logs to the current
+directory as <serialnumber>_Informational_Exceptions_<date and
+time>.bin
+.HP
+\fB\-\-pullSubpage [Subpage Number]   (SAS Only)\fR
 .IP
-This option will show the power consumption
-rates supported by the device and the current power
-consumption rate of the device. Use a supported watt value
-with the \fB\-\-setPowerConsumption\fR option to set the
-power consumption to that value.
+Use this option with the --pullLog option to specify a log
+subpage to pull. Use this for SCSI Logs. [Subpage Number] can
+be passed as an decimal or hex value.
+.IP
+WARNING:  Vendor Unique Logs pulled using this option may not
+be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+etc. command fields.
+
 .PP
 Utility Options
 .br
@@ -419,7 +332,7 @@ provided
 .HP
 \fB\-q\fR, \fB\-\-quiet\fR
 .IP
-Run openSeaChest_PowerControl in quiet mode. This is the same as
+Run openSeaChest_Logs in quiet mode. This is the same as
 \fB\-v\fR 0 or \fB\-\-verbose\fR 0
 .HP
 \fB\-\-sat12byte\fR
@@ -447,7 +360,7 @@ Example: \fB\-v\fR 3 or \fB\-\-verbose\fR 3
 .HP
 \fB\-V\fR, \fB\-\-version\fR
 .IP
-Show openSeaChest_PowerControl version and copyright information & exit
+Show openSeaChest_Logs version and copyright information & exit
 .PP
 Return codes
 .br
@@ -479,22 +392,23 @@ Anything else = unknown error
 .br
 ==========================================================================================
 .br
-openSeaChest_PowerControl \- Seagate drive utilities \- NVMe Enabled
+openSeaChest_Logs \- Seagate drive utilities \- NVMe Enabled
 .br
 Copyright (c) 2014\-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 .br
 ==========================================================================================
 .br
-Version Info for openSeaChest_PowerControl:
+Version Info for openSeaChest_Logs:
 .IP
-Utility Version: 1.11.0
+Utility Version: 1.5.0
 .br
 opensea\-common Version: 1.18.0
 .br
 opensea\-transport Version: 1.19.2
 .br
 opensea\-operations Version: 1.23.0
-Build Date: Feb 28 2019.br
+.br
+Build Date: Feb 28 2019
 .br
 Compiled Architecture: X86_64
 .br
@@ -513,7 +427,6 @@ Operating System Name: TinyCoreLinux 9.0
 Edition: JBOD, NVMe
 .br
 RAID Support: none
-
 .SH "REPORTING BUGS"
 Please report bugs/suggestions to seaboard at seagate dot com. Include the output of
 \fB\-\--version\fR information in the email. See the user guide section 'General Usage
@@ -543,7 +456,7 @@ SeaChest Utilities use libraries from the opensea source code projects.  These
 projects are maintained at http://github.com/seagate.
 The libraries in use are opensea-common, opensea-transport and
 opensea-operations. These libraries are available under the Mozilla Public
-License 2.0.
+License 2.0.License 2.0.
 
 
 .SH WEB SITE
@@ -554,14 +467,14 @@ https://github.com/Seagate/openSeaChest
 .B openSeaChest_Basics, openSeaChest_Configure, openSeaChest_Erase, openSeaChest_Firmware, openSeaChest_Format, openSeaChest_GenericTests, openSeaChest_Info, openSeaChest_Logs, openSeaChest_PowerControl, openSeaChest_SMART
 
 The full documentation and version history for
-.B openSeaChest_PowerControl
+.B openSeaChest_Logs
 is maintained as a simple text file with this name:
 .br
-.B openSeaChest_PowerControl.<version>.txt
+.B openSeaChest_Logs.<version>.txt
 The <version> number part of the name will change with each revision.
 .br
 The command
 .IP
-.B less <some path>/openSeaChest_PowerControl.<version>.txt
+.B less <some path>/openSeaChest_Logs.<version>.txt
 .PP
 should give you access to the complete manual.
