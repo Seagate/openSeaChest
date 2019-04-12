@@ -42,7 +42,7 @@
 #include "writesame.h"
 #include "trim_unmap.h"
 #include "drive_info.h"
-#include "format_unit.h"
+#include "format.h"
 #include "depopulate.h"
 ////////////////////////
 //  Global Variables  //

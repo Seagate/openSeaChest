@@ -31,7 +31,6 @@
 #include "drive_info.h"
 #include "set_max_lba.h"
 #include "trim_unmap.h"
-#include "set_sector_size.h"
 #include "smart.h"
 #include "logs.h"
 ////////////////////////

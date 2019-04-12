@@ -347,14 +347,14 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
 	printf("\t            overwrite | freezelock | antifreezelock]\n");
     if (!shortHelp)
     {
-        printf("\t\tUse the info argument to show suported sanitize operations.\n");
+        printf("\t\tUse the info argument to show supported sanitize operations.\n");
         printf("\t\tOptionally, use blockerase, cryptoerase, or overwrite to start\n");
         printf("\t\ta sanitize operation. Adding the --%s option will cause\n", POLL_LONG_OPT_STRING);
         printf("\t\t%s to poll the drive for progress until the\n", utilName);
         printf("\t\toperation is complete, or has aborted for some reason. All\n");
         printf("\t\tsanitize erase operations are persistent across a power cycle\n");
 		printf("\t\tand cannot be stopped\n");
-        printf("\t\tExample: --%s blockerase --%s\n\n", POLL_LONG_OPT_STRING, SANITIZE_LONG_OPT_STRING);
+		printf("\t\tExample: --%s blockerase --%s\n\n", SANITIZE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
 #if defined (_WIN32)//TODO: handle Win PE somehow when we support WinPE
         printf("\t\tNote: Windows 8 and higher block sanitize commands. Sanitize\n");
         printf("\t\toperations will show a failure status on these systems.\n\n");
@@ -1309,26 +1309,6 @@ void print_NVMe_Pci_Stats_Help(bool shortHelp)
 }
 
 
-void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp)
-{
-    printf("\t--%s [immediate | deferred | activate]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
-        printf("\t\tto set the firmware download mode. The \"activate\"\n");
-        printf("\t\toption can be run without the --%s option.\n", DOWNLOAD_FW_LONG_OPT_STRING);
-        printf("\t\tSupported Modes:\n");
-        printf("\t\t\timmediate - performs the download command and \n");
-        printf("\t\t\t            sends the activate/commit command.\n");
-        printf("\t\t\tdeferred - performs a segmented download to the\n");
-        printf("\t\t\t           device, but does not activate the new\n");
-        printf("\t\t\t           firmware until a reset / activate\n");
-        printf("\t\t\t           command is sent.\n");
-        printf("\t\t\tactivate - only sends the activate/commit command to\n");
-        printf("\t\t\t           activate previously downloaded firmware.\n\n");
-    }
-}
-
 void print_Set_Max_LBA_Help(bool shortHelp)
 {
     printf("\t--%s newMaxLBA\n", SET_MAX_LBA_LONG_OPT_STRING);
@@ -1986,16 +1966,6 @@ void print_Show_Format_Status_Log_Help(bool shortHelp)
     }
 }
 
-void print_Show_Protection_Types_Supported_Help(bool shortHelp)
-{
-    printf("\t--%s (SAS Only)\n", SHOW_SUPPORTED_PROTECTION_TYPES_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to view the supported protection\n");
-        printf("\t\ttypes for a device.\n\n");
-    }
-}
-
 void print_Set_Sector_Size_Help(bool shortHelp)
 {
     printf("\t--%s [new sector size]\t\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
@@ -2006,7 +1976,7 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\tcommand must be supported. On SAS Drives, fast format must\n");
         printf("\t\tbe supported. A format unit can be used instead of this\n");
         printf("\t\toption to perform a long format and adjust sector size.\n");
-        printf("\t\tUse the --%s option to see the sector\n", SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT_STRING);
+        printf("\t\tUse the --%s option to see the sector\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
         printf("\t\tsizes the drive reports supporting. If this option\n");
         printf("\t\tdoesn't list anything, please consult your product manual.\n");
         printf("\t\tThis option should be used to quickly change between 5xxe and\n");
@@ -2015,19 +1985,18 @@ void print_Set_Sector_Size_Help(bool shortHelp)
     }
 }
 
-void print_Show_Supported_Sector_Sizes_Help(bool shortHelp)
+void print_Show_Supported_Formats_Help(bool shortHelp)
 {
-    printf("\t--%s\n", SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT_STRING);
+    printf("\t--%s\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis option will show the supported sector sizes of a device if\n");
-        printf("\t\tit reports them. These can be used to change the sector size or\n");
-        printf("\t\tused with a format unit operation.\n");
-        printf("\t\tOn SAS, this is the supported block lengths and protection types\n");
-        printf("\t\tVPD page. (SBC4 and later)\n");
-        printf("\t\tOn SATA, this is the sector configuration log. (ACS4 and later)\n");
-        printf("\t\tIf the device does not report supported sector\n");
-        printf("\t\tsizes, please consult your product manual.\n\n");
+		printf("\t\tThis option will show the supported formats of a device.\n");
+		printf("\t\tThese can be used to change the sector size or \n");
+		printf("\t\tused with a format operation. On SAS, this is the\n");
+		printf("\t\tsupported block lengths and protection types VPD page. (SBC4\n");
+		printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
+		printf("\t\tand later) If the device does not report supported sector\n");
+		printf("\t\tsizes, please consult your product manual.\n\n");
     }
 }
 
@@ -2073,23 +2042,6 @@ void print_TCG_PSID_Help(bool shortHelp)
         printf("\t\tThis option can be used to specify the value of the PSID.\n");
         printf("\t\tThis may be required in order to perform certain TCG\n");
         printf("\t\toperations.\n\n");
-    }
-}
-
-//TODO: Consolidate with the SAS Format
-void print_NVME_Format_Unit_Help(bool shortHelp)
-{
-    printf("\t--%s   [current | new sector size]\n", FORMAT_UNIT_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tThis option will start a format unit operation on the device\n");
-        printf("\t\tUse \"current\" to perform a format unit operation with the\n");
-        printf("\t\tSector size currently being used, otherwise enter a new sector\n");
-        printf("\t\tsize to use upon format completion. This command will ERASE ALL\n");
-        printf("\t\tDATA on the drive.\n\n");
-        printf("\t\tCrypto Erase will be performed if it is supported by device.\n");
-        printf("\t\tProtection Information & MetaData Settings are not set.\n\n");
-        printf("\t\tHINT: Use --%s to print supported LBA Formats\n\n",DEVICE_INFO_LONG_OPT_STRING);
     }
 }
 
@@ -3029,6 +2981,22 @@ void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp)
     }
 }
 
+void print_FWDL_Force_Win_Passthrough_Help(bool shortHelp)
+{
+    printf("\t--%s\n", WIN10_FWDL_FORCE_PT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to control when to use the Windows 10+\n");
+        printf("\t\tFirmware Download API calls. This option will force using\n");
+        printf("\t\tATA or SCSI passthrough to issue the FWDL commands instead of\n");
+        printf("\t\tautomatically selecting passthrough or the Win10 API.\n");
+        printf("\t\tIt is strongly recommended that this option only be used when\n");
+        printf("\t\ttroubleshooting problems when updating firmware as the Win10 API allows\n");
+        printf("\t\tfor handling when device firmware changes versions where this is not\n");
+        printf("\t\tpossible with passthrough commands.\n\n");
+    }
+}
+
 void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
 {
     printf("\t--%s [normal | enhanced]\t\t(SATA only)\n", ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
@@ -3369,5 +3337,111 @@ void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp)
         printf("\t\t  buffer  - This output is a formatted buffer showing offsets on the top and side in hex.\n");
         printf("\t\t            This will output each row with up to 16 bytes of data before moving to the\n");
         printf("\t\t            next row.\n\n");
+    }
+}
+
+void print_NVM_Format_Help(bool shortHelp)
+{
+	printf("\t--%s [current | format # | sector size]\t(NVMe Only)\n", NVM_FORMAT_LONG_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tThis option is used to start an NVM format operation.\n");
+		printf("\t\tUse \"current\" to perform a format operation with the\n");
+        printf("\t\tSector size currently being used.\n");
+        printf("\t\tIf a value between 0 and 15 is given, then that will issue\n");
+        printf("\t\tthe NVM format with the specified sector size/metadata size for\n");
+        printf("\t\tthat supported format on the drive.\n");
+        printf("\t\tValues 512 and higher will be treated as a new sector size\n");
+        printf("\t\tto switch to and will be matched to an appropriate lba format\n");
+        printf("\t\tsupported by the drive.\n");
+        printf("\t\tThis command will erase all data on the drive.\n");
+        printf("\t\tCombine this option with--%s to poll\n", POLL_LONG_OPT_STRING);
+		printf("\t\tfor progress until the format is complete.\n\n");
+	}
+}
+
+void print_NVM_Format_NSID_Help(bool shortHelp)
+{
+    printf("\t--%s [all | current]\t(NVMe Only)\n", NVM_FORMAT_NSID_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option changes the NSID used when issuing the NVM format\n");
+        printf("\t\tcommand. This can be used to control formmatting an entire\n");
+        printf("\t\tdevice or a specific namespace if the device supports specifying\n");
+        printf("\t\tspecific namespaces for a format command. Not all devices support\n");
+        printf("\t\tthis behaviour. This has no effect on devices that do not support\n");
+        printf("\t\ttargetting a specific namespace and will format the entire device\n");
+        printf("\t\tIf this option is not given, the format will be issued to all\n");
+        printf("\t\tnamespaces by default.\n\n");
+    }
+}
+
+void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
+{
+    printf("\t--%s [none | user | crypto]\t(NVMe Only)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to specify the type of erase to perform\n");
+        printf("\t\tduring an NVM format operation. All user data will be inaccessible\n");
+        printf("\t\tupon completiong of an NVM format, no matter the erase requested.\n");
+        printf("\t\tOptions:\n");
+        printf("\t\t  none - no secure erase requested (previous data will not be accessible)\n");
+        printf("\t\t  user - requests all user data is erased by the device.\n");
+        printf("\t\t  crypto - requests a cryptographic erase of all user data. Note: this mode\n");
+        printf("\t\t    is not supported on all devices.\n\n");
+    }
+}
+
+void print_NVM_Format_PI_Type_Help(bool shortHelp)
+{
+    printf("\t--%s [ 0 | 1 | 2 | 3 ]\t(NVMe Only)\n", NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the protection type to format the\n");
+        printf("\t\tmedium with.\n");
+        printf("\t\tNote: Not all devices support protection types.\n");
+        printf("\t\tIf this option is not provided, the NVM format will\n");
+        printf("\t\treuse the current setting.\n\n");
+    }
+}
+
+void print_NVM_Format_PIL_Help(bool shortHelp)
+{
+    printf("\t--%s [ beginning | end ]\t(NVMe Only)\n", NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the location protection\n");
+        printf("\t\tinformation in an NVM device's metadata.\n");
+        printf("\t\tNote: Not all devices support specifying this.\n");
+        printf("\t\tIf this option is not provided, the NVM format will\n");
+        printf("\t\treuse the current setting.\n\n");
+    }
+}
+
+void print_NVM_Format_Metadata_Size_Help(bool shortHelp)
+{
+    printf("\t--%s [ # of bytes for metadata ]\t(NVMe Only)\n", NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to specify the length of metadata\n");
+        printf("\t\twith a requested logical block size. The device must\n");
+        printf("\t\tsupport the combination of logical block size and metadata size\n");
+        printf("\t\tor the format will be rejected by the device.\n\n");
+    }
+}
+
+void print_NVM_Format_Metadata_Setting_Help(bool shortHelp)
+{
+    printf("\t--%s [ xlba | separate ]\t(NVMe Only)\n", NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify how metadata is transmitted to\n");
+        printf("\t\tthe host system.\n");
+        printf("\t\tOptions:\n");
+        printf("\t\t  xlba - metadata is transferred as part of the logical block data\n");
+        printf("\t\t  separate - metadata is transferred as a separate buffer\n");
+        printf("\t\tNote: Not all devices support specifying this.\n");
+        printf("\t\tIf this option is not provided, the NVM format will\n");
+        printf("\t\treuse the current setting.\n\n");
     }
 }

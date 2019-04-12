@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.6.0";
+const char *buildVersion = "2.7.0";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -96,7 +96,10 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAGS_UTIL_VARS
     //tool specific
     DOWNLOAD_FW_VARS
+#if defined (_WIN32)
     WIN10_FLEXIBLE_API_USE_VAR
+    WIN10_FWDL_FORCE_PT_VAR
+#endif
     FIRMWARE_SLOT_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
@@ -160,7 +163,10 @@ int32_t main(int argc, char *argv[])
         ACTIVATE_DEFERRED_FW_LONG_OPT,
         SWITCH_FW_LONG_OPT,
         FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
+#if defined (_WIN32)
         WIN10_FLEXIBLE_API_USE_LONG_OPT,
+        WIN10_FWDL_FORCE_PT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
 
@@ -829,6 +835,12 @@ int32_t main(int argc, char *argv[])
         {
             deviceList[deviceIter].os_info.fwdlIOsupport.allowFlexibleUseOfAPI = true;
         }
+
+        if (WIN10_FWDL_FORCE_PT_FLAG)
+        {
+            deviceList[deviceIter].os_info.fwdlIOsupport.fwdlIOSupported = false;//turn off the Win10 API support to force passthrough mode.
+        }
+
 #endif
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1201,8 +1213,13 @@ void utility_Usage(bool shortUsage)
     //utility options - alphabetized
     printf("Utility Options\n");
     printf("===============\n");
+#if defined (ENABLE_CSMI)
+	print_CSMI_Force_Flags_Help(shortUsage);
+	print_CSMI_Verbose_Help(shortUsage);
+#endif
 #if defined (_WIN32)
     print_FWDL_Allow_Flexible_Win10_API_Use_Help(shortUsage);
+    print_FWDL_Force_Win_Passthrough_Help(shortUsage);
 #endif
     print_Echo_Command_Line_Help(shortUsage);
     print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
@@ -1225,10 +1242,6 @@ void utility_Usage(bool shortUsage)
     //the test options
     printf("\nUtility Arguments\n");
     printf("=================\n");
-#if defined (ENABLE_CSMI)
-    print_CSMI_Force_Flags_Help(shortUsage);
-    print_CSMI_Verbose_Help(shortUsage);
-#endif
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);

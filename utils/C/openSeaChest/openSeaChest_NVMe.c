@@ -34,12 +34,13 @@
 #include "smart.h"
 #include "logs.h"
 #include "nvme_operations.h"
+#include "format.h"
 
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "0.1.0";
+const char *buildVersion = "1.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -80,18 +81,22 @@ int32_t main(int argc, char *argv[])
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
     DOWNLOAD_FW_VARS
+    ACTIVATE_DEFERRED_FW_VAR
+    SWITCH_FW_VAR
+    FWDL_SEGMENT_SIZE_VARS
+    FW_MATCH_VARS
+    FIRMWARE_SLOT_VAR
+    NEW_FW_MATCH_VARS
     CHECK_POWER_VAR
     TRANSITION_POWER_STATE_VAR
     GET_NVME_LOG_VAR
     GET_NVME_TELE_VAR
     NVME_TELE_DATA_AREA_VAR
-    FORMAT_UNIT_VARS
     OUTPUT_MODE_VAR
     GET_FEATURES_VAR
     NVME_TEMP_STATS_VAR
     NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
-    FW_MATCH_VARS
     //CHILD_MODEL_MATCH_VARS
     //CHILD_FW_MATCH_VARS
     ONLY_SEAGATE_VAR
@@ -100,6 +105,11 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAGS_UTIL_VARS
     EXT_SMART_LOG_VAR1
     CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_VAR
+    NVM_FORMAT_VARS
+    NVM_FORMAT_OPTION_VARS
+    POLL_VAR
+    PROGRESS_VAR
+    SHOW_SUPPORTED_FORMATS_VAR
 
     int8_t  args = 0;
     uint8_t argIndex = 0;
@@ -124,15 +134,21 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        POLL_LONG_OPT,
+        PROGRESS_LONG_OPT,
         //tool specific options go here
         DOWNLOAD_FW_MODE_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
+        NEW_FW_MATCH_LONG_OPT,
+        FWDL_SEGMENT_SIZE_LONG_OPT,
+        ACTIVATE_DEFERRED_FW_LONG_OPT,
+        SWITCH_FW_LONG_OPT,
+        FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         TRANSITION_POWER_STATE_LONG_OPT,
         GET_NVME_LOG_LONG_OPT,
         GET_NVME_TELE_LONG_OPT,
         NVME_TELE_DATA_AREA_LONG_OPT,
-        FORMAT_UNIT_LONG_OPT,
         CONFIRM_LONG_OPT,
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
@@ -144,6 +160,9 @@ int32_t main(int argc, char *argv[])
         CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
         NVME_TEMP_STATS_LONG_OPT,
         NVME_PCI_STATS_LONG_OPT,
+        SHOW_SUPPORTED_FORMATS_LONG_OPT,
+        NVM_FORMAT_LONG_OPT,
+        NVM_FORMAT_OPTIONS_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
 
@@ -181,11 +200,6 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
-            }
-            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
-            {
-                DOWNLOAD_FW_FLAG = true;
-                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
             }
             else if (strncmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(OUTPUT_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -235,26 +249,48 @@ int32_t main(int argc, char *argv[])
             {
                 NVME_PCI_STATS_FLAG = goTrue;
             }
+            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
+            {
+                DOWNLOAD_FW_FLAG = true;
+                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+            }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                DOWNLOAD_FW_MODE = DL_FW_UNKNOWN;
-                if (strncmp(optarg, "immediate", strlen(optarg)) == 0)
+                USER_SET_DOWNLOAD_MODE = true;
+                DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                if (strncmp(optarg, "immediate", strlen(optarg)) == 0 || strncmp(optarg, "full", strlen(optarg)) == 0)
                 {
                     DOWNLOAD_FW_MODE = DL_FW_FULL;
+                }
+                else if (strncmp(optarg, "segmented", strlen(optarg)) == 0)
+                {
+                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
                 }
                 else if (strncmp(optarg, "deferred", strlen(optarg)) == 0)
                 {
                     DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
                 }
-                else if (strncmp(optarg, "activate", strlen(optarg)) == 0)
-                {
-                    DOWNLOAD_FW_MODE = DL_FW_ACTIVATE;
-                }
                 else
                 {
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                    printf("Please use -h option to print help\n\n");
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
+            {
+                FWDL_SEGMENT_SIZE_FROM_USER = true;
+                FWDL_SEGMENT_SIZE_FLAG = (uint16_t)atoi(optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
+            {
+                FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
+                if (FIRMWARE_SLOT_FLAG > 7)
+                {
+                    if (toolVerbosity > VERBOSITY_QUIET)
+                    {
+                        printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
+                    }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
@@ -330,6 +366,91 @@ int32_t main(int argc, char *argv[])
                     printf("Please use -h option to print help\n\n");
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_FLAG = true;
+                if (strcmp(optarg, "current") != 0)
+                {
+                    //set the sector size
+                    NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = (uint32_t)atoi(optarg);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_NSID_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "current") == 0)
+                {
+                    NVM_FORMAT_NSID = 0;//detect this below and insert the correct NSID for the current handle
+                }
+                else if (strcmp(optarg, "all") == 0)
+                {
+                    NVM_FORMAT_NSID = UINT32_MAX;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_NSID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "none") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_NO_SECURE_ERASE_REQUESTED;
+                }
+                else if (strcmp(optarg, "user") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                }
+                else if (strcmp(optarg, "crypto") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_NO_SECURE_ERASE_REQUESTED;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_PI_TYPE = (uint8_t)atoi(optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "beginning") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 0;
+                }
+                else if (strcmp(optarg, "end") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_METADATA_SIZE = (uint32_t)atoi(optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "xlba") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 0;
+                }
+                else if (strcmp(optarg, "separate") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -339,6 +460,11 @@ int32_t main(int argc, char *argv[])
             {
                 FW_MATCH_FLAG = true;
                 strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+            }
+            else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
+            {
+                NEW_FW_MATCH_FLAG = true;
+                strncpy(NEW_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
             }
 //          else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
 //          {
@@ -350,15 +476,6 @@ int32_t main(int argc, char *argv[])
 //              CHILD_FW_MATCH_FLAG = true;
 //              strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
 //          }
-            else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
-            {
-                FORMAT_UNIT_FLAG = goTrue;
-                if (strcmp(optarg, "current") != 0)
-                {
-                    //set the sector size
-                    FORMAT_SECTOR_SIZE = (uint32_t)atoi(optarg);
-                }
-            }
             break;
         case ':'://missing required argument
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
@@ -424,6 +541,9 @@ int32_t main(int argc, char *argv[])
             {
                 toolVerbosity = atoi(optarg);
             }
+            break;
+        case PROGRESS_SHORT_OPT: //get test progress for a specific test
+            PROGRESS_CHAR = optarg;
             break;
         case QUIET_SHORT_OPT: //quiet mode
             toolVerbosity = VERBOSITY_QUIET;
@@ -548,25 +668,6 @@ int32_t main(int argc, char *argv[])
     {
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    else if (DOWNLOAD_FW_FLAG == true)
-    {
-        //check
-        if ( ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE ) || (DOWNLOAD_FW_MODE == DL_FW_UNKNOWN) )
-        {
-            printf("\nerror processing command line options\n\n");
-            if (DOWNLOAD_FW_MODE == DL_FW_UNKNOWN)
-            {
-                printf("missing --%s\n\n",DOWNLOAD_FW_MODE_LONG_OPT_STRING);
-            }
-            if( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE )
-            {
-                printf("To download AND activate firmware, use 'immediate' option\n\n");
-            }
-            print_Firmware_Download_Help(false);
-            print_NVMe_Firmware_Download_Mode_Help(false);
-            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-        }
-    }
 
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
@@ -606,18 +707,20 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, set that we are dumping device information so we at least do something
     if (!(DEVICE_INFO_FLAG
           || DOWNLOAD_FW_FLAG
+          || ACTIVATE_DEFERRED_FW_FLAG
+          || SWITCH_FW_FLAG
           || TEST_UNIT_READY_FLAG
           || CHECK_POWER_FLAG
           || (TRANSITION_POWER_STATE_TO >= 0)
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
           || (GET_NVME_TELE_IDENTIFIER > 0)
-          || ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE )
           || (GET_FEATURES_IDENTIFIER >= 0)
-          || FORMAT_UNIT_FLAG
           || EXT_SMART_LOG_FLAG1
           || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
           || NVME_TEMP_STATS_FLAG
           || NVME_PCI_STATS_FLAG 
+          || SHOW_SUPPORTED_FORMATS_FLAG
+          || NVM_FORMAT_FLAG
         //check for other tool specific options here
         ))
     {
@@ -646,22 +749,6 @@ int32_t main(int argc, char *argv[])
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
-
-    //set flags that can be passed down in get device regarding forcing specific ATA modes.
-//  if (FORCE_ATA_PIO_FLAG)
-//  {
-//      flags |= FORCE_ATA_PIO_ONLY;
-//  }
-//
-//  if (FORCE_ATA_DMA_FLAG)
-//  {
-//      flags |= FORCE_ATA_DMA_SAT_MODE;
-//  }
-//
-//  if (FORCE_ATA_UDMA_FLAG)
-//  {
-//      flags |= FORCE_ATA_UDMA_SAT_MODE;
-//  }
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
@@ -775,6 +862,15 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (deviceList[deviceIter].drive_info.drive_type != NVME_DRIVE)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("%s - Not an NVMe device, skipping\n", deviceList[deviceIter].os_info.name);
+            }
+            continue;
+        }
+
         if (VERBOSITY_QUIET < toolVerbosity)
         {
 			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
@@ -850,6 +946,47 @@ int32_t main(int argc, char *argv[])
 	            }
 	        }
 	    }
+
+        if (SHOW_SUPPORTED_FORMATS_FLAG)
+        {
+            uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
+            uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
+            ptrSupportedFormats formats = (ptrSupportedFormats)malloc(memSize);
+            if (formats)
+            {
+                memset(formats, 0, memSize);
+                formats->numberOfSectorSizes = numberOfSectorSizes;
+                switch (get_Supported_Formats(&deviceList[deviceIter], formats))
+                {
+                case SUCCESS:
+                    show_Supported_Formats(formats);
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Device does not support showing supported formats\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get supported sector sizes from device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+                safe_Free(formats);
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Unable to allocate memory for supported formats\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
 	
 	    if (GET_FEATURES_IDENTIFIER >= 0)
 	    {
@@ -1244,7 +1381,7 @@ int32_t main(int argc, char *argv[])
             }            
         }
 
-        if (NVME_TEMP_STATS_FLAG == goTrue)
+        if (NVME_TEMP_STATS_FLAG)
         {
             switch(nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
             {
@@ -1261,7 +1398,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (NVME_PCI_STATS_FLAG == goTrue)
+        if (NVME_PCI_STATS_FLAG)
         {
             switch(nvme_Print_PCI_Statistics(&deviceList[deviceIter]))
             {
@@ -1281,109 +1418,6 @@ int32_t main(int argc, char *argv[])
 	    if (TEST_UNIT_READY_FLAG)
 	    {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
-	    }
-	
-	    if ( (DOWNLOAD_FW_FLAG) || ( DOWNLOAD_FW_MODE == DL_FW_ACTIVATE ) )
-	    {
-	        FILE *firmwareFilePtr = NULL;
-	        //If it is not activate, must be either immediate or deffered. 
-	        if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
-	        {
-	            //open the file and send the download
-	            if ((firmwareFilePtr = fopen(DOWNLOAD_FW_FILENAME_FLAG, "rb")) != NULL)
-	            {
-                    long firmwareFileSize = get_File_Size(firmwareFilePtr);
-                    uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
-                    fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
-	                //We always want to do DL_FW_DEFERRED for NVMe
-                    memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-                    memset(&commandTimer, 0, sizeof(seatimer_t));
-                    dlOptions.dlMode = DL_FW_DEFERRED;									
-                    dlOptions.segmentSize = 64;
-                    dlOptions.firmwareFileMem = firmwareMem;
-                    dlOptions.firmwareMemoryLength = firmwareFileSize;
-                    start_Timer(&commandTimer);
-                    int firmwareDLResult = firmware_Download(&deviceList[deviceIter], &dlOptions);
-                    stop_Timer(&commandTimer);
-	                switch (firmwareDLResult)
-	                {
-	                case SUCCESS:
-	                    if (VERBOSITY_QUIET < toolVerbosity)
-	                    {
-	                        printf("Firmware Download successful\n");
-	                    }
-	                    break;
-	                case NOT_SUPPORTED:
-	                    if (VERBOSITY_QUIET < toolVerbosity)
-	                    {
-	                        printf("Firmware Download not supported\n");
-	                    }
-	                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	                    break;
-	                default:
-	                    if (VERBOSITY_QUIET < toolVerbosity)
-	                    {
-	                        printf("Firmware Download failed\n");
-	                    }
-	                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	                    break;
-	                }
-                    safe_Free(firmwareMem);
-	            }
-	            else
-	            {
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    perror("fopen");
-	                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
-	                }
-	                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	            }
-	        }
-	        
-	        //If it is not deferred, lets activate
-	        if ( (exitCode != UTIL_EXIT_OPERATION_FAILURE ) && (DOWNLOAD_FW_MODE != DL_FW_DEFERRED) )
-	        {
-	            switch (firmware_Download_Activate(&deviceList[deviceIter], 0, false))//TODO: Add slot numbers. 
-	            {
-	            case SUCCESS:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    printf("Firmware Activate/Commit successful\n");
-	                }
-                    //NOTE: Removed the following code because the firmware_Download_Activate uses functions that will check the NVMe return status and issue any
-                    //      reset activation required.
-
-	                // This is as of today (02/25/2016) Panther reports. 
-//                  switch(deviceList[deviceIter].os_info.last_error & 0x00FF)
-//                  {
-//                  case NVME_FW_DL_REQUIRES_SYS_RST:
-//                  case NVME_FW_DL_REQUIRES_NVM_RST:
-//                  case NVME_FW_DL_ON_NEXT_RST:
-//                      printf("\n-- Please power cycle the system --\n\n");
-//                      break;
-//                  default:
-//                      printf("\n-- WARN: Firmware Activate/Commit returned Status 0x%X --\n\n",deviceList[deviceIter].os_info.last_error & 0x00FF);
-//                      break;
-//                  }
-	
-	                break;
-	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    printf("Firmware Activate not supported\n");
-	                }
-	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	                break;
-	            default:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    printf("Firmware Activate failed\n");
-	                }
-	                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	                break;
-	            }
-	        }
 	    }
 	
 	    if (TRANSITION_POWER_STATE_TO >= 0)
@@ -1485,67 +1519,413 @@ int32_t main(int argc, char *argv[])
 	            break;
 	        }
 	    }
-	
-	    if (FORMAT_UNIT_FLAG)
-	    {
-	        if (VERBOSITY_QUIET < toolVerbosity)
-	        {
-	            printf("Format Unit\n");
-	        }
-	        if (DATA_ERASE_FLAG)
-	        {
-	            if (!(FORMAT_SECTOR_SIZE))
-	            {
-	                FORMAT_SECTOR_SIZE = (uint32_t)pow((double)2,\
-	                                 (double)deviceList[deviceIter].drive_info.IdentifyData.nvme.ns.lbaf[deviceList[deviceIter].drive_info.IdentifyData.nvme.ns.flbas & 0x0F].lbaDS);
-	
-	            }
-	            printf("Formatting using sector size %"PRIu8" \n",FORMAT_SECTOR_SIZE);
-	            uint64_t formatFlags = FORMAT_NVME_ERASE_USER_DATA;
-	            if (deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl.fna & BIT2)
-	            {
-	                formatFlags = FORMAT_NVME_CRYPTO_ERASE;
-	            }
-	
-	            switch (run_NVMe_Format(&deviceList[deviceIter], FORMAT_SECTOR_SIZE, formatFlags) )
-	            {
-	            case SUCCESS:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                        printf("Successfully Formated the device.\n");
-	                }
-	                break;
-	            case NOT_SUPPORTED:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    printf("Format Unit Not Supported.\n");
-	                }
-	                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-	                break;
-	            default:
-	                if (VERBOSITY_QUIET < toolVerbosity)
-	                {
-	                    printf("Format Unit Failed.\n");
-	                }
-	                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-	                break;
-	            }
-	        }
-	        else
-	        {
-	            if (VERBOSITY_QUIET < toolVerbosity)
-	            {
-	                printf("\n");
-	                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-	                printf("to the command line arguments to run a format unit.\n\n");
-	                printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-	            }
-	        }
-	    }
+
+        if (DOWNLOAD_FW_FLAG)
+        {
+            FILE *firmwareFilePtr = NULL;
+            bool fileOpenedSuccessfully = true;//assume true in case of activate command
+            if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
+            {
+                //open the file and send the download
+                if ((firmwareFilePtr = fopen(DOWNLOAD_FW_FILENAME_FLAG, "rb")) == NULL)
+                {
+                    fileOpenedSuccessfully = false;
+                }
+            }
+            if (DOWNLOAD_FW_MODE == DL_FW_ACTIVATE)
+            {
+                //this shouldn't fall into this code path anymore...
+                fileOpenedSuccessfully = false;
+            }
+            if (fileOpenedSuccessfully)
+            {
+                long firmwareFileSize = get_File_Size(firmwareFilePtr);
+                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
+                if (firmwareMem)
+                {
+                    supportedDLModes supportedFWDLModes;
+                    memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+                    if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
+                    {
+                        if (!USER_SET_DOWNLOAD_MODE)
+                        {
+                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
+                            //They said 6 months to a year from 8/30/16 - TJE
+                            /*
+                            DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            /*/
+                            if (!supportedFWDLModes.deferred)
+                            {
+                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            }
+                            else
+                            {
+                                if (supportedFWDLModes.segmented)
+                                {
+                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                                }
+                                else
+                                {
+                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                                }
+                            }
+                            //For now, setting deferred download as default for NVMe drives. 
+                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
+                            {
+                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            }
+                            //*/
+                        }
+                    }
+                    fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
+
+                    memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+                    memset(&commandTimer, 0, sizeof(seatimer_t));
+                    dlOptions.dlMode = DOWNLOAD_FW_MODE;
+                    dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    dlOptions.firmwareFileMem = firmwareMem;
+                    dlOptions.firmwareMemoryLength = firmwareFileSize;
+                    dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
+                    start_Timer(&commandTimer);
+                    ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                    stop_Timer(&commandTimer);
+                    switch (ret)
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Firmware Download successful\n");
+                            printf("Firmware Download time");
+                            print_Time(get_Nano_Seconds(commandTimer));
+                            printf("Average time/segment ");
+                            print_Time(dlOptions.avgSegmentDlTime);
+                            if (DOWNLOAD_FW_MODE != DL_FW_DEFERRED)
+                            {
+                                printf("Activate Time         ");
+                                print_Time(dlOptions.activateFWTime);
+                            }
+                        }
+                        if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                            }
+                        }
+                        else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("This drive requires a full power cycle to activate the new code.\n");
+                            }
+                        }
+                        else
+                        {
+                            fill_Drive_Info_Data(&deviceList[deviceIter]);
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                if (NEW_FW_MATCH_FLAG)
+                                {
+                                    if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                                    {
+                                        printf("Successfully validated firmware after download!\n");
+                                        printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                    }
+                                    else
+                                    {
+                                        printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                                    }
+                                }
+                                else
+                                {
+                                    printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                }
+                            }
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Firmware Download not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Firmware Download failed\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_Free(firmwareMem);
+                }
+                else
+                {
+                    perror("failed to allocate memory");
+                    exit(255);
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    perror("fopen");
+                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
+        if (ACTIVATE_DEFERRED_FW_FLAG || SWITCH_FW_FLAG)
+        {
+            supportedDLModes supportedFWDLModes;
+            memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+            get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
+            if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
+            {
+                memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+                memset(&commandTimer, 0, sizeof(seatimer_t));
+                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                dlOptions.firmwareFileMem = NULL;
+                dlOptions.firmwareMemoryLength = 0;
+                dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
+                if (SWITCH_FW_FLAG)
+                {
+                    dlOptions.existingFirmwareImage = true;
+                }
+                start_Timer(&commandTimer);
+                ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                stop_Timer(&commandTimer);
+                switch (ret)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Firmware activation successful\n");
+                        fill_Drive_Info_Data(&deviceList[deviceIter]);
+                        if (NEW_FW_MATCH_FLAG)
+                        {
+                            if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                            {
+                                printf("Successfully validated firmware after download!\n");
+                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                            }
+                            else
+                            {
+                                printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                            }
+                        }
+                        else
+                        {
+                            printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (SWITCH_FW_FLAG && FIRMWARE_SLOT_FLAG == 0)
+                        {
+                            printf("You must specify a valid slot number when switching firmware images.\n");
+                        }
+                        else
+                        {
+                            printf("Firmware activate not supported\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Firmware activation failed\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("This drive does not support the activate command.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+	    
+        if (NVM_FORMAT_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("NVM Format\n");
+            }
+            if (DATA_ERASE_FLAG)
+            {
+                runNVMFormatParameters nvmformatParameters;
+                memset(&nvmformatParameters, 0, sizeof(runNVMFormatParameters));
+                if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = true;
+                }
+                else if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 0 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM < 16)
+                {
+                    nvmformatParameters.formatNumberProvided = true;
+                    nvmformatParameters.formatNumber = NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM;
+                }
+                else
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = false;
+                    nvmformatParameters.newSize.newBlockSize = NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM;
+                }
+                if (NVM_FORMAT_METADATA_SIZE != UINT32_MAX && !nvmformatParameters.formatNumberProvided)
+                {
+                    nvmformatParameters.newSize.changeMetadataSize = true;
+                    nvmformatParameters.newSize.metadataSize = (uint16_t)NVM_FORMAT_METADATA_SIZE;
+                }
+                if (NVM_FORMAT_NSID != UINT32_MAX)
+                {
+                    nvmformatParameters.currentNamespace = true;
+                }
+                nvmformatParameters.secureEraseSettings = NVM_FORMAT_SECURE_ERASE;
+                //PI
+                switch (NVM_FORMAT_PI_TYPE)
+                {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    nvmformatParameters.changeProtectionType = true;
+                    nvmformatParameters.protectionType = NVM_FORMAT_PI_TYPE;
+                    break;
+                default:
+                    break;
+                }
+                //PIL
+                switch (NVM_FORMAT_PI_LOCATION)
+                {
+                case 0:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = true;
+                    break;
+                case 1:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = false;
+                    break;
+                default:
+                    break;
+                }
+                //metadata settings
+                switch (NVM_FORMAT_METADATA_SETTING)
+                {
+                case 0:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = true;
+                    break;
+                case 1:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = false;
+                    break;
+                default:
+                    break;
+                }
+                int formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
+                switch (formatRet)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (POLL_FLAG)
+                        {
+                            printf("NVM Format was Successful!\n");
+                        }
+                        else
+                        {
+                            printf("NVM Format was started Successfully!\n");
+                            printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Not Supported or invalid option combination provided!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case OS_COMMAND_NOT_AVAILABLE:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format is not supported in this OS\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Failed!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a nvm format.\n\n");
+                    printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
+            }
+        }
+
+        if (PROGRESS_CHAR != NULL)
+        {
+            int result = UNKNOWN;
+            //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
+            convert_String_To_Upper_Case(progressTest);
+            //do some string comparisons to figure out what we are checking for progress on
+            if (strcmp(progressTest, "NVMFORMAT") == 0)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Getting NVM Format Progress.\n");
+                }
+                result = show_Format_Unit_Progress(&deviceList[deviceIter]);
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\"%s\" does not report progress.\n", progressTest);
+                }
+            }
+            switch (result)
+            {
+            case UNKNOWN:
+                break;
+            case SUCCESS:
+                break;
+            case IN_PROGRESS:
+                break;
+            case ABORTED:
+                exitCode = UTIL_EXIT_OPERATION_ABORTED;
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
 	}
-
-
-
 #endif //DISABLE_NVME_PASSTHROUGH
     exit(exitCode);
 }
@@ -1587,12 +1967,16 @@ void utility_Usage(bool shortUsage)
     print_Echo_Command_Line_Help(shortUsage);
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
+    print_Model_Match_Help(shortUsage);
+    print_New_Firmware_Revision_Match_Help(shortUsage);
+    print_Firmware_Revision_Match_Help(shortUsage);
+    print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
     //the test options
-    printf("Utility arguments\n");
+    printf("Utility Arguments\n");
     printf("=================\n");
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
@@ -1600,11 +1984,13 @@ void utility_Usage(bool shortUsage)
     print_Device_Information_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here
+    print_Firmware_Activate_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);
-    print_Model_Match_Help(shortUsage);
-    print_NVMe_Firmware_Download_Mode_Help(shortUsage);
+    print_Firmware_Download_Mode_Help(shortUsage);
+    print_Firmware_Slot_Buffer_ID_Help(shortUsage);
+    print_FWDL_Segment_Size_Help(shortUsage);
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
     print_NVMe_Get_Tele_Help(shortUsage);
@@ -1614,11 +2000,17 @@ void utility_Usage(bool shortUsage)
     print_Output_Mode_Help(shortUsage);
     print_NVMe_Temp_Stats_Help(shortUsage);
     print_NVMe_Pci_Stats_Help(shortUsage);
+    print_Show_Supported_Formats_Help(shortUsage);
 
     //data destructive commands
     printf("\nData Destructive Commands\n");
     printf("=========================\n");
     //utility data destructive tests/operations go here
-    print_NVME_Format_Unit_Help(shortUsage);
-
+    print_NVM_Format_Metadata_Setting_Help(shortUsage);
+    print_NVM_Format_Metadata_Size_Help(shortUsage);
+    print_NVM_Format_NSID_Help(shortUsage);
+    print_NVM_Format_PI_Type_Help(shortUsage);
+    print_NVM_Format_PIL_Help(shortUsage);
+    print_NVM_Format_Secure_Erase_Help(shortUsage);
+    print_NVM_Format_Help(shortUsage);
 }

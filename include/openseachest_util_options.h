@@ -688,6 +688,12 @@ extern "C"
     #define WIN10_FLEXIBLE_API_USE_LONG_OPT_STRING "allowFlexibleFWDLAPIUse"
     #define WIN10_FLEXIBLE_API_USE_LONG_OPT { WIN10_FLEXIBLE_API_USE_LONG_OPT_STRING, no_argument, &WIN10_FLEXIBLE_API_USE_FLAG, goTrue }
 
+    //this is a troubleshooting option when trying to update firmware and it's not working with the Win10 API.
+    #define WIN10_FWDL_FORCE_PT_FLAG windows10ForceFWDLPassthrough
+    #define WIN10_FWDL_FORCE_PT_VAR getOptBool WIN10_FWDL_FORCE_PT_FLAG = goFalse;
+    #define WIN10_FWDL_FORCE_PT_LONG_OPT_STRING "forceFWDLPassthrough"
+    #define WIN10_FWDL_FORCE_PT_LONG_OPT { WIN10_FWDL_FORCE_PT_LONG_OPT_STRING, no_argument, &WIN10_FWDL_FORCE_PT_FLAG, goTrue }
+
     //FW slot
     #define FIRMWARE_SLOT_FLAG firmwareSlot
     #define FIRMWARE_SLOT_VAR uint8_t FIRMWARE_SLOT_FLAG = 0;//default to zero should be ok
@@ -1008,17 +1014,52 @@ extern "C"
      FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISABLE_CERTIFICATION_LONG_OPT,FORMAT_UNIT_SECURITY_INITIALIZE_LONG_OPT,\
      FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT,FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT,FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT,FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT,FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT,FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT
 
+	//NVM Format
+	#define NVM_FORMAT_FLAG nvmFormat
+	#define NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM nvmFormatDetails
+	#define NVM_FORMAT_VARS \
+	bool NVM_FORMAT_FLAG = false;\
+	uint32_t NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = 16;/*leave this at 16 since it's neither a valid sector size or a valid format to format the drive with.*/
+	#define NVM_FORMAT_LONG_OPT_STRING "nvmFormat"
+	#define NVM_FORMAT_LONG_OPT { NVM_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+	//Additional flags for nvmeFormat
+	#define NVM_FORMAT_NSID				nvmFormatNSID //default to all F's
+	#define NVM_FORMAT_SECURE_ERASE		nvmFormatSecureEraseType //default to 0, no erase
+	#define NVM_FORMAT_PI_TYPE			nvmFormatPI //default to UINT8_MAX to filter out when it's provided or not.
+	#define NVM_FORMAT_PI_LOCATION		nvmFormatPILocation //default to UINT8_MAX to filter out when it's provided or not.
+	#define NVM_FORMAT_METADATA_SIZE	nvmFormatMetadataSize //default to UINT32_MAX to filter out when it is or is not being provided by the user
+	#define NVM_FORMAT_METADATA_SETTING	nvmFormatMetadataSetting //default to UINT8_MAX to filter out when it's provided or not.
+
+	#define NVM_FORMAT_OPTION_VARS \
+	uint32_t NVM_FORMAT_NSID = UINT32_MAX;\
+	uint8_t NVM_FORMAT_SECURE_ERASE = 0;\
+	uint8_t NVM_FORMAT_PI_TYPE = UINT8_MAX;\
+	uint8_t NVM_FORMAT_PI_LOCATION = UINT8_MAX;\
+	uint32_t NVM_FORMAT_METADATA_SIZE = UINT32_MAX;\
+	uint8_t NVM_FORMAT_METADATA_SETTING = UINT8_MAX;
+
+	#define NVM_FORMAT_NSID_LONG_OPT_STRING				"nvmFmtNSID" //[all | current]
+	#define NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING		"nvmFmtSecErase" //[none | user | crypto]
+	#define NVM_FORMAT_PI_TYPE_LONG_OPT_STRING		"nvmFmtPI" //[0 | 1 | 2 | 3]
+	#define NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING		"nvmFmtPIL" //[beginning | end]
+	#define NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING	"nvmFmtMS" //value in bytes for metadata size
+	#define NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING "nvmFmtMetadataSet" //[xlba | separate]
+
+	#define NVM_FORMAT_NSID_LONG_OPT { NVM_FORMAT_NSID_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_SECURE_ERASE_LONG_OPT { NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_PI_TYPE_LONG_OPT { NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_PI_LOCATION_LONG_OPT { NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_METADATA_SIZE_LONG_OPT { NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_METADATA_SETTING_LONG_OPT { NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, required_argument, NULL, 0 }
+	#define NVM_FORMAT_OPTIONS_LONG_OPTS \
+		NVM_FORMAT_NSID_LONG_OPT,NVM_FORMAT_SECURE_ERASE_LONG_OPT,NVM_FORMAT_PI_TYPE_LONG_OPT,NVM_FORMAT_PI_LOCATION_LONG_OPT,NVM_FORMAT_METADATA_SIZE_LONG_OPT,NVM_FORMAT_METADATA_SETTING_LONG_OPT
+
     //show format status log
     #define SHOW_FORMAT_STATUS_LOG_FLAG showFormatStatusLog
     #define SHOW_FORMAT_STATUS_LOG_VAR getOptBool SHOW_FORMAT_STATUS_LOG_FLAG = goFalse;
     #define SHOW_FORMAT_STATUS_LOG_LONG_OPT_STRING "showFormatStatusLog"
     #define SHOW_FORMAT_STATUS_LOG_LONG_OPT { SHOW_FORMAT_STATUS_LOG_LONG_OPT_STRING, no_argument, &SHOW_FORMAT_STATUS_LOG_FLAG, goTrue }
-
-    //show supported protection types
-    #define SHOW_SUPPORTED_PROTECTION_TYPES_FLAG showSupportedProtectionTypes
-    #define SHOW_SUPPORTED_PROTECTION_TYPES_VAR getOptBool SHOW_SUPPORTED_PROTECTION_TYPES_FLAG = goFalse;
-    #define SHOW_SUPPORTED_PROTECTION_TYPES_LONG_OPT_STRING "showSupportedProtectionTypes"
-    #define SHOW_SUPPORTED_PROTECTION_TYPES_LONG_OPT { SHOW_SUPPORTED_PROTECTION_TYPES_LONG_OPT_STRING, no_argument, &SHOW_SUPPORTED_PROTECTION_TYPES_FLAG, goTrue }
 
     //fast format
     #define FAST_FORMAT_FLAG fastFormat
@@ -1035,10 +1076,11 @@ extern "C"
     #define SET_SECTOR_SIZE_LONG_OPT_STRING "setSectorSize"
     #define SET_SECTOR_SIZE_LONG_OPT { SET_SECTOR_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define SHOW_SUPPORTED_SECTOR_SIZES_FLAG showSupportedSectorSizes
-    #define SHOW_SUPPORTED_SECTOR_SIZES_VAR getOptBool SHOW_SUPPORTED_SECTOR_SIZES_FLAG = goFalse;
-    #define SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT_STRING "showSupportedSectorSizes"
-    #define SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT { SHOW_SUPPORTED_SECTOR_SIZES_LONG_OPT_STRING, no_argument, &SHOW_SUPPORTED_SECTOR_SIZES_FLAG, goTrue }
+	//related to formatting and setting sector sizes
+    #define SHOW_SUPPORTED_FORMATS_FLAG showSupportedFormats
+    #define SHOW_SUPPORTED_FORMATS_VAR getOptBool SHOW_SUPPORTED_FORMATS_FLAG = goFalse;
+    #define SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING "showSupportedFormats"
+    #define SHOW_SUPPORTED_FORMATS_LONG_OPT { SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING, no_argument, &SHOW_SUPPORTED_FORMATS_FLAG, goTrue }
 
     //port locking/unlocking (UDS, IEEE1667, FWDL)
     #define FWDL_PORT_FLAG fwdlPortLock
@@ -2660,8 +2702,6 @@ extern "C"
 
     void print_Firmware_Download_Mode_Help(bool shortHelp);
 
-    void print_NVMe_Firmware_Download_Mode_Help(bool shortHelp);//NVMe does not have a concept of segmented/differed. Revist
-
     void print_NVMe_Get_Log_Help(bool shortHelp);
 
     void print_NVMe_Get_Tele_Help(bool shortHelp);
@@ -2740,11 +2780,9 @@ extern "C"
 
     void print_Show_Format_Status_Log_Help(bool shortHelp);
 
-    void print_Show_Protection_Types_Supported_Help(bool shortHelp);
-
     void print_Set_Sector_Size_Help(bool shortHelp);
 
-    void print_Show_Supported_Sector_Sizes_Help(bool shortHelp);
+    void print_Show_Supported_Formats_Help(bool shortHelp);
 
     void print_Fast_Format_Help(bool shortHelp);
 
@@ -2756,16 +2794,11 @@ extern "C"
 
     void print_TCG_PSID_Help(bool shortHelp);
 
-    //TODO: Consolidate with the SAS Format
-    void print_NVME_Format_Unit_Help(bool shortHelp);
-
     void print_Get_Features_Help(bool shortHelp);
 
     void print_Output_Mode_Help(bool shortHelp);
 
     void print_Low_Current_Spinup_Help(bool shortHelp);
-
-    void print_Ultra_Low_Current_Spinup_Help(bool shortHelp);
 
     void print_Disable_Data_Locking_Help(bool shortHelp);
 
@@ -2836,6 +2869,8 @@ extern "C"
     void print_show_FWDL_Support_Help(bool shortHelp);
 
     void print_Firmware_Activate_Help(bool shortHelp);
+
+    void print_Firmware_Switch_Help(bool shortHelp);
 
     void print_Enable_Legacy_USB_Passthrough_Help(bool shortHelp);
 
@@ -3013,6 +3048,8 @@ extern "C"
 
     void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp);
 
+    void print_FWDL_Force_Win_Passthrough_Help(bool shortHelp);
+
     void print_ATA_Security_Password_Modifications_Help(bool shortHelp);
 
     void print_ATA_Security_Password_Help(bool shortHelp);
@@ -3050,6 +3087,20 @@ extern "C"
     void print_Set_SCSI_MP_Help(bool shortHelp);
 
     void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp);
+
+    void print_NVM_Format_Help(bool shortHelp);
+
+    void print_NVM_Format_NSID_Help(bool shortHelp);
+
+    void print_NVM_Format_Secure_Erase_Help(bool shortHelp);
+
+    void print_NVM_Format_PI_Type_Help(bool shortHelp);
+
+    void print_NVM_Format_PIL_Help(bool shortHelp);
+
+    void print_NVM_Format_Metadata_Size_Help(bool shortHelp);
+
+    void print_NVM_Format_Metadata_Setting_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg; 
 
