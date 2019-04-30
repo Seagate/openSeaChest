@@ -1653,7 +1653,7 @@ int32_t main(int argc, char *argv[])
                 {
                     printf("DST And Clean\n");
                 }
-                switch (run_DST_And_Clean(&deviceList[deviceIter], ERROR_LIMIT_FLAG, NULL, NULL, NULL))
+                switch (run_DST_And_Clean(&deviceList[deviceIter], ERROR_LIMIT_FLAG, NULL, NULL, NULL, NULL))
                 {
                 case UNKNOWN:
                     if (VERBOSITY_QUIET < toolVerbosity)
