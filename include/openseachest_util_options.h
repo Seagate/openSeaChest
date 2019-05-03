@@ -222,15 +222,14 @@ extern "C"
     #define PROGRESS_LONG_OPT_STRING "progress"
     #define PROGRESS_LONG_OPT { PROGRESS_LONG_OPT_STRING, required_argument, NULL, PROGRESS_SHORT_OPT }
 
-    #define DATA_ERASE_ACCEPT_STRING "I-understand-this-command-will-erase-all-data-on-the-drive"
-    #define PARTIAL_DATA_ERASE_ACCEPT_STRING "I-understand-this-command-will-erase-all-or-some-data-on-the-drive"
+    #define DATA_ERASE_ACCEPT_STRING "this-will-erase-data"
+
     #define LONG_TEST_ACCEPT_STRING "I-understand-this-command-will-take-a-long-time-to-complete"
     #define SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING "I-understand-this-command-may-erase-single-sectors-if-they-are-already-unreadable"
 
     #define DATA_ERASE_FLAG dataEraseAccepted
     #define DATA_ERASE_VAR bool DATA_ERASE_FLAG = false;
-    #define PARTIAL_DATA_ERASE_FLAG partialDataEraseAccepted
-    #define PARTIAL_DATA_ERASE_VAR bool PARTIAL_DATA_ERASE_FLAG = false;
+
     #define LONG_TEST_FLAG longOperationAccepted
     #define LONG_TEST_VAR bool LONG_TEST_FLAG = false;
     #define SINGLE_SECTOR_DATA_ERASE_FLAG singleSectorDataEraseAccepted

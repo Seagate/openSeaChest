@@ -81,7 +81,7 @@ int32_t main(int argc, char *argv[])
     CHILD_MODEL_MATCH_VARS
     CHILD_FW_MATCH_VARS
     ONLY_SEAGATE_VAR
-    PARTIAL_DATA_ERASE_VAR
+    DATA_ERASE_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
     //scan output flags
@@ -208,9 +208,9 @@ int32_t main(int argc, char *argv[])
                 {
                     LONG_TEST_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(PARTIAL_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, PARTIAL_DATA_ERASE_ACCEPT_STRING, strlen(PARTIAL_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
-                    PARTIAL_DATA_ERASE_FLAG = true;
+                    DATA_ERASE_FLAG = true;
                 }
                 else if (strlen(optarg) == strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING, strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING)) == 0)
                 {

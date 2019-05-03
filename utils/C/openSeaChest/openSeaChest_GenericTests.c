@@ -105,7 +105,7 @@ int32_t main(int argc, char *argv[])
     MINUTES_TIME_VAR
     SECONDS_TIME_VAR
     //data erase 
-    PARTIAL_DATA_ERASE_VAR
+	DATA_ERASE_VAR
     OD_MD_ID_TEST_VARS
     HIDE_LBA_COUNTER_VAR
     BUFFER_TEST_VAR
@@ -199,9 +199,9 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(PARTIAL_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, PARTIAL_DATA_ERASE_ACCEPT_STRING, strlen(PARTIAL_DATA_ERASE_ACCEPT_STRING)) == 0)
+                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
-                    PARTIAL_DATA_ERASE_FLAG = true;
+                    DATA_ERASE_FLAG = true;
                 }
             }
             else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_START_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_START_STRING))) == 0)
@@ -1068,15 +1068,15 @@ int32_t main(int argc, char *argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         }
 
-        if (GENERIC_TEST_MODE_FLAG == RWV_COMMAND_WRITE && !PARTIAL_DATA_ERASE_FLAG)
+        if (GENERIC_TEST_MODE_FLAG == RWV_COMMAND_WRITE && !DATA_ERASE_FLAG)
         {
             //user must provide the confirmation string to enable write testing.
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\n");
-                printf("You must add the flag:\n\"%s\" \n", PARTIAL_DATA_ERASE_ACCEPT_STRING);
+                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                 printf("to the command line arguments to use a write operation in a generic test.\n\n");
-                printf("e.g.: %s -d %s --shortGeneric --confirm %s\n\n", util_name, deviceHandleExample, PARTIAL_DATA_ERASE_ACCEPT_STRING);
+                printf("e.g.: %s -d %s --shortGeneric --confirm %s\n\n", util_name, deviceHandleExample, DATA_ERASE_ACCEPT_STRING);
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         }
