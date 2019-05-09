@@ -38,6 +38,7 @@ extern "C"
     #define getOptBool int
     #define goFalse 0
     #define goTrue !goFalse
+	#define CURRENT_YEAR_LENGTH 5
 
     typedef enum _eUtilExitCodes{
         //Generic exit codes
@@ -1691,6 +1692,8 @@ extern "C"
     extern const char *deviceHandleExample;
     extern const char *deviceHandleName;
     extern const char *commandWindowType;
+
+	char* get_current_year(char *temp_year);
 
     void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion);
 

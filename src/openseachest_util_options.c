@@ -59,17 +59,29 @@ void print_Bug_Report_Email(bool shortHelp)
     }
 }
 
+char* get_current_year(char *temp_year)
+{
+	int len = strlen(__DATE__);
+	temp_year[4] = NULL;
+	temp_year[3] = __DATE__[len - 1];
+	temp_year[2] = __DATE__[len - 2];
+	temp_year[1] = __DATE__[len - 3];
+	temp_year[0] = __DATE__[len - 4];
+	return temp_year;
+}
+
 void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     time_t g_curTime = time(NULL);
+	char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
 #if !defined (DISABLE_NVME_PASSTHROUGH)
 	printf(" - NVMe Enabled");
 #endif
-    printf("\n Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n", get_current_year(year));
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
@@ -77,6 +89,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
     //strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
+	free(year);
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
