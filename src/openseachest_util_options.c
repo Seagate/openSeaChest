@@ -62,7 +62,6 @@ void print_Bug_Report_Email(bool shortHelp)
 char* get_current_year(char *temp_year)
 {
 	int len = strlen(__DATE__);
-	temp_year[4] = NULL;
 	temp_year[3] = __DATE__[len - 1];
 	temp_year[2] = __DATE__[len - 2];
 	temp_year[1] = __DATE__[len - 3];
