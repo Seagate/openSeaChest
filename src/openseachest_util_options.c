@@ -1143,17 +1143,16 @@ void print_SAT_12_Byte_CDB_Help(bool shortHelp)
 
 void print_Firmware_Download_Help(bool shortHelp)
 {
-    printf("\t--%s firmware_filename\t\t\t\t\n", DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\t--%s [firmware_filename]\t\t\t\t\n", DOWNLOAD_FW_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tDownload firmware to a Seagate storage product. Use only\n");
-        printf("\t\tSeagate authorized firmware data files which are designated for\n");
-        printf("\t\tthe specific model drive. Improper use of this option may harm\n");
-        printf("\t\ta device and or its data. The Seagate utility seaflashlin is\n");
-        printf("\t\tavailable to handle batches of drives and for providing\n");
-        printf("\t\tadditional controls for more complex installations.\n");
-        printf("\t\tThis option will use segmented download by default. Use the\n");
-        printf("\t\t--%s option to specify a different download mode.\n\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+		printf("\t\tSeagate authorized firmware data files which are designated\n");
+		printf("\t\tfor the specific model drive.Improper use of this option may\n");
+		printf("\t\tharm a device and or its data.You may specify the path (without\n");
+		printf("\t\tspaces)if the firmware data file is in a different location.\n");
+		printf("\t\tThis option will use segmented download by default.\n");
+		printf("\t\tUse the --downloadMode option to specify a different download mode.\n\n");
     }
 }
 
