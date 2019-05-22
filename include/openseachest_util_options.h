@@ -1262,7 +1262,7 @@ extern "C"
 
     #define MAX_ZONES_FLAG maxZones
     #define MAX_ZONES_VAR \
-    uint32_t MAX_ZONES_FLAG = UINT64_MAX;
+    uint32_t MAX_ZONES_FLAG = UINT32_MAX;
     #define MAX_ZONES_LONG_OPT_STRING "maxZones"
     #define MAX_ZONES_LONG_OPT { MAX_ZONES_LONG_OPT_STRING, required_argument, NULL, 0 }
 

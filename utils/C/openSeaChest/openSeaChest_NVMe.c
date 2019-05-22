@@ -1373,7 +1373,7 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Couldn't allocate %ld bytes buffer needed for Log Page %d\n", size, GET_NVME_LOG_IDENTIFIER);
+                        printf("Couldn't allocate %" PRIu32 " bytes buffer needed for Log Page %" PRId32 "\n", size, GET_NVME_LOG_IDENTIFIER);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1548,32 +1548,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
                         {
-                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
-                            //They said 6 months to a year from 8/30/16 - TJE
-                            /*
                             DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            /*/
-                            if (!supportedFWDLModes.deferred)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            else
-                            {
-                                if (supportedFWDLModes.segmented)
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                                }
-                                else
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
-                                }
-                            }
-                            //For now, setting deferred download as default for NVMe drives. 
-                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            //*/
                         }
                     }
                     fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
@@ -1581,7 +1556,14 @@ int32_t main(int argc, char *argv[])
                     memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                     memset(&commandTimer, 0, sizeof(seatimer_t));
                     dlOptions.dlMode = DOWNLOAD_FW_MODE;
-                    dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    if (FWDL_SEGMENT_SIZE_FROM_USER)
+                    {
+                        dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    }
+                    else
+                    {
+                        dlOptions.segmentSize = 0;
+                    }
                     dlOptions.firmwareFileMem = firmwareMem;
                     dlOptions.firmwareMemoryLength = firmwareFileSize;
                     dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
@@ -1686,7 +1668,7 @@ int32_t main(int argc, char *argv[])
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                 memset(&commandTimer, 0, sizeof(seatimer_t));
                 dlOptions.dlMode = DL_FW_ACTIVATE;
-                dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;

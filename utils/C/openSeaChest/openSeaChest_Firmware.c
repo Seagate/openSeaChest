@@ -80,7 +80,6 @@ int32_t main(int argc, char *argv[])
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
-    DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
@@ -945,7 +944,14 @@ int32_t main(int argc, char *argv[])
 					memset(&dlOptions, 0, sizeof(firmwareUpdateData));
 					memset(&commandTimer, 0, sizeof(seatimer_t));
 					dlOptions.dlMode = DOWNLOAD_FW_MODE;
-					dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    if (FWDL_SEGMENT_SIZE_FROM_USER)
+                    {
+                        dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    }
+                    else
+                    {
+                        dlOptions.segmentSize = 0;
+                    }
 					dlOptions.firmwareFileMem = firmwareMem;
 					dlOptions.firmwareMemoryLength = firmwareFileSize;
                     dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
@@ -955,7 +961,7 @@ int32_t main(int argc, char *argv[])
                     switch (ret)
                     {
                     case SUCCESS:
-                        exitCode = SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
+                        exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Firmware Download successful\n");
@@ -971,7 +977,7 @@ int32_t main(int argc, char *argv[])
                         }
                         if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                         {
-                            exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
@@ -979,7 +985,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
                         {
-                            exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("This drive requires a full power cycle to activate the new code.\n");
@@ -1053,7 +1059,7 @@ int32_t main(int argc, char *argv[])
 				memset(&dlOptions, 0, sizeof(firmwareUpdateData));
 				memset(&commandTimer, 0, sizeof(seatimer_t));
 				dlOptions.dlMode = DL_FW_ACTIVATE;
-				dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+				dlOptions.segmentSize = 0;
 				dlOptions.firmwareFileMem = NULL;
 				dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
@@ -1067,7 +1073,7 @@ int32_t main(int argc, char *argv[])
                 switch (ret)
                 {
                 case SUCCESS:
-                    exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
+                    exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Firmware activation successful\n");

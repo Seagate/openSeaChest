@@ -1174,7 +1174,6 @@ int32_t main(int argc, char *argv[])
         if (RUN_USER_GENERIC_TEST)
         {
             uint64_t localRange = USER_GENERIC_RANGE_FLAG;
-            uint64_t OdMdIdTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
             if (localRange > 0)
             {
                 if (USER_GENERIC_RANGE_UNITS_SPECIFIED)
