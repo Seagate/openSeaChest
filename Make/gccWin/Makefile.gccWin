@@ -12,14 +12,6 @@
 # Hand Written Makefile (Edit with caution) -Muhammad
 # Windows, MSYS2 64-bit, MinGW 64-bit, gcc environment version - Billy
 
-# BUILD_ALL string below is a list of the openSeaChest tools you want to build
-# choose from BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
-# example: BUILD_ALL = firmware   for just firmware
-# BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
-BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
-
-UTIL_SRC_DIR = ../../utils/C/openSeaChest
-
 MYUNAME := $(shell uname -s)
 ifneq (,$(findstring Linux,$(MYUNAME)))
 	UNAME = MINGW64
@@ -27,9 +19,21 @@ else ifneq (,$(findstring MINGW64,$(MYUNAME)))
 	UNAME = MINGW64
 endif
 
+# BUILD_ALL string below is a list of the openSeaChest tools you want to build
+# choose from BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
+# example: BUILD_ALL = firmware   for just firmware
+# BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 ifneq (,$(findstring Linux,$(MYUNAME)))
-	CC = i686-w64-mingw32-gcc
-	STRIP = i686-w64-mingw32-strip
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd
+else
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
+endif
+
+UTIL_SRC_DIR = ../../utils/C/openSeaChest
+
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	CC = x86_64-w64-mingw32-gcc
+	STRIP = x86_64-w64-mingw32-strip
 else
 	CC = gcc
 	STRIP = strip
@@ -164,8 +168,12 @@ PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
 
 PROJECT_DEFINES += -DENABLE_CSMI
 PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100162990L
-PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
-PROJECT_DEFINES += #-DDISABLE_NVME_PASSTHROUGH #-D_DEBUG
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT #-D_DEBUG
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+else
+	PROJECT_DEFINES += #-DDISABLE_NVME_PASSTHROUGH
+endif
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
 	PROJECT_DEFINES += -D__MINGW64__
