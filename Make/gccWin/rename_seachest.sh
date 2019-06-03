@@ -142,6 +142,11 @@ if [[ "$CUR_APP_OS" =~ "Windows" ]]; then
    #echo "Windows";
    NEW_APP_NAME+=.exe
 fi
+UNAME=`uname -s`
+if [[ "$UNAME" == "Linux" ]] ; then
+	NEWER_APP_NAME=`echo $NEW_APP_NAME | sed 's/\\r//g'`;
+	NEW_APP_NAME="$NEWER_APP_NAME"
+fi
 echo "old file name: $sc_app";
 echo "new file name: $NEW_APP_NAME"
 cp -vp $sc_app $NEW_APP_NAME
