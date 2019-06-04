@@ -170,9 +170,9 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
+        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    opterr = 0;//hide getopt parsing errors and let us handle them in the '?' case or ':' case
     //get options we know we need
     while (1) //changed to while 1 in order to parse multiple options when longs options are involved
     {
@@ -327,9 +327,9 @@ int32_t main(int argc, char *argv[])
         case SCAN_SHORT_OPT: //scan
             SCAN_FLAG = true;
             break;
-		case AGRESSIVE_SCAN_SHORT_OPT:
-			AGRESSIVE_SCAN_FLAG = true;
-			break;
+        case AGRESSIVE_SCAN_SHORT_OPT:
+            AGRESSIVE_SCAN_FLAG = true;
+            break;
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
@@ -337,10 +337,6 @@ int32_t main(int argc, char *argv[])
             if (optarg != NULL)
             {
                 toolVerbosity = atoi(optarg);
-                if (toolVerbosity > VERBOSITY_COMMAND_VERBOSE)
-                {
-                    toolVerbosity = VERBOSITY_COMMAND_NAMES;
-                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -362,6 +358,7 @@ int32_t main(int argc, char *argv[])
         }
     }
 
+    atexit(print_Final_newline);
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -461,10 +458,11 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
+        if (ONLY_SEAGATE_FLAG)
+        {
+            scanControl |= SCAN_SEAGATE_ONLY;
+        }
         scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
-#if defined (ENABLE_HWRAID_SUPPORT)
-        scan_And_Print_Raid_Devs(scanControl, NULL);
-#endif
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -604,6 +602,10 @@ int32_t main(int argc, char *argv[])
 #if defined (ENABLE_CSMI)
         flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;//TODO: Remove this flag so that CSMI devices can be part of running on all drives. This is not allowed now because of issues with running the same operation on the same drive with both PD? and SCSI?:? handles.
 #endif
+        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+        {
+            DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
+        }
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
@@ -642,6 +644,8 @@ int32_t main(int argc, char *argv[])
 #endif
             deviceList[handleIter].dFlags = flags;
 
+            deviceList[handleIter].deviceVerbosity = toolVerbosity;
+
             if (ENABLE_LEGACY_PASSTHROUGH_FLAG)
             {
                 deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError = true;
@@ -650,18 +654,6 @@ int32_t main(int argc, char *argv[])
             /*get the device for the specified handle*/
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
-#endif
-#if defined (ENABLE_HWRAID_SUPPORT)
-            if (is_Supported_Raid_Dev(HANDLE_LIST[handleIter]))
-            {
-                RAID_PHYSICAL_DRIVE rDevice;
-                rDevice.pDevice = &deviceList[handleIter];
-                printf("RAID Device %s\n",HANDLE_LIST[handleIter]);
-                ret = get_Raid_Dev(HANDLE_LIST[handleIter], &rDevice);
-                //exit(1);
-            }
-            else
-            {
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
@@ -683,23 +675,20 @@ int32_t main(int argc, char *argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
             }
-
-#if defined (ENABLE_HWRAID_SUPPORT)
-            } // End of else for RAID
-#endif
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < numberOfDevices; ++deviceIter)
+    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }
@@ -828,20 +817,7 @@ int32_t main(int argc, char *argv[])
 
         if (TEST_UNIT_READY_FLAG)
         {
-            scsiStatus returnedStatus = { 0 };
-            ret = scsi_Test_Unit_Ready(&deviceList[deviceIter], &returnedStatus);
-            if ((ret == SUCCESS) && (returnedStatus.senseKey == SENSE_KEY_NO_ERROR))
-            {
-                printf("READY\n");
-            }
-            else
-            {
-                eVerbosityLevels tempVerbosity = toolVerbosity;
-                printf("NOT READY\n");
-                toolVerbosity = VERBOSITY_COMMAND_NAMES;//the function below will print out a sense data translation, but only it we are at this verbosity or higher which is why it's set before this call.
-                check_Sense_Key_ASC_ASCQ_And_FRU(&deviceList[deviceIter], returnedStatus.senseKey, returnedStatus.asc, returnedStatus.ascq, returnedStatus.fru);
-                toolVerbosity = tempVerbosity;//restore it back to what it was now that this is done.
-            }
+            show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
         if (LIST_LOGS_FLAG)
