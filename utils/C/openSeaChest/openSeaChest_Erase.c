@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 // \file OpenSeaChest_Erase.c Binary command line that performs various erase methods on a device.
 
 //////////////////////
@@ -83,7 +83,7 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	AGRESSIVE_SCAN_FLAG_VAR
+    AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
@@ -158,7 +158,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		AGRESSIVE_SCAN_LONG_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
@@ -258,7 +258,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-            	RUN_TRIM_UNMAP_FLAG = true;
+                RUN_TRIM_UNMAP_FLAG = true;
                 sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG);
                 if (0 == sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG))
                 {
@@ -745,13 +745,13 @@ int32_t main(int argc, char *argv[])
         print_EULA_To_Screen(false, false);
     }
 
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
         unsigned int scanControl = DEFAULT_SCAN;
-		if(AGRESSIVE_SCAN_FLAG)
-		{
-			scanControl |= AGRESSIVE_SCAN;
-		}
+        if(AGRESSIVE_SCAN_FLAG)
+        {
+            scanControl |= AGRESSIVE_SCAN;
+        }
         #if defined (__linux__)
         if (scanSD)
         {
@@ -814,16 +814,16 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
-		if (ONLY_SEAGATE_FLAG)
-		{
-			scanControl |= SCAN_SEAGATE_ONLY;
-		}
+        if (ONLY_SEAGATE_FLAG)
+        {
+            scanControl |= SCAN_SEAGATE_ONLY;
+        }
         scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
     // SIMPLE IS BEAUTIFUL
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
     {
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_NO_ERROR);
@@ -954,7 +954,7 @@ int32_t main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-        
+
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
@@ -1112,9 +1112,9 @@ int32_t main(int argc, char *argv[])
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) || 
+            if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) && 
+            if (((deviceList[handleIter].os_info.fd < 0) &&
                  (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
@@ -1156,14 +1156,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < toolVerbosity)
-				{
-					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for fw match
         if (FW_MATCH_FLAG)
@@ -1181,14 +1181,14 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < toolVerbosity)
-				{
-					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
@@ -1202,7 +1202,7 @@ int32_t main(int argc, char *argv[])
                 continue;
             }
         }
-        
+
         if (FORCE_SCSI_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1211,7 +1211,7 @@ int32_t main(int argc, char *argv[])
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
-        
+
         if (FORCE_ATA_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1255,7 +1255,7 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1277,7 +1277,7 @@ int32_t main(int argc, char *argv[])
             eraseMethod eraseMethodList[MAX_SUPPORTED_ERASE_METHODS];
             memset(&eraseMethodList, 0, sizeof(eraseMethod) * MAX_SUPPORTED_ERASE_METHODS);
 #ifdef DISABLE_TCG_SUPPORT
-            //TODO: Check the return method. 
+            //TODO: Check the return method.
             get_Supported_Erase_Methods(&deviceList[deviceIter], eraseMethodList, &overwriteTimeMinutes);
 #else
             //get_Supported_Erase_Methods(&selectedDevice, &eraseMethodList);//switch this to method with TCG support later - TJE
@@ -1372,12 +1372,12 @@ int32_t main(int argc, char *argv[])
             {
                 eraseMethod eraseMethodList[MAX_SUPPORTED_ERASE_METHODS];
 #ifdef DISABLE_TCG_SUPPORT
-                //TODO: Check the return method. 
+                //TODO: Check the return method.
                 get_Supported_Erase_Methods(&deviceList[deviceIter], eraseMethodList, NULL);
 #else
                 //get_Supported_Erase_Methods(&selectedDevice, &eraseMethodList);//switch this to method with TCG support later - TJE
                 get_Supported_Erase_Methods_With_TCG(&deviceList[deviceIter], eraseMethodList, NULL);
-#endif                
+#endif
 
                 switch (eraseMethodList[0].eraseIdentifier)
                 {
@@ -1391,7 +1391,7 @@ int32_t main(int argc, char *argv[])
                         printf("\nFastest Erase is RevertSP. Please use the --%s option with the drive PSID to perform this erase.\n", TCG_REVERT_SP_LONG_OPT_STRING);
                     }
                     break;
-#endif                
+#endif
                 case ERASE_TRIM_UNMAP:
                     RUN_TRIM_UNMAP_FLAG = true;
                     TRIM_UNMAP_START_FLAG = 0;
@@ -2049,62 +2049,62 @@ int32_t main(int argc, char *argv[])
                 }
                 if (DATA_ERASE_FLAG)
                 {
-		            int writeSameRet = UNKNOWN;
-		            if (PATTERN_FLAG)
-		            {
-		                writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
-		            }
-		            else
-		            {
-		                writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, NULL, 0);
-		            }
-		            //now we need to send the erase
-		            switch (writeSameRet)
-	                {
-	                case SUCCESS:
-	                    if (VERBOSITY_QUIET < toolVerbosity)
-	                    {
-			                if (POLL_FLAG && deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
-			                {
-			                    printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
-			                }
-			                else
-			                {
-			                    printf("Erasing LBAs %"PRIu64" to %"PRIu64" using write same in the background.\n", localStartLBA, localStartLBA + localRange - 1);
-			                    if (deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
-			                    {
-			                        printf("\tUse --poll to see progress when using the write same command line option.\n");
-			                    }
-			                }
-			            }
-		                break;
-		            case NOT_SUPPORTED:
-		                if (VERBOSITY_QUIET < toolVerbosity)
-		                {
-		                    printf("Write same is not supported on this device, or the range is larger than the device supports.\n");
-		                }
-		                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-		                break;
-		            default:
-		                if (VERBOSITY_QUIET < toolVerbosity)
-		                {
-		                    printf("Failed to erase LBAs %"PRIu64" to %"PRIu64" with write same\n", localStartLBA, localStartLBA + localRange - 1);
-		                }
-		                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-		                break;
-		            }
-		        }
-		        else
-		        {
-		            if (VERBOSITY_QUIET < toolVerbosity)
-		            {
-		                printf("\n");
-		                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-		                printf("to the command line arguments to run a writesame operation.\n\n");
-		                printf("e.g.: %s -d %s --writeSame 0 --writeSameRange 4096 --confirm %s\n\n", util_name, deviceHandleExample, DATA_ERASE_ACCEPT_STRING);
-	                }
-	            }
-	        }
+                    int writeSameRet = UNKNOWN;
+                    if (PATTERN_FLAG)
+                    {
+                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
+                    }
+                    else
+                    {
+                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, NULL, 0);
+                    }
+                    //now we need to send the erase
+                    switch (writeSameRet)
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            if (POLL_FLAG && deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
+                            {
+                                printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
+                            }
+                            else
+                            {
+                                printf("Erasing LBAs %"PRIu64" to %"PRIu64" using write same in the background.\n", localStartLBA, localStartLBA + localRange - 1);
+                                if (deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
+                                {
+                                    printf("\tUse --poll to see progress when using the write same command line option.\n");
+                                }
+                            }
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Write same is not supported on this device, or the range is larger than the device supports.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to erase LBAs %"PRIu64" to %"PRIu64" with write same\n", localStartLBA, localStartLBA + localRange - 1);
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("\n");
+                        printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                        printf("to the command line arguments to run a writesame operation.\n\n");
+                        printf("e.g.: %s -d %s --writeSame 0 --writeSameRange 4096 --confirm %s\n\n", util_name, deviceHandleExample, DATA_ERASE_ACCEPT_STRING);
+                    }
+                }
+            }
             else
             {
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
@@ -2117,8 +2117,8 @@ int32_t main(int argc, char *argv[])
 
         if (RUN_TRIM_UNMAP_FLAG)
         {
-        	uint64_t localStartLBA = TRIM_UNMAP_START_FLAG;
-        	uint64_t localRange = TRIM_UNMAP_RANGE_FLAG;
+            uint64_t localStartLBA = TRIM_UNMAP_START_FLAG;
+            uint64_t localRange = TRIM_UNMAP_RANGE_FLAG;
             if (USE_MAX_LBA)
             {
                 localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
@@ -2137,57 +2137,57 @@ int32_t main(int argc, char *argv[])
             }
             if (localStartLBA != UINT64_MAX)
             {
-            	if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
-            	{
-            		localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
-            	}
+                if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
+                {
+                    localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
+                }
                 if (TRIM_UNMAP_RANGE_FLAG == 0 || TRIM_UNMAP_RANGE_FLAG == UINT64_MAX || (localStartLBA + localRange) > deviceList[deviceIter].drive_info.deviceMaxLba)
-		        {
-		            localRange = deviceList[deviceIter].drive_info.deviceMaxLba - localStartLBA + 1;
-		        }
-		        if (DATA_ERASE_FLAG)
-		        {
-		            switch (trim_Unmap_Range(&deviceList[deviceIter], localStartLBA, localRange))
-		            {
-		            case SUCCESS:
-		                if (VERBOSITY_QUIET < toolVerbosity)
-		                {
-		                    printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
-		                }
-		                break;
-		            case NOT_SUPPORTED:
-		                if (VERBOSITY_QUIET < toolVerbosity)
-		                {
-		                    printf("Trim/Unmap is not supported on this drive type.\n");
-		                }
-		                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-		                break;
-		            default:
-		                if (VERBOSITY_QUIET < toolVerbosity)
-		                {
-		                    printf("Failed to trim/unmap LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
-		                }
-		                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-		                break;
-		            }
-		        }
-		        else
-		        {
-		            if (VERBOSITY_QUIET < toolVerbosity)
-		            {
-		                printf("\n");
-		                printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-		                printf("to the command line arguments to run a trim/unmap operation.\n\n");
-		                printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-		            }
-		        }
+                {
+                    localRange = deviceList[deviceIter].drive_info.deviceMaxLba - localStartLBA + 1;
+                }
+                if (DATA_ERASE_FLAG)
+                {
+                    switch (trim_Unmap_Range(&deviceList[deviceIter], localStartLBA, localRange))
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Trim/Unmap is not supported on this drive type.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to trim/unmap LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("\n");
+                        printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                        printf("to the command line arguments to run a trim/unmap operation.\n\n");
+                        printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    }
+                }
             }
             else
             {
-            	exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-            	if (VERBOSITY_QUIET < toolVerbosity)
-	            {
-	                printf("An invalid start LBA has been entered. Please enter a valid value.\n");
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An invalid start LBA has been entered. Please enter a valid value.\n");
                 }
             }
         }
@@ -2222,7 +2222,7 @@ int32_t main(int argc, char *argv[])
                     }
                     if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
                     {
-                    	localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
+                        localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
                     }
                     //range based overwrite
                     if ((localStartLBA + localRange) > deviceList[deviceIter].drive_info.deviceMaxLba || localRange == UINT64_MAX || localRange == 0)
@@ -2443,7 +2443,7 @@ void utility_Usage(bool shortUsage)
     print_Poll_Help(shortUsage);
     print_Progress_Help(shortUsage, "sanitize, format");
     print_Scan_Help(shortUsage, deviceHandleExample);
-	print_Agressive_Scan_Help(shortUsage);
+    print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized

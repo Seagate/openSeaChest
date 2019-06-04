@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 // \file openseachest_util_options.h
 // \brief This file defines the functions and macros to make building a open seachest utility easier.
 
@@ -38,7 +38,7 @@ extern "C"
     #define getOptBool int
     #define goFalse 0
     #define goTrue !goFalse
-	#define CURRENT_YEAR_LENGTH 5
+    #define CURRENT_YEAR_LENGTH 5
 
     typedef enum _eUtilExitCodes{
         //Generic exit codes
@@ -58,8 +58,8 @@ extern "C"
 
     typedef enum _eOutputMode {
         UTIL_OUTPUT_MODE_HUMAN = 0,
-        UTIL_OUTPUT_MODE_RAW, // print it to screen 
-        UTIL_OUTPUT_MODE_BIN, // create a binary file. 
+        UTIL_OUTPUT_MODE_RAW, // print it to screen
+        UTIL_OUTPUT_MODE_BIN, // create a binary file.
         UTIL_OUTPUT_MODE_JSON,// create a JSON file
     } eOutputMode;
 
@@ -148,10 +148,10 @@ extern "C"
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
     #define ONLY_SEAGATE_LONG_OPT_STRING "onlySeagate"
     #define ONLY_SEAGATE_LONG_OPT { ONLY_SEAGATE_LONG_OPT_STRING, no_argument, &ONLY_SEAGATE_FLAG, goTrue }
-    
+
     #define FORCE_SCSI_FLAG forceSCSI
     #define FORCE_ATA_FLAG forceATA
-	#define FORCE_ATA_PIO_FLAG forcePIOATA
+    #define FORCE_ATA_PIO_FLAG forcePIOATA
     #define FORCE_ATA_DMA_FLAG forceATADMA
     #define FORCE_ATA_UDMA_FLAG forceATAUDMA
     #define FORCE_DRIVE_TYPE_VARS\
@@ -195,7 +195,7 @@ extern "C"
     uint8_t PATTERN_BUFFER[PATTERN_BUFFER_LENGTH] = { 0 };/*Allocating 2 * current largest logical sector (4096) for now...-TJE */
     #define PATTERN_LONG_OPT_STRING "pattern"
     #define PATTERN_LONG_OPT { PATTERN_LONG_OPT_STRING, required_argument, NULL, 0 }
-    
+
     #define OUTPUTPATH_FLAG outputPathPtr
     #define OUTPUTPATH_VAR char *OUTPUTPATH_FLAG = NULL;
 
@@ -243,7 +243,7 @@ extern "C"
     #define SMART_CHECK_VAR getOptBool SMART_CHECK_FLAG = goFalse;
     #define SMART_CHECK_LONG_OPT_STRING "smartCheck"
     #define SMART_CHECK_LONG_OPT { SMART_CHECK_LONG_OPT_STRING, no_argument, &SMART_CHECK_FLAG, goTrue }
-    
+
     #define EXT_SMART_LOG_FLAG1 extSmatLog
     #define EXT_SMART_LOG_VAR1 getOptBool EXT_SMART_LOG_FLAG1 = goFalse;
     #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmartLog"
@@ -258,7 +258,7 @@ extern "C"
     #define LONG_DST_VAR getOptBool LONG_DST_FLAG = goFalse;
     #define LONG_DST_LONG_OPT_STRING "longDST"
     #define LONG_DST_LONG_OPT { LONG_DST_LONG_OPT_STRING, no_argument, &LONG_DST_FLAG, goTrue }
-    
+
     #define CONVEYANCE_DST_FLAG conveyanceDST
     #define CONVEYANCE_DST_VAR getOptBool CONVEYANCE_DST_FLAG = goFalse;
     #define CONVEYANCE_DST_LONG_OPT_STRING "conveyanceDST"
@@ -293,7 +293,7 @@ extern "C"
      bool RUN_IDD_FLAG = false;
     #define IDD_TEST_LONG_OPT_STRING "idd"
     #define IDD_TEST_LONG_OPT { IDD_TEST_LONG_OPT_STRING, required_argument, NULL, 0 }
-    
+
     #define ABORT_IDD_FLAG abortIDD
     #define ABORT_IDD_VAR getOptBool ABORT_IDD_FLAG = goFalse;
     #define ABORT_IDD_LONG_OPT_STRING "abortIDD"
@@ -414,13 +414,13 @@ extern "C"
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    // NVMe Temperature Statistics 
+    // NVMe Temperature Statistics
     #define NVME_TEMP_STATS_FLAG nvmeTempStats
     #define NVME_TEMP_STATS_VAR getOptBool NVME_TEMP_STATS_FLAG = goFalse;
     #define NVME_TEMP_STATS_LONG_OPT_STRING "tempStats"
     #define NVME_TEMP_STATS_LONG_OPT { NVME_TEMP_STATS_LONG_OPT_STRING, no_argument, &NVME_TEMP_STATS_FLAG, goTrue }
 
-    // NVMe PCIe Statistics 
+    // NVMe PCIe Statistics
     #define NVME_PCI_STATS_FLAG nvmePciStats
     #define NVME_PCI_STATS_VAR getOptBool NVME_PCI_STATS_FLAG = goFalse;
     #define NVME_PCI_STATS_LONG_OPT_STRING "pciStats"
@@ -468,7 +468,7 @@ extern "C"
     #define LONG_GENERIC_LONG_OPT_STRING "longGeneric"
     #define LONG_GENERIC_LONG_OPT { LONG_GENERIC_LONG_OPT_STRING, no_argument, &LONG_GENERIC_FLAG, goTrue }
 
-	#define RUN_USER_GENERIC_TEST runUserGeneric
+    #define RUN_USER_GENERIC_TEST runUserGeneric
     #define USER_GENERIC_START_FLAG userGenericStart
     #define USER_GENERIC_START_VAR \
     uint64_t USER_GENERIC_START_FLAG = UINT64_MAX;
@@ -490,7 +490,7 @@ extern "C"
     #define ERROR_LIMIT_VAR \
     uint16_t ERROR_LIMIT_FLAG = 50;/*default value unless 512/4k which will be 400*/\
     bool ERROR_LIMIT_LOGICAL_COUNT = false;//default to being in physical blocks
-    #define ERROR_LIMIT_LONG_OPT_STRING "errorLimit" 
+    #define ERROR_LIMIT_LONG_OPT_STRING "errorLimit"
     #define ERROR_LIMIT_LONG_OPT { ERROR_LIMIT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define RANDOM_READ_TEST_FLAG randomReadTest
@@ -858,9 +858,9 @@ extern "C"
     bool READY_LED_INFO_FLAG = false;
     #define SET_PIN_11_LONG_OPT_STRING "pin11" //left for backwards compatibility
     #define SET_PIN_11_LONG_OPT { SET_PIN_11_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define SET_READY_LED_LONG_OPT_STRING "readyLED" //left for backwards compatibility
-	#define SET_READY_LED_LONG_OPT { SET_READY_LED_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define SET_READY_LED_LONG_OPTS SET_PIN_11_LONG_OPT, SET_READY_LED_LONG_OPT
+    #define SET_READY_LED_LONG_OPT_STRING "readyLED" //left for backwards compatibility
+    #define SET_READY_LED_LONG_OPT { SET_READY_LED_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define SET_READY_LED_LONG_OPTS SET_PIN_11_LONG_OPT, SET_READY_LED_LONG_OPT
 
     //read look ahead
     #define READ_LOOK_AHEAD_INFO readLookAheadInfo
@@ -973,7 +973,7 @@ extern "C"
     #define FORMAT_UNIT_DEFAULT_FORMAT                  performDefaultFormat
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE      disableFormatImmediateResponse
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR              formatStopOnListError
-	#define FORMAT_UNIT_NEW_MAX_LBA                     newMaxLBA
+    #define FORMAT_UNIT_NEW_MAX_LBA                     newMaxLBA
 
     #define FORMAT_UNIT_OPTION_FLAGS \
     getOptBool FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG = goFalse;\
@@ -996,9 +996,9 @@ extern "C"
     #define FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING "protectionType"
     #define FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING "protectionIntervalExponent"
     #define FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT_STRING "defaultFormat"
-    #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT_STRING "disableImmediateResponse"  
+    #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT_STRING "disableImmediateResponse"
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT_STRING "stopOnListError"
-	#define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING "formatMaxLBA"
+    #define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING "formatMaxLBA"
 
     #define FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT { FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG, goTrue }
     #define FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT { FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG, goTrue }
@@ -1009,51 +1009,51 @@ extern "C"
     #define FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT { FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DEFAULT_FORMAT, goTrue }
     #define FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT { FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE, goTrue }
     #define FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT { FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT_STRING, no_argument, &FORMAT_UNIT_STOP_ON_LIST_ERROR, goTrue }
-	#define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT { FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT { FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define FORMAT_UNIT_ADDITIONAL_OPTIONS\
      FORMAT_UNIT_DISABLE_PRIMARY_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT,FORMAT_UNIT_DISABLE_CERTIFICATION_LONG_OPT,FORMAT_UNIT_SECURITY_INITIALIZE_LONG_OPT,\
      FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT,FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT,FORMAT_UNIT_DEFAULT_FORMAT_LONG_OPT,FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE_LONG_OPT,FORMAT_UNIT_STOP_ON_LIST_ERROR_LONG_OPT,FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT
 
-	//NVM Format
-	#define NVM_FORMAT_FLAG nvmFormat
-	#define NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM nvmFormatDetails
-	#define NVM_FORMAT_VARS \
-	bool NVM_FORMAT_FLAG = false;\
-	uint32_t NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = 16;/*leave this at 16 since it's neither a valid sector size or a valid format to format the drive with.*/
-	#define NVM_FORMAT_LONG_OPT_STRING "nvmFormat"
-	#define NVM_FORMAT_LONG_OPT { NVM_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    //NVM Format
+    #define NVM_FORMAT_FLAG nvmFormat
+    #define NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM nvmFormatDetails
+    #define NVM_FORMAT_VARS \
+    bool NVM_FORMAT_FLAG = false;\
+    uint32_t NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = 16;/*leave this at 16 since it's neither a valid sector size or a valid format to format the drive with.*/
+    #define NVM_FORMAT_LONG_OPT_STRING "nvmFormat"
+    #define NVM_FORMAT_LONG_OPT { NVM_FORMAT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-	//Additional flags for nvmeFormat
-	#define NVM_FORMAT_NSID				nvmFormatNSID //default to all F's
-	#define NVM_FORMAT_SECURE_ERASE		nvmFormatSecureEraseType //default to 0, no erase
-	#define NVM_FORMAT_PI_TYPE			nvmFormatPI //default to UINT8_MAX to filter out when it's provided or not.
-	#define NVM_FORMAT_PI_LOCATION		nvmFormatPILocation //default to UINT8_MAX to filter out when it's provided or not.
-	#define NVM_FORMAT_METADATA_SIZE	nvmFormatMetadataSize //default to UINT32_MAX to filter out when it is or is not being provided by the user
-	#define NVM_FORMAT_METADATA_SETTING	nvmFormatMetadataSetting //default to UINT8_MAX to filter out when it's provided or not.
+    //Additional flags for nvmeFormat
+    #define NVM_FORMAT_NSID             nvmFormatNSID //default to all F's
+    #define NVM_FORMAT_SECURE_ERASE     nvmFormatSecureEraseType //default to 0, no erase
+    #define NVM_FORMAT_PI_TYPE          nvmFormatPI //default to UINT8_MAX to filter out when it's provided or not.
+    #define NVM_FORMAT_PI_LOCATION      nvmFormatPILocation //default to UINT8_MAX to filter out when it's provided or not.
+    #define NVM_FORMAT_METADATA_SIZE    nvmFormatMetadataSize //default to UINT32_MAX to filter out when it is or is not being provided by the user
+    #define NVM_FORMAT_METADATA_SETTING nvmFormatMetadataSetting //default to UINT8_MAX to filter out when it's provided or not.
 
-	#define NVM_FORMAT_OPTION_VARS \
-	uint32_t NVM_FORMAT_NSID = UINT32_MAX;\
-	uint8_t NVM_FORMAT_SECURE_ERASE = 0;\
-	uint8_t NVM_FORMAT_PI_TYPE = UINT8_MAX;\
-	uint8_t NVM_FORMAT_PI_LOCATION = UINT8_MAX;\
-	uint32_t NVM_FORMAT_METADATA_SIZE = UINT32_MAX;\
-	uint8_t NVM_FORMAT_METADATA_SETTING = UINT8_MAX;
+    #define NVM_FORMAT_OPTION_VARS \
+    uint32_t NVM_FORMAT_NSID = UINT32_MAX;\
+    uint8_t NVM_FORMAT_SECURE_ERASE = 0;\
+    uint8_t NVM_FORMAT_PI_TYPE = UINT8_MAX;\
+    uint8_t NVM_FORMAT_PI_LOCATION = UINT8_MAX;\
+    uint32_t NVM_FORMAT_METADATA_SIZE = UINT32_MAX;\
+    uint8_t NVM_FORMAT_METADATA_SETTING = UINT8_MAX;
 
-	#define NVM_FORMAT_NSID_LONG_OPT_STRING				"nvmFmtNSID" //[all | current]
-	#define NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING		"nvmFmtSecErase" //[none | user | crypto]
-	#define NVM_FORMAT_PI_TYPE_LONG_OPT_STRING		"nvmFmtPI" //[0 | 1 | 2 | 3]
-	#define NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING		"nvmFmtPIL" //[beginning | end]
-	#define NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING	"nvmFmtMS" //value in bytes for metadata size
-	#define NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING "nvmFmtMetadataSet" //[xlba | separate]
+    #define NVM_FORMAT_NSID_LONG_OPT_STRING             "nvmFmtNSID" //[all | current]
+    #define NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING     "nvmFmtSecErase" //[none | user | crypto]
+    #define NVM_FORMAT_PI_TYPE_LONG_OPT_STRING      "nvmFmtPI" //[0 | 1 | 2 | 3]
+    #define NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING      "nvmFmtPIL" //[beginning | end]
+    #define NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING    "nvmFmtMS" //value in bytes for metadata size
+    #define NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING "nvmFmtMetadataSet" //[xlba | separate]
 
-	#define NVM_FORMAT_NSID_LONG_OPT { NVM_FORMAT_NSID_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_SECURE_ERASE_LONG_OPT { NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_PI_TYPE_LONG_OPT { NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_PI_LOCATION_LONG_OPT { NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_METADATA_SIZE_LONG_OPT { NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_METADATA_SETTING_LONG_OPT { NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define NVM_FORMAT_OPTIONS_LONG_OPTS \
-		NVM_FORMAT_NSID_LONG_OPT,NVM_FORMAT_SECURE_ERASE_LONG_OPT,NVM_FORMAT_PI_TYPE_LONG_OPT,NVM_FORMAT_PI_LOCATION_LONG_OPT,NVM_FORMAT_METADATA_SIZE_LONG_OPT,NVM_FORMAT_METADATA_SETTING_LONG_OPT
+    #define NVM_FORMAT_NSID_LONG_OPT { NVM_FORMAT_NSID_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_SECURE_ERASE_LONG_OPT { NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_PI_TYPE_LONG_OPT { NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_PI_LOCATION_LONG_OPT { NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_METADATA_SIZE_LONG_OPT { NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_METADATA_SETTING_LONG_OPT { NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define NVM_FORMAT_OPTIONS_LONG_OPTS \
+        NVM_FORMAT_NSID_LONG_OPT,NVM_FORMAT_SECURE_ERASE_LONG_OPT,NVM_FORMAT_PI_TYPE_LONG_OPT,NVM_FORMAT_PI_LOCATION_LONG_OPT,NVM_FORMAT_METADATA_SIZE_LONG_OPT,NVM_FORMAT_METADATA_SETTING_LONG_OPT
 
     //show format status log
     #define SHOW_FORMAT_STATUS_LOG_FLAG showFormatStatusLog
@@ -1076,7 +1076,7 @@ extern "C"
     #define SET_SECTOR_SIZE_LONG_OPT_STRING "setSectorSize"
     #define SET_SECTOR_SIZE_LONG_OPT { SET_SECTOR_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-	//related to formatting and setting sector sizes
+    //related to formatting and setting sector sizes
     #define SHOW_SUPPORTED_FORMATS_FLAG showSupportedFormats
     #define SHOW_SUPPORTED_FORMATS_VAR getOptBool SHOW_SUPPORTED_FORMATS_FLAG = goFalse;
     #define SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING "showSupportedFormats"
@@ -1115,7 +1115,7 @@ extern "C"
     #define DISABLE_DATA_LOCKING_VAR getOptBool DISABLE_DATA_LOCKING_FLAG = goFalse;
     #define DISABLE_DATA_LOCKING_LONG_OPT_STRING "disableDataLocking"
     #define DISABLE_DATA_LOCKING_LONG_OPT { DISABLE_DATA_LOCKING_LONG_OPT_STRING, no_argument, &DISABLE_DATA_LOCKING_FLAG, goTrue }
-    
+
     //Set APM Level
     #define SET_APM_LEVEL_FLAG setAPMLevel
     #define SET_APM_LEVEL_VALUE_FLAG setApmLevelValue
@@ -1130,7 +1130,7 @@ extern "C"
     #define DISABLE_APM_VAR getOptBool DISABLE_APM_FLAG = goFalse;
     #define DISABLE_APM_LONG_OPT_STRING "disableAPM"
     #define DISABLE_APM_LONG_OPT { DISABLE_APM_LONG_OPT_STRING, no_argument, &DISABLE_APM_FLAG, goTrue }
-    
+
     //Show APM Level
     #define SHOW_APM_LEVEL_FLAG showAPMLevel
     #define SHOW_APM_LEVEL_VALUE_FLAG showApmLevelValue
@@ -1139,7 +1139,7 @@ extern "C"
     uint8_t SHOW_APM_LEVEL_VALUE_FLAG = 0;
     #define SHOW_APM_LEVEL_LONG_OPT_STRING "showAPMLevel"
     #define SHOW_APM_LEVEL_LONG_OPT { SHOW_APM_LEVEL_LONG_OPT_STRING, no_argument, &SHOW_APM_LEVEL_FLAG, goTrue }
-    
+
     //PUIS Feature enable/disable
     #define PUIS_FEATURE_FLAG puisFeature
     #define PUIS_FEATURE_STATE_FLAG puisFeatureState
@@ -1154,7 +1154,7 @@ extern "C"
     #define SHOW_EPC_SETTINGS_VAR getOptBool SHOW_EPC_SETTINGS_FLAG = goFalse;
     #define SHOW_EPC_SETTINGS_LONG_OPT_STRING "showEPCSettings"
     #define SHOW_EPC_SETTINGS_LONG_OPT { SHOW_EPC_SETTINGS_LONG_OPT_STRING, no_argument, &SHOW_EPC_SETTINGS_FLAG, goTrue }
-    
+
     //SMART Feature
     #define SMART_FEATURE_FLAG smartFeature
     #define SMART_FEATURE_STATE_FLAG enableDisableSMART
@@ -1163,7 +1163,7 @@ extern "C"
     bool SMART_FEATURE_STATE_FLAG = false;
     #define SMART_FEATURE_LONG_OPT_STRING "smartFeature"
     #define SMART_FEATURE_LONG_OPT { SMART_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
-    
+
     //Set MRIE mode
     #define SET_MRIE_MODE_FLAG setMRIEMode
     #define SET_MRIE_MODE_VALUE setMRIEValue
@@ -1174,7 +1174,7 @@ extern "C"
     uint8_t SET_MRIE_MODE_VALUE = 6;
     #define SET_MRIE_MODE_LONG_OPT_STRING "setMRIE"
     #define SET_MRIE_MODE_LONG_OPT { SET_MRIE_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
-    
+
     //SMART Attribute Autosave
     #define SMART_ATTR_AUTOSAVE_FEATURE_FLAG smartAttrAutosave
     #define SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG enableDisableSMARTAtrAutosave
@@ -1205,31 +1205,31 @@ extern "C"
     #define SHOW_DST_LOG_LONG_OPT_STRING "showDSTLog"
     #define SHOW_DST_LOG_LONG_OPT { SHOW_DST_LOG_LONG_OPT_STRING, no_argument, &SHOW_DST_LOG_FLAG, goTrue }
 
-	//Generic Public Logs 
-	#define LIST_LOGS_FLAG listSupportedLogs
-	#define LIST_LOGS_VAR getOptBool LIST_LOGS_FLAG = goFalse;
-	#define LIST_LOGS_LONG_OPT_STRING "listSupportedLogs"
-	#define LIST_LOGS_LONG_OPT { LIST_LOGS_LONG_OPT_STRING, no_argument, &LIST_LOGS_FLAG, goTrue }
+    //Generic Public Logs
+    #define LIST_LOGS_FLAG listSupportedLogs
+    #define LIST_LOGS_VAR getOptBool LIST_LOGS_FLAG = goFalse;
+    #define LIST_LOGS_LONG_OPT_STRING "listSupportedLogs"
+    #define LIST_LOGS_LONG_OPT { LIST_LOGS_LONG_OPT_STRING, no_argument, &LIST_LOGS_FLAG, goTrue }
 
-	#define GENERIC_LOG_PULL_FLAG pullGenericLog
-	#define GENERIC_LOG_DATA_SET genericLogDataSet
-	#define GENERIC_LOG_VAR \
-		bool GENERIC_LOG_PULL_FLAG = false; \
-		uint64_t GENERIC_LOG_DATA_SET = 0;
-	#define GENERIC_LOG_LONG_OPT_STRING "pullLog"
-	#define GENERIC_LOG_LONG_OPT { GENERIC_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define GENERIC_LOG_PULL_FLAG pullGenericLog
+    #define GENERIC_LOG_DATA_SET genericLogDataSet
+    #define GENERIC_LOG_VAR \
+        bool GENERIC_LOG_PULL_FLAG = false; \
+        uint64_t GENERIC_LOG_DATA_SET = 0;
+    #define GENERIC_LOG_LONG_OPT_STRING "pullLog"
+    #define GENERIC_LOG_LONG_OPT { GENERIC_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define GENERIC_LOG_SUBPAGE_DATA_SET genericLogDataSetSubpage
-	#define GENERIC_LOG_SUBPAGE_VAR \
-		uint64_t GENERIC_LOG_SUBPAGE_DATA_SET = 0;
-	#define GENERIC_LOG_SUBPAGE_LONG_OPT_STRING "pullSubpage"
-	#define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define GENERIC_LOG_SUBPAGE_VAR \
+        uint64_t GENERIC_LOG_SUBPAGE_DATA_SET = 0;
+    #define GENERIC_LOG_SUBPAGE_LONG_OPT_STRING "pullSubpage"
+    #define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-	#define PULL_LOG_MODE logMode
-	#define PULL_LOG_MODE_LONG_OPT_STRING "logMode"
-	#define PULL_LOG_MODE_LONG_OPT { PULL_LOG_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
-	#define PULL_LOG_MODE_VARS \
-		int PULL_LOG_MODE = 0;
+    #define PULL_LOG_MODE logMode
+    #define PULL_LOG_MODE_LONG_OPT_STRING "logMode"
+    #define PULL_LOG_MODE_LONG_OPT { PULL_LOG_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define PULL_LOG_MODE_VARS \
+        int PULL_LOG_MODE = 0;
 
     //Generic SCSI Error history stuff
     #define LIST_ERROR_HISTORY_FLAG listSupportedErrorHistoryBufferIDs
@@ -1245,7 +1245,7 @@ extern "C"
     #define GENERIC_ERROR_HISTORY_LONG_OPT_STRING "pullErrorHistoryID"
     #define GENERIC_ERROR_HISTORY_LONG_OPT { GENERIC_ERROR_HISTORY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-	//device statistics (display)
+    //device statistics (display)
     #define DEVICE_STATISTICS_FLAG showDeviceStatistics
     #define DEVICE_STATISTICS_VAR getOptBool DEVICE_STATISTICS_FLAG = goFalse;
     #define DEVICE_STATISTICS_LONG_OPT_STRING "deviceStatistics"
@@ -1360,7 +1360,7 @@ extern "C"
     #define HIDE_LBA_COUNTER_LONG_OPT_STRING "hideLBACounter"
     #define HIDE_LBA_COUNTER_LONG_OPT { HIDE_LBA_COUNTER_LONG_OPT_STRING, no_argument, &HIDE_LBA_COUNTER, goTrue }
 
-    //depopulate / remanufacture 
+    //depopulate / remanufacture
     #define SHOW_PHYSICAL_ELEMENT_STATUS_FLAG showPhysicalElementStatus
     #define SHOW_PHYSICAL_ELEMENT_STATUS_VAR getOptBool SHOW_PHYSICAL_ELEMENT_STATUS_FLAG = goFalse;
     #define SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING "showPhysicalElementStatus"
@@ -1650,7 +1650,7 @@ extern "C"
     #define SCSI_SHOW_MP_LONG_OPTS SCSI_SHOW_MP_LONG_OPT,SCSI_SHOW_MP_MPC_LONG_OPT,SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT
 
     //setting a SCSI mode page
-    #define SCSI_SET_MP_OP setSCSIModePage 
+    #define SCSI_SET_MP_OP setSCSIModePage
     #define SCSI_SET_MP_FILENAME setSCSIModePageFilename
     #define SCSI_SET_MP_PAGE_NUMBER setSCSIModePageNumber
     #define SCSI_SET_MP_SUBPAGE_NUMBER setSCSIModeSubpageNumber
@@ -1686,14 +1686,14 @@ extern "C"
     #define SCSI_RESET_LP_LONG_OPT { SCSI_RESET_LP_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_PAGE_LONG_OPT {SCSI_RESET_LP_PAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_LONG_OPTS SCSI_RESET_LP_LONG_OPT,SCSI_RESET_LP_PAGE_LONG_OPT
-    
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
     extern const char *deviceHandleName;
     extern const char *commandWindowType;
 
-	char* get_current_year(char *temp_year);
+    char* get_current_year(char *temp_year);
 
     void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion);
 
@@ -1744,7 +1744,7 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Scan_Help(bool shortHelp, const char *deviceHandleExample);
 
-	void print_Agressive_Scan_Help(bool shortHelp);
+    void print_Agressive_Scan_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -1899,21 +1899,21 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Help_Help(bool shortHelp);
 
-	//-----------------------------------------------------------------------------
-	//
-	//  print_OutputPath_Help()
-	//
-	//! \brief   Description:  This function prints out the short or long help for the
-	//!						   output folder help.
-	//
-	//  Entry:
-	//!   \param[in] shortHelp = bool used to select when to print short or long help
-	//!
-	//  Exit:
-	//!   \return VOID
-	//
-	//-----------------------------------------------------------------------------
-	void print_OutputPath_Help(bool shortHelp);
+    //-----------------------------------------------------------------------------
+    //
+    //  print_OutputPath_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the
+    //!                        output folder help.
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_OutputPath_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2356,8 +2356,8 @@ extern "C"
     //
     //  print_Transition_Power_State_Help()
     //
-    //! \brief   Description:  This function prints out the short or long help for the 
-    //!                        transitionPower option for NVMe devices. 
+    //! \brief   Description:  This function prints out the short or long help for the
+    //!                        transitionPower option for NVMe devices.
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
@@ -2708,7 +2708,7 @@ extern "C"
 
     void print_NVMe_Get_Tele_Help(bool shortHelp);
 
-	void print_extSmatLog_Help (bool shortHelp);
+    void print_extSmatLog_Help (bool shortHelp);
 
     void print_pcierr_Help(bool shortHelp);
 
@@ -2738,17 +2738,17 @@ extern "C"
 
     void print_SAT_Info_Help(bool shortHelp);
 
-	void print_Supported_Logs_Help(bool shortHelp);
+    void print_Supported_Logs_Help(bool shortHelp);
 
-	void print_Pull_Generic_Logs_Help(bool shortHelp);
+    void print_Pull_Generic_Logs_Help(bool shortHelp);
 
     void print_Pull_Generic_Logs_Subpage_Help(bool shortHelp);
 
     void print_Supported_Error_History_Help(bool shortHelp);
 
     void print_Pull_Generic_Error_History_Help(bool shortHelp);
-	
-	void print_Log_Mode_Help(bool shortHelp);
+
+    void print_Log_Mode_Help(bool shortHelp);
 
     void print_DST_And_Clean_Help(bool shortHelp);
 
@@ -2778,7 +2778,7 @@ extern "C"
 
     void print_Format_Stop_On_List_Error_Help(bool shortHelp);
 
-	void print_Format_New_Max_LBA_Help(bool shortHelp);
+    void print_Format_New_Max_LBA_Help(bool shortHelp);
 
     void print_Show_Format_Status_Log_Help(bool shortHelp);
 
@@ -2811,21 +2811,21 @@ extern "C"
     void print_New_Firmware_Revision_Match_Help(bool shortHelp);
 
     void print_Only_Seagate_Help(bool shortHelp);
-    
+
     void print_Set_APM_Level_Help(bool shortHelp);
-    
+
     void print_Show_APM_Level_Help(bool shortHelp);
 
     void print_Disable_APM_Help(bool shortHelp);
-    
+
     void print_PUIS_Feature_Help(bool shortHelp);
 
     void print_Show_EPC_Settings_Help(bool shortHelp);
-    
+
     void print_SMART_Feature_Help(bool shortHelp);
-    
+
     void print_Set_MRIE_Help(bool shortHelp);
-    
+
     void print_SMART_Attribute_Autosave_Help(bool shortHelp);
 
     void print_SMART_Info_Help(bool shortHelp);
@@ -2833,19 +2833,19 @@ extern "C"
     void print_SMART_Auto_Offline_Help(bool shortHelp);
 
     void print_Show_DST_Log_Help(bool shortHelp);
-    
+
     void print_Conveyance_DST_Help(bool shortHelp);
-    
+
     void print_Force_SCSI_Help(bool shortHelp);
-    
+
     void print_Force_ATA_Help(bool shortHelp);
 
-	void print_Force_ATA_PIO_Help(bool shortHelp);
+    void print_Force_ATA_PIO_Help(bool shortHelp);
 
     void print_Force_ATA_DMA_Help(bool shortHelp);
 
     void print_Force_ATA_UDMA_Help(bool shortHelp);
-	
+
     void print_Display_LBA_Help(bool shortHelp);
 
     void print_Pattern_Help(bool shortHelp);
@@ -2927,7 +2927,7 @@ extern "C"
     void print_Show_Locked_Regions_Help(bool shortHelp);
 
     void print_SCT_Error_Recovery_Read_Help(bool shortHelp);
-    
+
     void print_SCT_Error_Recovery_Write_Help(bool shortHelp);
 
     void print_Seagate_Power_Balance_Help(bool shortHelp);
@@ -3104,7 +3104,7 @@ extern "C"
 
     void print_NVM_Format_Metadata_Setting_Help(bool shortHelp);
 
-#define OUTPUTPATH_PARSE outputPathPtr = optarg; 
+#define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
 #if defined (ENABLE_CSMI) //Since we are using macros to instert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
     #define SCAN_FLAGS_UTIL_VARS \

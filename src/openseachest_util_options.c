@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 // \file openseachest_util_options.c
 // \brief This file defines the functions and macros to make building a utility easier.
 
@@ -61,24 +61,24 @@ void print_Bug_Report_Email(bool shortHelp)
 
 char* get_current_year(char *temp_year)
 {
-	int len = strlen(__DATE__);
-	temp_year[3] = __DATE__[len - 1];
-	temp_year[2] = __DATE__[len - 2];
-	temp_year[1] = __DATE__[len - 3];
-	temp_year[0] = __DATE__[len - 4];
-	return temp_year;
+    int len = strlen(__DATE__);
+    temp_year[3] = __DATE__[len - 1];
+    temp_year[2] = __DATE__[len - 2];
+    temp_year[1] = __DATE__[len - 3];
+    temp_year[0] = __DATE__[len - 4];
+    return temp_year;
 }
 
 void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     time_t g_curTime = time(NULL);
-	char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
+    char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
 #if !defined (DISABLE_NVME_PASSTHROUGH)
-	printf(" - NVMe Enabled");
+    printf(" - NVMe Enabled");
 #endif
     printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n", get_current_year(year));
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
@@ -88,7 +88,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
     //strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
-	free(year);
+    free(year);
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -104,10 +104,10 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
 
     printf("Version Info for %s:\n", utilityName);
     printf("\tUtility Version: %s\n", buildVersion);
-	printf("\topensea-common Version: %s\n", openseaCommonVersion);
+    printf("\topensea-common Version: %s\n", openseaCommonVersion);
     printf("\topensea-transport Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
-	printf("\topensea-operations Version: %s\n", openseaOperationVersion);
-	printf("\tBuild Date: %s\n", __DATE__);
+    printf("\topensea-operations Version: %s\n", openseaOperationVersion);
+    printf("\tBuild Date: %s\n", __DATE__);
     printf("\tCompiled Architecture: ");
     print_Architecture(get_Compiled_Architecture());
     printf("\n\tDetected Endianness: ");
@@ -167,19 +167,19 @@ void print_Scan_Help(bool shortHelp, const char *deviceHandleExample)
 
 void print_Agressive_Scan_Help(bool shortHelp)
 {
-	printf("\t-%c, --%s\n", AGRESSIVE_SCAN_SHORT_OPT, AGRESSIVE_SCAN_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tThis option is the same as --%s or -%c,\n", SCAN_LONG_OPT_STRING, SCAN_SHORT_OPT);
-		printf("\t\thowever it will also perform a low level rescan to pick up\n");
-		printf("\t\tother devices. This low level rescan may wake devices from low\n");
-		printf("\t\tpower states and may cause the OS to re-enumerate them.\n");
-		printf("\t\tUse this option when a device is plugged in and not discovered in\n");
-		printf("\t\ta normal scan.\n");
-		printf("\t\tNOTE: A low-level rescan may not be available on all interfaces or\n");
-		printf("\t\tall OSs. The low-level rescan is not guaranteed to find additional\n");
-		printf("\t\tdevices in the system when the device is unable to come to a ready state.\n\n");
-	}
+    printf("\t-%c, --%s\n", AGRESSIVE_SCAN_SHORT_OPT, AGRESSIVE_SCAN_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is the same as --%s or -%c,\n", SCAN_LONG_OPT_STRING, SCAN_SHORT_OPT);
+        printf("\t\thowever it will also perform a low level rescan to pick up\n");
+        printf("\t\tother devices. This low level rescan may wake devices from low\n");
+        printf("\t\tpower states and may cause the OS to re-enumerate them.\n");
+        printf("\t\tUse this option when a device is plugged in and not discovered in\n");
+        printf("\t\ta normal scan.\n");
+        printf("\t\tNOTE: A low-level rescan may not be available on all interfaces or\n");
+        printf("\t\tall OSs. The low-level rescan is not guaranteed to find additional\n");
+        printf("\t\tdevices in the system when the device is unable to come to a ready state.\n\n");
+    }
 }
 
 void print_Scan_Flags_Help(bool shortHelp)
@@ -356,7 +356,7 @@ void print_Erase_Time_Help(bool shortHelp)
 void print_Sanitize_Help(bool shortHelp, const char *utilName)
 {
     printf("\t--%s [info | blockerase | cryptoerase |\n", SANITIZE_LONG_OPT_STRING);
-	printf("\t            overwrite | freezelock | antifreezelock]\n");
+    printf("\t            overwrite | freezelock | antifreezelock]\n");
     if (!shortHelp)
     {
         printf("\t\tUse the info argument to show supported sanitize operations.\n");
@@ -365,8 +365,8 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
         printf("\t\t%s to poll the drive for progress until the\n", utilName);
         printf("\t\toperation is complete, or has aborted for some reason. All\n");
         printf("\t\tsanitize erase operations are persistent across a power cycle\n");
-		printf("\t\tand cannot be stopped\n");
-		printf("\t\tExample: --%s blockerase --%s\n\n", SANITIZE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+        printf("\t\tand cannot be stopped\n");
+        printf("\t\tExample: --%s blockerase --%s\n\n", SANITIZE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
 #if defined (_WIN32)//TODO: handle Win PE somehow when we support WinPE
         printf("\t\tNote: Windows 8 and higher block sanitize commands. Sanitize\n");
         printf("\t\toperations will show a failure status on these systems.\n\n");
@@ -459,7 +459,7 @@ void print_Revert_Help(bool shortHelp)
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
         printf("\t\tuser data being cryptographically erased and all other settings\n");
         printf("\t\tset to factory defaults. If this operation fails, try using --%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
-		printf("\t\tinstead.\n\n");
+        printf("\t\tinstead.\n\n");
     }
 }
 
@@ -469,7 +469,7 @@ void print_RevertSP_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tThis operation performs a revertSP on a Seagate SED drive\n");
-		printf("\t\tin the adminSP with the PSID.\n");
+        printf("\t\tin the adminSP with the PSID.\n");
         printf("\t\tThe PSID must be provided using the --%s option.\n", TCG_PSID_LONG_OPT_STRING);
         printf("\t\tThis operation is available on all Seagate SED HDD drives and some SSDs.\n");
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
@@ -614,9 +614,9 @@ void print_IDD_Help(bool shortHelp)
         printf("\t\tLong:   Reset and Recalibration test and test G list and \n");
         printf("\t\t        P list\n");
         printf("\t\tNote: the --%s option can be added to run the long test in\n", CAPTIVE_LONG_OPT_STRING);
-		printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
-		printf("\t\t      and some additional checks to be performed. This may not\n");
-		printf("\t\t      work on some products.\n\n");
+        printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
+        printf("\t\t      and some additional checks to be performed. This may not\n");
+        printf("\t\t      work on some products.\n\n");
     }
 }
 
@@ -805,7 +805,7 @@ void print_Change_Power_Help(bool shortHelp)
     }
 }
 
-//Mainly used for NVMe devices. 
+//Mainly used for NVMe devices.
 void print_extSmatLog_Help(bool shortHelp)
 {
     printf("\t--%s\n", EXT_SMART_LOG_LONG_OPT_STRING1);
@@ -821,7 +821,7 @@ void print_pcierr_Help (bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to clear correctable errors.\n\n");
-    }    
+    }
 }
 
 void print_Transition_Power_State_Help(bool shortHelp)
@@ -1147,12 +1147,12 @@ void print_Firmware_Download_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tDownload firmware to a Seagate storage product. Use only\n");
-		printf("\t\tSeagate authorized firmware data files which are designated\n");
-		printf("\t\tfor the specific model drive.Improper use of this option may\n");
-		printf("\t\tharm a device and or its data.You may specify the path (without\n");
-		printf("\t\tspaces)if the firmware data file is in a different location.\n");
-		printf("\t\tThis option will use segmented download by default.\n");
-		printf("\t\tUse the --downloadMode option to specify a different download mode.\n\n");
+        printf("\t\tSeagate authorized firmware data files which are designated\n");
+        printf("\t\tfor the specific model drive.Improper use of this option may\n");
+        printf("\t\tharm a device and or its data.You may specify the path (without\n");
+        printf("\t\tspaces)if the firmware data file is in a different location.\n");
+        printf("\t\tThis option will use segmented download by default.\n");
+        printf("\t\tUse the --downloadMode option to specify a different download mode.\n\n");
     }
 }
 
@@ -1196,21 +1196,21 @@ void print_Firmware_Switch_Help(bool shortHelp)
 
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-	printf("\t--%s [full | segmented | deferred]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
-		printf("\t\tto set the firmware download mode.\n");		
-		printf("\t\tSupported Modes:\n");
-		printf("\t\t\tfull - performs a download in one large\n");
-		printf("\t\t\t            transfer to the device.\n");
-		printf("\t\t\tsegmented - downloads the firmware in multiple\n");
-		printf("\t\t\t            segments to the device. (Most compatible)\n");
-		printf("\t\t\tdeferred - performs a segmented download to the\n");
-		printf("\t\t\t           device, but does not activate the new\n");
-		printf("\t\t\t           firmware until a powercycle or activate\n");
-		printf("\t\t\t           command is sent.\n\n");
-	}
+    printf("\t--%s [full | segmented | deferred]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
+        printf("\t\tto set the firmware download mode.\n");
+        printf("\t\tSupported Modes:\n");
+        printf("\t\t\tfull - performs a download in one large\n");
+        printf("\t\t\t            transfer to the device.\n");
+        printf("\t\t\tsegmented - downloads the firmware in multiple\n");
+        printf("\t\t\t            segments to the device. (Most compatible)\n");
+        printf("\t\t\tdeferred - performs a segmented download to the\n");
+        printf("\t\t\t           device, but does not activate the new\n");
+        printf("\t\t\t           firmware until a powercycle or activate\n");
+        printf("\t\t\t           command is sent.\n\n");
+    }
 }
 
 void print_Output_Mode_Help(bool shortHelp)
@@ -1273,7 +1273,7 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
     printf("\t--%s [host | ctrl]\n", GET_NVME_TELE_LONG_OPT_STRING);
-    
+
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe Telemetry data for a device.\n");
@@ -1287,7 +1287,7 @@ void print_NVMe_Get_Tele_Help(bool shortHelp)
 
     printf("\t--%s [1 | 2 | 3]\n", NVME_TELE_DATA_AREA_LONG_OPT_STRING);
 
-    if(!shortHelp) 
+    if(!shortHelp)
     {
         printf("\t\tThis is a sub-command which defines the amount of data \n");
         printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_NVME_TELE_LONG_OPT_STRING);
@@ -1382,13 +1382,13 @@ void print_Set_Ready_LED_Help(bool shortHelp)
     {
         printf("\t\tUse this option to get the current state or change the\n");
         printf("\t\tbehavior of the ready LED.\n");
-		printf("\t\tSee the SPL spec for full details on how this changes LED\n");
+        printf("\t\tSee the SPL spec for full details on how this changes LED\n");
         printf("\t\t    info - gets the current state of the ready LED.\n");
-		printf("\t\t    on - sets the ready LED to usually off unless\n");
-		printf("\t\t         processing a command.\n");
-		printf("\t\t    off - sets the ready LED to usually on unless\n");
-		printf("\t\t          processing a command\n");
-		printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
+        printf("\t\t    on - sets the ready LED to usually off unless\n");
+        printf("\t\t         processing a command.\n");
+        printf("\t\t    off - sets the ready LED to usually on unless\n");
+        printf("\t\t          processing a command\n");
+        printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
     }
 }
 
@@ -1678,77 +1678,77 @@ void print_SAS_Phy_Test_DWord_Pattern(bool shortHelp)
 
 void print_Supported_Logs_Help(bool shortHelp)
 {
-	printf("\t--%s\n", LIST_LOGS_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tDisplays a list of all supported logs by this device type.\n\n");
-	}
+    printf("\t--%s\n", LIST_LOGS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tDisplays a list of all supported logs by this device type.\n\n");
+    }
 }
 
 void print_Pull_Generic_Logs_Help(bool shortHelp)
 {
-	printf("\t--%s [Log Number]\n", GENERIC_LOG_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tPulls specific log number from the device\n");
-		printf("\t\t[Log Number] is required argument & can be passed\n");
-		printf("\t\tas an decimal or hex value.\n");
-		printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
-		printf("\t\t          may not be valid due to unknown vendor unique\n");
-		printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
-	}
+    printf("\t--%s [Log Number]\n", GENERIC_LOG_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPulls specific log number from the device\n");
+        printf("\t\t[Log Number] is required argument & can be passed\n");
+        printf("\t\tas an decimal or hex value.\n");
+        printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
+        printf("\t\t          may not be valid due to unknown vendor unique\n");
+        printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
+    }
 }
 
 void print_Pull_Generic_Logs_Subpage_Help(bool shortHelp)
 {
-	printf("\t--%s [Subpage Number]\t\t(SAS Only)\n", GENERIC_LOG_SUBPAGE_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUse this option with the --%s option to specify\n", GENERIC_LOG_LONG_OPT_STRING);
+    printf("\t--%s [Subpage Number]\t\t(SAS Only)\n", GENERIC_LOG_SUBPAGE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option with the --%s option to specify\n", GENERIC_LOG_LONG_OPT_STRING);
         printf("\t\ta log subpage to pull. Use this for SCSI Logs.\n");
         printf("\t\t[Subpage Number] can be passed as an decimal or hex value.\n");
-		printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
-		printf("\t\t          may not be valid due to unknown vendor unique\n");
-		printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
-	}
+        printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
+        printf("\t\t          may not be valid due to unknown vendor unique\n");
+        printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
+    }
 }
 
 void print_Supported_Error_History_Help(bool shortHelp)
 {
-	printf("\t--%s\t\t\t(SAS Only)\n", LIST_ERROR_HISTORY_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tDisplays a list of all supported error history buffer IDs\n");
+    printf("\t--%s\t\t\t(SAS Only)\n", LIST_ERROR_HISTORY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tDisplays a list of all supported error history buffer IDs\n");
         printf("\t\tsupported by the device.\n\n");
-	}
+    }
 }
 
 void print_Pull_Generic_Error_History_Help(bool shortHelp)
 {
-	printf("\t--%s [Buffer ID]\t(SAS Only)\n", GENERIC_ERROR_HISTORY_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tPulls specific error history buffer ID from the device\n");
-		printf("\t\t[Buffer ID] is required argument & can be passed\n");
-		printf("\t\tas an decimal or hex value.\n");
-		printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
-		printf("\t\t          may not be valid due to unknown vendor unique\n");
-		printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
-	}
+    printf("\t--%s [Buffer ID]\t(SAS Only)\n", GENERIC_ERROR_HISTORY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPulls specific error history buffer ID from the device\n");
+        printf("\t\t[Buffer ID] is required argument & can be passed\n");
+        printf("\t\tas an decimal or hex value.\n");
+        printf("\t\tWARNING:  Vendor Unique Logs pulled using this option\n");
+        printf("\t\t          may not be valid due to unknown vendor unique\n");
+        printf("\t\t          bits in ATA/SCSI/NVMe etc. command fields.\n\n");
+    }
 }
 
 void print_Log_Mode_Help(bool shortHelp)
 {
-	printf("\t--%s [mode]\n", PULL_LOG_MODE_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tSets the mode to pull the log. \n");
-		printf("\t\tUse this option with --%s to set the desired mode\n", GENERIC_LOG_LONG_OPT_STRING);
-		printf("\t\t\traw - Pulls log & prints it to the\n");
-		printf("\t\t\t      screen as stdout. (default)\n");
-		printf("\t\t\tbin - Pulls log & saves it to\n");
-		printf("\t\t\t      a timestamped binary file.\n\n");
-	}
+    printf("\t--%s [mode]\n", PULL_LOG_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tSets the mode to pull the log. \n");
+        printf("\t\tUse this option with --%s to set the desired mode\n", GENERIC_LOG_LONG_OPT_STRING);
+        printf("\t\t\traw - Pulls log & prints it to the\n");
+        printf("\t\t\t      screen as stdout. (default)\n");
+        printf("\t\t\tbin - Pulls log & saves it to\n");
+        printf("\t\t\t      a timestamped binary file.\n\n");
+    }
 }
 
 void print_SAT_Info_Help(bool shortHelp)
@@ -1956,14 +1956,14 @@ void print_Format_Stop_On_List_Error_Help(bool shortHelp)
 
 void print_Format_New_Max_LBA_Help(bool shortHelp)
 {
-	printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
-		printf("\t\tformat unit operation. This can speed up a format unit if\n");
-		printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
-		printf("\t\tcapacity while formattting.\n\n");
-	}
+    printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
+        printf("\t\tformat unit operation. This can speed up a format unit if\n");
+        printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
+        printf("\t\tcapacity while formattting.\n\n");
+    }
 }
 
 void print_Show_Format_Status_Log_Help(bool shortHelp)
@@ -2001,13 +2001,13 @@ void print_Show_Supported_Formats_Help(bool shortHelp)
     printf("\t--%s\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-		printf("\t\tThis option will show the supported formats of a device.\n");
-		printf("\t\tThese can be used to change the sector size or \n");
-		printf("\t\tused with a format operation. On SAS, this is the\n");
-		printf("\t\tsupported block lengths and protection types VPD page. (SBC4\n");
-		printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
-		printf("\t\tand later) If the device does not report supported sector\n");
-		printf("\t\tsizes, please consult your product manual.\n\n");
+        printf("\t\tThis option will show the supported formats of a device.\n");
+        printf("\t\tThese can be used to change the sector size or \n");
+        printf("\t\tused with a format operation. On SAS, this is the\n");
+        printf("\t\tsupported block lengths and protection types VPD page. (SBC4\n");
+        printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
+        printf("\t\tand later) If the device does not report supported sector\n");
+        printf("\t\tsizes, please consult your product manual.\n\n");
     }
 }
 
@@ -2283,13 +2283,13 @@ void print_Force_ATA_Help(bool shortHelp)
 
 void print_Force_ATA_PIO_Help(bool shortHelp)
 {
-	printf("\t--%s\t(SATA Only)\n", FORCE_ATA_PIO_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUsing this option will force the tool to issue PIO\n");
-		printf("\t\tcommands to ATA device when possible. This option can\n");
-		printf("\t\tbe combined with --%s\n\n", FORCE_ATA_LONG_OPT_STRING);
-	}
+    printf("\t--%s\t(SATA Only)\n", FORCE_ATA_PIO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUsing this option will force the tool to issue PIO\n");
+        printf("\t\tcommands to ATA device when possible. This option can\n");
+        printf("\t\tbe combined with --%s\n\n", FORCE_ATA_LONG_OPT_STRING);
+    }
 }
 
 void print_Force_ATA_DMA_Help(bool shortHelp)
@@ -2772,10 +2772,10 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
         printf("\t\t  enable - use this to enable Power Balance\n");
         printf("\t\t  disable - use this to disable Power Balance\n");
         printf("\t\tNote: While this feature is available on some SAS products,\n");
-		printf("\t\tit is recommended that the --%s option is\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
-		printf("\t\tused instead since it allows more levels of control.\n");
-		printf("\t\tThis option and the --%s option are incompatible\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
-		printf("\t\tbecause they use the same mode page fields (1Ah-01h).\n\n");
+        printf("\t\tit is recommended that the --%s option is\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\tused instead since it allows more levels of control.\n");
+        printf("\t\tThis option and the --%s option are incompatible\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\tbecause they use the same mode page fields (1Ah-01h).\n\n");
     }
 }
 
@@ -3353,11 +3353,11 @@ void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp)
 
 void print_NVM_Format_Help(bool shortHelp)
 {
-	printf("\t--%s [current | format # | sector size]\t(NVMe Only)\n", NVM_FORMAT_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tThis option is used to start an NVM format operation.\n");
-		printf("\t\tUse \"current\" to perform a format operation with the\n");
+    printf("\t--%s [current | format # | sector size]\t(NVMe Only)\n", NVM_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to start an NVM format operation.\n");
+        printf("\t\tUse \"current\" to perform a format operation with the\n");
         printf("\t\tSector size currently being used.\n");
         printf("\t\tIf a value between 0 and 15 is given, then that will issue\n");
         printf("\t\tthe NVM format with the specified sector size/metadata size for\n");
@@ -3367,8 +3367,8 @@ void print_NVM_Format_Help(bool shortHelp)
         printf("\t\tsupported by the drive.\n");
         printf("\t\tThis command will erase all data on the drive.\n");
         printf("\t\tCombine this option with--%s to poll\n", POLL_LONG_OPT_STRING);
-		printf("\t\tfor progress until the format is complete.\n\n");
-	}
+        printf("\t\tfor progress until the format is complete.\n\n");
+    }
 }
 
 void print_NVM_Format_NSID_Help(bool shortHelp)

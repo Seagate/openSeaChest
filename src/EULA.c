@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 
 // \file EULA.c
 // \brief This file defines the a function to print the EULA for the license option in a tool

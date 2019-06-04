@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 // \file openSeaChest_PowerControl.c Binary command line that performs various power control methods on a device.
 
 //////////////////////
@@ -69,7 +69,7 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	AGRESSIVE_SCAN_FLAG_VAR
+    AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
@@ -89,7 +89,7 @@ int32_t main(int argc, char *argv[])
     ENABLE_POWER_MODE_VAR
     DISABLE_POWER_MODE_VAR
     DEFAULT_POWER_MODE_VAR
-	EPC_ENABLED_VAR
+    EPC_ENABLED_VAR
     POWER_MODE_VAR
     POWER_MODE_TIMER_VARS
     CHANGE_POWER_MODE_VAR
@@ -127,7 +127,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		AGRESSIVE_SCAN_LONG_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
@@ -210,11 +210,11 @@ int32_t main(int argc, char *argv[])
                 {
                     EPC_ENABLED_IDENTIFIER = DISABLE_EPC;
                 }
-				else
-				{
-					print_Error_In_Cmd_Line_Args(EPC_ENABLED_LONG_OPT_STRING, optarg);
-					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-				}
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(EPC_ENABLED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             //parse long options that have no short option and required arguments here
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_LONG_OPT_STRING))) == 0)
@@ -254,11 +254,11 @@ int32_t main(int argc, char *argv[])
                     {
                         POWER_MODE_IDENTIFIER = PWR_CND_ALL;
                     }
-					else
-					{
-						print_Error_In_Cmd_Line_Args(POWER_MODE_LONG_OPT_STRING, optarg);
-						exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-					}
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(POWER_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, POWER_MODE_TIMER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_TIMER_LONG_OPT_STRING))) == 0)
@@ -315,11 +315,11 @@ int32_t main(int argc, char *argv[])
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
                 }
-				else
-				{
-					print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
-					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-				}
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DIPM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DIPM_LONG_OPT_STRING))) == 0)
             {
@@ -337,11 +337,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DIPM_FLAG = true;
                     SATA_DIPM_ENABLE_FLAG = false;
                 }
-				else
-				{
-					print_Error_In_Cmd_Line_Args(SATA_DIPM_LONG_OPT_STRING, optarg);
-					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-				}
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SATA_DIPM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SATA_DAPS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DAPS_LONG_OPT_STRING))) == 0)
             {
@@ -359,11 +359,11 @@ int32_t main(int argc, char *argv[])
                     SATA_DAPS_FLAG = true;
                     SATA_DAPS_ENABLE_FLAG = false;
                 }
-				else
-				{
-					print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
-					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-				}
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -512,7 +512,7 @@ int32_t main(int argc, char *argv[])
         print_EULA_To_Screen(false, false);
     }
 
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
         unsigned int scanControl = DEFAULT_SCAN;
         if (AGRESSIVE_SCAN_FLAG)
@@ -590,7 +590,7 @@ int32_t main(int argc, char *argv[])
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
     // SIMPLE IS BEAUTIFUL
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
     {
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_NO_ERROR);
@@ -629,7 +629,7 @@ int32_t main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-    
+
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
@@ -793,9 +793,9 @@ int32_t main(int argc, char *argv[])
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) || 
+            if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) && 
+            if (((deviceList[handleIter].os_info.fd < 0) &&
                  (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
@@ -837,14 +837,14 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < toolVerbosity)
-				{
-					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for fw match
         if (FW_MATCH_FLAG)
@@ -862,14 +862,14 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < toolVerbosity)
-				{
-					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
@@ -883,7 +883,7 @@ int32_t main(int argc, char *argv[])
                 continue;
             }
         }
-        
+
         if (FORCE_SCSI_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -892,7 +892,7 @@ int32_t main(int argc, char *argv[])
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
-        
+
         if (FORCE_ATA_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1323,7 +1323,7 @@ int32_t main(int argc, char *argv[])
         if (SHOW_POWER_CONSUMPTION_FLAG)
         {
             powerConsumptionIdentifiers identifiers;
-			memset(&identifiers, 0, sizeof(powerConsumptionIdentifiers));
+            memset(&identifiers, 0, sizeof(powerConsumptionIdentifiers));
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
@@ -1388,7 +1388,7 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
         }
-        
+
         if(SET_APM_LEVEL_FLAG)
         {
             switch(set_APM_Level(&deviceList[deviceIter], SET_APM_LEVEL_VALUE_FLAG))
@@ -1442,7 +1442,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-        
+
         if(SHOW_APM_LEVEL_FLAG)
         {
             switch(get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
@@ -1572,7 +1572,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        
+
         if (SATA_DIPM_FLAG)
         {
             switch (sata_Set_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter], SATA_DIPM_ENABLE_FLAG))
@@ -1647,7 +1647,7 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
-        }        
+        }
         if (SATA_DAPS_FLAG)
         {
             switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], SATA_DAPS_ENABLE_FLAG))
@@ -1789,7 +1789,7 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-	print_Agressive_Scan_Help(shortUsage);
+    print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
