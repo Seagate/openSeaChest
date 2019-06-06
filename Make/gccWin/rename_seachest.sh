@@ -43,7 +43,12 @@ function populate_current_app_data() {
   local app=$1;
   local verbose_ver="";
 
-  CUR_APP_ARRAY=($($app --version --verbose 0));
+  if [ "$UNAME" == "Linux" ] && [ -n "$WINE" ] ; then
+    CUR_APP_ARRAY=($(wine $app --version --verbose 0));
+  else
+    CUR_APP_ARRAY=($($app --version --verbose 0));
+  fi
+  
   if [[ $? -eq 127 ]]; then
      echo "Application $app not found";
      exit 5;
