@@ -68,6 +68,20 @@ extern "C"
 
     //-----------------------------------------------------------------------------
     //
+    //  print_FreeBSD_License()
+    //
+    //! \brief   Description:  Print the FreeBSD 2 clause BSD license to the screen
+    //
+    //  Entry:
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_FreeBSD_License();
+
+    //-----------------------------------------------------------------------------
+    //
     //  print_Apache_2_0_License()
     //
     //! \brief   Description:  Print the Apache 2.0 license to the screen (for mbedtls)
