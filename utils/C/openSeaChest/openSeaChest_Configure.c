@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.16.0";
+const char *buildVersion = "1.17.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -93,6 +93,7 @@ int32_t main(int argc, char *argv[])
     SET_PHY_SAS_PHY_IDENTIFIER_VAR
     SET_READY_LED_VARS
     READ_LOOK_AHEAD_VARS
+    NV_CACHE_VARS
     WRITE_CACHE_VARS
     PROVISION_VAR
     TRIM_UNMAP_VARS //need these with provision var
@@ -159,6 +160,7 @@ int32_t main(int argc, char *argv[])
         SET_PHY_SAS_PHY_LONG_OPT,
         SET_READY_LED_LONG_OPTS,
         READ_LOOK_AHEAD_LONG_OPT,
+        NV_CACHE_LONG_OPT,
         WRITE_CACHE_LONG_OPT,
         LOW_CURRENT_SPINUP_LONG_OPT,
         SCT_WRITE_CACHE_LONG_OPT,
@@ -204,10 +206,6 @@ int32_t main(int argc, char *argv[])
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
                 if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
-                {
-                    DATA_ERASE_FLAG = true;
-                }
-                else if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
@@ -257,6 +255,30 @@ int32_t main(int argc, char *argv[])
                 {
                     print_Error_In_Cmd_Line_Args(SET_READY_LED_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, NV_CACHE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NV_CACHE_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    NV_CACHE_INFO = true;
+                }
+                else
+                {
+                    NV_CACHE_FLAG = true;
+                    if (strcmp(optarg, "enable") == 0)
+                    {
+                        NV_CACHE_SETTING = true;
+                    }
+                    else if (strcmp(optarg, "disable") == 0)
+                    {
+                        NV_CACHE_SETTING = false;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(NV_CACHE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
@@ -1189,6 +1211,8 @@ int32_t main(int argc, char *argv[])
         || WRITE_CACHE_FLAG
         || READ_LOOK_AHEAD_FLAG
         || READ_LOOK_AHEAD_INFO
+        || NV_CACHE_INFO
+        || NV_CACHE_FLAG
         || WRITE_CACHE_INFO
         || PROVISION_FLAG
         || LOW_CURRENT_SPINUP_FLAG
@@ -2071,6 +2095,80 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (NV_CACHE_INFO)
+        {
+            if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+            {
+                if (is_NV_Cache_Supported)
+                {
+                    if (is_NV_Cache_Enabled(&deviceList[deviceIter]))
+                    {
+                        printf("Non-Volatile Cache is Enabled (Caching Mode Page NV_DIS Bit is set to 0)\n");
+                    }
+                    else
+                    {
+                        printf("Non-Volatile Cache is Disabled (Caching Mode Page NV_DIS Bit is set to 1)\n");
+                    }
+                }
+                else
+                {
+                    printf("Non-Volatile Cache is not supported on this drive.\n");
+                }
+            }
+            else
+            {
+                printf("Non-Volatile Cache info is not available on this drive.\n");
+            }
+        }
+
+        if (NV_CACHE_FLAG)
+        {
+            switch (scsi_Set_NV_DIS(&deviceList[deviceIter], NV_CACHE_SETTING))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (NV_CACHE_SETTING)
+                    {
+                        printf("Non-Volatile Cache successfully enabled!\n");
+                    }
+                    else
+                    {
+                        printf("Non-Volatile Cache successfully disabled!\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (NV_CACHE_SETTING)
+                    {
+                        printf("Enabling Non-Volatile Cache not supported on this device.\n");
+                    }
+                    else
+                    {
+                        printf("Disabling Non-Volatile Cache not supported on this device.\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (NV_CACHE_SETTING)
+                    {
+                        printf("Failed to enable Non-Volatile Cache!\n");
+                    }
+                    else
+                    {
+                        printf("Failed to disable Non-Volatile Cache!\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (READ_LOOK_AHEAD_FLAG)
         {
             switch (set_Read_Look_Ahead(&deviceList[deviceIter], READ_LOOK_AHEAD_SETTING))
@@ -2908,6 +3006,7 @@ void utility_Usage(bool shortUsage)
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");
+    print_NV_Cache_Bit_Help(shortUsage);
     print_Set_Ready_LED_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
     print_SCSI_Reset_LP_Help(shortUsage);

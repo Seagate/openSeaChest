@@ -224,13 +224,11 @@ extern "C"
     #define PROGRESS_LONG_OPT { PROGRESS_LONG_OPT_STRING, required_argument, NULL, PROGRESS_SHORT_OPT }
 
     #define DATA_ERASE_ACCEPT_STRING "this-will-erase-data"
-
     #define LONG_TEST_ACCEPT_STRING "I-understand-this-command-will-take-a-long-time-to-complete"
     #define SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING "I-understand-this-command-may-erase-single-sectors-if-they-are-already-unreadable"
 
     #define DATA_ERASE_FLAG dataEraseAccepted
     #define DATA_ERASE_VAR bool DATA_ERASE_FLAG = false;
-
     #define LONG_TEST_FLAG longOperationAccepted
     #define LONG_TEST_VAR bool LONG_TEST_FLAG = false;
     #define SINGLE_SECTOR_DATA_ERASE_FLAG singleSectorDataEraseAccepted
@@ -861,6 +859,17 @@ extern "C"
     #define SET_READY_LED_LONG_OPT_STRING "readyLED" //left for backwards compatibility
     #define SET_READY_LED_LONG_OPT { SET_READY_LED_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SET_READY_LED_LONG_OPTS SET_PIN_11_LONG_OPT, SET_READY_LED_LONG_OPT
+
+    //Non-volatile cache (SCSI only)
+    #define NV_CACHE_INFO NV_CACHEInfo
+    #define NV_CACHE_SETTING NV_CACHESetting
+    #define NV_CACHE_FLAG setNV_CACHE
+    #define NV_CACHE_VARS \
+    bool NV_CACHE_INFO = false;\
+    bool NV_CACHE_SETTING = false;\
+    bool NV_CACHE_FLAG = false;
+    #define NV_CACHE_LONG_OPT_STRING "nvCache"
+    #define NV_CACHE_LONG_OPT { NV_CACHE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //read look ahead
     #define READ_LOOK_AHEAD_INFO readLookAheadInfo
@@ -1599,6 +1608,8 @@ extern "C"
     #define ATA_SECURITY_INFO_OP_LONG_OPT { ATA_SECURITY_INFO_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_INFO_OP, goTrue }
 
     //scsi mode page reset/restore/save
+    #define SCSI_MP_RESET_ALL_PAGES 0x3F
+    #define SCSI_MP_RESET_ALL_SUBPAGES 0xFF
     #define SCSI_MP_RESET_OP resetSCSIModePage
     #define SCSI_MP_RESET_PAGE_NUMBER resetModePageNumber
     #define SCSI_MP_RESET_SUBPAGE_NUMBER resetModeSubPageNumber
@@ -2725,6 +2736,8 @@ extern "C"
     void print_Set_Ready_LED_Help(bool shortHelp);
 
     void print_Read_Look_Ahead_Help(bool shortHelp);
+
+    void print_NV_Cache_Bit_Help(bool shortHelp);
 
     void print_Write_Cache_Help(bool shortHelp);
 
