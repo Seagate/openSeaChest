@@ -161,8 +161,6 @@ int32_t main(int argc, char *argv[])
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
-    atexit(print_Final_newline);
-
     ////////////////////////
     //  Argument Parsing  //
     ////////////////////////
@@ -268,9 +266,9 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), 9)) == 0)
             {
                 OUTPUTPATH_PARSE
-                if (!os_Directory_Exists(outputPathPtr))
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
                 {
-                    printf("Err: --outputPath %s does not exist\n",outputPathPtr);
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
 
@@ -318,6 +316,10 @@ int32_t main(int argc, char *argv[])
             {
                 //Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
                 exit(255);
             }
             break;
@@ -347,11 +349,19 @@ int32_t main(int argc, char *argv[])
             break;
         case '?': //unknown option
             printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_NO_ERROR);
         default:
             break;
@@ -396,7 +406,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-        #if defined (__linux__)
+#if defined (__linux__)
         if (scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -405,7 +415,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SG_TO_SD;
         }
-        #endif
+#endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (scanATA)
         {
