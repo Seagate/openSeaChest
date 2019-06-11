@@ -43,7 +43,12 @@ function populate_current_app_data() {
   local app=$1;
   local verbose_ver="";
 
-  CUR_APP_ARRAY=($($app --version --verbose 0));
+  if [ "$UNAME" == "Linux" ] && [ -n "$WINE" ] ; then
+    CUR_APP_ARRAY=($(wine $app --version --verbose 0));
+  else
+    CUR_APP_ARRAY=($($app --version --verbose 0));
+  fi
+  
   if [[ $? -eq 127 ]]; then
      echo "Application $app not found";
      exit 5;
@@ -51,13 +56,13 @@ function populate_current_app_data() {
 
   #printf '%s\n' "${CUR_APP_ARRAY[@]}"
 
-  ((n_elements=${#CUR_APP_ARRAY[@]}, max_index=n_elements - 1));    
+  ((n_elements=${#CUR_APP_ARRAY[@]}, max_index=n_elements - 1));
   for ((i = 0; i <= max_index; i++)); do
      if [ ${CUR_APP_ARRAY[i]} = "Library" ]; then
         verbose_ver=OLD;
      fi
   done
-  
+
   if [[ "$verbose_ver" = "OLD" ]]; then
      #echo "Library found!! OLD version";
      CUR_APP_NAME=${CUR_APP_ARRAY[3]};
@@ -94,6 +99,14 @@ function populate_current_app_data() {
 #echo "$TITLE                               ver: $EDIT_STAMP";
 #repecho 40 -=;
 #echo "";
+
+# Don't do rename if we're cross-compiling under Linux and wine is not installed
+UNAME="$(uname)"
+WINE="$(command -v wine)"
+if [ "$UNAME" == "Linux" ] && [ -z "$WINE" ] ; then
+  exit 0
+fi
+
 if [[ $# -ne 1  || ( $1 == "--help" || $1 == "-help" || $1 == "-h") ]]; then
   echo -ne "Usage:   "$WHITEonBLUE"./rename_seachest.sh"$RESETCOLOR" "$BLACKonGREEN"<SeaChest app name>"; echo -e $RESETCOLOR
   echo "";
@@ -142,8 +155,12 @@ if [[ "$CUR_APP_OS" =~ "Windows" ]]; then
    #echo "Windows";
    NEW_APP_NAME+=.exe
 fi
+UNAME=`uname -s`
+if [[ "$UNAME" == "Linux" ]] ; then
+	NEWER_APP_NAME=`echo $NEW_APP_NAME | sed 's/\\r//g'`;
+	NEW_APP_NAME="$NEWER_APP_NAME"
+fi
 echo "old file name: $sc_app";
 echo "new file name: $NEW_APP_NAME"
 cp -vp $sc_app $NEW_APP_NAME
-
 
