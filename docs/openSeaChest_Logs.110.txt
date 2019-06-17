@@ -1,13 +1,9 @@
-"This User Guide file contains important information about" put this in the same place in all openSeaChest docs.
-
-grab new PowerBalance text from 1.8.0 user guide text file
-
-openSeaChest_PowerControl.Lin.txt                         Revision: 09-Nov-2017
+openSeaChest_Logs.txt                                     Revision: 08-Jan-2019
 ===============================================================================
- openSeaChest_PowerControl for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_PowerControl Version: 1.8.2
- Build Date: Nov 02 2017
+ openSeaChest_Logs for Linux and Windows - Seagate drive utilities
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_Logs Version: 1.1.0
+ Build Date: Jan  7 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -43,42 +39,39 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Optimization within the framework of a complex company data center requires
-dynamic technology. As storage capacity demands increase due to virtualization
-and growing volumes of data, managing power usage in an intelligent way is
-critical for reducing Total Cost of Ownership (TCO).
+Several binary logs are maintained on Seagate disk drives.  These logs are not
+stored in the user data area. Sometimes these logs are reviewed by Seagate
+engineers to help analyze event history on the device.  These binary data logs
+are saved to filenames using the drive's serial number and date-time.
 
-There are, roughly, three general frameworks for disk drive power management.
-The earlier specification is part of Advanced Power Management (APM) which
-provided controls over many devices in a system, including disk drives.  APM
-has since been replaced by a new framework called Extended Power Controls
-(EPC).  Seagate's implementation of EPC began to phase in starting in 2010 and
-is named by the marketing term "PowerChoice".  Seagate PowerChoice
-technology—specifically developed for enterprise environments—offers more
-energy efficiency and control over the amount of power hard drives consume.
+        Log Name:                                      Command Line Option:
+        Device Statistics Log                          --deviceStatisticsLog
+        Drive Self Test DST Log                        --selfTestLog
+        Field Accessible Reliability Metrics Log       --farm
+        Generic Standard (Host Specific) Logs          --pullLog [Log Number]
+        Identify Device Data Log                       --identifyDataLog
+        SATA Phy Event Counters Log                    --SATAPhyCntLog
+        SCSI Informational Exceptions Log              --infoExceptionsLog
 
-You may need to learn what capabilities for power management your drive offers,
-such as supporting APM or EPC, and maybe both.  See the commands
---showEPCSettings or --showAPMLevel(SATA Only) or --deviceInfo for various
-reports containing power settings and features supported.  Most enterprise
-drives after 2016 only support EPC (PowerChoice).
-
-PowerChoice technology improves on earlier technology and allows for
-energy-saving during periods of command inactivity, allowing for greater power
-reductions. As idle time increases, the power-saving benefits also increase,
-and the drives will still quickly respond to commands even after long idling
-periods. In addition, PowerChoice technology supports four customizable modes
-to give businesses significantly more control of power usage by allowing for up
-to a 54% reduction in the amount of energy used.
-
-See the section below "How PowerChoice Technology Works"
-
-The third and newest drive power management framework exists for SATA drives
-and is named PowerBalance.  Seagate's PowerBalance feature will adjust drive
-performance during random operations to reduce power consumption of the drive.
+Seagate does not support unsolicited log retrieval review requests.
 
 This User Guide file contains important information about openSeaChest
-PowerControl.  Please read this entire file before using this software.
+Logs.  Please read this entire file before using this software.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -89,18 +82,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-If this is your drive, you should always keep a current backup of your
-important data.
+NOTE: openSeaChest_Logs may not be fully functional on non-Seagate
+drives.
 
-Usage
-=====
-        openSeaChest_PowerControl [-d <sg_device>] {arguments} {options}
+Usage - Linux
+=============
+        openSeaChest_Logs [-d <sg_device>] {arguments} {options}
 
-Examples
-========
-        openSeaChest_PowerControl --scan
-        openSeaChest_PowerControl -d /dev/sg2 -i
-        openSeaChest_PowerControl -d /dev/sg1 --deviceInfo
+Examples - Linux
+================
+        openSeaChest_Logs --scan
+        openSeaChest_Logs -d /dev/sg2 --deviceInfo
+        openSeaChest_Logs -d /dev/sg1 --farm --outputPath logs
+
+Usage - Windows
+===============
+        openSeaChest_Logs [-d <device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Logs --scan
+        openSeaChest_Logs -d PD0 --deviceInfo
+        openSeaChest_Logs -d PD1 --farm --outputPath logsl
 
 Utility arguments
 =================
@@ -125,14 +128,20 @@ Utility arguments
         -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
-                     sd             - show /dev/sd? device handles
-                     sgtosd         - show the sd and sg device handle mapping
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                    Linux:
+                     sd             - show /dev/sd? device handles
+                     sgtosd         - show the sd and sg device handle mapping
+                    Windows:
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
 
                 Examples of combining two options:
                      -s --scanFlags usb scsi  - show only USB and SAS devices
@@ -145,13 +154,14 @@ Utility arguments
                 operation. See the section below 'Tool Usage Hints' for
                 information about defining multiple device handles.
 
-                Example: -d /dev/sg5
+                Example Lin: -d /dev/sg5
+                Example Win: -d PD0, or -d PD3
 
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add --usbChildInfo
-                to display details about the drive within the USB enclosure.
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo to
+                display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -163,162 +173,118 @@ Utility arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --checkPowerMode
-                Get the current power mode of a drive. On SCSI devices, this
-                will only work if the drive has transitioned from active state
-                to another state.  While the popular /dev/sd? device handles
-                can be used in most cases, the --checkPowerMode command with
-                /dev/sd causes the drive to wake up if it is in a reduced power
-                state.  Use /dev/sg device handles to avoid this effect.
+        --deviceStatisticsLog
+                This option will pull the Device Statistics Log from a device.
+                Saves the binary logs to the current directory as
+                <serialnumber>_Device_Statistics_<date and time>.bin
 
-        --spinDown
-                Removes power to the disk drive motor with the Standby
-                Immediate for SATA, or standby_z for SAS. Use this before
-                moving a hard disk drive. The drive will spin back up if the
-                operating system selects the drive. This means that an active
-                drive will not stay spun down.
+        --farm
+                Pull the Seagate Field Accessible Reliability Metrics (FARM)
+                Log from the specified drive.  Saves the binary logs to the
+                current directory as <serialnumber>_FARM_<date and time>.bin
 
-        --showEPCSettings
-                Use this option to show the current Extended Power Conditions
-                (EPC) settings on the screen. Only drives supporting the EPC
-                feature will show this data and only supported power conditions
-                will be shown.
+        --listErrorHistoryIDs
+                Displays a list of all supported error history buffer IDs
+                supported by the device.
 
-        --EPCfeature [enable | disable]
-                Enables or disables Extended Power Conditions (EPC) support for
-                devices.  To disable EPC use --EPCfeature disable. Note that the
-                EPC Feature Set is not supported on all devices. Use
-                --deviceInfo option to see if EPC is supported.
+        --listSupportedLogs
+                Displays a list of all supported generic logs by this device
+                type.
 
-        --changePower
-                Use this option to enable or disable certain --powerMode and
-                their timers. You can also use this option to restore default
-                values to the drive. The available power modes are idle_a,
-                idle_b, idle_c, standby_y (SAS only), standby_z, or all. "all"
-                can only be used to enable/disable/default everything. It
-                cannot be used to set a timer. Timer values are specified in
-                milliseconds.
+        --logMode [raw | bin]
+                Sets the mode to pull the log. Use this option with --pullLog
+                to set the desired mode.
 
-                Example restore: --changePower --defaultMode --powerMode idle_a
-                Example enable: --changePower --enableMode --powerMode idle_a
-                Example set timer: --changePower --enableMode --powerMode idle_a
-                                   --modeTimer 5000
+                raw - Pulls log & prints it to the screen as stdout. (default)
+                bin - Pulls log & saves it to a timestamped binary file.  Saves
+                the binary logs to the current directory as
+                <serialnumber>_GENERIC_LOG-<decimal log number>_<date and
+                time>.bin
 
-        --enableMode
-                Use this option with the --changePower mode option to enable
-                a specific --powerMode.
+        --logTransferLength [lengthunits (no space)]
+                Use this option to specify the data transfer length for a log
+                transfer. Larger transfer sizes may speed up log retrieval at
+                the loss of compatibility. The following units are allowed for
+                specifying a transfer length:
 
-        --modeTimer [timer value in milliseconds]
-                Use this option to specify a timer value to use with the
-                --changePower mode option.
+                        KiB - length in kibibytes (val * 1024)
+                        MiB - length in mebibytes (val * 1048576)
+                        KB  - length in kilobytes (val * 1000)      (SAS only)
+                        MB  - length in megabytes (val * 1000000)   (SAS only)
+                        BLOCKS or SECTORS - used to specify a transfer length
+                                in device in 512Byte blocks/sectors
 
-        --disableMode
-                Use this option with the --changePower mode option to disable
-                a specific --powerMode.
+                Warning: Specifying a large size may result in failures due to
+                OS, driver, or HBA/bridge specific limitations.
 
-        --defaultMode
-                Use this option with the --changePower mode option to restore
-                the default settings for a specific --powerMode.  The "all"
-                option is only valid for SAS interface drives.
+                Examples: --logTransferLength 4KiB
+                          --logTransferLength 1MiB
+                          --logTransferLength 1BLOCKS
+                          --logTransferLength 12288SECTORS
 
-        --transitionPower
-                Use this option to actively change --powerMode. The available
-                power modes are idle_a, idle_b, idle_c, standby_y (SAS only),
-                standby_z, or active (SAS only).
+                Notes: ATA drives must be given a value in 512B increments. If
+                --logTransferLength is omitted then various default lengths are
+                automatically set by the program depending on the type of log.
 
-                Note: Hard disk drives require a few seconds time to spin up or
-                down. The drive will report the old power mode until it is
-                fully established in the new mode.  The openSeaChest --spinDown
-                command is similar.  On SAS --spinDown is equivalent to Motor
-                Stop and --transitionPower --powerMode active is equivalent to
-                Motor Start.
+        --pullErrorHistoryID [Buffer ID]
+                Pulls specific error history buffer ID from the device [Buffer
+                ID] is required argument & can be passed as an decimal or hex
+                value.
 
-                Example: --transitionPower --powerMode idle_a
-                Example: --transitionPower --powerMode standby_y
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
-        --powerMode [powermode]
-                Use this option to specify a power mode. This should be used
-                with the --changePower or --transitionPower options.
-                Valid power modes (SAS and SATA):
-                        idle_a
-                        idle_b
-                        idle_c
-                        standby_y (SAS only)
-                        standby_z
-                        active (SAS only, used with --trasitionPower)
-                        all (used with --changePower enable, disable or default)
-                Valid power modes (NVMe): 0 - 30
+        --pullLog [Log Number]
+                Pulls the Host Specific generic log number from the device. [Log
+                Number] is a required argument and can be a decimal or hex
+                value.  For example, --pullLog FE, --pullLog FEh, --pullLog
+                0xFE, --pullLog 254, or --pullLog 0254.  Possible Log Numbers
+                are returned by the --listSupportedLogs command.  Also see
+                --logMode below.
 
-        --showPowerConsumption  (SAS Only)
-                This option will show the power consumption rates supported by
-                the device and the current power consumption rate of the
-                device. Use a supported watt value with the
-                --setPowerConsumption option to set the power consumption to
-                that value.
+                Example: --pullLog 0x02 --logMode bin
+                gives the file  <serialnumber>_GENERIC_LOG-2_<date and time>.bin
 
-        --setPowerConsumption [default | highest | intermediate | lowest |
-          watt value]   (SAS Only) (Seagate Only)
-                This option will set the power consumption rate of the device
-                to the value input.
-                Options:
-                        default - sets the device back to default settings
-                        highest - sets the active level to "highest"
-                        intermediate - sets the active level to "intermediate"
-                        lowest - sets the active level to "lowest"
-                        watt value - sets the device to a nearest watt value
-                           less than or equal to the value entered.
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
-                Power consumption watt values are listed with the
-                --showPowerConsumption command line option.
+        --selfTestLog
+                This option will pull the Self Test Results Log (DST) from a
+                device. On ATA drives, this will pull the extended SMART self
+                tests result log when it is supported by the device.  Saves the
+                binary logs to the current directory as
+                <serialnumber>_Ext_SMART_Self_Test_Results_<date and time>.bin
 
-        --showAPMLevel   (SATA Only)
-                Use this option to show the current Advanced Power Management
-                (APM) level of a device
+SATA Only
+---------
+        --identifyDataLog  (SATA only)
+                This option will pull the Identify Device Data Log from an ATA
+                drive.  Saves the binary logs to the current directory as
+                <serialnumber>_Identify_Device_Data_Log_<date and time>.bin
 
-        --setAPMLevel [1 - 254]   (SATA Only)
-                Use this option to set the APM level of a device. Valid values
-                are between 1 and 254.
-                      1 = Minimum power consumption with standby mode
-                  2-127 = Intermediate power management with standby mode
-                    128 = Minimum power consumption without standby mode
-                129-253 = Intermediate power management without standby mode
-                    254 = Maximum Performance
+        --SATAPhyCntLog  (SATA only)
+                This option will pull the SATA Phy Event Counters Log from a
+                SATA drive.  Saves the binary logs to the current directory as
+                <serialnumber>_SATA_Phy_Event_Counters_<date and time>.bin
 
-        --disableAPM   (SATA Only)
-                Use this option to disable the current Advanced Power Management
-                (APM) level of a device
+SAS Only
+--------
+        --infoExceptionsLog  (SAS only)
+                This option will pull the SCSI Informational Exceptions log
+                page from a SCSI device.  Saves the binary logs to the current
+                directory as <serialnumber>_Informational_Exceptions_<date and
+                time>.bin
 
-        --powerBalanceFeature [ info | enable | disable ]   (SATA Only)(Seagate Only)
-                Use this option to see the state of the Seagate PowerBalance
-                feature or to change its state. Seagate's PowerBalance feature
-                will adjust drive performance during random operations to
-                reduce power consumption of the drive.
-                    info - will display the state of the PowerBalance feature
-                           on the screen
-                    enable - use this to enable PowerBalance
-                    disable - use this to disable PowerBalance
-                Note: SAS products should use the --setPowerConsumption option
-                instead.
+        --pullSubpage [Subpage Number]   (SAS Only)
+                Use this option with the --pullLog option to specify a log
+                subpage to pull. Use this for SCSI Logs. [Subpage Number] can
+                be passed as an decimal or hex value.
 
-        --sataDAPSfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Automatic
-                Partial To Slumber Transitions (DAPS) feature. Use the "info"
-                option to see the current state of the DIPM feature on the
-                device. The use of this feature requires that the DIPM feature
-                is enabled.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
-
-        --sataDIPMfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Initiated
-                Power Management (DIPM) feature. Use the "info" option to see
-                the current state of the DIPM feature on the device.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
 Utility Options
 ===============
@@ -336,11 +302,11 @@ Utility Options
                 Example: -v 3 or --verbose 3
 
         -q, --quiet
-                Run openSeaChest in quiet mode. This is the same as -v0
+                Run SeaChest in quiet mode. This is the same as -v0
                 or --verbose 0
 
         -V, --version
-                Show openSeaChest version and copyright information & exit
+                Show SeaChest version and copyright information & exit
 
         --license
                 Display the Seagate End User License Agreement (EULA).
@@ -358,6 +324,10 @@ Utility Options
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
 
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
                 Pass-through 12-byte commands when possible instead of 16-byte
@@ -367,7 +337,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -384,6 +354,13 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
+
+        --outputPath [folder]
+                Set a user defined path location for saving the log files.  The
+                folder/directory must exist with writable permissions.  The
+                utility will exit early if it cannot find the folder.  If this
+                option is not used then the default is the current working
+                directory.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -410,6 +387,29 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
+        Windows only:
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
+
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
+
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
+
 Return codes
 ============
         0       No Error Found
@@ -428,26 +428,38 @@ Tool Usage Hints
 ================
 See Sample Output examples below.
 
-First, run the openSeaChest_PowerControl -s option to determine what /dev/sg? device
+First, run the openSeaChest -s option to determine what /dev/sg? or PD? device
 handle assignment lines up to your disk drive. This option will also show you
-other details about the drive including the current firmware revision. Like
-this:
+other details about the drive including the current firmware revision.
 
+Linux:
 Vendor     Handle       Model Number       Serial Number     FwRev
 ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
 SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
 
-All utility arguments will require you to identify the specific drive by
-providing the sg device handle (-d, --device).
+Windows:
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
 
-For example, openSeaChest_PowerControl -d /dev/sg1 --checkPowerMode
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
+
+All utility arguments will require you to identify the specific drive by
+providing the sg or PD device handle (-d, --device).
+
+Lin example, openSeaChest_Basics -d /dev/sg1 --shortDST poll
+Win example, openSeaChest_Basics -d PD2 --shortDST poll
 
 You may combine multiple tests with a single command line.  For example,
-openSeaChest_PowerControl -d /dev/sg0 -i --spinDown runs both identify and spin down.
+inLinux, openSeaChest_Basics -d /dev/sg0 -i --smartCheck runs both identify and
+SMART.  In Windows, openSeaChest_Basics -d PD0 -i --smartCheck runs both
+identify and SMART.
 
 Multiple device handles can be given by adding -d /dev/sg# for each additional
-handle.  Devices are processed in sequential order.  For example,
-openSeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two devices.
+handle.  Devices are processed in sequential order.  For example, in Linux,
+openSeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two
+devices.  In Windows, openSeaChest_Basics -d PD0 -d PD3 -i runs identify on
+these two devices.
 
 Caution: All device handles may be specified.  However, great care should be
 taken to fully anticipate the consequences of running a command on all storage
@@ -457,59 +469,39 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
+Tests which take a very long time to complete or erase all user data on the
+drive will require a longer command line argument than indicated in the --help
+output to the screen.  This approach is taken to eliminate the possibility of
+accidental data loss or the commitment of long test times. The longer command
+arguments are similar to -I-understand-this-command-will-take-a-long-time or
+-I-understand-this-command-will-erase-all-data.
+
 Advanced SAS installations may use dual ports.  These are listed as Port 0 and
 Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
 
-================================
-How PowerChoice Technology Works
-================================
-See the Seagate technology paper "Seagate® PowerChoice™ Technology Provides
-Unprecedented Hard Drive Power Savings and Flexibility"
-http://www.seagate.com/files/docs/pdf/en-GB/whitepaper/tp608-powerchoice-tech-provides-gb.pdf
+Windows Only Usage
+==================
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
 
-Each individual power condition builds on the capabilities of the previous
-higher power condition in order to save incrementally more power. The specific
-energy-saving steps implemented for each power condition are as follows:
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
 
-Idle_A
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Discs rotating at full speed (7,200 RPM)
-Idle_B
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Discs rotating at full speed (7,200 RPM)
-Idle_C/Standby_Y (SAS Only)
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Drive speed reduced to a lower RPM (reduced RPM)
-Standby_Z
-        - Heads are unloaded to drive ramp.
-        - Drive motor is spun down.
-        - Drive still responds to non-media access host commands.
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
 
-Flexibility is a key feature of PowerChoice technology, enabling commands from
-the host side to customize power condition settings and direct a drive into or
-out of power conditions as required. Two different options are available for
-the user to modify PowerChoice technology settings, depending on the interface
-used:
-
-SAS
-        Host-definable timers via mode pages
-        Immediate host-commanded power transitions via Start/Stop Unit (SSU)
-        command
-SATA
-        Host-definable timers via Set Features commands
-        Immediate host-commanded power transitions via Set Features commands
-
-===================
-General Usage Hints
-===================
+=========================
+Linux General Usage Hints
+=========================
 Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
 
 Display a file listing with the Linux command: ls -lah
@@ -583,16 +575,52 @@ device details like model numbers try "6 4 1 7".  The command to set is 'sudo
 sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
 parameters at runtime" for more.
 
+===========================
+Windows General Usage Hints
+===========================
+The tool will require Administrative privileges to run.
+Also, verify that the tool has executable rights.
+
+Remember that the command line arguments are cAsE SeNsiTiVe.
+
+Save a log file by redirecting the screen output to a text file by adding space
+&>test.log at the end of your command line. Choose your own file name. To
+append the screen output to an existing log file use >>test.log.
+
+To save a log and display results at the conclusion of the tests, you can use
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
+
+For example:
+powershell ".\openSeaChest --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
+
+Manual Launch for Windows
+-------------------------
+An individual openSeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the openSeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
+
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
+
+Then change drives or directory to where the openSeaChest utility is located and
+run the tool file name from there.
+
 =============
 Sample Output
 =============
 
 SATA HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg1
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2017 Seagate Technology LLC, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -664,10 +692,11 @@ SATA HDD Device Information:
 
 SATA SSD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg1 -i
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2017 Seagate Technology LLC, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -730,10 +759,11 @@ SATA SSD Device Information:
 
 SAS HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg2
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2017 Seagate Technology LLC, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -793,10 +823,11 @@ SAS HDD Device Information:
 
 SAS SSD: Device Information
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg3 -i
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2017 Seagate Technology LLC, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
@@ -856,107 +887,13 @@ SAS SSD: Device Information
                 Format Unit
                 Sanitize
 
-===============
-Version History
-===============
-SeaChest_PowerChoice is branched off from SeaChest Basics v1.0.3.
-
-v0.0.1  14-Apr-2015  Intitial PowerChoice release.
-v0.0.2  12-Aug-2015  Added --testUnitReady. Improved device discovery.
-                     Corrections to verbose output.
-v0.0.3  28-Aug-2015  Improved device compatibility.
-v0.0.4  22-Sep-2015  Added --showPowerConsumption and --setPowerConsumption,
-                     both are SAS only.
-v0.0.4  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
-                     Added -sat12byte to increase compatibility.  Added
-                     --SATInfo to compare ATA vs SCSI identification
-                     differences.
-v0.0.6  26-Jan-2016  1_8_1 libraries.  Added --EPCfeature for SATA.
-v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
-                     --onlySeagate restriction.  Added --modelMatch and
-                     --onlyFW filters.
-v1.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
-                     Fixed a bug where we could accidentally clear some stored
-                     identify data from the device structure. Fixed continuing
-                     on when there was a permission denied error opening a
-                     drive. Fixed --checkPowerMode always returning "active" on
-                     SAT interfaces (SATA over SAS). Fixed --transitionPower
-                     always failing (It was  trying an incompatible value).
-v1.0.3  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
-                     commands. Fixed bugs with --modelMatch and --onlyFW
-                     filters.
-v1.2.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
-                     --showEPCSettings, --showAPMLevel, and --setAPMLevel.
-v1.2.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
-                     functions, format polling, endianess detection, buffer
-                     size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added --disableAPM.
-v1.3.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
-                     minor bug fixes. Fixed --SATInfo command.
-v1.3.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
-                     and --forceATAUDMA  (SATA Only).
-v1.4.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.4.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
-                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
-                     the -i --SATInfo output.
-v1.4.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
-                     --enableLegacyUSBPassthrough
-v1.4.2  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
-                     settings.
-v1.4.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
-                     the corresponding command range option, SAS power mode
-                     setting, and Sanitize erase patterns.
-v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
-                     22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. EPCfeature now supports SAS.
-v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features.
-v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
-                     should exit with code = 1; added detection of parallel ATA
-                     and SCSI speeds; temperature data on ATA now uses the
-                     values from the SCT status log or device statistics log.
-                     Adds the child drive matching options --childModelMatch,
-                     --childOnlyFW, and --childNewFW.
-v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
-                     Sense Data Reporting feature enabled, changes to how we
-                     interpret the completion status from the drive, new Sense
-                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
-                     note the capital S) aggressive system scan.
-v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
-                     reading remanufacture time for SAS when the drive reports
-                     a time, fixed SAS --abortDST.
-v1.8.1  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
-                     SAS adapters, added NVMe read, write & Flush commands.
-                     Added --powerBalanceFeature, --sataDAPSfeature and
-                     --sataDIPMfeature, all of which are SATA only.
-v1.8.2  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
-                     device, SAT library strings, and fixes to Read-Buffer
-                     error history (ISL). Updated copyright notice, invalid
-                     command line options now only display an error instead of
-                     long help. Name change from SeaChest_PowerChoice to
-                     SeaChest_PowerControl.
-v1.8.2  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.8.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
-                     that don't show as SATA and don't support the SAT VPD
-                     page; added Automatic fallback to 12byte CDBs during
-                     initial device discovery;  integrated fixes for SAS
-                     firmware download and fixes for SAS LongDST time
-                     calculation; added detection of TCG Pyrite and Opalite
-                     drives.
-v1.8.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
-                     on some LSI adapters, corrects firmware download issue
-                     under Windows 10 API.
-v1.8.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
-
-The above history is provided as a courtesy to show the orginal SeaChest
-development activity.
-
 ============================
 openSeaChest Version History
 ============================
-v1.8.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
-open source project for storage devices.
+v1.0.0  03-Aug-2018 1_18_0 libraries.  Initial release.
+v1.1.0  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1073,7 +1010,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

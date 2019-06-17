@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 // \file openSeaChest_Firmware.c command line that performs various firmware/microcode download on a device.
 
 //////////////////////
@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.5.4";
+const char *buildVersion = "2.7.0";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -80,12 +80,10 @@ int32_t main(int argc, char *argv[])
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
-    DATA_ERASE_VAR
-    PARTIAL_DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	AGRESSIVE_SCAN_FLAG_VAR
+    AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
@@ -96,7 +94,10 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAGS_UTIL_VARS
     //tool specific
     DOWNLOAD_FW_VARS
+#if defined (_WIN32)
     WIN10_FLEXIBLE_API_USE_VAR
+    WIN10_FWDL_FORCE_PT_VAR
+#endif
     FIRMWARE_SLOT_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
@@ -108,6 +109,7 @@ int32_t main(int argc, char *argv[])
     FWDL_SEGMENT_SIZE_VARS
     SHOW_FWDL_SUPPORT_VAR
     ACTIVATE_DEFERRED_FW_VAR
+    SWITCH_FW_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -117,8 +119,8 @@ int32_t main(int argc, char *argv[])
     int8_t  args = 0;
     uint8_t argIndex = 0;
     int32_t optionIndex = 0;
-	firmwareUpdateData dlOptions;
-	seatimer_t commandTimer;	
+    firmwareUpdateData dlOptions;
+    seatimer_t commandTimer;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -129,7 +131,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		AGRESSIVE_SCAN_LONG_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
@@ -157,14 +159,16 @@ int32_t main(int argc, char *argv[])
         FWDL_SEGMENT_SIZE_LONG_OPT,
         SHOW_FWDL_SUPPORT_LONG_OPT,
         ACTIVATE_DEFERRED_FW_LONG_OPT,
+        SWITCH_FW_LONG_OPT,
         FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
+#if defined (_WIN32)
         WIN10_FLEXIBLE_API_USE_LONG_OPT,
+        WIN10_FWDL_FORCE_PT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
 
-    g_verbosity = VERBOSITY_DEFAULT;
-
-    atexit(print_Final_newline);
+    eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
     ////////////////////////
     //  Argument Parsing  //
@@ -173,6 +177,7 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
+        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     //get options we know we need
@@ -253,14 +258,14 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
                 FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
-				if (FIRMWARE_SLOT_FLAG > 7)
-				{
-					if (g_verbosity > VERBOSITY_QUIET)
-					{
-						printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
+                if (FIRMWARE_SLOT_FLAG > 7)
+                {
+                    if (toolVerbosity > VERBOSITY_QUIET)
+                    {
+                        printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
                     }
-					exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-				}
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case ':'://missing required argument
@@ -271,30 +276,34 @@ int32_t main(int argc, char *argv[])
                 //check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Option %c requires an argument\n", optopt);
                 }
                 utility_Usage(true);
-                return exitCode;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
+                exit(exitCode);
             }
             break;
         case DEVICE_SHORT_OPT: //device
@@ -302,6 +311,10 @@ int32_t main(int argc, char *argv[])
             {
                 //Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
                 exit(255);
             }
             break;
@@ -311,37 +324,46 @@ int32_t main(int argc, char *argv[])
         case SCAN_SHORT_OPT: //scan
             SCAN_FLAG = true;
             break;
-		case AGRESSIVE_SCAN_SHORT_OPT:
-			AGRESSIVE_SCAN_FLAG = true;
-			break;
+        case AGRESSIVE_SCAN_SHORT_OPT:
+            AGRESSIVE_SCAN_FLAG = true;
+            break;
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                g_verbosity = atoi(optarg);
+                toolVerbosity = atoi(optarg);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
-            g_verbosity = VERBOSITY_QUIET;
+            toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
             SCAN_FLAGS_SUBOPT_PARSING;
             break;
         case '?': //unknown option
             printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_NO_ERROR);
         default:
             break;
         }
     }
 
+    atexit(print_Final_newline);
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -357,7 +379,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < g_verbosity)
+    if (VERBOSITY_QUIET < toolVerbosity)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -372,13 +394,13 @@ int32_t main(int argc, char *argv[])
         print_EULA_To_Screen(true, true);
     }
 
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
         unsigned int scanControl = DEFAULT_SCAN;
-		if(AGRESSIVE_SCAN_FLAG)
-		{
-			scanControl |= AGRESSIVE_SCAN;
-		}
+        if(AGRESSIVE_SCAN_FLAG)
+        {
+            scanControl |= AGRESSIVE_SCAN;
+        }
         #if defined (__linux__)
         if (scanSD)
         {
@@ -441,16 +463,16 @@ int32_t main(int argc, char *argv[])
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
 #endif
-		if (ONLY_SEAGATE_FLAG)
-		{
-			scanControl |= SCAN_SEAGATE_ONLY;
-		}
-        scan_And_Print_Devs(scanControl, NULL);
+        if (ONLY_SEAGATE_FLAG)
+        {
+            scanControl |= SCAN_SEAGATE_ONLY;
+        }
+        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
     // SIMPLE IS BEAUTIFUL
-	if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
     {
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_NO_ERROR);
@@ -459,7 +481,7 @@ int32_t main(int argc, char *argv[])
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
@@ -472,7 +494,7 @@ int32_t main(int argc, char *argv[])
 #endif
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
@@ -481,7 +503,7 @@ int32_t main(int argc, char *argv[])
     }
     else if (DEVICE_LIST_COUNT == 0)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
@@ -489,7 +511,7 @@ int32_t main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-        
+
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
@@ -514,6 +536,7 @@ int32_t main(int argc, char *argv[])
         || DOWNLOAD_FW_FLAG
         || SHOW_FWDL_SUPPORT_INFO_FLAG
         || ACTIVATE_DEFERRED_FW_FLAG
+        || SWITCH_FW_FLAG
         ))
     {
         utility_Usage(true);
@@ -525,7 +548,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
     if (!DEVICE_LIST)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Unable to allocate memory\n");
         }
@@ -579,19 +602,23 @@ int32_t main(int argc, char *argv[])
 #if defined (ENABLE_CSMI)
         flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;//TODO: Remove this flag so that CSMI devices can be part of running on all drives. This is not allowed now because of issues with running the same operation on the same drive with both PD? and SCSI?:? handles.
 #endif
+        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+        {
+            DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
+        }
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
@@ -617,6 +644,8 @@ int32_t main(int argc, char *argv[])
 #endif
             deviceList[handleIter].dFlags = flags;
 
+            deviceList[handleIter].deviceVerbosity = toolVerbosity;
+
             if (ENABLE_LEGACY_PASSTHROUGH_FLAG)
             {
                 deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError = true;
@@ -629,9 +658,9 @@ int32_t main(int argc, char *argv[])
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) || 
+            if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) && 
+            if (((deviceList[handleIter].os_info.fd < 0) &&
                  (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
@@ -639,7 +668,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
@@ -651,11 +680,12 @@ int32_t main(int argc, char *argv[])
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
                 }*/
@@ -672,21 +702,21 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < g_verbosity)
-				{
-					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for fw already loaded
         if (NEW_FW_MATCH_FLAG)
         {
             if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive already has firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision);
                 }
@@ -698,7 +728,7 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
                 }
@@ -709,21 +739,21 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < g_verbosity)
-				{
-					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for child fw already loaded
         if (CHILD_NEW_FW_MATCH_FLAG)
         {
             if (strcmp(CHILD_NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW) == 0)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This child drive already has firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW);
                 }
@@ -735,26 +765,26 @@ int32_t main(int argc, char *argv[])
         {
             if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
                 continue;
             }
         }
-        
+
         if (FORCE_SCSI_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
-        
+
         if (FORCE_ATA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing ATA Drive\n");
             }
@@ -763,7 +793,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_PIO_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
@@ -777,7 +807,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_DMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
@@ -786,16 +816,16 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_UDMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
 
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
-			printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
 
 #if defined (_WIN32) && WINVER >= SEA_WIN32_WINNT_WIN10
@@ -803,6 +833,12 @@ int32_t main(int argc, char *argv[])
         {
             deviceList[deviceIter].os_info.fwdlIOsupport.allowFlexibleUseOfAPI = true;
         }
+
+        if (WIN10_FWDL_FORCE_PT_FLAG)
+        {
+            deviceList[deviceIter].os_info.fwdlIOsupport.fwdlIOSupported = false;//turn off the Win10 API support to force passthrough mode.
+        }
+
 #endif
 
         //now start looking at what operations are going to be performed and kick them off
@@ -810,7 +846,7 @@ int32_t main(int argc, char *argv[])
         {
             if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: failed to get device information\n");
                 }
@@ -833,13 +869,13 @@ int32_t main(int argc, char *argv[])
                 show_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
                 break;
             case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Getting supported download modes not supported on this drive\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to get supported download modes from the drive\n");
                 }
@@ -895,31 +931,38 @@ int32_t main(int argc, char *argv[])
                                     DOWNLOAD_FW_MODE = DL_FW_FULL;
                                 }
                             }
-							//For now, setting deferred download as default for NVMe drives. 
-							if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-							{
-								DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-							}
+                            //For now, setting deferred download as default for NVMe drives.
+                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
+                            {
+                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            }
                             //*/
                         }
                     }
                     fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
 
-					memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-					memset(&commandTimer, 0, sizeof(seatimer_t));
-					dlOptions.dlMode = DOWNLOAD_FW_MODE;
-					dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
-					dlOptions.firmwareFileMem = firmwareMem;
-					dlOptions.firmwareMemoryLength = firmwareFileSize;
+                    memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+                    memset(&commandTimer, 0, sizeof(seatimer_t));
+                    dlOptions.dlMode = DOWNLOAD_FW_MODE;
+                    if (FWDL_SEGMENT_SIZE_FROM_USER)
+                    {
+                        dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
+                    }
+                    else
+                    {
+                        dlOptions.segmentSize = 0;
+                    }
+                    dlOptions.firmwareFileMem = firmwareMem;
+                    dlOptions.firmwareMemoryLength = firmwareFileSize;
                     dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
-					start_Timer(&commandTimer);
-					ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
-					stop_Timer(&commandTimer);
+                    start_Timer(&commandTimer);
+                    ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                    stop_Timer(&commandTimer);
                     switch (ret)
                     {
                     case SUCCESS:
-                        exitCode = SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-                        if (VERBOSITY_QUIET < g_verbosity)
+                        exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Firmware Download successful\n");
                             printf("Firmware Download time");
@@ -934,16 +977,16 @@ int32_t main(int argc, char *argv[])
                         }
                         if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                         {
-                            exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
-                            if (VERBOSITY_QUIET < g_verbosity)
+                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
                             }
                         }
                         else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
                         {
-                            exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
-                            if (VERBOSITY_QUIET < g_verbosity)
+                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("This drive requires a full power cycle to activate the new code.\n");
                             }
@@ -951,7 +994,7 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             fill_Drive_Info_Data(&deviceList[deviceIter]);
-                            if (VERBOSITY_QUIET < g_verbosity)
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 if (NEW_FW_MATCH_FLAG)
                                 {
@@ -973,14 +1016,14 @@ int32_t main(int argc, char *argv[])
                         }
                         break;
                     case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < g_verbosity)
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Firmware Download not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
-                        if (VERBOSITY_QUIET < g_verbosity)
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Firmware Download failed\n");
                         }
@@ -997,7 +1040,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     perror("fopen");
                     printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
@@ -1006,30 +1049,34 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (ACTIVATE_DEFERRED_FW_FLAG)
+        if (ACTIVATE_DEFERRED_FW_FLAG || SWITCH_FW_FLAG)
         {
             supportedDLModes supportedFWDLModes;
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
-				memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-				memset(&commandTimer, 0, sizeof(seatimer_t));
-				dlOptions.dlMode = DL_FW_ACTIVATE;
-				dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
-				dlOptions.firmwareFileMem = NULL;
-				dlOptions.firmwareMemoryLength = 0;
+                memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+                memset(&commandTimer, 0, sizeof(seatimer_t));
+                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.segmentSize = 0;
+                dlOptions.firmwareFileMem = NULL;
+                dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
-				start_Timer(&commandTimer);
-				ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
-				stop_Timer(&commandTimer);
+                if (SWITCH_FW_FLAG)
+                {
+                    dlOptions.existingFirmwareImage = true;
+                }
+                start_Timer(&commandTimer);
+                ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                stop_Timer(&commandTimer);
                 switch (ret)
                 {
                 case SUCCESS:
-                    exitCode = SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
-                    if (VERBOSITY_QUIET < g_verbosity)
+                    exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate successful\n");
+                        printf("Firmware activation successful\n");
                         fill_Drive_Info_Data(&deviceList[deviceIter]);
                         if (NEW_FW_MATCH_FLAG)
                         {
@@ -1050,16 +1097,23 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
                 case NOT_SUPPORTED:
-                    if (VERBOSITY_QUIET < g_verbosity)
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate not supported\n");
+                        if (SWITCH_FW_FLAG && FIRMWARE_SLOT_FLAG == 0)
+                        {
+                            printf("You must specify a valid slot number when switching firmware images.\n");
+                        }
+                        else
+                        {
+                            printf("Firmware activate not supported\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
-                    if (VERBOSITY_QUIET < g_verbosity)
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activate failed\n");
+                        printf("Firmware activation failed\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1067,7 +1121,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("This drive does not support the activate command.\n");
                 }
@@ -1164,8 +1218,13 @@ void utility_Usage(bool shortUsage)
     //utility options - alphabetized
     printf("Utility Options\n");
     printf("===============\n");
+#if defined (ENABLE_CSMI)
+    print_CSMI_Force_Flags_Help(shortUsage);
+    print_CSMI_Verbose_Help(shortUsage);
+#endif
 #if defined (_WIN32)
     print_FWDL_Allow_Flexible_Win10_API_Use_Help(shortUsage);
+    print_FWDL_Force_Win_Passthrough_Help(shortUsage);
 #endif
     print_Echo_Command_Line_Help(shortUsage);
     print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
@@ -1188,16 +1247,12 @@ void utility_Usage(bool shortUsage)
     //the test options
     printf("\nUtility Arguments\n");
     printf("=================\n");
-#if defined (ENABLE_CSMI)
-    print_CSMI_Force_Flags_Help(shortUsage);
-    print_CSMI_Verbose_Help(shortUsage);
-#endif
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-	print_Agressive_Scan_Help(shortUsage);
+    print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
@@ -1207,4 +1262,5 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Slot_Buffer_ID_Help(shortUsage);
     print_FWDL_Segment_Size_Help(shortUsage);
     print_show_FWDL_Support_Help(shortUsage);
+    print_Firmware_Switch_Help(shortUsage);
 }

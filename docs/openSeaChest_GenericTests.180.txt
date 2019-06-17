@@ -1,9 +1,9 @@
-openSeaChest_Format.Lin.txt                               Revision: 09-Nov-2017
+openSeaChest_GenericTests.txt                             Revision: 08-Jan-2019
 ===============================================================================
-openSeaChest_Format for Linux - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Format Version: 1.2.0
- Build Date: Nov 02 2017
+ openSeaChest_GenericTests for Linux and Windows - Seagate drive utilities
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ openSeaChest_GenericTests Version: 1.8.0
+ Build Date: Jan  7 2018
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -18,6 +18,11 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your storage product. It
+includes several tests that will examine the physical media on your storage
+device.
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -34,52 +39,55 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Storage products which utilize the SAS, SCSI or Fibre Channel interfaces are
-able to perform a full low-level media format in the field.  These three
-storage interfaces use, in generic terms, the SCSI command set.  Unlike SATA,
-which is low-level formatted only at the factory, SCSI command devices are able
-to rescan the surface of the media while managing defective sectors (if any)
-and even change the drive sector size.  The SCSI Format Unit command offers
-many specialty options to accommodate a variety of conditions and to fine tune
-the procedure.
+One of the fundamental units of data on a storage device like a disk drive is
+the sector.  In the case of a hard disk drive, a sector is a physical section
+of a circular magnetized track accessed by read write heads over the rotating
+media.  The original hard drive sectors are 512 bytes each.  If you take the
+number or logical sectors on a disk drive and multiply it by 512 you get the
+total capacity of the drive in bytes.  Since the mid-1990's the term sector has
+been replaced by an acronym synonym LBA, which stands for Logical Block
+Address.  All drives start with LBA 0 and count up to the full capacity of the
+drive.
 
-Some RAID adapters, for example, use 520 byte sectors rather than the common
-512 size.  Because of this ability to change to a new sector size (also called
-block size), the resulting number of total sectors (Logical Block Addresses or
-LBAs) on a drive can vary and the actual final count is determined at the end
-of the format.  In simple terms, if the new sector size is twice a large as the
-previous format then the new count of sectors is half of what it was.
+In the example above, the physical sector size is 512 bytes and logical sector
+size is also 512 bytes.  Beginning around the year 2010 disk drives have been
+manufactured with a physical sector size of 4096 bytes but the disk drive
+delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
+expects 512 and is not concerned about the actual physical size.  These drives
+are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
+are manufactured with 4096 byte for both physical and logical block sizes.
 
-The SCSI Format Unit command is a drive background command which means that
-once the command is accepted by the drive it then goes offline to manage the
-task with no overhead impact to the host system.  The drive will report
-formatting progress in 1% increments.
+openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
+unreadable.
 
-Important note: Once a Format Unit command has begun on a device then it must
-be allowed to complete to be usable again.  If the format is interrupted then
-it will subsequently report a  corrupted format with Sense Key "03-31".  The
-only way to clear a corrupted format error is to start again and allow it to
-finish.
+It may be possible to repair a problem when a generic read test fails due to
+failure to read a particular sector (LBA).  You might consider the
+--repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
+options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
+Found" for more information on this subject.
 
-        03h - Medium error. The command was terminated with a non-recoverable
-        error condition, probably caused by a flaw in the media or an error in
-        the recorded data.
-        31h - The media format is corrupted.
+This User Guide file contains important information about openSeaChest
+GenericTests.  Please read this entire file before using this software.
 
-Please see the section below "About the SCSI Format Unit Command" for
-additional information.
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
 
-This User Guide file contains important information about openSeaChest_Format.
-Please read this entire file before using this software.
-
-If this is your drive, you should always keep a current backup of your
-important data.
-
-If this is not your drive and the original owner has no claim of ownership to
-it or the data stored on it, then you may still be responsible for the data in
-your possession.   To protect yourself from potential liability and to protect
-the previous owner's privacy, you should remove all data by performing a data
-erasure on this drive.
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -90,20 +98,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-Be very careful because using openSeaChest_Format will cause data loss. Seagate
-is not responsible for lost user data.
+NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
+drives.
 
-NOTE: openSeaChest_Format may not be fully functional on non-Seagate drives.
+Usage - Linux
+=============
+        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
 
-Usage
-=====
-        openSeaChest_Format [-d <sg_device>] {arguments} {options}
+Examples - Linux
+================
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d /dev/sg2 -i
+        openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
 
-Examples
-========
-        openSeaChest_Format --scan
-        openSeaChest_Format -d /dev/sg2 -i
-        openSeaChest_Format --device /dev/sg1 --showSupportedSectorSizes
+Usage - Windows
+===============
+        openSeaChest_GenericTests [-d <device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d PD0 -i
+        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
 
 Utility arguments
 =================
@@ -128,14 +144,20 @@ Utility arguments
         -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
-                     sd             - show /dev/sd? device handles
-                     sgtosd         - show the sd and sg device handle mapping
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                    Linux:
+                     sd             - show /dev/sd? device handles
+                     sgtosd         - show the sd and sg device handle mapping
+                    Windows:
+                     ignoreCSMI     - do not scan for any CSMI devices
+                     allowDuplicates - allow drives with both CSMI and PD
+                                       handles to show up multiple times in the
+                                       list.
 
                 Examples of combining two options:
                      -s --scanFlags usb scsi  - show only USB and SAS devices
@@ -148,12 +170,13 @@ Utility arguments
                 operation. See the section below 'Tool Usage Hints' for
                 information about defining multiple device handles.
 
-                Example: -d /dev/sg5
+                Example Lin: -d /dev/sg5
+                Example Win: -d PD0, or -d PD3
 
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add--usbChildInfo to
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo to
                 display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
@@ -166,43 +189,130 @@ Utility arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --displayLBA [LBA | maxLBA]
-                This option will read and display the contents of the specified
-                LBA to the screen. The display format is hexadecimal with an
-                ASCII translation on the side (when available).  The predefined
-                text string "maxLBA" (without quotes) may be entered to
-                indicate the last sector on the drive instead of the specific
-                LBA number.
+        --bufferTest
+                This option will perform a test using the device's echo buffer.
+                The write buffer and read buffer commands are used to send &
+                receive different data patterns.  The patterns are compared and
+                interface CRC errors are also checked (when available).  Test
+                patterns performed are all 0's, all F's, all 5's, all A's,
+                walking 1's, walking 0's, and random data patterns.  At
+                completion, a count of the number of errors will be displayed.
 
-        --poll
-                Use this option to cause another operation to poll for progress
-                until it has completed.  This argument does not return to the
-                command prompt and prints ongoing completion percentages (%)
-                and the final test result.  Full drive procedures will take a
-                very long time.  Used with --sanitize, --secureErase (SATA),
-                --writeSame (SATA), or --formatUnit (SAS).
+        --genericMode [ read | write  | verify ]
+                This options allows selection of the type of commands to use
+                while performing a generic test.  If this option is omitted
+                then read is the default mode.
 
-        --progress [format]
-                Get the progress for a test that was started quietly (default)
-                specify a test to check progress. The progress counts up from
-                0% to 100%.
+                Supported modes are:
+                  read - performs a generic test using read commands, data safe
+                  write - performs a generic test using write commands, any
+                          data on sectors written during the test will be
+                          lost.  Seagate is not responsible for lost user
+                          data. --confirm acknowledgment command will be
+                          required.
+                  verify - performs a generic test using verify commands, data
+                           safe, sometimes faster than read commands.
 
-        --showSupportedSectorSizes
-                This option will show the supported sector sizes of a device if
-                it reports them. These can be used to change the sector size or
-                used with a format unit operation. On SAS, this is the
-                supported block lengths and protection types VPD page. (SBC4
-                and later) On SATA, this is the sector configuration log. (ACS4
-                and later) If the device does not report supported sector
-                sizes, please consult your product manual.
+        --shortGeneric
+                This option will run a short generic read test on a specified
+                device. A short generic read test has 3 components. A
+                sequential read at the Outer Diameter (OD) of the drive for 1%
+                the LBAs (sectors), then a sequential read at the Inner
+                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
+                read of 5000 LBAs. This test will stop on the first read error
+                that occurs.
 
-        --showFormatStatusLog (SAS Only)
-                Use this option to view the SCSI format status log. Note: This
-                log is only valid after a successful format unit operation.
+        --twoMinuteGeneric
+                This option will run a 2 minute generic read test on a
+                specified device. There are 3 components to this test. A read
+                at the Outer Diameter (OD) of the drive for 45 seconds, then a
+                read at the Inner Diameter of the drive for 45 seconds, and
+                lastly a random read test for 30 seconds. This test will stop
+                on the first read error that occurs.
 
-        --showSupportedProtectionTypes (SAS Only)
-                Use this option to view the supported protection types for a
-                device.
+        --longGeneric
+                This option will run a long generic read test on a specified
+                device. A long generic read test sequentially reads every LBA
+                on the device and gives a report of error LBAs at the end of
+                the test, or when the error limit has been reached. Using the
+                --stopOnError option will make this test stop on the first read
+                error that occurs. The default error limit is 50 x number of
+                logical sectors per physical sector.
+
+                Example error limits are as follows:
+
+                        512L/512P: error limit = 50
+                        4096L/4096P: error limit = 50
+                        512L/4096P: error limit = 400 (50 * 8)
+
+        --userGenericStart [starting LBA | maxLBA]
+                Use this option to specify the starting LBA number for a
+                generic read test. The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The --userGenericRange or
+                timed (--hours, minutes, seconds) options must be used with
+                this one in order to start the test. Use the --stopOnError
+                repair flag and/or --errorLimit flags to further customize this
+                test.
+
+        --userGenericRange [LBA count]
+                Use this option to specify the range for a generic read test.
+                See the --userGenericStart help for additional information
+                about using the User Generic Read tests.
+
+        --diameterTest [O | M | I]
+                Use this option to perform a generic read/write/verify test at
+                the specified diameter of the drive. The different diameters
+                can be combined or run individually. Use the time options to
+                specify a time-based test or the --diameterTestRange option for
+                a range-based test. If --diameterTestRange is omitted the
+                default is a one minute test.
+
+                    O - outer diameter
+                    M - middle diameter
+                    I - inner diameter
+
+                Ex1: --diameterTest OMI
+                Ex2: --diameterTest O
+                Ex3: --diameterTest MI
+
+        --diameterTestRange [range]
+                Use this option with the --diameterTest option to perform a
+                range based test. If a range is specified without any units, it
+                is assumed to be an LBA count. Valid units are KB, KiB, MB,
+                MiB, GB, GiB, TB and TiB.
+
+                Ex1: "--diameterTestRange 1234567" for an LBA count
+                Ex2: "--diameterTestRange 2GB" for a 2GB range.
+
+        --stopOnError
+                Use this option to make a generic read test stop on the first
+                error found. Please see the section below "Sector Repair
+                Commands".
+
+        --errorLimit [limit in number of LBAs]
+                Use this option to specify a different error limit for a user
+                generic or long generic read test. This must be a number of
+                logical LBAs to have errors. If a drive has multiple logical
+                sectors per physical sector, this number will be adjusted for
+                you to reflect the drive architecture.
+
+        --randomTest
+                Use this option to start a random read test. This is a timed
+                operation. Use the time options to control how long to run this
+                test. The default time for this test is 1 minute.  This test
+                should be limited to 1 minute or less.
+
+                Example: --randomTest --seconds 10
+
+        --butterflyTest
+                Use this option to start a butterfly read test.  A butterfly
+                read test is a read test that moves back and forth between the
+                OD and ID of the drive over and over again until the time has
+                expired.  This is a timed operation. Use the time options to
+                control how long to run this test. The default time for this
+                test is 1 minute.  This test should be limited to 1 minute
+                or less.
 
 Utility Options
 ===============
@@ -220,11 +330,11 @@ Utility Options
                 Example: -v 3 or --verbose 3
 
         -q, --quiet
-                Run openSeaChest in quiet mode. This is the same as -v0
+                Run SeaChest in quiet mode. This is the same as -v0
                 or --verbose 0
 
         -V, --version
-                Show openSeaChest version and copyright information & exit
+                Show SeaChest version and copyright information & exit
 
         --license
                 Display the Seagate End User License Agreement (EULA).
@@ -242,6 +352,10 @@ Utility Options
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
 
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
                 Pass-through 12-byte commands when possible instead of 16-byte
@@ -251,12 +365,14 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
                 model number. This option will provide a closest match although
-                an exact match is preferred. Ex: ST500 will match ST500LM0001
+                an exact match is preferred. Ex: ST500 will match ST500LM0001.
+                The option --childModelMatch may be used to match drives in USB
+                enclosures.
 
                 Note: See the section below 'Tool Usage Hints' for information
                 about defining multiple device handles.
@@ -264,6 +380,20 @@ Utility Options
         --onlyFW [firmware revision]
                 Use this option to run on all drives matching the provided
                 firmware revision. This option will only do an exact match.
+                The option --childOnlyFW may be used to match drives in USB
+                enclosures.
+
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -290,160 +420,47 @@ Utility Options
                 a SCSI drive. Only SCSI commands will be used to talk to the
                 drive.
 
-Data Destructive Commands (Seagate Only)
-========================================
+        Windows only:
+        --csmiIgnorePort
+                Use this option to force setting the "ignore Port" flag for the
+                port identifier in a CSMI passthrough command. This option can
+                be combined with --csmiUsePort which will force the passthrough
+                to rely on only the SAS address. This flag is intended to help
+                troubleshoot or improve CSMI compatibility on systems that are
+                otherwise not functional.
+
+        --csmiUsePort
+                Use this option to force setting the "Use Port" flag for the
+                PHY identifier in a CSMI passthrough command. This option can
+                be combined with --csmiIgnorePort which will force the
+                passthrough to rely on only the SAS address. This flag is
+                intended to help troubleshoot or improve CSMI compatibility on
+                systems that are otherwise not functional.
+
+        --csmiVerbose
+                Use this option to show some verbose output when running the
+                tool on a CSMI handle. The debugging information shown will be
+                specific to the CSMI passthrough mechanism and may be useful
+                when troubleshooting system/driver compatibility issues.
+
+Sector Repair Commands
+======================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
 Seagate is not responsible for lost user data.
 
         --confirm I-understand-this-command-will-erase ... etc
 
-        --formatUnit [current | new sector size]    (SAS Only) (Seagate Only)
-                This option will start a format unit operation on a SAS drive
-                Use "current" to perform a format unit operation with the
-                Sector size currently being used, otherwise enter a new sector
-                size to use upon format completion.
+        --repairOnFly
+                Use this option to repair any bad sectors found during a long
+                or user generic read test as they are found.
 
-                Valid sector sizes are given by the --showSupportedSectorSizes
-                command (see above) or  listed in the device Product Manual.
-                This command will erase all data on the drive. The security
-                initialize feature is not used and protection information will
-                not be set. Combine this option with --poll or --progress to
-                check for completion status until the format is complete.
+        --repairAtEnd
+                Use this option to repair any bad sectors found during a long
+                or user generic read test at the end of the test.
 
-                Warning: Once a Format Unit command is started it must be
-                allowed to finish in order to calculate the total number of
-                logical blocks (LBAs) at the finish.  If the sector size has
-                changed then there will be a corresponding change to the total
-                number of LBAs. If a device stops a Format Unit before it
-                completes then the device will report a "Corrupted Format"
-                sense code, "03-31".  Restart the format and allow it to finish
-                to correct this error.
-
-        --setSectorSize [new sector size]        (Seagate Only)
-                This option is only available for drives that support sector
-                size changes. On SATA Drives, the Set Sector Configuration
-                command must be supported. On SAS Drives, Fast Format must be
-                supported. A format unit can be used on SAS instead of this
-                option to perform a long format and adjust sector size. Use the
-                --showSupportedSectorSizes option to see the sector sizes the
-                drive reports supporting. If this option doesn't list anything,
-                please consult your product manual. This option should be used
-                to quickly change between 5xxE and 4xxx sector sizes. Using
-                this option to change from 512 to 520 or similar is not
-                recommended at this time due to limited drive support.
-
-                This option can be used to quickly change the the logical
-                sector size between 5xx emulation and 4xxx native logical block
-                sizes. Resulting LBA (sector) count is either /8 or *8 the
-                current Read Capacity or Identify, depending on the direction
-                of the conversion.  In the case of SAS, this is a fast format
-                unit command keeping existing data in the physical sector. The
-                media may be readable, but data may be unspecified or may
-                return errors on read access according to it's error processing
-                algorithms.
-
-        --fastFormat [fast format mode] (SAS Only) (SBC4 required)
-                You must use this option with the --formatUnit option to run a
-                fast format. Available fast format modes:
-                    0 - This is a standard format unit command. All logical
-                        blocks will be overwritten. This command will take a
-                        very long time.
-                    1 - This is a fast format unit command keeping existing
-                        data in the physical sector. This option can be used to
-                        quickly change the the logical sector size between 5xx
-                        emulation and 4xxx native logical block sizes.
-                        Resulting LBA (sector) count is either /8 or *8 the
-                        current Read Capacity, depending on the direction of
-                        the conversion.  The media may be readable, but data
-                        may be unspecified or may return errors on read access
-                        according to it's error processing algorithms.
-                    2 - This is a fast format unit command that can change the
-                        logical sector size quickly. Media may or may not be
-                        read accessible until a write has been performed to
-                        the media.
-
-                Example: --formatUnit 512 --fastFormat 1 --confirm I-... etc
-                Example: --formatUnit 4096 --fastFormat 1 --confirm I-... etc
-
-        --disableCertification       (SAS Only)
-                Use this option to disable the certification operation when
-                performing a format unit operation.
-
-        --disablePrimaryList       (SAS Only)
-                Use this option to disable using the primary defect list when
-                performing a format unit operation.
-
-        --discardGList       (SAS Only)
-                Use this option to discard the existing grown defect list when
-                performing a format unit operation. Set Complete List bit,
-                this is the name of the bit in the format unit command. It
-                means that a complete defect list was provided in the parameter
-                data.  This tells the drive that whatever g-list it knows needs
-                to be discarded and to use the one provided.  Because we are not
-                giving a g-list, this means it discards the g-list and will
-                rediscover the defects during the format.
-
-        --disableImmediateResponse       (SAS Only)
-                Use this option to disable the immediate response bit in a
-                format unit operation.  This means that the format is run in
-                the foreground and doesn't report any status until it is
-                complete and cannot be polled.  Not commonly used.
-                Note: This mode may take a long time to complete.
-
-        --protectionIntervalExponent [exponent value]       (SAS Only)
-                Use this option to specify the protection interval exponent for
-                pretoection types 2 & 3. This option is ignored for all other
-                protection types.
-
-        --protectionType [ 0 | 1 | 2 | 3 ]       (SAS Only)
-                Use this option to specify the protection type to format the
-                medium with.
-                Note: Not all devices support protection types.
-
-        --pattern [repeat:asciinospaces | random | increment:startValue |
-             file:filename]
-                Use this option with overwrite, sanitize, and format unit
-                operations to write a specific pattern to a range of LBAs or
-                the whole drive.
-
-                * repeat - without spaces, enter an ASCII text string or a
-                hexadecimal string terminated by a lower case "h". This pattern
-                will be repeated until it fills the logical size of the LBA.
-                i.e. helloword or FFFFFFFFh
-                Note: A hexadecimal pattern will be interpreted as a 32bit
-                      unsigned integer. 4 hex bytes (8 characters) must be
-                      given for a hex value to be used. Ex: 1F037AC8h or
-                      0000FFFFh
-
-                * random - the entire logical sector size will be filled with
-                random bytes. This pattern will be written to all LBAs in the
-                desired range.
-
-                * increment - enter the starting numerical value. Starting with
-                this value, each byte will be written with 1 + previous value.
-
-                * file - user supplied file name to use for a pattern. The file
-                will be truncated or padded with zeros to the logical sector
-                size.
-                Note 1: Each file will be interpreted as a binary file.
-                Note 2: A path must also be provided if the file is not in the
-                        local directory.
-                Note 3: Sanitize Overwrite on SATA only supports a 32bit
-                        pattern. The file option will get truncated to a 32bit
-                        pattern for SATA products.
-
-        --securityInitialize       (SAS Only)
-                Use this option to set the security initialize bit in the
-                initialization pattern for a format unit command. SBC
-                recommends migrating to sanitize to overwrite previously
-                reallocated sectors.
-                Note: Not all products support this option.
-
-        --stopOnListError       (SAS Only)
-                Use this option to set the stop format bit in a format unit. If
-                the device cannot locate or access an existing primary or grown
-                defect list, the format will stop and return with an error.
+See the section below "Bad LBA (Sector) Found" for more information on this
+subject.
 
 Return codes
 ============
@@ -463,28 +480,38 @@ Tool Usage Hints
 ================
 See Sample Output examples below.
 
-Note: See the section below "Enabling TCG Commands In Linux".
-
-First, run the openSeaChest_Format -s option to determine what /dev/sg? device
+First, run the openSeaChest -s option to determine what /dev/sg? or PD? device
 handle assignment lines up to your disk drive. This option will also show you
-other details about the drive including the current firmware revision. Like
-this:
+other details about the drive including the current firmware revision.
 
+Linux:
 Vendor     Handle       Model Number       Serial Number     FwRev
 ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
 SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
 
-All utility arguments will require you to identify the specific drive by
-providing the sg device handle (-d, --device).
+Windows:
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
 
-For example, openSeaChest_Format -d /dev/sg1 --deviceInfo
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
+
+All utility arguments will require you to identify the specific drive by
+providing the sg or PD device handle (-d, --device).
+
+Lin example, openSeaChest_Basics -d /dev/sg1 --shortDST poll
+Win example, openSeaChest_Basics -d PD2 --shortDST poll
 
 You may combine multiple tests with a single command line.  For example,
-SeaChest_Basics -d /dev/sg0 -i --smartCheck runs both identify and SMART.
+inLinux, openSeaChest_Basics -d /dev/sg0 -i --smartCheck runs both identify and
+SMART.  In Windows, openSeaChest_Basics -d PD0 -i --smartCheck runs both
+identify and SMART.
 
 Multiple device handles can be given by adding -d /dev/sg# for each additional
-handle.  Devices are processed in sequential order.  For example,
-SeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two devices.
+handle.  Devices are processed in sequential order.  For example, in Linux,
+openSeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two
+devices.  In Windows, openSeaChest_Basics -d PD0 -d PD3 -i runs identify on
+these two devices.
 
 Caution: All device handles may be specified.  However, great care should be
 taken to fully anticipate the consequences of running a command on all storage
@@ -498,8 +525,8 @@ Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
 accidental data loss or the commitment of long test times. The longer command
-arguments are similar to "I-understand-this-command-will-take-a-long-time" or
-"I-understand-this-command-will-erase-all-data".
+arguments are similar to -I-understand-this-command-will-take-a-long-time or
+-I-understand-this-command-will-erase-all-data.
 
 Advanced SAS installations may use dual ports.  These are listed as Port 0 and
 Port 1 on the device information report. When both ports are active, each one
@@ -507,55 +534,75 @@ may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
 
-==================================
-About the SCSI Format Unit Command
-==================================
-(from the Seagate SCSI Commands Reference Manual, 100293068 Rev. H July 2014)
-http://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068h.pdf
+======================
+Bad LBA (Sector) Found
+======================
+IMPORTANT: Please read and carefully consider all of the following information
+about your "Bad LBA (Logical Block Address, or Sector) Found" options.
 
-The FORMAT UNIT command requests that the device server format the medium into
-application client accessible logical blocks as specified in the number of
-blocks and block length values received in the last mode parameter block
-descriptor in a MODE SELECT command. In addition, the device server may certify
-the medium and create control structures for the management of the medium and
-defects. The degree that the medium is altered by this command is
-vendor-specific.
+A bad sector is a small 512-byte area on the disk drive that is reporting
+errors and cannot be accessed properly. New bad sectors, sometimes called grown
+defects, are often caused by some kind of physical damage. If a file or folder
+uses this sector, then the file is already incomplete or corrupt because the
+bytes are not readable.
 
-If a device server receives a FORMAT UNIT command before receiving a MODE
-SELECT command with a mode parameter block descriptor the device server shall
-use the number of blocks and block length at which the logical unit is
-currently formatted (i.e., no change is made to the number of blocks and the
-block length of the logical unit during the format operation).
+**** NOTE **** The following information applies only to Seagate Technology,
+Maxtor, Samsung and LaCie brand disk drives:
 
-The simplest form of the FORMAT UNIT command (i.e., a FORMAT UNIT command with
-no parameter data) accomplishes medium formatting with little application
-client control over defect management. The device server implementation
-determines the degree of defect management that is to be performed. Additional
-forms of this command increase the application client's control over defect
-management.
+When SeaChest discovers a bad LBA (sector) through reading, it displays a count
+of the bad sectors.
 
-The application client may specify:
-  a) defect list(s) to be used;
-  b) defect locations;
-  c) that logical unit certification be enabled; and
-  d) exception handling in the event that defect lists are not accessible.
+Sectors are often not in use. If a sector is in use, then that file is
+incomplete or corrupt. When a bad sector happens to align with a folder or
+directory listing structure, then the links to files and sub-folders it manages
+may be broken.
 
-While performing a format operation, the device server shall respond to
-commands attempting to enter into the task set except INQUIRY commands, REPORT
-LUNS commands, and REQUEST SENSE commands with CHECK CONDITION status with the
-sense key set to NOT READY and the additional sense code set to LOGICAL UNIT
-NOT READY, FORMAT IN PROGRESS. Handling of commands already in the task set is
-vendor-specific. If the device server receives an INQUIRY command, a REPORT
-LUNS commands, or a REQUEST SENSE command, then the device server shall process
-the command. The device server shall return data for an INQUIRY command based
-on the condition of the SCSI target device before beginning the FORMAT UNIT
-command (i.e., INQUIRY data shall not change until after successful completion
-of a format operation). The processing of commands in the task set when a
-FORMAT UNIT command is received is vendor specific.
+You should carefully consider the importance of your data. While the sector is
+currently unreadable, if the file or folder is important to you then you may
+need professional recovery services to possibly reclaim the data. In this case,
+select to scan without trying to repair sectors on the drive.
 
-===================
-General Usage Hints
-===================
+If you have decided that the file or folder is replaceable, already backed up
+or just not important to you, then you can tell SeaChest to attempt to attempt
+to repair the sector.  See the Sector Repair Commands section above.
+
+By design, modern disk drives maintain spare sectors for reallocation purposes.
+Usually, sectors become difficult to read long before they become impossible to
+read. In this situation the actual data bytes in the sector are preserved and
+transferred to the new spare during a sector reallocation. Similarly, when a
+disk drive writes data and encounters a problem, the drive firmware retires the
+problem sector and activates a replacement before giving successful write
+status.
+
+If you give permission to attempt to repair a bad sector, then SeaChest will
+attempt to write a 512-byte pattern of zeros to that single error sector.
+Usually, this action will assist the disk drive firmware in managing the
+problem by retiring the problem sector and activating a spare in its place. If
+the attempted repair fails to reallocate the LBA to an available spare, then
+the test is a FAIL and the drive is bad.
+
+Note: Seagate Technology is not responsible for lost user data.
+
+Windows Only Usage
+==================
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
+
+=========================
+Linux General Usage Hints
+=========================
 Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
 
 Display a file listing with the Linux command: ls -lah
@@ -629,16 +676,52 @@ device details like model numbers try "6 4 1 7".  The command to set is 'sudo
 sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
 parameters at runtime" for more.
 
+===========================
+Windows General Usage Hints
+===========================
+The tool will require Administrative privileges to run.
+Also, verify that the tool has executable rights.
+
+Remember that the command line arguments are cAsE SeNsiTiVe.
+
+Save a log file by redirecting the screen output to a text file by adding space
+&>test.log at the end of your command line. Choose your own file name. To
+append the screen output to an existing log file use >>test.log.
+
+To save a log and display results at the conclusion of the tests, you can use
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
+
+For example:
+powershell ".\openSeaChest --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
+
+Manual Launch for Windows
+-------------------------
+An individual openSeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the openSeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
+
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
+
+Then change drives or directory to where the openSeaChest utility is located and
+run the tool file name from there.
+
 =============
 Sample Output
 =============
 
 SATA HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg1
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -710,10 +793,11 @@ SATA HDD Device Information:
 
 SATA SSD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg1 -i
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -776,10 +860,11 @@ SATA SSD Device Information:
 
 SAS HDD Device Information:
 
-[sysop@localhost ~]$ sudo ./openSeaChest -i -d /dev/sg2
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -839,10 +924,11 @@ SAS HDD Device Information:
 
 SAS SSD: Device Information
 
-[sysop@localhost ~]$ sudo ./openSeaChest -d /dev/sg3 -i
+Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
+Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
@@ -905,54 +991,141 @@ SAS SSD: Device Information
 ===============
 Version History
 ===============
-v0.0.1  23-May-2017  1_14_3 libraries.  SeaChest_FormatUnit initial beta
-                     test release.  Branched from SeaChest_Erase v1.4.0.
-v0.0.2  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
+
+v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
+                     sequential read tests. Added Random and Butterfly read
+                     tests.  Added sector repair on Long and user defined
+                     generic read tests.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
+                     Corrections to verbose output.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+                     Added -sat12byte to increase compatibility.  Added
+                     --SATInfo to compare ATA vs SCSI identification
+                     differences.
+v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
+                     --onlySeagate restriction.  Added --modelMatch and
+                     --onlyFW filters. Added --genericMode.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     Fixed a bug where we could accidentally clear some stored
+                     identify data from the device structure. Fixed continuing
+                     on when there was a permission denied error opening a
+                     drive.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     commands. Fixed bugs with --modelMatch and --onlyFW
+                     filters.
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     functions, format polling, endianess detection, buffer
+                     size fixes, SAS device statistics, Win32 IOCTL
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     and --forceATAUDMA  (SATA Only).
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
+                     the -i --SATInfo output.
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+                     --enableLegacyUSBPassthrough
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+                     settings.
+v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+                     the corresponding command range option, SAS power mode
+                     setting, and Sanitize erase patterns.
+v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+                     22.5Gb/s physical bus speeds, support for double buffered
+                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
+                     --diameterTestRange. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools. Random Range scaling
+                     has less biasing.
+v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features. --userGenericStart now able to use timed
+                     options.
+v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
+v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
-                     Adds the child drive matching options --childModelMatch,
-                     --childOnlyFW, and --childNewFW.
-v1.0.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix user generic test start LBA gets reset when a defect
+                     is encountered.
+v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
                      Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
                      note the capital S) aggressive system scan.
-v1.0.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.0.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.0.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-v1.1.0  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Added --setSectorSize moved from
-                     SeaChest_Configure. Name change from SeaChest_FormatUnit
-                     to SeaChest_Format.
-v1.1.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.2.0  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help.
+v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
-                     drives. Removed --defaultFormat since that is now the
-                     default behavior until other flags are added.
-v1.2.0  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     drives.
+v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v1.2.0  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
-The above history is provided as a courtesy to show the orginal SeaChest
+The above history is provided as a courtesy to show the original SeaChest
 development activity.
 
 ============================
 openSeaChest Version History
 ============================
-v1.2.0  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
-open source project for storage devices.
+v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.  Added --bufferTest.
+v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.8.0  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1069,7 +1242,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

@@ -1,7 +1,7 @@
 #
 # Do NOT modify or remove this copyright and license
 #
-# Copyright (c) 2012 - 2017 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+# Copyright (c) 2012 - 2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 #
 # This software is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,41 +13,42 @@
 #
 
 UTIL_SRC_DIR=../../utils/C/openSeaChest
-CC = gcc
+CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
-STRIP = strip
-CFLAGS = -Wall -c -std=gnu99
-CFLAGS_I686 = -Wall -c -m32
-LFLAGS = \
+STRIP ?= strip
+CFLAGS ?= -Wall -c -std=gnu99
+CFLAGS_I686 ?= -Wall -c -m32
+LFLAGS ?= \
 	-Wall \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
-TCGLFLAGS = \
+TCGLFLAGS ?= \
 	-Wall \
 	../../SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
 	../../SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
-INC_DIR= \
+INC_DIR?= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../include \
 	-I../../opensea-operations/include
 
-UNAME := $(shell uname)
+UNAME := $(shell uname -s)
 ifeq ($(UNAME),Linux)
-    LFLAGS += -lm -lrt
-    TCGLFLAGS += -lm -lrt
+	LFLAGS += -lm -lrt
+	TCGLFLAGS += -lm -lrt
 endif
 ifeq ($(UNAME),SunOS)
-    LFLAGS +=
-    TCGLFLAGS +=
+	LFLAGS += 
+	TCGLFLAGS += 
 endif
 ifeq ($(UNAME),FreeBSD)
-    LFLAGS += -lcam
-    TCGLFLAGS += -lcam
+	LFLAGS += -lm -lcam
+	TCGLFLAGS += -lm -lcam
 endif
 
 MACHINE := $(shell uname -m)
@@ -59,9 +60,10 @@ ifeq ($(MACHINE), x86_64)
 endif
 
 #Files for the final binary
-SOURCES = $(UTIL_SRC_DIR)/openSeaChest_Legacy.c ../../src/EULA.c
-OUTFILE = openSeaChest
-OBJS = $(SOURCES:.c=.o)
+
+NVMEOUTFILE = openSeaChest_NVMe
+NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c ../../src/EULA.c ../../src/seachest_util_options.c
+NVMEOBJS = $(NVMESOURCES:.c=.o)
 
 ERASEOUTFILE = openSeaChest_Erase
 ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c ../../src/EULA.c ../../src/openseachest_util_options.c
@@ -99,10 +101,6 @@ FORMATOUTFILE = openSeaChest_FormatUnit
 FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c ../../src/EULA.c ../../src/openseachest_util_options.c
 FORMATOBJS = $(FORMATSOURCES:.c=.o)
 
-NVMEOUTFILE = openSeaChest_NVMe
-NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c ../../src/EULA.c ../../src/openseachest_util_options.c
-NVMEOBJS = $(NVMESOURCES:.c=.o)
-
 LOGSOUTFILE = openSeaChest_Logs
 LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c ../../src/EULA.c ../../src/openseachest_util_options.c
 LOGSOBJS = $(LOGSSOURCES:.c=.o)
@@ -112,6 +110,9 @@ FIRMWAREOUTFILE = openSeaChest_Firmware
 #add any defines needed for tool release.
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
 PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
+ifeq ($(UNAME),FreeBSD)
+PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+endif
 
 .PHONY: clean_all all
 
@@ -123,7 +124,7 @@ debug: PROJECT_DEFINES += -D_DEBUG
 debug: ERASEOUTFILE := $(ERASEOUTFILE)_dbg
 debug: SMARTOUTFILE := $(SMARTOUTFILE)_dbg
 debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_dbg
-debug: GENERICTESTOUTFILE := $(GENERICTESTSOUTFILE)_dbg
+debug: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_dbg
 debug: BASICSOUTFILE := $(BASICSOUTFILE)_dbg
 debug: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_dbg
 debug: INFOOUTFILE := $(INFOOUTFILE)_dbg
@@ -141,7 +142,7 @@ static-debug: PROJECT_DEFINES += -D_DEBUG
 static-debug: ERASEOUTFILE := $(ERASEOUTFILE)_static_dbg
 static-debug: SMARTOUTFILE := $(SMARTOUTFILE)_static_dbg
 static-debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static_dbg
-static-debug: GENERICTESTOUTFILE := $(GENERICTESTSOUTFILE)_static_dbg
+static-debug: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_static_dbg
 static-debug: BASICSOUTFILE := $(BASICSOUTFILE)_static_dbg
 static-debug: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_static_dbg
 static-debug: INFOOUTFILE := $(INFOOUTFILE)_static_dbg
@@ -160,7 +161,7 @@ static-release: TCGLFLAGS += -static
 static-release: ERASEOUTFILE := $(ERASEOUTFILE)_static
 static-release: SMARTOUTFILE := $(SMARTOUTFILE)_static
 static-release: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static
-static-release: GENERICTESTOUTFILE := $(GENERICTESTSOUTFILE)_static
+static-release: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_static
 static-release: BASICSOUTFILE := $(BASICSOUTFILE)_static
 static-release: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_static
 static-release: INFOOUTFILE := $(INFOOUTFILE)_static

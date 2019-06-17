@@ -1,29 +1,41 @@
+[![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 # openSeaChest
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
-#### Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#### Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
-Welcome to the openSeaChest open source project!
+[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
+
+Welcome to the `openSeaChest` open source project!
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have
-been made available to you under the Mozilla Public License 2.0 (MPL).  The
+been made available to you under the [Mozilla Public License 2.0 (MPL-2.0)](https://opensource.org/licenses/MPL-2.0).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
 
+Compiled binary versions of the openSeaChest utilities for various operating
+systems may be found at
+https://github.com/Seagate/ToolBin/tree/master/openSeaChest
+
 This collection of storage device utility software is branched (forked) off of
-an original utility collection called the Seagate SeaChest Utilities by Seagate
+an original utility collection called the `Seagate SeaChest Utilities` by Seagate
 Technology LLC.  The original SeaChest Utilities are still available at
 www.seagate.com or https://github.com/Seagate/ToolBin/tree/master/SeaChest.
 Binary versions are available for Linux or Windows, with the Windows versions
 signed by Seagate Technology LLC.
 
-This User Guide file contains important information about openSeaChest Basics.
-Please read this entire file before using this software.
-
 openSeaChest is a collection of programming libraries for storage devices and
-comprehensive, easy-to-use command line diagnostic tool that helps you quickly
+comprehensive, easy-to-use command line diagnostic tools that helps you quickly
 determine the health and status of your storage product. It includes several
 tests that will examine the physical media on your storage device.
+
+Here is an overview presentation we gave at the *Storage Networking Industry Association - Storage Developer Conference 2018* that describes the design architecture for the **_opensea API_** and **_openSeaChest_** storage resource management utilities:
+
+[![Video: SDC 2018 - What's better than sg3_utils, hdparm, sdparm?](https://img.youtube.com/vi/LMt8Ztlj5oQ/hqdefault.jpg)][video]
+
+(Note: The openSeaChest team has the utmost respect for the highly regarded [sg3_utils](http://sg.danny.cz/sg/sg3_utils.html), [hdparm](https://sourceforge.net/projects/hdparm/), [sdparm](http://sg.danny.cz/sg/sdparm.html) and [nvme-cli](https://github.com/linux-nvme/nvme-cli) open source projects.  Since this is all pretty low-level stuff, we chose the presentation title *"What's better than sg3_utils, hdparm, sdparm?"* only to grab the attention of a few extra people attending the [SNIA SDC 2018 conference](https://www.snia.org/events/storage-developer/presentations18).)
+
+[video]: https://www.youtube.com/watch?v=LMt8Ztlj5oQ
 
 ### The libraries:
 
@@ -50,21 +62,24 @@ tests that will examine the physical media on your storage device.
 * *openSeaChest_Erase*
 * *openSeaChest_Firmware*
 * *openSeaChest_Format*
-* *OpenSeaChest_GenericTests*
+* *openSeaChest_GenericTests*
+* *openSeaChest_Info*
+* *openSeaChest_Logs*
+* *openSeaChest_NVMe*
 * *openSeaChest_PowerControl*
 * *openSeaChest_SMART*
 
 ### Source
-Depend on your git version & client you can use either of the following two commands to clone the repository. 
+Depending on your git version & client you can use either of the following two commands to clone the repository.
 
-git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git
+`git clone --recurse-submodules -j8 https://github.com/Seagate/openSeaChest.git`
 
 or
 
-git clone --recursive https://github.com/Seagate/openSeaChest.git
+`git clone --recursive https://github.com/Seagate/openSeaChest.git`
 
 
-Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules. 
+Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules.
 
 ### Building
 
@@ -73,54 +88,63 @@ Required Tools:
 * gcc
 * make
 
-From a terminal, change directory to "OpenSeaChest/Make/gcc".
+From a terminal, change directory to `openSeaChest/Make/gcc`
 
-Run the command "make release" to build the release version of the OpenSeaChest tools.
-After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
+Run the command "make release" to build the release version of the openSeaChest tools.
+After compilation is complete, the tools will be output into a subfolder named `openseachest_exes`
 
 #### Windows
+*** Option #1 - Microsoft tools ***
+
+Your system will require the latest [Microsoft Visual C++ 2017 Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads) to run the compiled openSeaChest tools.
+
 Required Tools:
-* Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
+  * Visual Studio 2013 or 2015 or 2017 (can also use msbuild)
   * Windows 8/8.1 SDK for Visual Studio 2013
   * Windows 10 SDK version 10.0.14393.0 for Visual Studio 2015
   * Windows 10 SDK version 10.0.15063.0 for Visual Studio 2017 (x86 and x86_84)
   * Windows 10 SDK version 10.0.16299.0 for Visual Studio 2017 (ARM and ARM64)
 
   ##### Visual Studio
-  Open the solution file in "OpenSeaChest/Make/VS.(version)/openseachest.sln".
+  Open the solution file in "openSeaChest/Make/VS.(version)/openseachest.sln".
   Set the desired build configuration.
   Press "F7" to build all of the tools and libraries, or select "Build->Build All" from the menu.
-  The tools will be output into "OpenSeaChest/Make/VS.(version)/(platform)/(build type)".
+  The tools will be output into "openSeaChest/Make/VS.(version)/(platform)/(build type)".
 
-  Example: "OpenSeaChest/Make/VS.2017/x64/Release"
+  Example: `openSeaChest/Make/VS.2017/x64/Release`
   ##### msbuild
-  From the developer command prompt for the version of visual studio that installed msbuild, change directory to "OpenSeaChest/Make/VS.(version)".
+  From the developer command prompt for the version of visual studio that installed msbuild, change directory to "openSeaChest/Make/VS.(version)".
 
   Build with the command "msbuild /p:Configuration=(build type) /p:Platform=(platform)".
 
-  Example: "msbuild "msbuild /p:Configuration=Release /p:Platform=x64"
+  Example: `msbuild /p:Configuration=Release /p:Platform=x64`
 
   Available Platforms:
-  * Win32
-  * x64
-  * ARM (VS2017 only)
-  * ARM64 (VS2017 only)
+    * Win32
+    * x64
+    * ARM (VS2017 only)
+    * ARM64 (VS2017 only)
 
   Available Build Types:
-  * Release
-  * Debug
-  * Static-Release
-  * Static-Debug
+    * Release
+    * Debug
+    * Static-Release
+    * Static-Debug
+
+
+*** Option #2 - GNU and other open source tools for Windows ***
+
+We support the [MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction) with [MinGW](http://www.mingw.org/) development environments.  Make files are located under the individual ./Make/gccWin folders. Please see the README in the `opensSeaChest/Make/gccWin` folder for a comprehensive explanation of how to install and utilize these environments.
 
 #### Solaris/OpenSolaris
 Required Tools:
 * gcc
 * gmake
 
-From a terminal, change directory to "OpenSeaChest/Make/gcc".
+From a terminal, change directory to `openSeaChest/Make/gcc`
 
-Run the command "gmake release" to build the release version of the OpenSeaChest tools.
-After compilation is complete, the tools will be output into a subfolder named "openseachest_exes"
+Run the command `gmake release` to build the release version of the openSeaChest tools.
+After compilation is complete, the tools will be output into a subfolder named `openseachest_exes`
 
 #### Documentation
 
@@ -149,7 +173,7 @@ a cross platform compiler:
         x86
         x86_64
 
-This project can be build under Windows Visual Studio 2013 & 2015 solution
+This project can be built under Windows Visual Studio 2013 & 2015 solution
 files for x86 and x64 targets.
 
 ### Important Notes:
@@ -164,13 +188,6 @@ data erasure options, will cause data loss.   Some commands, like setting the
 maximum LBA, may cause existing data on the drive to become inaccessible.  Some
 commands, like disabling the read look ahead buffer, may affect the performance
 of the drive.  Seagate is not responsible for lost user data.
-
-openSeaChest diagnostics are command line utilities which are available for
-expert users.  These command line tools assume the user is knowledgeable about
-running software from the operating system command prompt. CLI tools are in the
-English language only and use "command line arguments" to define the various
-tasks and specific devices.  openSeaChest diagnostics are available for both
-Linux and Windows environments.
 
 **Important note:** Many tests in this tool directly reference storage device data
 sectors, also known as Logical Block Addresses (LBA). Test arguments may
@@ -212,15 +229,7 @@ both Linux and Windows environments.
 
 Linux versions of openSeaChest tools are available as stand alone 32 or 64-bit
 executables you can copy to your own system.  Windows OS versions of
-openSeaChest diagnostics are installed through a typical setup wizard and can
-be removed via the Control Panel.
-
-In addition, Seagate offers a tool to build a bootable USB openSeaChest flash
-drive which boots to a 32-bit Linux command prompt.  This is a Windows
-executable file which formats a USB Flash drive you provide.  It copies over
-all the files needed to use it as a bootable device for the openSeaChest
-diagnostic software. All data on the USB Flash drive will be erased so be sure
-to protect any valuable files.
+openSeaChest diagnostics are also available.
 
 Technical Support for openSeaChest drive utilities is not available.  If you
 have the time to send us some feedback about this software, especially if you
@@ -229,7 +238,7 @@ from you.  To report your comments and suggestions, please use this email
 seaboard@seagate.com.  Please let us know the name and version of the tool you
 are using.
 
-openSeaChest drive utilities support SATA, SAS and USB interface devices.
+openSeaChest drive utilities support SATA, SAS, NVMe and USB interface devices.
 
 **openSeaChest_Basics** - Contains the most important tests and tools.
 
@@ -270,6 +279,10 @@ analytical review.  Identification and inquiry data stored on the drive is also
 provided.  A view of SMART and device statistics is available when supported by
 the drive.
 
+**openSeaChest_Logs** -
+
+**openSeaChest_NVMe** -
+
 **openSeaChest_PowerControl** - Seagate disk drives offer a multitude of options to
 manage power.  This tool manipulates the various power modes.
 
@@ -293,19 +306,20 @@ imply endorsement.
 
 ### Support and Open Source Statement
 
-Seagate offers technical support for disk drive installation.  If you have any
-questions related to Seagate products and technologies, feel free to submit
-your request on our web site. See the web site for a list of world-wide
-telephone numbers.
+Support from Seagate Technology for open source projects is different than traditional Technical Support.  If possible, please use the **Issues tab** in the individual software projects so that others may benefit from the questions and answers.  Include the output of --version information in the message. See the user guide section 'General Usage Hints' for information about saving output to a log file.
 
-Seagate Support:
-http://www.seagate.com/support-home/
-Contact Us:
+
+If you need to contact us through email, please choose one of these
+two email addresses:
+
+- opensource@seagate.com   for general questions and bug reports
+- opensea-build@seagate.com   for specific questions about programming and building the software
+
+Seagate offers technical support for drive installation.  If you have any questions related to Seagate products and technologies, feel free to submit your request on our web site. See the web site for a list of world-wide telephone numbers.
+
+- http://www.seagate.com/support-home/
+- Contact Us:
 http://www.seagate.com/contacts/
-
-Please report bugs/suggestions to https://github.com/Seagate/openSeaChest.
-Include the output of --version information in the email. See the user guide
-section 'General Usage Hints' for information about saving output to a log file.
 
 This software uses open source packages obtained with permission from the
 relevant parties. For a complete list of open source components, sources and
@@ -316,7 +330,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 -----------------------------------------
 

@@ -64,7 +64,25 @@ extern "C"
     //!   \return VOID
     //
     //-----------------------------------------------------------------------------
+    #if defined (__linux__)
     void print_GNU_LGPL_License();
+    #endif
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_FreeBSD_License()
+    //
+    //! \brief   Description:  Print the FreeBSD 2 clause BSD license to the screen
+    //
+    //  Entry:
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    #if defined (__FreeBSD__)
+    void print_FreeBSD_License();
+    #endif
 
     //-----------------------------------------------------------------------------
     //

@@ -28,19 +28,20 @@ FWDLLFLAGS = \
 INC_DIR= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../include \
 	-I../../opensea-operations/include
 
 UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
-    FWDLLFLAGS += -lm -lrt
+	FWDLLFLAGS += -lm -lrt
 endif
 ifeq ($(UNAME),SunOS)
-    FWDLLFLAGS += 
-    export AR=gar
+	FWDLLFLAGS += -lm
+	export AR=gar
 endif
 ifeq ($(UNAME),FreeBSD)
-    FWDLLFLAGS += -lcam
+	FWDLLFLAGS += -lm -lcam
 endif
 
 MACHINE := $(shell uname -m)
