@@ -189,10 +189,6 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
-                {
-                    DATA_ERASE_FLAG = true;
-                }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
@@ -1115,11 +1111,11 @@ int32_t main(int argc, char *argv[])
                 //formatUnitParameters.defaultFormat = FORMAT_UNIT_DEFAULT_FORMAT;//change to true when a user wants a default format...This is basically obsolete now due to the above code, but left in place in case someone wants to try some weird bit combinations
                 formatUnitParameters.disableImmediate = FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE;
                 //Set the same protection information as we discovered first.
-                formatUnitParameters.protectionType = deviceList[deviceIter].drive_info.currentProtectionType;
-                formatUnitParameters.protectionIntervalExponent = deviceList[deviceIter].drive_info.piExponent;
+                formatUnitParameters.changeProtectionType = false;
                 //override protection info if we were asked to.
                 if (FORMAT_UNIT_PROECTION_TYPE_FROM_USER)
                 {
+                    formatUnitParameters.changeProtectionType = true;
                     formatUnitParameters.protectionType = FORMAT_UNIT_PROTECTION_TYPE;
                     if (formatUnitParameters.protectionType < 2)
                     {

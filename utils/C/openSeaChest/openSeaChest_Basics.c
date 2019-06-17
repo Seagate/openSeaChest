@@ -223,10 +223,6 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
-                {
-                    DATA_ERASE_FLAG = true;
-                }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);

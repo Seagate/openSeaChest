@@ -34,14 +34,14 @@ INC_DIR= \
 
 UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
-    FWDLLFLAGS += -lm -lrt
+	FWDLLFLAGS += -lm -lrt
 endif
 ifeq ($(UNAME),SunOS)
-    FWDLLFLAGS += 
-    export AR=gar
+	FWDLLFLAGS += -lm
+	export AR=gar
 endif
 ifeq ($(UNAME),FreeBSD)
-    FWDLLFLAGS += -lcam
+	FWDLLFLAGS += -lm -lcam
 endif
 
 MACHINE := $(shell uname -m)

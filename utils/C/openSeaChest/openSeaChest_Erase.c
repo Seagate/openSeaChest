@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1592,12 +1592,18 @@ int32_t main(int argc, char *argv[])
                         return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                     }
                 }
-                switch (revert(&deviceList[deviceIter], REVERT_TYPE_ADMINSP, authority, passwordToUse))//Only supporting revert on adminSP at this time.
+                bool didEraseHappen = false;
+                switch (revert(&deviceList[deviceIter], authority, passwordToUse, &didEraseHappen))//Only supporting revert on adminSP at this time.
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Revert Successful!\n");
+                        if (!didEraseHappen)
+                        {
+                            printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been erased.\n");
+                            printf("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was completely erased.\n\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:

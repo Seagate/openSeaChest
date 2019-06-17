@@ -61,7 +61,8 @@ void print_Bug_Report_Email(bool shortHelp)
 
 char* get_current_year(char *temp_year)
 {
-    int len = strlen(__DATE__);
+    size_t len = strlen(__DATE__);
+    temp_year[4] = '\0';
     temp_year[3] = __DATE__[len - 1];
     temp_year[2] = __DATE__[len - 2];
     temp_year[1] = __DATE__[len - 3];
@@ -87,7 +88,6 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Build Date: %s\n", __DATE__);
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
-    //strftime(g_timeString, 64, " %Y-%m-%d__%H_%M_%S", localtime(&g_curTime));
     free(year);
 }
 
@@ -1148,11 +1148,11 @@ void print_Firmware_Download_Help(bool shortHelp)
     {
         printf("\t\tDownload firmware to a Seagate storage product. Use only\n");
         printf("\t\tSeagate authorized firmware data files which are designated\n");
-        printf("\t\tfor the specific model drive.Improper use of this option may\n");
-        printf("\t\tharm a device and or its data.You may specify the path (without\n");
-        printf("\t\tspaces)if the firmware data file is in a different location.\n");
-        printf("\t\tThis option will use segmented download by default.\n");
-        printf("\t\tUse the --downloadMode option to specify a different download mode.\n\n");
+        printf("\t\tfor the specific model drive. Improper use of this option may\n");
+        printf("\t\tharm a device and or its data. You may specify the path (without\n");
+        printf("\t\tspaces) if the firmware data file is in a different location.\n");
+        printf("\t\tThis option will use segmented download by default. Use the\n");
+        printf("\t\t--downloadMode option to specify a different download mode.\n\n");
     }
 }
 
@@ -1196,7 +1196,7 @@ void print_Firmware_Switch_Help(bool shortHelp)
 
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [full | segmented | deferred]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
@@ -1215,7 +1215,7 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
 
 void print_Output_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s   [raw | binary]\n", OUTPUT_MODE_LONG_OPT_STRING);
+    printf("\t--%s   [ raw | binary ]\n", OUTPUT_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with others options such as --%s\n",GET_NVME_LOG_LONG_OPT_STRING);
@@ -1232,7 +1232,7 @@ void print_Output_Mode_Help(bool shortHelp)
 
 void print_Get_Features_Help(bool shortHelp)
 {
-    printf("\t--%s  [help | list | #]\n", GET_FEATURES_LONG_OPT_STRING);
+    printf("\t--%s  [ help | list | # ]\n", GET_FEATURES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to list the NVMe features\n");
@@ -1248,7 +1248,7 @@ void print_Get_Features_Help(bool shortHelp)
 
 void print_NVMe_Get_Log_Help(bool shortHelp)
 {
-    printf("\t--%s   [error | smart | fwSlots | suppCmds | selfTest | #]\n", GET_NVME_LOG_LONG_OPT_STRING);
+    printf("\t--%s   [ error | smart | fwSlots | suppCmds | selfTest | # ]\n", GET_NVME_LOG_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the NVMe log pages\n");
@@ -1400,6 +1400,18 @@ void print_Read_Look_Ahead_Help(bool shortHelp)
         printf("\t\tUse this option to enable or disable read look-ahead\n");
         printf("\t\tsupport on a drive. Use the \"info\" argument to get\n");
         printf("\t\tthe current status of the read look ahead feature.\n\n");
+    }
+}
+
+
+void print_NV_Cache_Bit_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable]\t(SAS Only)\n", NV_CACHE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to enable or disable the SCSI Non-Volatile cache\n");
+        printf("\t\t on a drive. Use the \"info\" argument to get\n");
+        printf("\t\tthe current status of the Non-Volatile Cache setting.\n\n");
     }
 }
 
@@ -1777,7 +1789,7 @@ void print_DST_And_Clean_Help(bool shortHelp)
 
 void print_Generic_Test_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [read | write | verify]\n", GENERIC_TEST_LONG_OPT_STRING);
+    printf("\t--%s [ read | write | verify ]\n", GENERIC_TEST_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis options allows selection of the type of commands\n");
@@ -2036,7 +2048,7 @@ void print_Set_FWDL_Port_Help(bool shortHelp)
 
 void print_TCG_SID_Help(bool shortHelp)
 {
-    printf("\t--%s\n", TCG_SID_LONG_OPT_STRING);
+    printf("\t--%s [yourTCGpassword]\n", TCG_SID_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option can be used to specify the value of SID.\n");
@@ -2047,7 +2059,7 @@ void print_TCG_SID_Help(bool shortHelp)
 
 void print_TCG_PSID_Help(bool shortHelp)
 {
-    printf("\t--%s\n", TCG_PSID_LONG_OPT_STRING);
+    printf("\t--%s [32-digit alpha-numeric code from drive label]\n", TCG_PSID_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option can be used to specify the value of the PSID.\n");
@@ -2166,7 +2178,7 @@ void print_Disable_APM_Help(bool shortHelp)
 
 void print_PUIS_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [enable | disable]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the power up in standby\n");
@@ -2190,7 +2202,7 @@ void print_Show_EPC_Settings_Help(bool shortHelp)
 
 void print_SMART_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the SMART\n");
@@ -2201,7 +2213,7 @@ void print_SMART_Feature_Help(bool shortHelp)
 
 void print_Set_MRIE_Help(bool shortHelp)
 {
-    printf("\t--%s [default | 0 - 6]  (SAS Only)\n", SET_MRIE_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ default | 0 - 6 ]  (SAS Only)\n", SET_MRIE_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to change the MRIE mode on the informational\n");
@@ -2219,7 +2231,7 @@ void print_Set_MRIE_Help(bool shortHelp)
 
 void print_SMART_Attribute_Autosave_Help(bool shortHelp)
 {
-    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable SMART\n");
@@ -2240,7 +2252,7 @@ void print_SMART_Info_Help(bool shortHelp)
 
 void print_SMART_Auto_Offline_Help(bool shortHelp)
 {
-    printf("\t--%s [enable | disable]  (SATA Only)\n", SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable ]  (SATA Only)\n", SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable SMART\n");
@@ -2761,7 +2773,7 @@ void print_Show_Locked_Regions_Help(bool shortHelp)
 
 void print_Seagate_Power_Balance_Help(bool shortHelp)
 {
-    printf("\t--%s [info | enable | disable]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
+    printf("\t--%s [ info | enable | disable ]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to see the state of the Seagate Power Balance\n");
@@ -2829,7 +2841,7 @@ void print_Free_Fall_Help(bool shortHelp)
 
 void print_SCSI_Defects_Help(bool shortHelp)
 {
-    printf("\t--%s [p | g | pg]\t(SAS Only)\n", SCSI_DEFECTS_LONG_OPT_STRING);
+    printf("\t--%s [ p | g | pg ]\t(SAS Only)\n", SCSI_DEFECTS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will display the SCSI defects on the screen.\n");
@@ -2846,7 +2858,7 @@ void print_SCSI_Defects_Help(bool shortHelp)
 
 void print_SCSI_Defects_Format_Help(bool shortHelp)
 {
-    printf("\t--%s [# | shortBlock | longBlock | xbfi | xchs | bfi | chs]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option set the format of the defects to output.\n");
@@ -2980,9 +2992,9 @@ void print_FWDL_Allow_Flexible_Win10_API_Use_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tThis option is used to control when to use the Windows 10+\n");
-        printf("\t\tFirmware Download API calls. Default behaviour is to only\n");
+        printf("\t\tFirmware Download API calls. Default behavior is to only\n");
         printf("\t\tuse this call when the interface and drive and command all\n");
-        printf("\t\tmatch. The default behaviour means that only ATA drives on\n");
+        printf("\t\tmatch. The default behavior means that only ATA drives on\n");
         printf("\t\tan ATA interface with a ATA download command will use this call\n");
         printf("\t\tSCSI drives with a supported write buffer command will also use\n");
         printf("\t\tthis call.\n");
@@ -3377,11 +3389,11 @@ void print_NVM_Format_NSID_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tThis option changes the NSID used when issuing the NVM format\n");
-        printf("\t\tcommand. This can be used to control formmatting an entire\n");
+        printf("\t\tcommand. This can be used to control formatting an entire\n");
         printf("\t\tdevice or a specific namespace if the device supports specifying\n");
         printf("\t\tspecific namespaces for a format command. Not all devices support\n");
-        printf("\t\tthis behaviour. This has no effect on devices that do not support\n");
-        printf("\t\ttargetting a specific namespace and will format the entire device\n");
+        printf("\t\tthis behavior. This has no effect on devices that do not support\n");
+        printf("\t\ttargeting a specific namespace and will format the entire device\n");
         printf("\t\tIf this option is not given, the format will be issued to all\n");
         printf("\t\tnamespaces by default.\n\n");
     }
@@ -3394,7 +3406,7 @@ void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
     {
         printf("\t\tThis option is used to specify the type of erase to perform\n");
         printf("\t\tduring an NVM format operation. All user data will be inaccessible\n");
-        printf("\t\tupon completiong of an NVM format, no matter the erase requested.\n");
+        printf("\t\tupon completion of an NVM format, no matter the erase requested.\n");
         printf("\t\tOptions:\n");
         printf("\t\t  none - no secure erase requested (previous data will not be accessible)\n");
         printf("\t\t  user - requests all user data is erased by the device.\n");
