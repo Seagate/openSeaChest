@@ -412,9 +412,11 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
     print_Win_Getopt_Licenses();
 #elif defined (__FreeBSD__)
     print_FreeBSD_License();
-#else
+#elif defined (__linux__)
     //in other 'nix systems, we need to show this since we are using gnu libc
     print_GNU_LGPL_License();
+#else
+	#error Please update #if for system library licenses!
 #endif
     printf("===========================================================================\n\n");
     if (showApacheLicense)
