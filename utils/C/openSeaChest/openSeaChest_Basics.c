@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.8.0";
+const char *buildVersion = "2.8.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -102,6 +102,7 @@ int32_t main(int argc, char *argv[])
     SHORT_DST_VAR
     SMART_ATTRIBUTES_VARS
     ABORT_DST_VAR
+    IGNORE_OPERATION_TIMEOUT_VAR
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
     DOWNLOAD_FW_VARS
@@ -164,6 +165,7 @@ int32_t main(int argc, char *argv[])
         SHORT_DST_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         ABORT_DST_LONG_OPT,
+        IGNORE_OPERATION_TIMEOUT_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -1245,7 +1247,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Short DST\n");
             }
-            DSTResult = run_DST(&deviceList[deviceIter], 1, POLL_FLAG, false);
+            DSTResult = run_DST(&deviceList[deviceIter], 1, POLL_FLAG, false, IGNORE_OPERATION_TIMEOUT);
             switch (DSTResult)
             {
             case UNKNOWN:
@@ -1278,7 +1280,8 @@ int32_t main(int argc, char *argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short DST aborted!\n");
+                    printf("Short DST was aborted! You can add the --%s flag to allow DST to continue\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+                    printf("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;

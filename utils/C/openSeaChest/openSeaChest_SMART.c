@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.12.0";
+const char *buildVersion = "1.12.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -96,6 +96,7 @@ int32_t main(int argc, char *argv[])
     SHORT_DST_VAR
     LONG_DST_VAR
     ABORT_DST_VAR
+    IGNORE_OPERATION_TIMEOUT_VAR
     CAPTIVE_FOREGROUND_VAR
     ABORT_IDD_VAR
     IDD_TEST_VARS
@@ -154,6 +155,7 @@ int32_t main(int argc, char *argv[])
         SHORT_DST_LONG_OPT,
         LONG_DST_LONG_OPT,
         ABORT_DST_LONG_OPT,
+        IGNORE_OPERATION_TIMEOUT_LONG_OPT,
         CAPTIVE_FOREGROUND_LONG_OPTS,
         ABORT_IDD_LONG_OPT,
         IDD_TEST_LONG_OPT,
@@ -1308,7 +1310,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Short DST\n");
             }
-            DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_SHORT, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
+            DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_SHORT, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG, IGNORE_OPERATION_TIMEOUT);
             switch (DSTResult)
             {
             case UNKNOWN:
@@ -1341,7 +1343,8 @@ int32_t main(int argc, char *argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short DST aborted!\n");
+                    printf("Short DST was aborted! You can add the --%s flag to allow DST to continue\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+                    printf("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
@@ -1369,7 +1372,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Conveyance DST\n");
             }
-            DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_CONVEYENCE, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
+            DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_CONVEYENCE, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG, IGNORE_OPERATION_TIMEOUT);
             switch (DSTResult)
             {
             case UNKNOWN:
@@ -1402,7 +1405,8 @@ int32_t main(int argc, char *argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Conveyance DST aborted!\n");
+                    printf("Conveyance DST was aborted! You can add the --%s flag to allow DST to continue\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+                    printf("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
@@ -1470,7 +1474,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_LONG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
+                DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_LONG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG, IGNORE_OPERATION_TIMEOUT);
                 switch (DSTResult)
                 {
                 case UNKNOWN:
@@ -1503,7 +1507,8 @@ int32_t main(int argc, char *argv[])
                 case ABORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Long DST aborted!\n");
+                        printf("Long DST was aborted! You can add the --%s flag to allow DST to continue\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+                        printf("running despite taking longer than expected.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_ABORTED;
                     break;
