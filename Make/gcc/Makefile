@@ -62,7 +62,7 @@ endif
 #Files for the final binary
 
 NVMEOUTFILE = openSeaChest_NVMe
-NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c ../../src/EULA.c ../../src/seachest_util_options.c
+NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c ../../src/EULA.c ../../src/openseachest_util_options.c
 NVMEOBJS = $(NVMESOURCES:.c=.o)
 
 ERASEOUTFILE = openSeaChest_Erase
