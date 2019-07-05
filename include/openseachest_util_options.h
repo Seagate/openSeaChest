@@ -307,11 +307,6 @@ extern "C"
     #define DST_AND_CLEAN_LONG_OPT_STRING "dstAndClean"
     #define DST_AND_CLEAN_LONG_OPT { DST_AND_CLEAN_LONG_OPT_STRING, no_argument, &DST_AND_CLEAN_FLAG, goTrue }
 
-    #define SEAGATE_CLEAN_FLAG runSeagateClean
-    #define SEAGATE_CLEAN_VAR getOptBool SEAGATE_CLEAN_FLAG = goFalse;
-    #define SEAGATE_CLEAN_LONG_OPT_STRING "seagateClean"
-    #define SEAGATE_CLEAN_LONG_OPT { SEAGATE_CLEAN_LONG_OPT_STRING, no_argument, &SEAGATE_CLEAN_FLAG, goTrue }
-
     //Power related options
     #define CHECK_POWER_FLAG checkPower
     #define CHECK_POWER_VAR getOptBool CHECK_POWER_FLAG = goFalse;
@@ -3122,9 +3117,11 @@ extern "C"
 
     void print_NVM_Format_Metadata_Setting_Help(bool shortHelp);
 
+    void print_No_Time_Limit_Help(bool shortHelp);
+
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
-#if defined (ENABLE_CSMI) //Since we are using macros to instert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
+#if defined (ENABLE_CSMI) //Since we are using macros to insert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
     #define SCAN_FLAGS_UTIL_VARS \
         bool                scanSD = false;\
         bool                scanSDandSG = false;\

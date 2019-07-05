@@ -1974,6 +1974,7 @@ void utility_Usage(bool shortUsage)
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
+    print_No_Time_Limit_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
     print_SAT_12_Byte_CDB_Help(shortUsage);

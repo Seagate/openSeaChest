@@ -510,7 +510,11 @@ void print_Short_DST_Help(bool shortHelp)
         printf("\t\tup to 2 minutes to complete. Use the --poll argument to make\n");
         printf("\t\tthis operation poll for progress until complete. Use the\n");
         printf("\t\t--progress dst command to check on the completion percentage\n");
-        printf("\t\t(%%) and test result.\n\n");
+        printf("\t\t(%%) and test result.\n");
+        printf("\t\tNOTE: Short DST may take longer if there is other disk usage\n");
+        printf("\t\twhile the DST is running. If the DST takes longer than 10 minutes\n");
+        printf("\t\tit will automatically be aborted while polling for progress.\n");
+        printf("\t\tTo override this behavior, use the --%s option.\n\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
     }
 }
 
@@ -524,7 +528,11 @@ void print_Conveyance_DST_Help(bool shortHelp)
         printf("\t\tThis test can take up to 2 minutes to complete. Use the --poll\n");
         printf("\t\targument to make this operation poll for progress until complete.\n");
         printf("\t\tUse the --progress dst command to check on the completion\n");
-        printf("\t\tpercentage (%%) and test result.\n\n");
+        printf("\t\tpercentage (%%) and test result.\n");
+        printf("\t\tNOTE: conveyance DST may take longer if there is other disk usage\n");
+        printf("\t\twhile the DST is running. If the DST takes longer than 10 minutes\n");
+        printf("\t\tit will automatically be aborted while polling for progress.\n");
+        printf("\t\tTo override this behavior, use the --%s option.\n\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
     }
 }
 
@@ -541,14 +549,19 @@ void print_Long_DST_Help(bool shortHelp, const char *commandWindowType)
         printf("\t\tpercentage(%%) and test result.\n");
         printf("\t\tThis test stops on the first error. Use --abortDST\n");
         printf("\t\tto manually stop the test. SAS drives give status in 1%%\n");
-        printf("\t\tincrements. SATA drivs give status in 10%% increments which\n");
+        printf("\t\tincrements. SATA drives give status in 10%% increments which\n");
         printf("\t\tmeans more than an hour may elapse between updates on a SATA\n");
         printf("\t\tdrive > 2TB.\n\n");
         printf("\t\tIf the --longDST poll option is running and you want to abort\n");
         printf("\t\tthe test then you will need to open a second %s window\n", commandWindowType);
         printf("\t\tand run the --abortDST command. Otherwise, it is safe to\n");
         printf("\t\trestart the system while long DST is running which also ends the\n");
-        printf("\t\ttest.\n\n");
+        printf("\t\ttest.\n");
+        printf("\t\tNOTE: Long DST may take longer if there is other disk usage\n");
+        printf("\t\twhile the DST is running. If the DST takes longer than 5x the\n");
+        printf("\t\tdrive reported time, it will automatically be aborted while\n");
+        printf("\t\tpolling for progress.\n");
+        printf("\t\tTo override this behavior, use the--%s option.\n\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
     }
 }
 
@@ -3466,5 +3479,17 @@ void print_NVM_Format_Metadata_Setting_Help(bool shortHelp)
         printf("\t\tNote: Not all devices support specifying this.\n");
         printf("\t\tIf this option is not provided, the NVM format will\n");
         printf("\t\treuse the current setting.\n\n");
+    }
+}
+
+void print_No_Time_Limit_Help(bool shortHelp)
+{
+    printf("\t--%s\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse with utility command arguments which have a built in timeout\n");
+        printf("\t\tvalue. For example, --%s has a 10 minute default\n", SHORT_DST_LONG_OPT_STRING);
+        printf("\t\ttimeout. In some cases a good drive may need more time to\n");
+        printf("\t\tcomplete the test due to other legitimate system activity.\n\n");
     }
 }
