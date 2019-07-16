@@ -996,7 +996,7 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES,0))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
