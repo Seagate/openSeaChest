@@ -1,0 +1,52 @@
+## @file
+#  openseachest_NVMe
+#
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = openSeaChest_NVMe
+  FILE_GUID                      = 30a907dc-ef78-4927-9de6-f91d59232745
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = ShellCEntryLib
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64 ARM AARCH64 IPF
+#
+
+[Sources]
+  include/EULA.h
+  include/openseachest_util_options.h
+  src/EULA.c
+  src/openseachest_util_options.c
+  utils/C/openSeaChest/openSeaChest_NVMe.c
+
+[Packages]
+  StdLib/StdLib.dec
+  StdLibPrivateInternalFiles/DoNotUse.dec
+  MdePkg/MdePkg.dec
+  ShellPkg/ShellPkg.dec
+  opensea-libs/opensea-common/opensea-common.dec
+  opensea-libs/opensea-transport/opensea-transport.dec
+  opensea-libs/opensea-operations/opensea-operations.dec
+
+[LibraryClasses]
+  LibC
+  LibCType
+  LibMath
+  LibTime
+  ShellCEntryLib
+  UefiLib
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  LibStdLib
+  LibStdio
+  LibString
+  DevConsole
+  opensea-commonlib
+  opensea-transportlib
+  opensea-operationslib
+
