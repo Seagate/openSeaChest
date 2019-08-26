@@ -174,6 +174,14 @@ int32_t main(int argc, char *argv[])
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
+
     ////////////////////////
     //  Argument Parsing  //
     ////////////////////////
@@ -274,6 +282,10 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
                 ERROR_LIMIT_FLAG = (uint16_t)atoi(optarg);
+                if(strstr(optarg, "l"))
+                {
+                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                }
             }
             else if (strncmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(HOURS_TIME_LONG_OPT_STRING))) == 0)
             {
@@ -781,7 +793,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -1147,6 +1161,10 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting long generic test.\n");
             }
+            if(ERROR_LIMIT_LOGICAL_COUNT)
+            {
+                ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+            }
             switch (long_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
@@ -1211,6 +1229,10 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Starting user generic test starting at LBA %"PRIu64" for the range %"PRIu64"\n", USER_GENERIC_START_FLAG, localRange);
                     }
+                    if(ERROR_LIMIT_LOGICAL_COUNT)
+                    {
+                        ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                    }
                     switch (user_Sequential_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                     {
                     case SUCCESS:
@@ -1267,6 +1289,10 @@ int32_t main(int argc, char *argv[])
                     printf("Starting user generic timed test at LBA %"PRIu64" for", USER_GENERIC_START_FLAG);
                     print_Time_To_Screen(NULL, &days, &hours, &minutes, &seconds);
                     printf("\n");
+                }
+                if(ERROR_LIMIT_LOGICAL_COUNT)
+                {
+                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
                 }
                 switch (user_Timed_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
@@ -1370,6 +1396,10 @@ int32_t main(int argc, char *argv[])
                 {
                     printf("Starting diameter test\n");
                 }
+                if(ERROR_LIMIT_LOGICAL_COUNT)
+                {
+                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                }
                 switch (diameter_Test_Range(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
@@ -1397,6 +1427,10 @@ int32_t main(int argc, char *argv[])
             else if (OdMdIdTestSeconds > 0)
             {
                 //run a timed OD MD ID test
+                if(ERROR_LIMIT_LOGICAL_COUNT)
+                {
+                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                }
                 switch (diameter_Test_Time(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:

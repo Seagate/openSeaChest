@@ -1,0 +1,52 @@
+## @file
+#  openseachest_Firmware
+#
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010006
+  BASE_NAME                      = openSeaChest_Firmware
+  FILE_GUID                      = 24aaeced-a4e1-42f0-8e75-a07e9647f1f4
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = ShellCEntryLib
+
+#
+#  VALID_ARCHITECTURES           = IA32 X64 ARM AARCH64 IPF
+#
+
+[Sources]
+  include/EULA.h
+  include/openseachest_util_options.h
+  src/EULA.c
+  src/openseachest_util_options.c
+  utils/C/openSeaChest/openSeaChest_Firmware.c
+
+[Packages]
+  StdLib/StdLib.dec
+  StdLibPrivateInternalFiles/DoNotUse.dec
+  MdePkg/MdePkg.dec
+  ShellPkg/ShellPkg.dec
+  opensea-libs/opensea-common/opensea-common.dec
+  opensea-libs/opensea-transport/opensea-transport.dec
+  opensea-libs/opensea-operations/opensea-operations.dec
+
+[LibraryClasses]
+  LibC
+  LibCType
+  LibMath
+  LibTime
+  ShellCEntryLib
+  UefiLib
+  BaseLib
+  BaseMemoryLib
+  MemoryAllocationLib
+  LibStdLib
+  LibStdio
+  LibString
+  DevConsole
+  opensea-commonlib
+  opensea-transportlib
+  opensea-operationslib
+
