@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "1.4.0";
+const char *buildVersion = "1.5.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -552,6 +552,11 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            printf("You must run with elevated privileges to communicate with devices in the system.\n");
+            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if(AGRESSIVE_SCAN_FLAG)
         {
@@ -642,6 +647,13 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        printf("You must run with elevated privileges to communicate with devices in the system.\n");
+        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
