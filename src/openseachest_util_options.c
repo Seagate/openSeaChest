@@ -89,6 +89,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
     free(year);
+    year = NULL;
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)

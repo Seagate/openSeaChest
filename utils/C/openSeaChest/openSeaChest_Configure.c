@@ -1416,7 +1416,7 @@ int32_t main(int argc, char *argv[])
         if (SAT_12_BYTE_CDBS_FLAG)
         {
             //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
+            deviceList[deviceIter].drive_info.passThroughHacks.useA1SATPassthroughWheneverPossible = true;
         }
 
         //check for model number match
