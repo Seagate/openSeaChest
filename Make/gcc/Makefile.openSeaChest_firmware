@@ -13,7 +13,7 @@
 # 
 
 UTIL_SRC_DIR=../../utils/C/openSeaChest
-CC = gcc
+CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
 STRIP = strip
 CFLAGS = -Wall -c -std=gnu99
