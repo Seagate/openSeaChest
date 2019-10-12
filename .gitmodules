@@ -1,12 +1,12 @@
 [submodule "opensea-common"]
 	path = opensea-common
-	url = ../opensea-common.git
+	url = https://github.com/Seagate/opensea-common.git
 [submodule "opensea-transport"]
 	path = opensea-transport
-	url = ../opensea-transport.git
+	url = https://github.com/Seagate/opensea-transport.git
 [submodule "opensea-operations"]
 	path = opensea-operations
-	url = ../opensea-operations.git
+	url = https://github.com/Seagate/opensea-operations.git
 [submodule "wingetopt"]
 	path = wingetopt
 	url = https://github.com/Seagate/wingetopt.git
