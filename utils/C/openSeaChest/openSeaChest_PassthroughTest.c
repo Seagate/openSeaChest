@@ -6832,6 +6832,12 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
         }
+        if (scsiInformation.vpdData.gotSATVPDPage)
+        {
+            printf("\tSAT Vendor ID: %s\n", inputs->device->drive_info.bridge_info.t10SATvendorID);
+            printf("\tSAT Product ID: %s\n", inputs->device->drive_info.bridge_info.SATproductID);
+            printf("\tSAT Product Rev: %s\n", inputs->device->drive_info.bridge_info.SATfwRev);
+        }
         //TODO: Designator information that might be benefitial!!!
         if (scsiInformation.vpdData.gotDeviceIDVPDPage)
         {
