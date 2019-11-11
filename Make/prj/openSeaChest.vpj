@@ -73,6 +73,13 @@
                 Type="Makefile"/>
             <F N="../gcc/Makefile.openSeaChest_firmware"/>
         </Folder>
+        <Folder Name="../gccWin">
+            <F
+                N="../gccWin/Makefile.gccWin"
+                Type="Makefile"/>
+            <F N="../gccWin/README.md"/>
+            <F N="../gccWin/rename_seachest.sh"/>
+        </Folder>
         <Folder Name="../../include">
             <F N="../../include/EULA.h"/>
             <F N="../../include/openseachest_util_options.h"/>
