@@ -6083,6 +6083,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
     if (SUCCESS == scsi_SecurityProtocol_In(device, 0, 0, false, 512, scsiDataBytes))
     {
         scsiCmds->securityProtocol = true;
+        >device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: SECPROT\n");
         set_Console_Colors(true, DEFAULT);
@@ -6097,6 +6098,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
             {
                 scsiCmds->securityProtocol = true;
                 scsiCmds->secProtI512 = true;
+                device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512 = true;
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SECPROTI512\n");
                 set_Console_Colors(true, DEFAULT);
@@ -6109,6 +6111,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
                 printf("Likely HACK FOUND: SECPROTI512\n");
                 set_Console_Colors(true, DEFAULT);
+                device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512 = true;
             }
         }
         else if (does_Sense_Data_Show_Invalid_OP(device))
@@ -6125,6 +6128,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: REPALLOP\n");
         set_Console_Colors(true, DEFAULT);
+        device->drive_info.passThroughHacks.scsiHacks.reportAllOpCodes = true;
     }
     else
     {
@@ -6150,6 +6154,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: SUPSOP\n");
             set_Console_Colors(true, DEFAULT);
+            device->drive_info.passThroughHacks.scsiHacks.reportSingleOpCodes = true;
         }
         else
         {
@@ -6164,6 +6169,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NRSUPOP\n");
         set_Console_Colors(true, DEFAULT);
+        device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations = true;
     }
 
     printf("Testing SCSI default self-test.\n");
