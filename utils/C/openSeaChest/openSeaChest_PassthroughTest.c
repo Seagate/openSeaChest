@@ -6083,7 +6083,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
     if (SUCCESS == scsi_SecurityProtocol_In(device, 0, 0, false, 512, scsiDataBytes))
     {
         scsiCmds->securityProtocol = true;
-        >device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
+        device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: SECPROT\n");
         set_Console_Colors(true, DEFAULT);
