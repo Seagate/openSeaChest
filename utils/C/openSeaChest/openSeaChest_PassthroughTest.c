@@ -6262,11 +6262,11 @@ int scsi_Error_Handling_Test(tDevice *device)
     printf("\tTotal Commands Tried: %" PRIu8 "\n", totalCmds);
     printf("\tAverage return time from bad commands: %" PRIu64 " nanoseconds\n", averageFromBadCommands);
 
-    if (commandTimes[commandIter - 1] > (2 * averageCommandTimeNS) || ret == COMMAND_TIMEOUT || averageFromBadCommands > (2 *averageCommandTimeNS))
+    if (ret == COMMAND_TIMEOUT || averageFromBadCommands > (2 *averageCommandTimeNS))
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
-        double xTimesHigher = (double)commandTimes[commandIter - 1] / (double)averageCommandTimeNS;
+        double xTimesHigher = (double)averageFromBadCommands / (double)averageCommandTimeNS;
         if (xTimesHigher > 2.0)
         {
             set_Console_Colors(true, HACK_COLOR);
