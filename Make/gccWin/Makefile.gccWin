@@ -24,9 +24,9 @@ endif
 # example: BUILD_ALL = firmware   for just firmware
 # BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 ifneq (,$(findstring Linux,$(MYUNAME)))
-	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd passthrough
 else
-	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd passthrough
 endif
 
 UTIL_SRC_DIR = ../../utils/C/openSeaChest
@@ -68,6 +68,8 @@ ifneq (,$(findstring MINGW64,$(UNAME)))
 	LDFLAGS += -L/msys64/mingw64/x86_64-w64-mingw32/lib
 	LDLIBS += -lversion
 	LDLIBS += -lcfgmgr32
+	LDLIBS += -ladvapi32
+	LDLIBS += -lsetupapi
 endif
 
 MACHINE := $(shell uname -m)
@@ -163,6 +165,14 @@ ifneq (,$(findstring zbd,$(BUILD_ALL)))
     ZBDOBJS = $(ZBDSOURCES:.c=.o)
 endif
 
+#passthrough test
+ifneq (,$(findstring passthrough,$(BUILD_ALL)))
+    PASSTHROUGHTESTOUTFILE = openSeaChest_PassthroughTest
+    PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c ../../src/EULA.c ../../src/openseachest_util_options.c
+    PASSTHROUGHTESTOBJS = $(PASSTHROUGHTESTSOURCES:.c=.o)
+endif
+
+
 PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS
 PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
 
@@ -176,7 +186,7 @@ else
 endif
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
-	PROJECT_DEFINES += -D__MINGW64__
+	#PROJECT_DEFINES += -D__MINGW64__
 	# PROJECT_DEFINES += -D__MINGW32__
 	#BR note: trying different stuff during debugging
 	#BR note: -D_WIN32_WINNT=0x0601 fixes unknown Windows version in winioctl.h
@@ -376,6 +386,14 @@ ifneq (,$(findstring zbd,$(BUILD_ALL)))
 	$(CC) $(ZBDOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+endif
+
+#passthrough
+ifneq (,$(findstring passthrough,$(BUILD_ALL)))
+    $(PASSTHROUGHTESTOUTFILE): $(PASSTHROUGHTESTOBJS) opensea-libs mkoutputdir
+	$(CC) $(PASSTHROUGHTESTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
 endif
 
 %.o: %.c
