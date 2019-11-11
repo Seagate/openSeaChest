@@ -1762,6 +1762,7 @@ typedef struct _scsiDevInfo
         struct 
         {
             //TODO: zoned statistics
+            uint8_t reserved;
         }zonedData;
         bool gotGeneralStatistics;
         struct 
