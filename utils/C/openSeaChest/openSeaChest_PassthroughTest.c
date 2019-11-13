@@ -1515,7 +1515,7 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, bool smartSupported, bool smart
                 set_Console_Colors(true, DEFAULT);
             }
         }
-        safe_Free(ptrData);
+        safe_Free_aligned(ptrData);
     }
     else
     {
@@ -3495,7 +3495,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             print_Data_Buffer(pageToRead, vpdPageLength, true);
         }
-        safe_Free(pageToRead);
+        safe_Free_aligned(pageToRead);
     }
 }
 
@@ -7046,7 +7046,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\t    and longer to respond with each unknown command. This shouldn't happen ever.\n");
             ++recommendationCounter;
         }
-        if (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_SAT || inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
+        if (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_SAT && inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
         {
             printf("%" PRIu8 "\tUse a standardized passthrough CDB. If a standard does not exist, take it to\n", recommendationCounter);
             printf("\tone of the spec committees and get one created! If they won't do it, at least\n");
