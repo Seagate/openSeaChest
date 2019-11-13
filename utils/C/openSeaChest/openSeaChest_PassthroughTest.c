@@ -2076,7 +2076,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     uint8_t protocolIdentifier = M_Nibble1(pageToRead[offset]);
                     uint8_t codeSet = M_Nibble0(pageToRead[offset]);
-                    bool piv = pageToRead[offset + 1] & BIT7 ? true : false;
+                    bool piv = (pageToRead[offset + 1] & BIT7) ? true : false;
                     uint8_t association = M_GETBITRANGE(pageToRead[offset + 1], 5, 4);
                     uint8_t designatorType = M_Nibble0(pageToRead[offset + 1]);
                     uint16_t designatorOffset = offset + 4;
@@ -5973,7 +5973,7 @@ int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport 
     else if (!zeroLengthTransfers)
     {
         set_Console_Colors(true, NOTE_COLOR);
-        printf("NOTE: testing for zero length transfers. This test should be done for highest compatibilty testing!\n");
+        printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibilty testing!\n");
         set_Console_Colors(true, DEFAULT);
     }
 
@@ -6287,6 +6287,473 @@ int scsi_Error_Handling_Test(tDevice *device)
     return SUCCESS;
 }
 
+bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
+{
+    set_Console_Colors(true, HEADING_COLOR);
+    printf("\n=====================================\n");
+    printf("Checking SAT ATA-passthrough commands\n");
+    printf("=====================================\n");
+    set_Console_Colors(true, DEFAULT);
+    bool satSupported = false;
+    bool twelveByteSupported = false;
+    bool sixteenByteSupported = false;
+    //try A1h first to see if it works, then try 85h.
+    inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
+    inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
+    int satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
+    if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+    {
+        //TODO: Validate Identify data!
+        printf("SAT 12-byte passthrough supported\n");
+        satSupported = true;
+        twelveByteSupported = true;
+    }
+    inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = false;
+    satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
+    if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+    {
+        //TODO: Validate Identify data!
+        printf("SAT 16-byte passthrough supported\n");
+        satSupported = true;
+        sixteenByteSupported = true;
+    }
+    if (satSupported)
+    {
+        if (twelveByteSupported)
+        {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: A1\n");//useA1SATPassthroughWheneverPossible
+            set_Console_Colors(true, DEFAULT);
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
+        }
+        else if (!twelveByteSupported && sixteenByteSupported)
+        {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: NA1\n");//a1NeverSupported
+            set_Console_Colors(true, DEFAULT);
+        }
+        //Test TPSIU support
+        inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
+        satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
+        if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+        {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: TPSIU\n");//alwaysUseTPSIUForSATPassthrough
+            set_Console_Colors(true, DEFAULT);
+        }
+        else
+        {
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
+        }
+        uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
+        uint16_t *ident_word = (uint16_t*)identifyData;
+        memcpy(inputs->device->drive_info.bridge_info.childDriveMN, &ident_word[27], MODEL_NUM_LEN);
+        inputs->device->drive_info.bridge_info.childDriveMN[MODEL_NUM_LEN] = '\0';
+        memcpy(inputs->device->drive_info.bridge_info.childDriveSN, &ident_word[10], SERIAL_NUM_LEN);
+        inputs->device->drive_info.bridge_info.childDriveSN[SERIAL_NUM_LEN] = '\0';
+        memcpy(inputs->device->drive_info.bridge_info.childDriveFW, &ident_word[23], 8);
+        inputs->device->drive_info.bridge_info.childDriveFW[FW_REV_LEN] = '\0';
+        //Byte swap due to endianess
+        byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveMN);
+        byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveSN);
+        byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveFW);
+        //remove leading and trailing whitespace
+        remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveMN);
+        remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveSN);
+        remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveFW);
+        //get the WWN
+        inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108,\
+                                       inputs->device->drive_info.IdentifyData.ata.Word109,\
+                                       inputs->device->drive_info.IdentifyData.ata.Word110,\
+                                       inputs->device->drive_info.IdentifyData.ata.Word111);
+
+        //get the sector sizes from the identify data
+        if (((ident_word[106] & BIT14) == BIT14) && ((ident_word[106] & BIT15) == 0)) //making sure this word has valid data
+        {
+            //word 117 is only valid when word 106 bit 12 is set
+            if ((ident_word[106] & BIT12) == BIT12)
+            {
+                inputs->device->drive_info.bridge_info.childDeviceBlockSize = M_BytesTo2ByteValue(ident_word[118], ident_word[117]);
+                inputs->device->drive_info.bridge_info.childDeviceBlockSize *= 2; //convert to words to bytes
+            }
+            else //means that logical sector size is 512bytes
+            {
+                inputs->device->drive_info.bridge_info.childDeviceBlockSize = LEGACY_DRIVE_SEC_SIZE;
+            }
+            if ((ident_word[106] & BIT13) == 0)
+            {
+                inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = inputs->device->drive_info.bridge_info.childDeviceBlockSize;
+            }
+            else //multiple logical sectors per physical sector
+            {
+                uint8_t sectorSizeExponent = 0;
+                //get the number of logical blocks per physical blocks
+                sectorSizeExponent = ident_word[106] & 0x000F;
+                inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = (uint32_t)(inputs->device->drive_info.bridge_info.childDeviceBlockSize * power_Of_Two(sectorSizeExponent));
+            }
+        }
+        else
+        {
+            inputs->device->drive_info.bridge_info.childDeviceBlockSize = LEGACY_DRIVE_SEC_SIZE;
+            inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = LEGACY_DRIVE_SEC_SIZE;
+        }
+        //get the sector alignment
+        if (ident_word[209] & BIT14)
+        {
+            //bits 13:0 are valid for alignment. bit 15 will be 0 and bit 14 will be 1. remove bit 14 with an xor
+            inputs->device->drive_info.bridge_info.childSectorAlignment = ident_word[209] ^ BIT14;
+        }
+        if (inputs->device->drive_info.IdentifyData.ata.Word083 & BIT10)
+        {
+            //acs4 - word 69 bit3 means extended number of user addressable sectors word supported (words 230 - 233) (Use this to get the max LBA since words 100 - 103 may only contain a value of FFFF_FFFF)
+            if (inputs->device->drive_info.IdentifyData.ata.Word069 & BIT3)
+            {
+                inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo8ByteValue(identifyData[467], identifyData[466], identifyData[465], identifyData[464], identifyData[463], identifyData[462], identifyData[461], identifyData[460]);
+            }
+            else
+            {
+                inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo8ByteValue(identifyData[207], identifyData[206], identifyData[205], identifyData[204], identifyData[203], identifyData[202], identifyData[201], identifyData[200]);
+            }
+        }
+        else
+        {
+            inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo4ByteValue(identifyData[123], identifyData[122], identifyData[121], identifyData[120]);
+        }
+        if (inputs->device->drive_info.bridge_info.childDeviceMaxLba > 0)
+        {
+            inputs->device->drive_info.bridge_info.childDeviceMaxLba -= 1;
+        }
+
+        if (inputs->device->drive_info.IdentifyData.ata.Word083 & BIT10)
+        {
+            inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported = true;
+        }
+        if ((inputs->device->drive_info.IdentifyData.ata.Word087 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT5)
+                ||
+                (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT5))
+        {
+            inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported = true;
+        }
+
+        //Test UDMA vs DMA mode on commands
+        //This test will do a read DMA type command to the drive IF DMA is supported. If not, this will be skipped since this is the most basic DMA command we can try to do.
+        //Now determine if the drive supports DMA and which DMA modes it supports
+        if (inputs->device->drive_info.IdentifyData.ata.Word049 & BIT8)
+        {
+            inputs->device->drive_info.ata_Options.dmaSupported = true;
+            inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
+        }
+        //obsolete since ATA3, holds single word DMA support
+        if (inputs->device->drive_info.IdentifyData.ata.Word062)
+        {
+            inputs->device->drive_info.ata_Options.dmaSupported = true;
+            inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
+        }
+        //check for multiword dma support
+        if (inputs->device->drive_info.IdentifyData.ata.Word063 & (BIT0 | BIT1 | BIT2))
+        {
+            inputs->device->drive_info.ata_Options.dmaSupported = true;
+            inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_MWDMA;
+        }
+        //check for UDMA support
+        if (inputs->device->drive_info.IdentifyData.ata.Word088 & 0x007F)
+        {
+            inputs->device->drive_info.ata_Options.dmaSupported = true;
+            inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
+        }
+
+        bool smartSupported = false;
+        bool smartLoggingSupported = false;
+        if ((inputs->device->drive_info.IdentifyData.ata.Word082 != 0 && inputs->device->drive_info.IdentifyData.ata.Word082 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word082 & BIT0)
+             && 
+             (inputs->device->drive_info.IdentifyData.ata.Word085 != 0 && inputs->device->drive_info.IdentifyData.ata.Word085 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word085 & BIT0)
+             )
+        {
+            smartSupported = true;
+            if ((inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT0))
+            {
+                smartLoggingSupported = true;
+            }
+        }
+
+        if (inputs->device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA)
+        {
+            sat_DMA_UDMA_Protocol_Test(inputs->device, smartSupported, smartLoggingSupported);
+        }
+        else
+        {
+            printf("Skipping DMA check as device does not report any support for DMA mode commands\n");
+            printf("It is strongly recommended to retest with a device that does support DMA mode commands\n");
+        }
+
+        if (!inputs->noMultiSectorPIOTest)
+        {
+            multi_Sector_PIO_Test(inputs->device, smartSupported, smartLoggingSupported);
+            if (!inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && !inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+            {
+                printf("Multi-sector PIO commands seem to work properly\n");
+            }
+            else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
+            {
+                set_Console_Colors(true, HACK_COLOR);
+                printf("HACK FOUND: MMPIO\n");
+                set_Console_Colors(true, DEFAULT);
+            }
+            else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+            {
+                set_Console_Colors(true, HACK_COLOR);
+                printf("HACK FOUND: SPIO\n");
+                set_Console_Colors(true, DEFAULT);
+            }
+        }
+
+        //In next tests, need to make sure we actually get response information that makes sense.
+        // Will try SMART, get native max LBA first. Then try sending the drive to standby and checking the power mode, then spinning it up and checking again.
+        // Need to make sure we look for ext RTFRs as well.
+        
+        if (!inputs->nocheckConditionTest)
+        {
+            check_Condition_Bit_Test(inputs->device, smartSupported, smartLoggingSupported);
+        }
+
+        if (!inputs->noReturnResponseInfoTest)
+        {
+            return_Response_Info_Test(inputs->device, smartSupported, smartLoggingSupported, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.returnResponseInforWithoutTdir ? true : false);
+        }
+
+        set_Console_Colors(true, HEADING_COLOR);
+        printf("\n====================================\n");
+        printf("Comparing ATA and SCSI reported data\n");
+        printf("====================================\n");
+        set_Console_Colors(true, DEFAULT);
+        //Here we will compare the reported information by the bridge from SCSI commands to what the ATA Identify data reports.
+        //For MN, SN, FW, check for commonly broken reporting methods.
+        char scsiProdID[17] = { 0 };
+        strcpy(scsiProdID, scsiInformation->inquiryData.productId);
+        remove_Leading_And_Trailing_Whitespace(scsiProdID);
+        if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(16, strlen(scsiProdID))) == 0)
+        {
+            printf("\tSAT Compliant product ID reported\n");
+        }
+        else
+        {
+            set_Console_Colors(true, WARNING_COLOR);
+            printf("\tWARNING: Non-SAT Compliant product ID reported. This may be a \"branded\" product or non-compliant translator.\n");
+            set_Console_Colors(true, DEFAULT);
+            printf("\t  Checking common non-compliant reporting.\n");
+            if (strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.productId) && strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.vendorId))
+            {
+                //Most likely had the vendor+productID set as the full ATA MN
+                char fullMN[42] = { 0 };
+                strcpy(fullMN, scsiInformation->inquiryData.vendorId);
+                strcat(fullMN, scsiInformation->inquiryData.productId);
+                if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(strlen(fullMN), strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
+                {
+                    printf("\t\tTranslator put full ATA MN in combination of Vendor and Product ID fields.\n");
+                }
+            }
+            else
+            {
+                printf("\t\tUnknown reporting format.\n");
+            }
+        }
+        if (strlen(scsiInformation->vpdData.unitSN))
+        {
+            printf("\tChecking unit serial number\n");
+            if (strstr(scsiInformation->vpdData.unitSN, inputs->device->drive_info.bridge_info.childDriveSN))//using strstr since we remove whitespace from childdriveSN, but not the unit serial number we saved.
+            {
+                printf("\tUnit serial number reported in SAT compliant translation!\n");
+            }
+            else
+            {
+                printf("\tUnit serial number not reported in a SAT compliant way.\n");
+            }
+        }
+        else
+        {
+            printf("\tNo Unit serial number reported. Skipping this check\n");
+        }
+        
+        if (scsiInformation->vpdData.gotBlockCharacteristicsVPDPage)
+        {
+            //Check rotation rate (if SCSI reported it)...if this doesn't match, check if it is byte swapped and throw a warning.
+            if(inputs->device->drive_info.IdentifyData.ata.Word217 != 0 && inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
+            {
+                set_Console_Colors(true, WARNING_COLOR);
+                printf("WARNING: Rotation rate doesn't Match! Got %" PRIu16 ", expected %" PRIu16 "\n", scsiInformation->vpdData.blockCharacteristicsData.rotationRate, inputs->device->drive_info.IdentifyData.ata.Word217);
+                set_Console_Colors(true, DEFAULT);
+                byte_Swap_16(&scsiInformation->vpdData.blockCharacteristicsData.rotationRate);
+                if(inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
+                {
+                    set_Console_Colors(true, ERROR_COLOR);
+                    printf("ERROR: Even after byteswapping, the rotation rate still doesn't match!!!\n");
+                    set_Console_Colors(true, DEFAULT);
+                }
+                else
+                {
+                    set_Console_Colors(true, WARNING_COLOR);
+                    printf("It seems like the RPM was reported without byteswapping it first! Fix this in the translator firmware!\n");
+                    set_Console_Colors(true, DEFAULT);
+                }
+            }
+            
+            //Check form factor (if SCSI reported it)..if this doesn't match, show a warning since this page was otherwise reported.
+            if (M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != 0 && M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != scsiInformation->vpdData.blockCharacteristicsData.formFactor)
+            {   
+                set_Console_Colors(true, ERROR_COLOR);
+                printf("ERROR: Formfactor doesn't match! Got %" PRIu8 ", expected %" PRIu8 "\n", scsiInformation->vpdData.blockCharacteristicsData.formFactor, M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168));
+                set_Console_Colors(true, DEFAULT);
+            }
+
+        }
+
+        //check the SCSI designators to see if we found the WWN translated through. 
+        //Check WWN (if SCSI reported it and device supports it)
+        if (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT8 || inputs->device->drive_info.IdentifyData.ata.Word087 & BIT8)
+        {
+            if (scsiInformation->vpdData.gotDeviceIDVPDPage)
+            {
+                bool foundMatch = false;
+                for (uint8_t iter = 0; iter < scsiInformation->vpdData.designatorCount; ++iter)
+                {
+                    if (scsiInformation->vpdData.designators[iter].valid && scsiInformation->vpdData.designators[iter].designatorType == 3)//need NAA type for WWN
+                    {
+                        if (scsiInformation->vpdData.designators[iter].designatorLength == 8)
+                        {
+                            uint64_t scsiWWN = M_BytesTo8ByteValue(scsiInformation->vpdData.designators[iter].designator[0], scsiInformation->vpdData.designators[iter].designator[1], scsiInformation->vpdData.designators[iter].designator[2], scsiInformation->vpdData.designators[iter].designator[3], scsiInformation->vpdData.designators[iter].designator[4], scsiInformation->vpdData.designators[iter].designator[5], scsiInformation->vpdData.designators[iter].designator[6], scsiInformation->vpdData.designators[iter].designator[7]);
+                            uint64_t ataWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108, inputs->device->drive_info.IdentifyData.ata.Word109, inputs->device->drive_info.IdentifyData.ata.Word110, inputs->device->drive_info.IdentifyData.ata.Word111);//words 108 - 111
+                            //TODO: Need to make sure we handled inputting everything correctly! ATA may have some byteswaps to do...
+                            if (scsiWWN == ataWWN)
+                            {
+                                foundMatch = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!foundMatch)
+                {
+                    set_Console_Colors(true, ERROR_COLOR);
+                    printf("ERROR: WWN was not found in device identification VPD page!\n");
+                    set_Console_Colors(true, DEFAULT);
+                }
+            }
+            else
+            {
+                set_Console_Colors(true, WARNING_COLOR);
+                printf("WARNING: Device didn't report device ID VPD page, cannot check for WWN translation!\n");
+                set_Console_Colors(true, DEFAULT);
+            }
+        }
+
+        //check block sizes and maxLBA values
+        //Throw a warning that the reverse 4k emulation crap is not useful since we are way past Windows XP at this point.
+        
+        //TODO: Based on other SCSI reported information, read the ATA logs that the information should come from to compare and make sure it matches, or is close (>= what SCSI reported)
+        //      This should be device statistics, other identify data not checked above, command/feature support, EPC settings, etc
+
+
+    }
+    return satSupported;
+}
+
+bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
+{
+    bool legacyATAPassthroughSupported = false;
+    set_Console_Colors(true, HEADING_COLOR);
+    printf("\n====================================================================\n");
+    printf("Testing For Legacy ATA Passthrough Support With Known Legacy Methods\n");
+    printf("====================================================================\n");
+    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, WARNING_COLOR);
+    printf("WARNING! Legacy ATA Passthrough methods use vendor unique operation codes!\n");
+    printf("         Sometimes these operation code will cause problems on devices where\n");
+    printf("         these operation codes have different meanings!\n");
+    printf("         In some rare cases, this can render the adapter or device unusable!\n");
+    printf("         Do not run these legacy methods on USB thumb-drives/flash drives!\n");
+    printf("         These methods may be ok to run on USB HDDs from about 2007 & earlier\n");
+    printf("         Newer devices should use SAT!\n");
+    printf("         Press CTRL-C to abort this test immediately and remove the legacy test option\n");
+    printf("         if you are unsure if you should proceed with the test!\n");
+    for (uint8_t counter = 30; counter > 0; --counter)
+    {
+        printf("%2" PRIu8 " seconds until legacy test begins\n", counter);
+        delay_Seconds(1);
+    }
+    set_Console_Colors(true, DEFAULT);
+
+    //Now that the users have been warned, it's time to try the different legacy methods until we get a successful identify command through to the device.
+    inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT + 1;//go to the next passthrough type after SAT since SAT is the default since it is the standard.
+    while (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
+    {
+        uint8_t identifyData[LEGACY_DRIVE_SEC_SIZE] = { 0 };
+        if (scsiInformation->inquiryData.peripheralDeviceType == PERIPHERAL_DIRECT_ACCESS_BLOCK_DEVICE)
+        {
+            if (SUCCESS == ata_Identify(inputs->device, identifyData, LEGACY_DRIVE_SEC_SIZE))
+            {
+                //command succeeded so this is most likely the correct pass-through type to use for this device
+                //setting drive type while we're in here since it could help with a faster scan
+                inputs->device->drive_info.drive_type = ATA_DRIVE;
+                break;
+            }
+        }
+        else if (scsiInformation->inquiryData.peripheralDeviceType == PERIPHERAL_CD_DVD_DEVICE)
+        {
+            if (SUCCESS == ata_Identify_Packet_Device(inputs->device, identifyData, LEGACY_DRIVE_SEC_SIZE))
+            {
+                //command succeeded so this is most likely the correct pass-through type to use for this device
+                //setting drive type while we're in here since it could help with a faster scan
+                inputs->device->drive_info.drive_type = ATAPI_DRIVE;
+                break;
+            }
+        }
+        else
+        {
+            //No other peripheral device type should be being used by these legacy devices. 
+            //They were most likely only HDDs in the first place, MAYBE a CD/DVD drive.
+            inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
+            break;
+        }
+        ++(inputs->device->drive_info.passThroughHacks.passthroughType);
+    }
+    if (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
+    {
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: passthrough type seems to be \n");//no passthrough available at all
+        switch (inputs->device->drive_info.passThroughHacks.passthroughType)
+        {
+        case ATA_PASSTHROUGH_CYPRESS:
+            printf("Cypress\n");
+            break;
+        case ATA_PASSTHROUGH_PROLIFIC:
+            printf("Prolific\n");
+            break;
+        case ATA_PASSTHROUGH_TI:
+            printf("TI\n");
+            break;
+        case ATA_PASSTHROUGH_NEC:
+            printf("NEC\n");
+            break;
+        case ATA_PASSTHROUGH_PSP:
+            printf("PSP\n");
+            break;
+        default:
+            printf("Unknown legacy device type! This means the passthrough test code needs updating!\n");
+            break;
+        }
+        set_Console_Colors(true, DEFAULT);
+        legacyATAPassthroughSupported = true;
+    }
+    else
+    {
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: NOPT\n");//no passthrough available at all
+        set_Console_Colors(true, DEFAULT);
+        inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
+    }
+    return legacyATAPassthroughSupported;
+}
+
 int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
 {
     int ret = SUCCESS;
@@ -6329,472 +6796,27 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //now perform a test to check the device error handling. Some have poor error handling and time to report errors grows with each command slowing the whole device down.
         scsi_Error_Handling_Test(inputs->device);
         
-
-
         //3. Start checking for SAT or VS NVMe passthrough, unless given information to use a different passthrough.
         //TODO: Make sure to do this only for direct access block devices OR zoned block devices
         //TODO: Move these passthrough tests to separate functions.
-        if (strncmp(scsiInformation.inquiryData.vendorId, "NVMe", 4) == 0 || inputs->device->drive_info.drive_type == NVME_DRIVE) //NVMe
+        if (!inputs->disableTranslatorPassthroughTesting)
         {
-            printf("NVMe Passthrough testing not implemented at this time.\n");
-        }
-        else if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || !inputs->disableTranslatorPassthroughTesting || inputs->allowLegacyATAPTTest) //ATA
-        {
-            //TODO: need to move this SAT testing to another function.
-            set_Console_Colors(true, HEADING_COLOR);
-            printf("\n=====================================\n");
-            printf("Checking SAT ATA-passthrough commands\n");
-            printf("=====================================\n");
-            set_Console_Colors(true, DEFAULT);
-            bool satSupported = false;
-            bool twelveByteSupported = false;
-            bool sixteenByteSupported = false;
-            //try A1h first to see if it works, then try 85h.
-            inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
-            inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
-            int satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
-            if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+            if (strncmp(scsiInformation.inquiryData.vendorId, "NVMe", 4) == 0 || inputs->suspectedDriveType == NVME_DRIVE) //NVMe
             {
-                //TODO: Validate Identify data!
-                printf("SAT 12-byte passthrough supported\n");
-                satSupported = true;
-                twelveByteSupported = true;
+                printf("NVMe Passthrough testing not implemented at this time.\n");
+                inputs->device->drive_info.passThroughHacks.passthroughType == ATA_PASSTHROUGH_UNKNOWN;
             }
-            inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = false;
-            satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
-            if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+            else if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
             {
-                //TODO: Validate Identify data!
-                printf("SAT 16-byte passthrough supported\n");
-                satSupported = true;
-                sixteenByteSupported = true;
-            }
-            if (satSupported)
-            {
-                if (twelveByteSupported)
+                //TODO: need to move this SAT testing to another function.
+                if (!test_SAT_Capabilities(inputs, &scsiInformation))
                 {
-                    set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: A1\n");//useA1SATPassthroughWheneverPossible
+                    set_Console_Colors(true, ERROR_COLOR);
+                    printf("ERROR: SAT Passthrough failed both 12B and 16B CDBs.\n");
                     set_Console_Colors(true, DEFAULT);
-                    inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
-                }
-                else if (!twelveByteSupported && sixteenByteSupported)
-                {
-                    set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: NA1\n");//a1NeverSupported
-                    set_Console_Colors(true, DEFAULT);
-                }
-                //Test TPSIU support
-                inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
-                satRet = ata_Identify(inputs->device, (uint8_t *)&inputs->device->drive_info.IdentifyData.ata.Word000, 512);
-                if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
-                {
-                    set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: TPSIU\n");//alwaysUseTPSIUForSATPassthrough
-                    set_Console_Colors(true, DEFAULT);
-                }
-                else
-                {
-                    inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
-                }
-                uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-                uint16_t *ident_word = (uint16_t*)identifyData;
-                memcpy(inputs->device->drive_info.bridge_info.childDriveMN, &ident_word[27], MODEL_NUM_LEN);
-                inputs->device->drive_info.bridge_info.childDriveMN[MODEL_NUM_LEN] = '\0';
-                memcpy(inputs->device->drive_info.bridge_info.childDriveSN, &ident_word[10], SERIAL_NUM_LEN);
-                inputs->device->drive_info.bridge_info.childDriveSN[SERIAL_NUM_LEN] = '\0';
-                memcpy(inputs->device->drive_info.bridge_info.childDriveFW, &ident_word[23], 8);
-                inputs->device->drive_info.bridge_info.childDriveFW[FW_REV_LEN] = '\0';
-                //Byte swap due to endianess
-                byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveMN);
-                byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveSN);
-                byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveFW);
-                //remove leading and trailing whitespace
-                remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveMN);
-                remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveSN);
-                remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveFW);
-                //get the WWN
-                inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108,\
-                                               inputs->device->drive_info.IdentifyData.ata.Word109,\
-                                               inputs->device->drive_info.IdentifyData.ata.Word110,\
-                                               inputs->device->drive_info.IdentifyData.ata.Word111);
-
-                //get the sector sizes from the identify data
-                if (((ident_word[106] & BIT14) == BIT14) && ((ident_word[106] & BIT15) == 0)) //making sure this word has valid data
-                {
-                    //word 117 is only valid when word 106 bit 12 is set
-                    if ((ident_word[106] & BIT12) == BIT12)
+                    if (inputs->allowLegacyATAPTTest)
                     {
-                        inputs->device->drive_info.bridge_info.childDeviceBlockSize = M_BytesTo2ByteValue(ident_word[118], ident_word[117]);
-                        inputs->device->drive_info.bridge_info.childDeviceBlockSize *= 2; //convert to words to bytes
-                    }
-                    else //means that logical sector size is 512bytes
-                    {
-                        inputs->device->drive_info.bridge_info.childDeviceBlockSize = LEGACY_DRIVE_SEC_SIZE;
-                    }
-                    if ((ident_word[106] & BIT13) == 0)
-                    {
-                        inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = inputs->device->drive_info.bridge_info.childDeviceBlockSize;
-                    }
-                    else //multiple logical sectors per physical sector
-                    {
-                        uint8_t sectorSizeExponent = 0;
-                        //get the number of logical blocks per physical blocks
-                        sectorSizeExponent = ident_word[106] & 0x000F;
-                        inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = (uint32_t)(inputs->device->drive_info.bridge_info.childDeviceBlockSize * power_Of_Two(sectorSizeExponent));
-                    }
-                }
-                else
-                {
-                    inputs->device->drive_info.bridge_info.childDeviceBlockSize = LEGACY_DRIVE_SEC_SIZE;
-                    inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = LEGACY_DRIVE_SEC_SIZE;
-                }
-                //get the sector alignment
-                if (ident_word[209] & BIT14)
-                {
-                    //bits 13:0 are valid for alignment. bit 15 will be 0 and bit 14 will be 1. remove bit 14 with an xor
-                    inputs->device->drive_info.bridge_info.childSectorAlignment = ident_word[209] ^ BIT14;
-                }
-                if (inputs->device->drive_info.IdentifyData.ata.Word083 & BIT10)
-                {
-                    //acs4 - word 69 bit3 means extended number of user addressable sectors word supported (words 230 - 233) (Use this to get the max LBA since words 100 - 103 may only contain a value of FFFF_FFFF)
-                    if (inputs->device->drive_info.IdentifyData.ata.Word069 & BIT3)
-                    {
-                        inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo8ByteValue(identifyData[467], identifyData[466], identifyData[465], identifyData[464], identifyData[463], identifyData[462], identifyData[461], identifyData[460]);
-                    }
-                    else
-                    {
-                        inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo8ByteValue(identifyData[207], identifyData[206], identifyData[205], identifyData[204], identifyData[203], identifyData[202], identifyData[201], identifyData[200]);
-                    }
-                }
-                else
-                {
-                    inputs->device->drive_info.bridge_info.childDeviceMaxLba = M_BytesTo4ByteValue(identifyData[123], identifyData[122], identifyData[121], identifyData[120]);
-                }
-                if (inputs->device->drive_info.bridge_info.childDeviceMaxLba > 0)
-                {
-                    inputs->device->drive_info.bridge_info.childDeviceMaxLba -= 1;
-                }
-
-                if (inputs->device->drive_info.IdentifyData.ata.Word083 & BIT10)
-                {
-                    inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported = true;
-                }
-                if ((inputs->device->drive_info.IdentifyData.ata.Word087 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT5)
-                        ||
-                        (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT5))
-                {
-                    inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported = true;
-                }
-
-                //Test UDMA vs DMA mode on commands
-                //This test will do a read DMA type command to the drive IF DMA is supported. If not, this will be skipped since this is the most basic DMA command we can try to do.
-                //Now determine if the drive supports DMA and which DMA modes it supports
-                if (inputs->device->drive_info.IdentifyData.ata.Word049 & BIT8)
-                {
-                    inputs->device->drive_info.ata_Options.dmaSupported = true;
-                    inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
-                }
-                //obsolete since ATA3, holds single word DMA support
-                if (inputs->device->drive_info.IdentifyData.ata.Word062)
-                {
-                    inputs->device->drive_info.ata_Options.dmaSupported = true;
-                    inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
-                }
-                //check for multiword dma support
-                if (inputs->device->drive_info.IdentifyData.ata.Word063 & (BIT0 | BIT1 | BIT2))
-                {
-                    inputs->device->drive_info.ata_Options.dmaSupported = true;
-                    inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_MWDMA;
-                }
-                //check for UDMA support
-                if (inputs->device->drive_info.IdentifyData.ata.Word088 & 0x007F)
-                {
-                    inputs->device->drive_info.ata_Options.dmaSupported = true;
-                    inputs->device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
-                }
-
-                bool smartSupported = false;
-                bool smartLoggingSupported = false;
-                if ((inputs->device->drive_info.IdentifyData.ata.Word082 != 0 && inputs->device->drive_info.IdentifyData.ata.Word082 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word082 & BIT0)
-                     && 
-                     (inputs->device->drive_info.IdentifyData.ata.Word085 != 0 && inputs->device->drive_info.IdentifyData.ata.Word085 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word085 & BIT0)
-                     )
-                {
-                    smartSupported = true;
-                    if ((inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT0))
-                    {
-                        smartLoggingSupported = true;
-                    }
-                }
-
-                if (inputs->device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA)
-                {
-                    sat_DMA_UDMA_Protocol_Test(inputs->device, smartSupported, smartLoggingSupported);
-                }
-                else
-                {
-                    printf("Skipping DMA check as device does not report any support for DMA mode commands\n");
-                    printf("It is strongly recommended to retest with a device that does support DMA mode commands\n");
-                }
-
-                if (!inputs->noMultiSectorPIOTest)
-                {
-                    multi_Sector_PIO_Test(inputs->device, smartSupported, smartLoggingSupported);
-                    if (!inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && !inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
-                    {
-                        printf("Multi-sector PIO commands seem to work properly\n");
-                    }
-                    else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
-                    {
-                        set_Console_Colors(true, HACK_COLOR);
-                        printf("HACK FOUND: MMPIO\n");
-                        set_Console_Colors(true, DEFAULT);
-                    }
-                    else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
-                    {
-                        set_Console_Colors(true, HACK_COLOR);
-                        printf("HACK FOUND: SPIO\n");
-                        set_Console_Colors(true, DEFAULT);
-                    }
-                }
-
-                //In next tests, need to make sure we actually get response information that makes sense.
-                // Will try SMART, get native max LBA first. Then try sending the drive to standby and checking the power mode, then spinning it up and checking again.
-                // Need to make sure we look for ext RTFRs as well.
-                
-                if (!inputs->nocheckConditionTest)
-                {
-                    check_Condition_Bit_Test(inputs->device, smartSupported, smartLoggingSupported);
-                }
-
-                if (!inputs->noReturnResponseInfoTest)
-                {
-                    return_Response_Info_Test(inputs->device, smartSupported, smartLoggingSupported, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.returnResponseInforWithoutTdir ? true : false);
-                }
-
-                set_Console_Colors(true, HEADING_COLOR);
-                printf("\n====================================\n");
-                printf("Comparing ATA and SCSI reported data\n");
-                printf("====================================\n");
-                set_Console_Colors(true, DEFAULT);
-                //Here we will compare the reported information by the bridge from SCSI commands to what the ATA Identify data reports.
-                //For MN, SN, FW, check for commonly broken reporting methods.
-                char scsiProdID[17] = { 0 };
-                strcpy(scsiProdID, scsiInformation.inquiryData.productId);
-                remove_Leading_And_Trailing_Whitespace(scsiProdID);
-                if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(16, strlen(scsiProdID))) == 0)
-                {
-                    printf("\tSAT Compliant product ID reported\n");
-                }
-                else
-                {
-                    set_Console_Colors(true, WARNING_COLOR);
-                    printf("\tWARNING: Non-SAT Compliant product ID reported. This may be a \"branded\" product or non-compliant translator.\n");
-                    set_Console_Colors(true, DEFAULT);
-                    printf("\t  Checking common non-compliant reporting.\n");
-                    if (strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation.inquiryData.productId) && strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation.inquiryData.vendorId))
-                    {
-                        //Most likely had the vendor+productID set as the full ATA MN
-                        char fullMN[42] = { 0 };
-                        strcpy(fullMN, scsiInformation.inquiryData.vendorId);
-                        strcat(fullMN, scsiInformation.inquiryData.productId);
-                        if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(strlen(fullMN), strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
-                        {
-                            printf("\t\tTranslator put full ATA MN in combination of Vendor and Product ID fields.\n");
-                        }
-                    }
-                    else
-                    {
-                        printf("\t\tUnknown reporting format.\n");
-                    }
-                }
-                if (strlen(scsiInformation.vpdData.unitSN))
-                {
-                    printf("\tChecking unit serial number\n");
-                    if (strstr(scsiInformation.vpdData.unitSN, inputs->device->drive_info.bridge_info.childDriveSN))//using strstr since we remove whitespace from childdriveSN, but not the unit serial number we saved.
-                    {
-                        printf("\tUnit serial number reported in SAT compliant translation!\n");
-                    }
-                    else
-                    {
-                        printf("\tUnit serial number not reported in a SAT compliant way.\n");
-                    }
-                }
-                else
-                {
-                    printf("\tNo Unit serial number reported. Skipping this check\n");
-                }
-                
-                if (scsiInformation.vpdData.gotBlockCharacteristicsVPDPage)
-                {
-                    //Check rotation rate (if SCSI reported it)...if this doesn't match, check if it is byte swapped and throw a warning.
-                    if(inputs->device->drive_info.IdentifyData.ata.Word217 != 0 && inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation.vpdData.blockCharacteristicsData.rotationRate)
-                    {
-                        set_Console_Colors(true, WARNING_COLOR);
-                        printf("WARNING: Rotation rate doesn't Match! Got %" PRIu16 ", expected %" PRIu16 "\n", scsiInformation.vpdData.blockCharacteristicsData.rotationRate, inputs->device->drive_info.IdentifyData.ata.Word217);
-                        set_Console_Colors(true, DEFAULT);
-                        byte_Swap_16(&scsiInformation.vpdData.blockCharacteristicsData.rotationRate);
-                        if(inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation.vpdData.blockCharacteristicsData.rotationRate)
-                        {
-                            set_Console_Colors(true, ERROR_COLOR);
-                            printf("ERROR: Even after byteswapping, the rotation rate still doesn't match!!!\n");
-                            set_Console_Colors(true, DEFAULT);
-                        }
-                        else
-                        {
-                            set_Console_Colors(true, WARNING_COLOR);
-                            printf("It seems like the RPM was reported without byteswapping it first! Fix this in the translator firmware!\n");
-                            set_Console_Colors(true, DEFAULT);
-                        }
-                    }
-                    
-                    //Check form factor (if SCSI reported it)..if this doesn't match, show a warning since this page was otherwise reported.
-                    if (M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != 0 && M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != scsiInformation.vpdData.blockCharacteristicsData.formFactor)
-                    {   
-                        set_Console_Colors(true, ERROR_COLOR);
-                        printf("ERROR: Formfactor doesn't match! Got %" PRIu8 ", expected %" PRIu8 "\n", scsiInformation.vpdData.blockCharacteristicsData.formFactor, M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168));
-                        set_Console_Colors(true, DEFAULT);
-                    }
-
-                }
-
-                //check the SCSI designators to see if we found the WWN translated through. 
-                //Check WWN (if SCSI reported it and device supports it)
-                if (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT8 || inputs->device->drive_info.IdentifyData.ata.Word087 & BIT8)
-                {
-                    if (scsiInformation.vpdData.gotDeviceIDVPDPage)
-                    {
-                        bool foundMatch = false;
-                        for (uint8_t iter = 0; iter < scsiInformation.vpdData.designatorCount; ++iter)
-                        {
-                            if (scsiInformation.vpdData.designators[iter].valid && scsiInformation.vpdData.designators[iter].designatorType == 3)//need NAA type for WWN
-                            {
-                                if (scsiInformation.vpdData.designators[iter].designatorLength == 8)
-                                {
-                                    uint64_t scsiWWN = M_BytesTo8ByteValue(scsiInformation.vpdData.designators[iter].designator[0], scsiInformation.vpdData.designators[iter].designator[1], scsiInformation.vpdData.designators[iter].designator[2], scsiInformation.vpdData.designators[iter].designator[3], scsiInformation.vpdData.designators[iter].designator[4], scsiInformation.vpdData.designators[iter].designator[5], scsiInformation.vpdData.designators[iter].designator[6], scsiInformation.vpdData.designators[iter].designator[7]);
-                                    uint64_t ataWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108, inputs->device->drive_info.IdentifyData.ata.Word109, inputs->device->drive_info.IdentifyData.ata.Word110, inputs->device->drive_info.IdentifyData.ata.Word111);//words 108 - 111
-                                    //TODO: Need to make sure we handled inputting everything correctly! ATA may have some byteswaps to do...
-                                    if (scsiWWN == ataWWN)
-                                    {
-                                        foundMatch = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if (!foundMatch)
-                        {
-                            set_Console_Colors(true, ERROR_COLOR);
-                            printf("ERROR: WWN was not found in device identification VPD page!\n");
-                            set_Console_Colors(true, DEFAULT);
-                        }
-                    }
-                    else
-                    {
-                        set_Console_Colors(true, WARNING_COLOR);
-                        printf("WARNING: Device didn't report device ID VPD page, cannot check for WWN translation!\n");
-                        set_Console_Colors(true, DEFAULT);
-                    }
-                }
-
-                //check block sizes and maxLBA values
-                //Throw a warning that the reverse 4k emulation crap is not useful since we are way past Windows XP at this point.
-                
-                //TODO: Based on other SCSI reported information, read the ATA logs that the information should come from to compare and make sure it matches, or is close (>= what SCSI reported)
-                //      This should be device statistics, other identify data not checked above, command/feature support, EPC settings, etc
-
-
-            }
-            else
-            {
-                set_Console_Colors(true, ERROR_COLOR);
-                printf("ERROR: SAT Passthrough failed both 12B and 16B CDBs.\n");
-                set_Console_Colors(true, DEFAULT);
-                if (inputs->allowLegacyATAPTTest)
-                {
-                    set_Console_Colors(true, HEADING_COLOR);
-                    printf("\n====================================================================\n");
-                    printf("Testing For Legacy ATA Passthrough Support With Known Legacy Methods\n");
-                    printf("====================================================================\n");
-                    set_Console_Colors(true, DEFAULT);
-                    set_Console_Colors(true, WARNING_COLOR);
-                    printf("WARNING! Legacy ATA Passthrough methods use vendor unique operation codes!\n");
-                    printf("         Sometimes these operation code will cause problems on devices where\n");
-                    printf("         these operation codes have different meanings!\n");
-                    printf("         In some rare cases, this can render the adapter or device unusable!\n");
-                    printf("         Do not run these legacy methods on USB thumb-drives/flash drives!\n");
-                    printf("         These methods may be ok to run on USB HDDs from about 2007 & earlier\n");
-                    printf("         Newer devices should use SAT!\n");
-                    printf("         Press CTRL-C to abort this test immediately and remove the legacy test option\n");
-                    printf("         if you are unsure if you should proceed with the test!\n");
-                    for (uint8_t counter = 30; counter > 0; --counter)
-                    {
-                        printf("%2" PRIu8 " seconds until legacy test begins\n", counter);
-                        delay_Seconds(1);
-                    }
-                    set_Console_Colors(true, DEFAULT);
-
-                    //Now that the users have been warned, it's time to try the different legacy methods until we get a successful identify command through to the device.
-                    inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT + 1;//go to the next passthrough type after SAT since SAT is the default since it is the standard.
-                    while (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
-                    {
-                        uint8_t identifyData[LEGACY_DRIVE_SEC_SIZE] = { 0 };
-                        if (scsiInformation.inquiryData.peripheralDeviceType == PERIPHERAL_DIRECT_ACCESS_BLOCK_DEVICE)
-                        {
-                            if (SUCCESS == ata_Identify(inputs->device, identifyData, LEGACY_DRIVE_SEC_SIZE))
-                            {
-                                //command succeeded so this is most likely the correct pass-through type to use for this device
-                                //setting drive type while we're in here since it could help with a faster scan
-                                inputs->device->drive_info.drive_type = ATA_DRIVE;
-                                break;
-                            }
-                        }
-                        else if (scsiInformation.inquiryData.peripheralDeviceType == PERIPHERAL_CD_DVD_DEVICE)
-                        {
-                            if (SUCCESS == ata_Identify_Packet_Device(inputs->device, identifyData, LEGACY_DRIVE_SEC_SIZE))
-                            {
-                                //command succeeded so this is most likely the correct pass-through type to use for this device
-                                //setting drive type while we're in here since it could help with a faster scan
-                                inputs->device->drive_info.drive_type = ATAPI_DRIVE;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            //No other peripheral device type should be being used by these legacy devices. 
-                            //They were most likely only HDDs in the first place, MAYBE a CD/DVD drive.
-                            inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
-                            break;
-                        }
-                        ++(inputs->device->drive_info.passThroughHacks.passthroughType);
-                    }
-                    if (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
-                    {
-                        set_Console_Colors(true, HACK_COLOR);
-                        printf("HACK FOUND: passthrough type seems to be \n");//no passthrough available at all
-                        switch (inputs->device->drive_info.passThroughHacks.passthroughType)
-                        {
-                        case ATA_PASSTHROUGH_CYPRESS:
-                            printf("Cypress\n");
-                            break;
-                        case ATA_PASSTHROUGH_PROLIFIC:
-                            printf("Prolific\n");
-                            break;
-                        case ATA_PASSTHROUGH_TI:
-                            printf("TI\n");
-                            break;
-                        case ATA_PASSTHROUGH_NEC:
-                            printf("NEC\n");
-                            break;
-                        case ATA_PASSTHROUGH_PSP:
-                            printf("PSP\n");
-                            break;
-                        default:
-                            printf("Unknown legacy device type! This means the passthrough test code needs updating!\n");
-                            break;
-                        }
-                        set_Console_Colors(true, DEFAULT);
+                        test_Legacy_ATA_Passthrough(inputs, &scsiInformation);
                     }
                     else
                     {
@@ -6804,14 +6826,13 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                         inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
                     }
                 }
-                else
-                {
-                    set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: NOPT\n");//no passthrough available at all
-                    set_Console_Colors(true, DEFAULT);
-                    inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
-                }
             }
+        }
+        else
+        {
+            set_Console_Colors(true, NOTE_COLOR);
+            printf("NOTE: Attempting passthrough CDBs for SAT or a vendor unique methods has been disabled and is being skipped.\n");
+            set_Console_Colors(true, DEFAULT);
         }
 
 
@@ -6910,7 +6931,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             }
         }
         
-        printf("List Of Hacks For This Device:\n");
+        printf("\nList Of Hacks For This Device:\n");
         //go through and print each one on a new line based on what the test found.
         //This should focus on generic SCSI data reporting first, followed by SAT/NVMe/Legacy Passthrough hacks after that
         //Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line option to make sure everything functions optimally.
@@ -6972,7 +6993,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported)
         {
-            printf("\t\tSECPROT");
+            printf("\t\tSECPROT\n");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512)
         {
@@ -7033,7 +7054,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             printf("\t\tSPIO\n");
         }
-        printf("Recommendations For Device Makers:\n");
+        printf("\nRecommendations For Device Makers:\n");
         //Add recommendations based on the hacks to improve in future products
         //Do this based on SCSI reported information. Things that appear to possibly be missing, etc.
         //If a translator is found or suspected, mention pursuing a standardized passthrough if not already using one. If one doesn't exist, suggest creating one.
