@@ -410,7 +410,7 @@ int32_t main(int argc, char *argv[])
                     TEST_SCT_STATUS_GPL = 1;
                     TEST_RETURN_RESPONSE_NO_TDIR = 1;
                 }
-                else if (strcmp(optarg, "zero") == 0)
+                else if (strcmp(optarg, "zlr") == 0)
                 {
                     TEST_ZERO_LENGTH_READS = 1;
                 }
