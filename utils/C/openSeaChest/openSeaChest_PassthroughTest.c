@@ -1340,12 +1340,13 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
             for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
+                logAddress = iter / 2;
                 if (logSize > 0)
                 {
                     uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
                     if (log)
                     {
-                        if (SUCCESS == ata_Read_Log_Ext(device,logAddress,0,log,logSize * 512, false, 0))
+                        if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, logSize * 512, false, 0))
                         {
                             //now check if it's empty so we don't overwrite any data in it.
                             if (is_Empty(log, logSize * 512))
@@ -1387,6 +1388,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                                 set_Console_Colors(true, DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                             }
+                            break;
                         }
                     }
                 }
@@ -1407,6 +1409,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
             for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
+                logAddress = iter / 2;
                 if (logSize > 0)
                 {
                     uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
@@ -1426,7 +1429,9 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                         else
                         {
                             safe_Free_aligned(log);
+                            set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not compliant with multisector PIO commands\n");
+                            set_Console_Colors(true, DEFAULT);
                             if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte1(device->drive_info.IdentifyData.ata.Word047) == 0x80 && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
                             {
                                 printf("Retrying after changing the multiple mode.\n");
@@ -1453,6 +1458,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                                 printf("HACK FOUND: SPIO\n");
                                 set_Console_Colors(true, DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
+                                break;
                             }
                         }
                     }
@@ -1484,9 +1490,13 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, bool smartSupported, bool smart
 
         if (dmaReadRet != SUCCESS && udmaReadRet != SUCCESS)
         {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: NDMA\n");//Cannot issue any DMA mode commands.
+            set_Console_Colors(true, DEFAULT);
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: No possible way to issue a DMA mode command on this device.\n");
             set_Console_Colors(true, DEFAULT);
+            device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_NO_DMA;
         }
         else
         {
@@ -4109,6 +4119,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
 //TODO: Validate or check for default, changable, and saved values? Only checking current right now - TJE
 int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
+    bool successfullyReadAtLeastOnePage = false;
     bool use6Byte = false;
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==========================\n");
@@ -4186,6 +4197,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         //now save the fields we care about
         printf("Control Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.gotControlPage = true;
         scsiDevInfo->modeData.controlData.d_sense = (modeData[offset + 2] & BIT2) > 0 ? true : false;
         printf("\tD_Sense = ");
@@ -4226,6 +4238,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             }
             //now save the fields we care about
             printf("Control Extension Mode Page\n");
+            successfullyReadAtLeastOnePage = true;
             scsiDevInfo->modeData.gotControlExtensionPage = true;
             scsiDevInfo->modeData.controlExtData.maxSenseDataLength = modeData[offset + 6];
             printf("\tMaximum Sense Data Length: %" PRIu8 "\n", scsiDevInfo->modeData.controlExtData.maxSenseDataLength);
@@ -4260,6 +4273,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         //now save the fields we care about
         scsiDevInfo->modeData.gotReadWriteErrorRecoveryPage = true;
         printf("Read Write Error Recovery Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.rwErrRecData.awre = (modeData[offset + 2] & BIT7) > 0 ? true : false;
         printf("\tAutomatic Write Reallocation: ");
         if (scsiDevInfo->modeData.rwErrRecData.awre)
@@ -4310,6 +4324,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         //now save the fields we care about
         scsiDevInfo->modeData.gotCachingPage = true;
         printf("Caching Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.cachingData.wce = (modeData[offset + 2] & BIT2) > 0 ? true : false;
         printf("\tWrite Cache: ");
         if (scsiDevInfo->modeData.cachingData.wce)
@@ -4320,7 +4335,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             printf("Disabled\n");
         }
-        if (pageLength >= 0x12) //checking this for SCSI 2 compatibility
+        if (pageLength >= 0x0A) //checking this for SCSI 2 compatibility
         {
             scsiDevInfo->modeData.cachingData.dra = (modeData[offset + 12] & BIT5) > 0 ? true : false;
             printf("\tRead Ahead: ");
@@ -4362,6 +4377,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         //now save the fields we care about
         scsiDevInfo->modeData.gotRigidDiskPage = true;
         printf("Rigid Disk Geometry Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.rigidDiskData.numberOfCylinders = M_BytesTo4ByteValue(0, modeData[offset + 2], modeData[offset + 3], modeData[offset + 4]);
         printf("\tNumber Of Cylinders: %" PRIu32 "\n", scsiDevInfo->modeData.rigidDiskData.numberOfCylinders);
         scsiDevInfo->modeData.rigidDiskData.numberOfHeads = modeData[offset + 5];
@@ -4439,6 +4455,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         //now save the fields we care about
         scsiDevInfo->modeData.gotInformationalExceptionsControlPage = true;
         printf("Informational Exceptions Control Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.infoExcepData.perf = (modeData[offset + 2] & BIT7) > 0 ? true : false;
         printf("\tPERF: ");
         if (scsiDevInfo->modeData.infoExcepData.perf)
@@ -4499,6 +4516,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         //now save the fields we care about
         scsiDevInfo->modeData.gotPowerConditionControlPage = true;
         printf("Power Condition Control Mode Page\n");
+        successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.powerConditionCtrlData.standbyY = (modeData[offset + 2] & BIT0) > 0 ? true : false;
         scsiDevInfo->modeData.powerConditionCtrlData.standbyZ = (modeData[offset + 3] & BIT0) > 0 ? true : false;
         scsiDevInfo->modeData.powerConditionCtrlData.idleA = (modeData[offset + 3] & BIT1) > 0 ? true : false;
@@ -4565,6 +4583,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 //now save the fields we care about
                 scsiDevInfo->modeData.gotPataControlPage = true;
                 printf("PATA Control Mode Page\n");
+                successfullyReadAtLeastOnePage = true;
                 scsiDevInfo->modeData.pataCtrlData.pio3 = (modeData[offset + 4] & BIT0) > 0 ? true : false;
                 scsiDevInfo->modeData.pataCtrlData.pio4 = (modeData[offset + 4] & BIT1) > 0 ? true : false;
                 scsiDevInfo->modeData.pataCtrlData.mwd0 = (modeData[offset + 4] & BIT4) > 0 ? true : false;
@@ -4606,6 +4625,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             //now save the fields we care about
             scsiDevInfo->modeData.gotATAPowerConditionPage = true;
             printf("ATA Power Condition Mode Page\n");
+            successfullyReadAtLeastOnePage = true;
             scsiDevInfo->modeData.ataPwrConditionData.apmp = (modeData[offset + 5] & BIT0) > 0 ? true : false;
             printf("\tAPMP: ");
             if (scsiDevInfo->modeData.ataPwrConditionData.apmp)
@@ -4648,6 +4668,17 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         scsiDevInfo->modeData.gotVendorUniquePage0 = true;
         printf("Vendor Specific Mode Page 0\n");
         //just saving that we did get this page. Nothing else is needed if this worked.
+    }
+    if (!successfullyReadAtLeastOnePage)
+    {
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: NMP\n");
+        device->drive_info.passThroughHacks.scsiHacks.noModePages = true;
+        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, WARNING_COLOR);
+        printf("WARNING: This device does not seem to support any standard mode pages. Multiple pages were attempted, but none were read successfully.\n");
+        set_Console_Colors(true, DEFAULT);
+        return NOT_SUPPORTED;
     }
     safe_Free_aligned(modeData);
     return SUCCESS;
@@ -5865,6 +5896,10 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             print_Sense_Fields(&senseData);
             printf("\n");
         }
+        device->drive_info.passThroughHacks.scsiHacks.noLogPages = true;
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: NLP\n");
+        set_Console_Colors(true, DEFAULT);
     }
     return SUCCESS;
 }
@@ -6192,7 +6227,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
     return SUCCESS;
 }
 
-int scsi_Error_Handling_Test(tDevice *device)
+int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGood)
 {
     if (!device)
     {
@@ -6265,26 +6300,95 @@ int scsi_Error_Handling_Test(tDevice *device)
         averageFromBadCommands += commandTimes[badIter];
     }
 
+    double xTimesHigher = (double)averageFromBadCommands / (double)averageCommandTimeNS;
+    if (badCommandRelativeTimeToGood)
+    {
+        *badCommandRelativeTimeToGood = xTimesHigher;
+    }
+
     printf("Testing complete.\n");
     printf("\tTotal Commands Tried: %" PRIu8 "\n", totalCmds);
     printf("\tAverage return time from bad commands: %" PRIu64 " nanoseconds\n", averageFromBadCommands);
+    printf("\tCommand time ratio (bad compared to good): %0.02f\n", xTimesHigher);
 
-    if (ret == COMMAND_TIMEOUT || averageFromBadCommands > (2 *averageCommandTimeNS))
+    if (ret == COMMAND_TIMEOUT || xTimesHigher > 3.0)//2 is pretty bad, but not uncommon, so moved up to 3.0 to be a little conservative. Don't want or need to enable this on everything. - TJE
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
-        double xTimesHigher = (double)averageFromBadCommands / (double)averageCommandTimeNS;
-        if (xTimesHigher > 2.0)
-        {
-            set_Console_Colors(true, HACK_COLOR);
-            printf("HACK FOUND: TURF\n");
-            set_Console_Colors(true, DEFAULT);
-            device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
-            scsi_Test_Unit_Ready(device, NULL);
-        }
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: TURF%0.0f\n", xTimesHigher);
+        set_Console_Colors(true, DEFAULT);
+        device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
+        scsi_Test_Unit_Ready(device, NULL);
     }
 
     return SUCCESS;
+}
+
+int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool sctSupported)
+{
+    if (!device)
+    {
+        return BAD_PARAMETER;
+    }
+    set_Console_Colors(true, HEADING_COLOR);
+    printf("\n============\n");
+    printf("SCT-GPL Test\n");
+    printf("============\n");
+    set_Console_Colors(true, DEFAULT);
+    if (sctSupported && smartSupported && gplSupported)
+    {
+        uint8_t sctStatus[512] = { 0 };
+        printf("This test tries reading the SCT status log with SMART and GPL commands.\n");
+        printf("This is done to test if one of these causes a SATL to hang as has been seen in the past.\n");
+        printf("If this test hangs the device, it will need to be unplugged and the tool rerun without the sctgpl test.\n");
+        printf("If the device hangs, the additional hack \"SCTSM\" must be used with this device for full functionality.\n");
+
+        //SMART first
+        printf("\tTesting with SMART read log\n");
+        if (SUCCESS == ata_SMART_Read_Log(device, ATA_SCT_COMMAND_STATUS, sctStatus, 512))
+        {
+            printf("\t    Successfully read SCT status with SMART Read Log!\n");
+        }
+        else
+        {
+            set_Console_Colors(true, ERROR_COLOR);
+            printf("ERROR: Something went wrong trying to read the SCT status log!!!\n");
+            set_Console_Colors(true, DEFAULT);
+        }
+        //now GPL
+        printf("\tTesting with read log ext\n");
+        if (SUCCESS == ata_Read_Log_Ext(device, ATA_SCT_COMMAND_STATUS, 0, sctStatus, 512, device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA && device->drive_info.ata_Options.readLogWriteLogDMASupported ? true : false, 0))
+        {
+            printf("\t    Successfully read SCT status with Read Log Ext!\n");
+        }
+        else
+        {
+            set_Console_Colors(true, ERROR_COLOR);
+            printf("ERROR: Something went wrong trying to read the SCT status log!!!\n");
+            set_Console_Colors(true, DEFAULT);
+        }
+        return SUCCESS;
+    }
+    else
+    {
+        printf("Skipping SCTGPL test because device does not support features required for this test.\n");
+        printf("\t");
+        if (!sctSupported)
+        {
+            printf("(SCT Not Supported) ");
+        }
+        if (!smartSupported)
+        {
+            printf("(SMART Not Supported) ");
+        }
+        if (!gplSupported)
+        {
+            printf("(GPL Not Supported) ");
+        }
+        printf("\n");
+    }
+    return NOT_SUPPORTED;
 }
 
 bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
@@ -6428,9 +6532,9 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         {
             inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported = true;
         }
-        if ((inputs->device->drive_info.IdentifyData.ata.Word087 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT5)
+        if ((inputs->device->drive_info.IdentifyData.ata.Word087 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT5)
                 ||
-                (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT5))
+                (inputs->device->drive_info.IdentifyData.ata.Word084 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT5))
         {
             inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported = true;
         }
@@ -6464,16 +6568,24 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
 
         bool smartSupported = false;
         bool smartLoggingSupported = false;
+        bool sctSupported = false;
         if ((inputs->device->drive_info.IdentifyData.ata.Word082 != 0 && inputs->device->drive_info.IdentifyData.ata.Word082 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word082 & BIT0)
              && 
              (inputs->device->drive_info.IdentifyData.ata.Word085 != 0 && inputs->device->drive_info.IdentifyData.ata.Word085 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word085 & BIT0)
              )
         {
             smartSupported = true;
-            if ((inputs->device->drive_info.IdentifyData.ata.Word084 & BIT15 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT0))
+            if ((inputs->device->drive_info.IdentifyData.ata.Word084 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT0)
+                ||
+                (inputs->device->drive_info.IdentifyData.ata.Word087 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT0)
+                )
             {
                 smartLoggingSupported = true;
             }
+        }
+        if (inputs->device->drive_info.IdentifyData.ata.Word206 != 0 && inputs->device->drive_info.IdentifyData.ata.Word206 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word206 & BIT0)
+        {
+            sctSupported = true;
         }
 
         if (inputs->device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA)
@@ -6520,6 +6632,12 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         {
             return_Response_Info_Test(inputs->device, smartSupported, smartLoggingSupported, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.returnResponseInforWithoutTdir ? true : false);
         }
+
+        if (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.sctLogWithGPL)
+        {
+            sct_GPL_Test(inputs->device, smartSupported, inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported, sctSupported);
+        }
+
 
         set_Console_Colors(true, HEADING_COLOR);
         printf("\n====================================\n");
@@ -6794,7 +6912,8 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         scsi_Log_Information(inputs->device, &scsiInformation);
 
         //now perform a test to check the device error handling. Some have poor error handling and time to report errors grows with each command slowing the whole device down.
-        scsi_Error_Handling_Test(inputs->device);
+        double relativeCommandProcessingPerformance = 0;
+        scsi_Error_Handling_Test(inputs->device, &relativeCommandProcessingPerformance);
         
         //3. Start checking for SAT or VS NVMe passthrough, unless given information to use a different passthrough.
         //TODO: Make sure to do this only for direct access block devices OR zoned block devices
@@ -6883,7 +7002,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 }
             }
         }
-
+        printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
 
         //low-level OS device VID/PID/REV as available
         if(inputs->device->drive_info.adapter_info.infoType != ADAPTER_INFO_UNKNOWN)
@@ -6937,7 +7056,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line option to make sure everything functions optimally.
         if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
         {
-            printf("\t\tTURF\n");
+            printf("\t\tTURF%0.0f\n", relativeCommandProcessingPerformance);
         }
         printf("\tSCSI Hacks:\n");
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
@@ -6948,19 +7067,19 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw6)
             {
-                printf("\t\tR6\n");
+                printf("\t\tRW6\n");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw10)
             {
-                printf("\t\tR10\n");
+                printf("\t\tRW10\n");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw12)
             {
-                printf("\t\tR12\n");
+                printf("\t\tRW12\n");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw16)
             {
-                printf("\t\tR16\n");
+                printf("\t\tRW16\n");
             }
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModePages)
@@ -6999,60 +7118,93 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             printf("\t\tSECPROTI512\n");
         }
+        if (inputs->testPotentiallyDeviceHangingCommands)
+        {
+            if (!inputs->hangCommandsToTest.zeroLengthReads)
+            {
+                set_Console_Colors(true, LIKELY_HACK_COLOR);
+                printf("\t\tNORWZ");
+                set_Console_Colors(true, DEFAULT);
+            }
+        }
         //////////////////////////////////////////////////////////////////////////////// 
         //TODO: if NVMe don't show this, but rather NVMe specific things. 
-        printf("\tATA Hacks:\n");
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.smartCommandTransportWithSMARTLogCommandsOnly)
+        if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)))
         {
-            printf("\t\tSM\n");
+            printf("\tATA Hacks:\n");
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.smartCommandTransportWithSMARTLogCommandsOnly)
+            {
+                printf("\t\tSCTSM\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible)
+            {
+                printf("\t\tA1\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
+            {
+                printf("\t\tNA1\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
+            {
+                printf("\t\tRS\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
+            {
+                printf("\t\tRSTD\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
+            {
+                printf("\t\tRSIE\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
+            {
+                printf("\t\tTPSIU\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
+            {
+                printf("\t\tCHK\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
+            {
+                printf("\t\tFDMA\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs)
+            {
+                printf("\t\tPARTRTFR\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.noRTFRsPossible)
+            {
+                printf("\t\tNORTFR\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
+            {
+                printf("\t\tMMPIO\n");
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+            {
+                printf("\t\tSPIO\n");
+            }
+            if (inputs->device->drive_info.ata_Options.dmaMode == ATA_DMA_MODE_NO_DMA)
+            {
+                printf("\t\tNDMA\n");
+            }
+            else if (inputs->device->drive_info.ata_Options.dmaMode < ATA_DMA_MODE_UDMA)
+            {
+                printf("\t\tFDMA\n");
+            }
+            if (inputs->testPotentiallyDeviceHangingCommands)
+            {
+                if (!inputs->hangCommandsToTest.sctLogWithGPL)
+                {
+                    set_Console_Colors(true, LIKELY_HACK_COLOR);
+                    printf("\t\tSCTSM - please retest to ensure that reading the SCT status log with GPL commands is indeed a necessary hack");
+                    set_Console_Colors(true, DEFAULT);
+                }
+            }
         }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible)
+        else
         {
-            printf("\t\tA1\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
-        {
-            printf("\t\tNA1\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
-        {
-            printf("\t\tRS\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
-        {
-            printf("\t\tRSTD\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
-        {
-            printf("\t\tRSIE\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
-        {
-            printf("\t\tTPSIU\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
-        {
-            printf("\t\tCHK\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
-        {
-            printf("\t\tFDMA\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs)
-        {
-            printf("\t\tPARTRTFR\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.noRTFRsPossible)
-        {
-            printf("\t\tNORTFR\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
-        {
-            printf("\t\tMMPIO\n");
-        }
-        if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
-        {
-            printf("\t\tSPIO\n");
+            printf("\t\tNOPT\n");
         }
         printf("\nRecommendations For Device Makers:\n");
         //Add recommendations based on the hacks to improve in future products
