@@ -1055,8 +1055,9 @@ int32_t main(int argc, char *argv[])
     exit(exitCode);
 }
 
-void return_Response_Extend_Bit_Test(tDevice *device)
+int return_Response_Extend_Bit_Test(tDevice *device)
 {
+    int ret = NOT_SUPPORTED;
     //Do additional command testing to check if the extend bit is reported correctly or not.
     //This obviously requires a 48bit drive and support for a command such as reading the native max LBA
     if (device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported)
@@ -1102,6 +1103,7 @@ void return_Response_Extend_Bit_Test(tDevice *device)
                     {
                         printf("RTFRs returned correctly and extend bit appears to work properly.\n");
                     }
+                    ret = SUCCESS;
                 }
                 else if (!device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
                 {
@@ -1109,8 +1111,12 @@ void return_Response_Extend_Bit_Test(tDevice *device)
                     //Try enabling this and retry this test.
                     device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit = true;
                     device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs = false;//Turn this off in case it was set earlier by another test.
-                    return_Response_Extend_Bit_Test(device);
-                    return;
+                    ret = return_Response_Extend_Bit_Test(device);
+                    if (ret != SUCCESS)
+                    {
+                        device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit = false;
+                    }
+                    return ret;
                 }
                 else
                 {
@@ -1132,8 +1138,12 @@ void return_Response_Extend_Bit_Test(tDevice *device)
                     device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit = true;
                     device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs = false;//Turn this off in case it was set earlier by another test.
                     printf("Received warning the RTFRs are incomplete. Will retry ignoring the extend bit to see if this helps.\n");
-                    return_Response_Extend_Bit_Test(device);
-                    return;
+                    ret = return_Response_Extend_Bit_Test(device);
+                    if (ret != SUCCESS)
+                    {
+                        device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit = false;
+                    }
+                    return ret;
                 }
                 else
                 {
@@ -1151,7 +1161,7 @@ void return_Response_Extend_Bit_Test(tDevice *device)
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Command failure while trying to perform RTFR return response info test.\n");
                 set_Console_Colors(true, DEFAULT);
-                return;
+                return FAILURE;
             }
         }
     }
@@ -1163,7 +1173,7 @@ void return_Response_Extend_Bit_Test(tDevice *device)
         printf("      with a device that supports 48bit commands so that this can be tested properly\n");
         set_Console_Colors(true, DEFAULT);
     }
-    return;
+    return ret;
 }
 
 void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddress, uint32_t logSize)
@@ -1640,7 +1650,12 @@ void return_Response_Info_Test(tDevice *device, bool smartSupported, bool smartL
     if (device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
     {
         //call this function for the test since it can be called recursively to retry the test if it needs to be.
+        bool partRTFR = device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs;
         return_Response_Extend_Bit_Test(device);
+        if (partRTFR && !device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
+        {
+            device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs = partRTFR;
+        }
     }
 }
 
@@ -6315,8 +6330,9 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
+        device->drive_info.passThroughHacks.turfValue = (uint8_t)round(xTimesHigher);
         set_Console_Colors(true, HACK_COLOR);
-        printf("HACK FOUND: TURF%0.0f\n", xTimesHigher);
+        printf("HACK FOUND: TURF%" PRIu8 "\n", device->drive_info.passThroughHacks.turfValue);
         set_Console_Colors(true, DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         scsi_Test_Unit_Ready(device, NULL);
@@ -7056,7 +7072,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line option to make sure everything functions optimally.
         if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
         {
-            printf("\t\tTURF%0.0f\n", relativeCommandProcessingPerformance);
+            printf("\t\tTURF%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue );
         }
         printf("\tSCSI Hacks:\n");
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
