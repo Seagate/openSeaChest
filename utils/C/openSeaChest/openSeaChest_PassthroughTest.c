@@ -6341,7 +6341,7 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
     else if (averageFromBadCommands == 0 || ret == OS_PASSTHROUGH_FAILURE)
     {
         set_Console_Colors(true, LIKELY_HACK_COLOR);
-        printf("HACK FOUND: TURF%" PRIu8 "\n", TURF_LIMIT * 2);
+        printf("Likely HACK FOUND: TURF%" PRIu8 "\n", 33);//setting 33...this should be sooo much higher and worse that this should remain true for a long long time.
         set_Console_Colors(true, DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         scsi_Test_Unit_Ready(device, NULL);
@@ -7388,7 +7388,7 @@ int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiRepor
 int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
 {
     int ret = SUCCESS;
-    printf("Performing Passthrough test. \n");
+    printf("Performing Pass-through test. \n");
     printf("If at any point during the test, a crash, a hang, or the device\n");
     printf("seems to stop responding to any normal request, save all previously\n");
     printf("reported hacks, stop the tool, reset the device, then restart\n");
@@ -7404,8 +7404,9 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //step 1, check if already in the code database.
         if (setup_Passthrough_Hacks_By_ID(inputs->device) && !inputs->forceRetest)
         {
-            printf("This device is already in the database with known passthrough hacks.\n");
-            printf("Use the --%s option to force a retest of passthrough hacks already known.\n", "--retestHacks");
+            printf("This device is already in the database with known pass-through hacks.\n");
+            printf("Use the --%s option to force a retest of pass-through hacks already known.\n", "--retestHacks");
+            return SUCCESS;
         }
         //2. Check what things the device reports for SCSI capabilities, SAT VPD page, etc. Emit warnings for pages that are missing that were expected
         printf("Checking standard SCSI inquiry data, VPD pages, and some mode pages\n");
@@ -7575,9 +7576,13 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line option to make sure everything functions optimally.
         if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
         {
-            printf("\t\tTURF%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue );
+            printf("\t\tTURF:%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue);
         }
         printf("\tSCSI Hacks:\n");
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
+        {
+            printf("\t\tMXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+        }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
         {
             printf("\t\tUNA\n");
@@ -7651,6 +7656,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)))
         {
             printf("\tATA Hacks:\n");
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength < (MAX_ATA_SECTORS_TO_TEST * inputs->device->drive_info.bridge_info.childDeviceBlockSize))
+            {
+                printf("\t\tMPTXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
+            }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.smartCommandTransportWithSMARTLogCommandsOnly)
             {
                 printf("\t\tSCTSM\n");
