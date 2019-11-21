@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "0.0.1";
+const char *buildVersion = "0.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -7846,12 +7846,54 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         #endif
         if (scsiInformation.vpdData.gotBlockLimitsVPDPage)
         {
-            if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < scsiInformation.vpdData.blockLimitsData.maximumXferLen)
+            if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (scsiInformation.vpdData.blockLimitsData.maximumXferLen * inputs->device->drive_info.deviceBlockSize))
             {
                 printf("%" PRIu8 "\tThe maximum transfer length is less than was reported by the block limits VPD page!\n", recommendationCounter);
                 printf("\tThis page should report the maximum transfer length supported by the SCSI device or SCSI translator\n");
                 printf("\tThis should be a true maximum. If this seems low, retest on another OS to ensure it is not a\n");
-                printf("\tlimitation on a specific OS. For example, it's fairly common to be limited to 64k in Windows.\n");
+                printf("\tlimitation on a specific OS. For example, it is fairly common to be limited to 64k in Windows.\n");
+                ++recommendationCounter;
+            }
+        }
+        if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)))
+        {
+            //ATA pass-through specific recommendations, if any.
+            if (inputs->device->drive_info.ata_Options.dmaMode == ATA_DMA_MODE_NO_DMA)
+            {
+                if (inputs->device->drive_info.ata_Options.dmaSupported || inputs->device->drive_info.ata_Options.downloadMicrocodeDMASupported || inputs->device->drive_info.ata_Options.readBufferDMASupported || inputs->device->drive_info.ata_Options.readLogWriteLogDMASupported || inputs->device->drive_info.ata_Options.writeBufferDMASupported)
+                {
+                    printf("%" PRIu8 "\tThis device has no way to passthrough DMA mode commands. This should be fixed as DMA mode\n", recommendationCounter);
+                    printf("\tprovides better performance, and on some devices is necessary to get some data due to PIO issues.\n");
+                    printf("\tDMA passthrough should be available on the device.\n");
+                    ++recommendationCounter;
+                }
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
+            {
+                printf("%" PRIu8 "\tThis device has a problem issuing PIO commands. The workaround is to set the multiple mode,\n", recommendationCounter);
+                printf("\tbut this issue should be resolved by the driver/translator. This is likely a problem where it is assumed\n");
+                printf("\tthat all PIO transfers will be single sectors, which is an incorrect assumption, and the device does not\n");
+                printf("\tproperly handle the interrupts/PIO setup FISs between each sector of data being transferred.\n");
+                printf("\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read logs or update firmware.\n");
+                printf("\tMulti-sector PIO transfers should be supported without this workaround, which may still be restrictive\n");
+                printf("\tfor some cases. Multiple mode has been removed from newer ATA specifications, so this needs supported without\n");
+                printf("\tthis workaround.\n");
+                ++recommendationCounter;
+            }
+            else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+            {
+                printf("%" PRIu8 "\tThis device can only issue single sector PIO commands. This is an issue as many logs are read\n", recommendationCounter);
+                printf("\tusing SMART read log or Read Log Ext for multiple 512B pages at a time. These will not be accessible on this\n");
+                printf("\tdevice. It is also an issue as device firmware may not be upgradeable since that is also a multiple sector transfer\n");
+                printf("\tthat is nearly always PIO mode as the DMA mode command in not often supported.\n");
+                printf("\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read logs or update firmware.\n");
+                ++recommendationCounter;
+            }
+            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly && inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported)
+            {
+                printf("%" PRIu8 "\tThis device can only issue 28bit commands, but supports 48bit addressing.\n", recommendationCounter);
+                printf("\tThis means loss of capability through pass-through and needs to be resolved to allow\n");
+                printf("\tsending read, write, or read log ext commands to the device for more compatibility.\n");
                 ++recommendationCounter;
             }
         }
