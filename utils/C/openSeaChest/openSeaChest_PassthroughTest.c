@@ -1494,10 +1494,15 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, bool smartSupported, bool smart
     uint8_t *ptrData = (uint8_t *)calloc_aligned(dataSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     if (ptrData)
     {
+        bool use48 = device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported;
+        if (device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly)
+        {
+            use48 = false;
+        }
         device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
-        int dmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported);
+        int dmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
         device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
-        int udmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported);
+        int udmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
 
         if (dmaReadRet != SUCCESS && udmaReadRet != SUCCESS)
         {
@@ -6682,6 +6687,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
     bool satSupported = false;
     bool twelveByteSupported = false;
     bool sixteenByteSupported = false;
+    bool doNotRetry16BSAT = false;
     //try A1h first to see if it works, then try 85h.
     inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
     inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
@@ -6695,13 +6701,21 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         twelveByteSupported = true;
     }
     inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = false;
-    satRet = ata_Identify(inputs->device, identifyData, 512);
+    satRet = ata_Identify(inputs->device, identifyData, 512);//NOTE: On some devices this will fail because for some stupid reason, these devices will only issue a 48bit command with 16B commands and reject others...no idea why-TJE
     if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
     {
         //TODO: Validate Identify data!
         printf("SAT 16-byte passthrough supported\n");
         satSupported = true;
         sixteenByteSupported = true;
+    }
+    else
+    {
+        //check the sense data for invalid op code
+        if (does_Sense_Data_Show_Invalid_OP(inputs->device))
+        {
+            doNotRetry16BSAT = true;
+        }
     }
     if (satSupported)
     {
@@ -6719,13 +6733,6 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             set_Console_Colors(true, DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = true;
         }
-        if (twelveByteSupported && !sixteenByteSupported)
-        {
-            set_Console_Colors(true, HACK_COLOR);
-            printf("HACK FOUND: ATA28\n");
-            set_Console_Colors(true, DEFAULT);
-            inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
-        }
         //Test TPSIU support
         inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
         satRet = ata_Identify(inputs->device, identifyData, 512);
@@ -6741,10 +6748,51 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             //send identify again to get the identify data populated again in the buffer
             satRet = ata_Identify(inputs->device, identifyData, 512);
         }
+
         bool smartSupported = false;
         bool smartLoggingSupported = false;
         bool sctSupported = false;
         setup_ATA_ID_Info(inputs, &smartSupported, &smartLoggingSupported, &sctSupported);
+
+        //Some devices only support 16B commands to send 48 bit commands (don't set the extend bit???)
+        //Testing one more time for this here.
+        if (!sixteenByteSupported && !doNotRetry16BSAT)
+        {
+            //Test with a read log ext or read ext or something like that - TJE
+            if (inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported &&
+                inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported)
+            {
+                uint8_t data[512] = { 0 };
+                int retrySAT16 = ata_Read_Log_Ext(inputs->device, ATA_LOG_DIRECTORY, 0, data, 512, false, 0);
+                if(retrySAT16 == SUCCESS)
+                {
+                    printf("SAT 16-byte passthrough supported, but only for 48bit commands!\n");
+                    satSupported = true;
+                    sixteenByteSupported = true;
+                }
+                else
+                {
+                    if (does_Sense_Data_Show_Invalid_OP(inputs->device))
+                    {
+                        doNotRetry16BSAT = true;
+                    }
+                }
+            }
+        }
+        else if (!sixteenByteSupported && inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported)
+        {
+            set_Console_Colors(true, WARNING_COLOR);
+            printf("WARNING: This device is not able to pass-through 48 bit (extended) commands!\n");
+            set_Console_Colors(true, DEFAULT);
+        }
+
+        if (twelveByteSupported && !sixteenByteSupported)
+        {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: ATA28\n");
+            set_Console_Colors(true, DEFAULT);
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
+        }
 
         if (inputs->device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA)
         {
@@ -7153,7 +7201,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
     }
     else //synchronous reads
     {
-        if (device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported)
+        if (device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported && !device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly)
         {
             //use 48bit commands by default
             if (sectors > 65536)
