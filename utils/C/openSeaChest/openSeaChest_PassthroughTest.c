@@ -1978,6 +1978,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         printf("WARNING: Supported VPD pages length seems suspiciously large!\n");
         set_Console_Colors(true, DEFAULT);
     }
+    uint16_t pagesread = 0;
     //TODO: validate peripheral qualifier and peripheral device type on every page with std inquiry data
     for (uint16_t vpdIter = 4; vpdIter < (supportedVPDPagesLength + 4) && vpdIter < INQ_RETURN_DATA_LENGTH; vpdIter++)
     {
@@ -2008,6 +2009,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     else
                     {
                         readVPDPage = true;
+                        ++pagesread;
                     }
                 }
                 else if (!dummiedPages)
@@ -3528,6 +3530,13 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         safe_Free_aligned(pageToRead);
     }
+    if (pagesread <= 1 && dummiedPages)//less than or equal to 1 because it is possible that the only suppored page is the unit serial number!
+    {
+        set_Console_Colors(true, HACK_COLOR);
+        printf("HACK FOUND: NVPD\n");
+        set_Console_Colors(true, DEFAULT);
+        device->drive_info.passThroughHacks.scsiHacks.noVPDPages = true;
+    }
 }
 
 int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
@@ -3722,6 +3731,10 @@ int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             printf("         report in this format. Raw output is provided which may be usable\n");
             printf("         if needed for better legacy device support.\n");
             set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: PRESCSI2\n");
+            set_Console_Colors(true, DEFAULT);
+            device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData = true;
             print_Data_Buffer(inqPtr, totalInqLength, true);
         }
         else
@@ -5895,7 +5908,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 print_Data_Buffer(pageToRead, logPageLength, true);
             }
-            safe_Free(pageToRead);
+            safe_Free_aligned(pageToRead);
         }
     }
     else
@@ -6373,6 +6386,7 @@ int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool s
     set_Console_Colors(true, DEFAULT);
     if (sctSupported && smartSupported && gplSupported)
     {
+        bool smartWorked = false;
         uint8_t sctStatus[512] = { 0 };
         printf("This test tries reading the SCT status log with SMART and GPL commands.\n");
         printf("This is done to test if one of these causes a SATL to hang as has been seen in the past.\n");
@@ -6384,6 +6398,7 @@ int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool s
         if (SUCCESS == ata_SMART_Read_Log(device, ATA_SCT_COMMAND_STATUS, sctStatus, 512))
         {
             printf("\t    Successfully read SCT status with SMART Read Log!\n");
+            smartWorked = true;
         }
         else
         {
@@ -6399,6 +6414,16 @@ int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool s
         }
         else
         {
+            if (smartWorked)
+            {
+                set_Console_Colors(true, HACK_COLOR);
+                printf("HACK FOUND: SCTSM\n");
+                set_Console_Colors(true, DEFAULT);
+                printf("\t\tA retest is recommended with this test turned off. Devices with this hack\n");
+                printf("\t\toften do not recover properly and need a full power cycle once this issue is\n");
+                printf("\t\ttested and identified.\n");
+                device->drive_info.passThroughHacks.ataPTHacks.smartCommandTransportWithSMARTLogCommandsOnly = true;
+            }
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Something went wrong trying to read the SCT status log!!!\n");
             set_Console_Colors(true, DEFAULT);
@@ -6661,18 +6686,27 @@ void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bo
         (inputs->device->drive_info.IdentifyData.ata.Word085 != 0 && inputs->device->drive_info.IdentifyData.ata.Word085 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word085 & BIT0)
         )
     {
-        *smartSupported = true;
+        if (smartSupported)
+        {
+            *smartSupported = true;
+        }
         if ((inputs->device->drive_info.IdentifyData.ata.Word084 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word084 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word084 & BIT0)
             ||
             (inputs->device->drive_info.IdentifyData.ata.Word087 & BIT14 && inputs->device->drive_info.IdentifyData.ata.Word087 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word087 & BIT0)
             )
         {
-            *smartLoggingSupported = true;
+            if (smartLoggingSupported)
+            {
+                *smartLoggingSupported = true;
+            }
         }
     }
     if (inputs->device->drive_info.IdentifyData.ata.Word206 != 0 && inputs->device->drive_info.IdentifyData.ata.Word206 != 0xFFFF && inputs->device->drive_info.IdentifyData.ata.Word206 & BIT0)
     {
-        *sctSupported = true;
+        if (sctSupported)
+        {
+            *sctSupported = true;
+        }
     }
     return;
 }
@@ -6734,13 +6768,13 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = true;
         }
         //Test TPSIU support
+        bool tpsiuIdentifySuccess = false;
         inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
         satRet = ata_Identify(inputs->device, identifyData, 512);
         if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
         {
-            set_Console_Colors(true, HACK_COLOR);
-            printf("HACK FOUND: TPSIU\n");//alwaysUseTPSIUForSATPassthrough
-            set_Console_Colors(true, DEFAULT);
+            tpsiuIdentifySuccess = true;
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
         }
         else
         {
@@ -6792,6 +6826,46 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             printf("HACK FOUND: ATA28\n");
             set_Console_Colors(true, DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
+        }
+
+        if (tpsiuIdentifySuccess)
+        {
+            //if TPSIU worked for identify, we need to try another command, a read, to ensure that it actually works for other commands.
+            //This was added after testing yet another USB bridge that did something odd and different that doesn't really work well
+            uint8_t *data = (uint8_t*)calloc_aligned(inputs->device->drive_info.deviceBlockSize * 1, sizeof(uint8_t), inputs->device->os_info.minimumAlignment);
+            if (data)
+            {
+                bool use48 = inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported;
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly)
+                {
+                    use48 = false;
+                }
+                inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
+                //Before declaring TPSIU support to be always used, additionally test a read passthrough command to see if that works. - TJE
+                //Using a PIO read command since the DMA test hasn't been performed yet. This is a single sector and should be OK to do at this point. - TJE
+                int tpsiuRet = ata_Read_Sectors(inputs->device, 0, data, 1, inputs->device->drive_info.deviceBlockSize * 1, use48);
+                if (SUCCESS == tpsiuRet && !does_Sense_Data_Show_Invalid_Field_In_CDB(inputs->device))
+                {
+                    set_Console_Colors(true, HACK_COLOR);
+                    printf("HACK FOUND: TPSIU\n");//alwaysUseTPSIUForSATPassthrough
+                    set_Console_Colors(true, DEFAULT);
+                }
+                else
+                {
+                    set_Console_Colors(true, WARNING_COLOR);
+                    printf("WARNING: TPSIU worked for identify, but doesn't work properly for other commands!\n");
+                    set_Console_Colors(true, DEFAULT);
+                    inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
+                }
+                safe_Free_aligned(data);
+            }
+            else
+            {
+                set_Console_Colors(true, WARNING_COLOR);
+                printf("WARNING: Unable to allocate memory and fully test TPSIU capability.\n");
+                set_Console_Colors(true, DEFAULT);
+                inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
+            }
         }
 
         if (inputs->device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA)
@@ -7468,6 +7542,7 @@ int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiRepor
     while(transferLengthSectors <= maxTestSizeBlocks && readResult == SUCCESS)
     {
         readResult = ata_PT_Read(device, 0, false, data, transferLengthSectors * device->drive_info.bridge_info.childDeviceBlockSize);
+        scsi_Test_Unit_Ready(device, NULL);
         if (readResult == SUCCESS)
         {
             device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength = transferLengthSectors * device->drive_info.bridge_info.childDeviceBlockSize;
@@ -7607,35 +7682,44 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         set_Console_Colors(true, DEFAULT);
         printf("Device Reported Information that may be helpful:\n");
         //MN, designators, firmware, SAT vendor etc
-        printf("\tVendor ID: %s\n", scsiInformation.inquiryData.vendorId);
-        printf("\tProduct ID: %s\n", scsiInformation.inquiryData.productId);
-        printf("\tProduct Rev: %s\n", scsiInformation.inquiryData.productRev);
-        if (scsiInformation.vpdData.unitSN)
+        if (!inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
         {
-            printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
-        }
-        if (scsiInformation.vpdData.gotSATVPDPage)
-        {
-            printf("\tSAT Vendor ID: %s\n", inputs->device->drive_info.bridge_info.t10SATvendorID);
-            printf("\tSAT Product ID: %s\n", inputs->device->drive_info.bridge_info.SATproductID);
-            printf("\tSAT Product Rev: %s\n", inputs->device->drive_info.bridge_info.SATfwRev);
-        }
-        //TODO: Designator information that might be benefitial!!!
-        if (scsiInformation.vpdData.gotDeviceIDVPDPage)
-        {
-            printf("\tDevice IDs:\n");
-            for (uint8_t iter = 0; iter < scsiInformation.vpdData.designatorCount; ++iter)
+            printf("\tVendor ID: %s\n", scsiInformation.inquiryData.vendorId);
+            printf("\tProduct ID: %s\n", scsiInformation.inquiryData.productId);
+            printf("\tProduct Rev: %s\n", scsiInformation.inquiryData.productRev);
+            if (scsiInformation.vpdData.unitSN)
             {
-                if (scsiInformation.vpdData.designators[iter].valid)
+                printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
+            }
+            if (scsiInformation.vpdData.gotSATVPDPage)
+            {
+                printf("\tSAT Vendor ID: %s\n", inputs->device->drive_info.bridge_info.t10SATvendorID);
+                printf("\tSAT Product ID: %s\n", inputs->device->drive_info.bridge_info.SATproductID);
+                printf("\tSAT Product Rev: %s\n", inputs->device->drive_info.bridge_info.SATfwRev);
+            }
+            //TODO: Designator information that might be benefitial!!!
+            if (scsiInformation.vpdData.gotDeviceIDVPDPage)
+            {
+                printf("\tDevice IDs:\n");
+                for (uint8_t iter = 0; iter < scsiInformation.vpdData.designatorCount; ++iter)
                 {
-                    printf("\t\t");
-                    for (uint8_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < 16; ++desIter)
+                    if (scsiInformation.vpdData.designators[iter].valid)
                     {
-                        printf("%02" PRIX8, scsiInformation.vpdData.designators[iter].designator[desIter]);
+                        printf("\t\t");
+                        for (uint8_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < 16; ++desIter)
+                        {
+                            printf("%02" PRIX8, scsiInformation.vpdData.designators[iter].designator[desIter]);
+                        }
+                        printf("\n");
                     }
-                    printf("\n");
                 }
             }
+        }
+        else
+        {
+            printf("\tDevice information could not be detected by this tool since it was reported in a legacy\n");
+            printf("\tvendor specific format from old SCSI or CCS (pre-SCSI2) standards. Detecting this must\n");
+            printf("\tbe done manually by specifying specific offsets at this time for optimal support.\n");
         }
         printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
 
@@ -7694,6 +7778,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\t\tTURF:%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue);
         }
         printf("\tSCSI Hacks:\n");
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
+        {
+            printf("\t\tPRESCSI2\n");
+        }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
         {
             printf("\t\tUNA\n");
@@ -7716,6 +7804,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             {
                 printf("\t\tRW16\n");
             }
+        }
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noVPDPages)
+        {
+            printf("\t\tNVPD\n");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModePages)
         {
