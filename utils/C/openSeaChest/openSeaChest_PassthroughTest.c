@@ -1380,6 +1380,10 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
                                     multi_Sector_PIO_Test(device, smartSupported, smartLoggingSupported);
+                                    if (device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+                                    {
+                                        break;
+                                    }
                                 }
                                 else
                                 {
@@ -1391,6 +1395,11 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                             {
                                 device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
                                 printf("Unable to perform test of multi-sector PIO commands\n");
+                                set_Console_Colors(true, HACK_COLOR);
+                                printf("HACK FOUND: SPIO\n");
+                                set_Console_Colors(true, DEFAULT);
+                                device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
+                                break;
                             }
                             else
                             {
@@ -1398,6 +1407,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                                 printf("HACK FOUND: SPIO\n");
                                 set_Console_Colors(true, DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
+                                break;
                             }
                             break;
                         }
@@ -1451,6 +1461,10 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
                                     multi_Sector_PIO_Test(device, smartSupported, smartLoggingSupported);
+                                    if (device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
+                                    {
+                                        break;
+                                    }
                                 }
                                 else
                                 {
@@ -1462,6 +1476,11 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                             {
                                 device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
                                 printf("Unable to perform test of multi-sector PIO commands\n");
+                                set_Console_Colors(true, HACK_COLOR);
+                                printf("HACK FOUND: SPIO\n");
+                                set_Console_Colors(true, DEFAULT);
+                                device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
+                                break;
                             }
                             else
                             {
@@ -4743,7 +4762,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: NLPS\n");
                 set_Console_Colors(true, DEFAULT);
-                device->drive_info.passThroughHacks.scsiHacks.noLogPages = true;
+                device->drive_info.passThroughHacks.scsiHacks.noLogSupPages = true;
                 printf("This device does NOT report log page subpages properly! Do not attempt to read ANY subpages as it only checks the page code!\n");
             }
             else
@@ -4780,10 +4799,11 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     else
                     {
                         set_Console_Colors(true, HACK_COLOR);
-                        printf("HACK FOUND: NLPSP\n");
+                        printf("HACK FOUND: NLPS\n");
                         set_Console_Colors(true, DEFAULT);
                         printf("This device reports success from asking for subpage list, BUT doesn't report properly\n");
                         hasSubpages = false;
+                        device->drive_info.passThroughHacks.scsiHacks.noLogSupPages = true;
                     }
                 }
                 else if (M_GETBITRANGE(supportPages[0], 5, 0) == LP_SUPPORTED_LOG_PAGES)
@@ -7816,6 +7836,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogPages)
         {
             printf("\t\tNLP\n");
+        }
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSupPages)
+        {
+            printf("\t\tNLPS\n");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.mode6bytes)
         {
