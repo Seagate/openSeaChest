@@ -7874,7 +7874,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             if (!inputs->hangCommandsToTest.zeroLengthReads)
             {
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
-                printf("\t\tNORWZ");
+                printf("\t\tNORWZ\n");
                 set_Console_Colors(true, DEFAULT);
             }
         }
@@ -7907,14 +7907,14 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
             {
                 printf("\t\tRS\n");
-            }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
-            {
-                printf("\t\tRSTD\n");
-            }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
-            {
-                printf("\t\tRSIE\n");
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
+                {
+                    printf("\t\tRSTD\n");
+                }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
+                {
+                    printf("\t\tRSIE\n");
+                }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
             {
