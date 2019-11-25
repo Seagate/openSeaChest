@@ -1938,6 +1938,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     set_Console_Colors(true, DEFAULT);
     
     uint8_t supportedPages[36] = { 0 };
+    uint8_t dummiedPageCount = 0;
     bool dummiedPages = false;
     if (SUCCESS != scsi_Inquiry(device, supportedPages, 30, SUPPORTED_VPD_PAGES, true, false))
     {
@@ -1960,17 +1961,21 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 //              ++offset;
         supportedPages[offset] = UNIT_SERIAL_NUMBER;
         ++offset;
+        ++dummiedPageCount;
         //if (version >= 3)//SPC
         {
             supportedPages[offset] = DEVICE_IDENTIFICATION;
             ++offset;
+            ++dummiedPageCount;
         }
         supportedPages[offset] = EXTENDED_INQUIRY_DATA;
         ++offset;
+        ++dummiedPageCount;
         if (scsiDevInfo->inquiryData.satVersionDescriptorFound)
         {
             supportedPages[offset] = ATA_INFORMATION;
             ++offset;
+            ++dummiedPageCount;
         }
         //if (version >= 3)//SPC
         {
@@ -1978,8 +1983,10 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 supportedPages[offset] = BLOCK_LIMITS;
                 ++offset;
+                ++dummiedPageCount;
                 supportedPages[offset] = BLOCK_DEVICE_CHARACTERISTICS;
                 ++offset;
+                ++dummiedPageCount;
             }
         }
         //TODO: dummy up other page support here
@@ -3549,7 +3556,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         safe_Free_aligned(pageToRead);
     }
-    if (pagesread <= 1 && dummiedPages)//less than or equal to 1 because it is possible that the only suppored page is the unit serial number!
+    if (pagesread <= dummiedPageCount && dummiedPages)//less than or equal to 1 because it is possible that the only suppored page is the unit serial number!
     {
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NVPD\n");
@@ -6903,7 +6910,8 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             multi_Sector_PIO_Test(inputs->device, smartSupported, smartLoggingSupported);
             if (!inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && !inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
             {
-                printf("Multi-sector PIO commands seem to work properly\n");
+                //printf("Multi-sector PIO commands seem to work properly\n");
+                //don't print anything here because it could have had a problem within the test function
             }
             else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
             {
@@ -7095,9 +7103,11 @@ bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInfo
     printf("         if you are unsure if you should proceed with the test!\n");
     for (uint8_t counter = 30; counter > 0; --counter)
     {
-        printf("%2" PRIu8 " seconds until legacy test begins\n", counter);
+        printf("\r%2" PRIu8 " seconds until legacy test begins", counter);
+        fflush(stdout);
         delay_Seconds(1);
     }
+    printf("\n");
     set_Console_Colors(true, DEFAULT);
 
     //Now that the users have been warned, it's time to try the different legacy methods until we get a successful identify command through to the device.
