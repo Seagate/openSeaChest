@@ -1574,6 +1574,7 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, bool smartSupported, bool smart
 void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
 {
     //Test check condition bit
+    printf("Testing for check condition bit support on any command\n");
     device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = true;
     //try identify first...if this doesn't even work, then we know this doesn't work
     int satRet = ata_Identify(device, (uint8_t *)&device->drive_info.IdentifyData.ata.Word000, 512);
@@ -1649,6 +1650,7 @@ void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLo
 #include "sat_helper_func.h"
 void return_Response_Info_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported, bool testWithoutTDirAllowed)
 {
+    printf("Testing for support of Return Response Info protocol\n");
     //Test return response information - TODO: May need to try issuing some command before we do this test.
     device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR = true;//Testing with this on FIRST because it is likely more compatible.
     if (SUCCESS == request_Return_TFRs_From_Device(device, &device->drive_info.lastCommandRTFRs))
@@ -4769,7 +4771,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: NLPS\n");
                 set_Console_Colors(true, DEFAULT);
-                device->drive_info.passThroughHacks.scsiHacks.noLogSupPages = true;
+                device->drive_info.passThroughHacks.scsiHacks.noLogSubPages = true;
                 printf("This device does NOT report log page subpages properly! Do not attempt to read ANY subpages as it only checks the page code!\n");
             }
             else
@@ -4810,7 +4812,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         set_Console_Colors(true, DEFAULT);
                         printf("This device reports success from asking for subpage list, BUT doesn't report properly\n");
                         hasSubpages = false;
-                        device->drive_info.passThroughHacks.scsiHacks.noLogSupPages = true;
+                        device->drive_info.passThroughHacks.scsiHacks.noLogSubPages = true;
                     }
                 }
                 else if (M_GETBITRANGE(supportPages[0], 5, 0) == LP_SUPPORTED_LOG_PAGES)
@@ -6286,6 +6288,8 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
         printf("WARNING: Default self-test is not available.\n");
         set_Console_Colors(true, DEFAULT);
     }
+
+    //TODO: add testing for diagnostic pages (try to get a list of pages)
 
     return SUCCESS;
 }
@@ -7847,7 +7851,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             printf("\t\tNLP\n");
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSupPages)
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSubPages)
         {
             printf("\t\tNLPS\n");
         }
