@@ -1144,18 +1144,6 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
     }
 }
 
-void print_SAT_12_Byte_CDB_Help(bool shortHelp)
-{
-    printf("\t--%s\n", SAT_12_BYTE_CDBS_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tThis forces the lower layer code to issue SAT spec\n");
-        printf("\t\tATA Pass-through 12 byte commands when possible instead\n");
-        printf("\t\tof 16 byte commands. By default, 16 byte commands are\n");
-        printf("\t\talways used for ATA Pass-through.\n\n");
-    }
-}
-
 void print_Firmware_Download_Help(bool shortHelp)
 {
     printf("\t--%s [firmware_filename]\t\t\t\t\n", DOWNLOAD_FW_LONG_OPT_STRING);

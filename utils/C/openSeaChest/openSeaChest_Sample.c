@@ -799,7 +799,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 

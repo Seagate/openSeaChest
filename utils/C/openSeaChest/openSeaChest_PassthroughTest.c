@@ -267,7 +267,6 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -312,7 +311,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -636,10 +634,6 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
         if (scanIgnoreCSMI)
         {
@@ -891,12 +885,6 @@ int32_t main(int argc, char *argv[])
                 }*/
                 continue;
             }
-        }
-
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
         }
 
         //check for model number match
@@ -1691,7 +1679,7 @@ typedef struct _rawDesignator
     bool valid;
     uint8_t designatorType;
     uint8_t designator[16];
-    uint8_t designatorLength;
+    uint16_t designatorLength;
 }rawDesignator;
 
 typedef struct _scsiDevInfo
@@ -2160,8 +2148,8 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     }
                     //Save the value of the designator to our array to track all reported designators
                     scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].valid = true;
-                    memcpy(&scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designator[0], &pageToRead[designatorOffset], M_Min(designatorLength, 16));
-                    scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designatorLength = designatorLength;
+                    memcpy(&scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designator[0], &pageToRead[designatorOffset], M_Min(designatorLength, UINT16_C(16)));
+                    scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designatorLength = M_Min(designatorLength, UINT16_C(16));
                     scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designatorType = designatorType;
                     ++scsiDevInfo->vpdData.designatorCount;
 
@@ -3946,7 +3934,7 @@ int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo
     {
         scsiDevInfo->readCapData.rc16MaxLBA = M_BytesTo8ByteValue(readCapacityData[0], readCapacityData[1], readCapacityData[2], readCapacityData[3], readCapacityData[4], readCapacityData[5], readCapacityData[6], readCapacityData[7]);
         scsiDevInfo->readCapData.rc16blockSize = M_BytesTo4ByteValue(readCapacityData[8], readCapacityData[9], readCapacityData[10], readCapacityData[11]);
-        scsiDevInfo->readCapData.rc16physBlockSize = power_Of_Two(M_Nibble0(readCapacityData[13])) * scsiDevInfo->readCapData.rc16blockSize;
+        scsiDevInfo->readCapData.rc16physBlockSize = (uint32_t)power_Of_Two(M_Nibble0(readCapacityData[13])) * scsiDevInfo->readCapData.rc16blockSize;
         printf("\tRead Capacity 16 data:\n");
         printf("\t\tMaxLBA: %" PRIu64 "\n", scsiDevInfo->readCapData.rc16MaxLBA);
         printf("\t\tLogical Block Size: %" PRIu32 "\n", scsiDevInfo->readCapData.rc16blockSize);
@@ -4875,7 +4863,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             if (M_GETBITRANGE(pageToRead[0], 5, 0) != pageCode)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
-                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, M_GETBITRANGE(pageToRead[0], 5, 0));
+                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, (uint8_t)M_GETBITRANGE(pageToRead[0], 5, 0));
                                 set_Console_Colors(true, DEFAULT);
                             }
                             else if (pageToRead[1] != subPageCode)
@@ -4894,7 +4882,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             if (M_GETBITRANGE(pageToRead[0], 5, 0) != pageCode)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
-                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, M_GETBITRANGE(pageToRead[0], 5, 0));
+                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, (uint8_t)M_GETBITRANGE(pageToRead[0], 5, 0));
                                 set_Console_Colors(true, DEFAULT);
                             }
                             else
@@ -6742,6 +6730,78 @@ void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bo
     return;
 }
 
+int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint8_t cdbSize)
+{
+    int ret = UNKNOWN;
+    ataPassthroughCommand identify;
+    memset(&identify, 0, sizeof(ataPassthroughCommand));
+    identify.commandType = ATA_CMD_TYPE_TASKFILE;
+    identify.commandDirection = XFER_DATA_IN;
+    identify.commadProtocol = ATA_PROTOCOL_PIO;
+    identify.tfr.SectorCount = 1;//some controllers have issues when this isn't set to 1
+    identify.tfr.DeviceHead = DEVICE_REG_BACKWARDS_COMPATIBLE_BITS;
+    identify.tfr.CommandStatus = ATA_IDENTIFY;
+    identify.ataCommandLengthLocation = ATA_PT_LEN_SECTOR_COUNT;
+    identify.ataTransferBlocks = ATA_PT_512B_BLOCKS;
+    identify.ptrData = ptrData;
+    identify.dataSize = dataSize;
+
+    switch (cdbSize)
+    {
+    case 12:
+        identify.forceCDBSize = 12;
+        break;
+    case 16:
+        identify.forceCDBSize = 16;
+        break;
+    case 32:
+        identify.forceCDBSize = 32;
+        break;
+    default:
+        break;
+    }
+
+    if (device->drive_info.ata_Options.isDevice1)
+    {
+        identify.tfr.DeviceHead |= DEVICE_SELECT_BIT;
+    }
+
+    if (VERBOSITY_COMMAND_NAMES <= device->deviceVerbosity)
+    {
+        printf("Sending ATA Identify command\n");
+    }
+    ret = ata_Passthrough_Command(device, &identify);
+
+    if (ret == SUCCESS && ptrData != (uint8_t*)&device->drive_info.IdentifyData.ata.Word000)
+    {
+        //copy the data to the device structure so that it's not (as) stale
+        memcpy(&device->drive_info.IdentifyData.ata.Word000, ptrData, sizeof(tAtaIdentifyData));
+    }
+
+    if (ret == SUCCESS)
+    {
+        if (ptrData[510] == ATA_CHECKSUM_VALIDITY_INDICATOR)
+        {
+            //we got data, so validate the checksum
+            uint32_t invalidSec = 0;
+            if (!is_Checksum_Valid(ptrData, LEGACY_DRIVE_SEC_SIZE, &invalidSec))
+            {
+                ret = WARN_INVALID_CHECKSUM;
+            }
+        }
+        else
+        {
+            //Don't do anything. This device doesn't use a checksum.
+        }
+    }
+
+    if (VERBOSITY_COMMAND_NAMES <= device->deviceVerbosity)
+    {
+        print_Return_Enum("Identify", ret);
+    }
+    return ret;
+}
+
 bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
 {
     set_Console_Colors(true, HEADING_COLOR);
@@ -6755,9 +6815,9 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
     bool doNotRetry16BSAT = false;
     //try A1h first to see if it works, then try 85h.
     inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
-    inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
+    //inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
     uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    int satRet = ata_Identify(inputs->device, identifyData, 512);
+    int satRet = sat_Test_Identify(inputs->device, identifyData, 512, 12);
     if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
     {
         //TODO: Validate Identify data!
@@ -6765,8 +6825,8 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         satSupported = true;
         twelveByteSupported = true;
     }
-    inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = false;
-    satRet = ata_Identify(inputs->device, identifyData, 512);//NOTE: On some devices this will fail because for some stupid reason, these devices will only issue a 48bit command with 16B commands and reject others...no idea why-TJE
+    inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = true;//forcing 16B command
+    satRet = sat_Test_Identify(inputs->device, identifyData, 512, 16);//NOTE: On some devices this will fail because for some stupid reason, these devices will only issue a 48bit command with 16B commands and reject others...no idea why-TJE
     if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
     {
         //TODO: Validate Identify data!
@@ -6782,6 +6842,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             doNotRetry16BSAT = true;
         }
     }
+    inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = false;//turn back off now
     if (satSupported)
     {
         if (twelveByteSupported)
@@ -6789,7 +6850,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: A1\n");//useA1SATPassthroughWheneverPossible
             set_Console_Colors(true, DEFAULT);
-            inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
+            //inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
         }
         else if (!twelveByteSupported && sixteenByteSupported)
         {
@@ -6798,6 +6859,20 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             set_Console_Colors(true, DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = true;
         }
+
+        //Testing 32B passthrough here!
+        satRet = sat_Test_Identify(inputs->device, identifyData, 512, 32);
+        if (satRet == SUCCESS)
+        {
+            printf("SAT 32-byte passthrough supported\n");
+            satSupported = true;
+        }
+        else
+        {
+            satRet = sat_Test_Identify(inputs->device, identifyData, 512, 0);
+            satSupported = true;
+        }
+
         //Test TPSIU support
         bool tpsiuIdentifySuccess = false;
         inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
@@ -7910,10 +7985,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             {
                 printf("\t\tSCTSM\n");
             }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible)
-            {
-                printf("\t\tA1\n");
-            }
+            //if (inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible)
+            //{
+            //    printf("\t\tA1\n");
+            //}
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
             {
                 printf("\t\tNA1\n");
@@ -8134,7 +8209,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
