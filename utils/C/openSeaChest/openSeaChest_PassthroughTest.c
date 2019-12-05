@@ -7993,6 +7993,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             {
                 printf("\t\tNA1\n");
             }
+            else
+            {
+                printf("\t\tA1\n");
+            }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
             {
                 printf("\t\tRS\n");
