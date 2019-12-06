@@ -6802,6 +6802,31 @@ int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint
     return ret;
 }
 
+int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
+{
+    int ret = NOT_SUPPORTED;
+    if (device->drive_info.ata_Options.generalPurposeLoggingSupported)
+    {
+        uint8_t log[512] = { 0 };
+        printf("Testing if it is possible to issue limited Ext (48bit) commands with A1 CDB\n");
+        device->drive_info.passThroughHacks.ataPTHacks.a1ExtCommandWhenPossible = true;
+        if (SUCCESS == ata_Read_Log_Ext(device, ATA_LOG_DIRECTORY, 0, log, 512, false, 0))
+        {
+            //TODO: Validate the return data???
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: A1EXT\n");
+            set_Console_Colors(true, DEFAULT);
+            ret = SUCCESS;
+        }
+        else
+        {
+            printf("\tUnable to use limited 48bit commands with A1h\n");
+            device->drive_info.passThroughHacks.ataPTHacks.a1ExtCommandWhenPossible = false;
+        }
+    }
+    return ret;
+}
+
 bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
 {
     set_Console_Colors(true, HEADING_COLOR);
@@ -6893,6 +6918,13 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         bool smartLoggingSupported = false;
         bool sctSupported = false;
         setup_ATA_ID_Info(inputs, &smartSupported, &smartLoggingSupported, &sctSupported);
+
+        //TODO: one more test to see if 48bit commands NOT setting ext register is possible/ Try something like readlogext to get the supported logs since that won't set ext registers.
+        //TODO: Skip this for PATA adapters since this may cause a problem???
+        if (!sixteenByteSupported)
+        {
+            sat_Ext_Cmd_With_A1_When_Possible_Test(inputs->device);
+        }
 
         //Some devices only support 16B commands to send 48 bit commands (don't set the extend bit???)
         //Testing one more time for this here.
