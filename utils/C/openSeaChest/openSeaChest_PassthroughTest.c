@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "0.1.0";
+const char *buildVersion = "0.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -7769,8 +7769,39 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             if (strncmp(scsiInformation.inquiryData.vendorId, "NVMe", 4) == 0 || inputs->suspectedDriveType == NVME_DRIVE) //NVMe
             {
-                printf("NVMe Pass-through testing not implemented at this time.\n");
-                inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
+                set_Console_Colors(true, HEADING_COLOR);
+                printf("\n==================================================\n");
+                printf("Checking Vendor Specific NVMe-passthrough commands\n");
+                printf("==================================================\n");
+                set_Console_Colors(true, DEFAULT);
+                //TODO: If given a specific NVMe passthrough type, only test that
+                inputs->device->drive_info.passThroughHacks.passthroughType = NVME_PASSTHROUGH_UNKNOWN;
+                if (inputs->device->drive_info.interface_type != NVME_INTERFACE)
+                {
+                    //Try sending NVMe passthrough commands to see if one works.
+                    inputs->device->drive_info.passThroughHacks.passthroughType = NVME_PASSTHROUGH_JMICRON;//first NVMe passthrough in the list
+                    while (inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN)
+                    {
+                        //Try admin identify controller until we get success or run out of passthroughs to try
+                        if (SUCCESS == nvme_Identify(inputs->device, (uint8_t*)&inputs->device->drive_info.IdentifyData.nvme.ctrl, 0, 1))
+                        {
+                            break;
+                        }
+                        ++inputs->device->drive_info.passThroughHacks.passthroughType;
+                    }
+                    switch (inputs->device->drive_info.passThroughHacks.passthroughType)
+                    {
+                    case NVME_PASSTHROUGH_JMICRON:
+                        set_Console_Colors(true, HACK_COLOR);
+                        printf("HACK FOUND: JMNVME\n");
+                        set_Console_Colors(true, DEFAULT);
+                        break;
+                    default:
+                        printf("No NVMe passthrough detected for this device!\n");
+                        break;
+                    }
+                    //TODO: Based on passthrough type, do more testing for max xferlength, etc
+                }
             }
             else if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
             {
@@ -8089,6 +8120,19 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength < (MAX_ATA_SECTORS_TO_TEST * inputs->device->drive_info.bridge_info.childDeviceBlockSize))
             {
                 printf("\t\tMPTXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
+            }
+        }
+        else if ((inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE) || (inputs->device->drive_info.passThroughHacks.passthroughType >= NVME_PASSTHROUGH_JMICRON && inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN))
+        {
+            printf("\tNVMe Hacks:\n");
+            switch (inputs->device->drive_info.passThroughHacks.passthroughType)
+            {
+            case NVME_PASSTHROUGH_JMICRON:
+                printf("\t\tJMNVME\n");
+                break;
+            default:
+                printf("\t\tNOPT\n");
+                break;
             }
         }
         else
