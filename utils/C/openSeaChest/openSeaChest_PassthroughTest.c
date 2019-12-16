@@ -7274,6 +7274,7 @@ bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInfo
         case ATA_PASSTHROUGH_TI:
             printf("TI\n");
             inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: ATA28\n");
             set_Console_Colors(true, DEFAULT);
@@ -7441,7 +7442,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                         //use PIO commands
                         //check if read multiple is supported (current # logical sectors per DRQ data block)
                         //Also, only bother with read multiple if it's a PATA drive. There isn't really an advantage to this on SATA other than backwards compatibility.
-                        if (device->drive_info.ata_Options.readWriteMultipleSupported && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock > 0 && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock <= ATA_MAX_BLOCKS_PER_DRQ_DATA_BLOCKS && device->drive_info.ata_Options.isParallelTransport)
+                        if (!device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands && device->drive_info.ata_Options.readWriteMultipleSupported && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock > 0 && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock <= ATA_MAX_BLOCKS_PER_DRQ_DATA_BLOCKS && device->drive_info.ata_Options.isParallelTransport)
                         {
                             //read multiple supported and drive is currently configured in a mode that will work.
                             if (device->drive_info.ata_Options.chsModeOnly)
@@ -7556,7 +7557,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                         //use PIO commands
                         //check if read multiple is supported (current # logical sectors per DRQ data block)
                         //Also, only bother with read multiple if it's a PATA drive. There isn't really an advantage to this on SATA other than backwards compatibility.
-                        if (device->drive_info.ata_Options.readWriteMultipleSupported && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock > 0 && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock <= ATA_MAX_BLOCKS_PER_DRQ_DATA_BLOCKS && device->drive_info.ata_Options.isParallelTransport)
+                        if (!device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands && device->drive_info.ata_Options.readWriteMultipleSupported && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock > 0 && device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock <= ATA_MAX_BLOCKS_PER_DRQ_DATA_BLOCKS && device->drive_info.ata_Options.isParallelTransport)
                         {
                             //read multiple supported and drive is currently configured in a mode that will work.
                             if (device->drive_info.ata_Options.chsModeOnly)
@@ -7796,8 +7797,23 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                         printf("HACK FOUND: JMNVME\n");
                         set_Console_Colors(true, DEFAULT);
                         break;
+                    case NVME_PASSTHROUGH_ASMEDIA_BASIC:
+                        set_Console_Colors(true, HACK_COLOR);
+                        printf("HACK FOUND: ASMNVMEBASIC\n");
+                        printf("HACK FOUND: IDGLP\n");
+                        set_Console_Colors(true, DEFAULT);
+                        inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedPassthroughCapabilities = true;
+                        inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController = true;
+                        inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace = true;
+                        inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.getLogPage = true;
+                        break;
+                    case NVME_PASSTHROUGH_ASMEDIA:
+                        set_Console_Colors(true, HACK_COLOR);
+                        printf("HACK FOUND: ASMNVME\n");
+                        set_Console_Colors(true, DEFAULT);
+                        break;
                     default:
-                        printf("No NVMe passthrough detected for this device!\n");
+                        printf("No NVMe pass-through detected for this device!\n");
                         break;
                     }
                     //TODO: Based on passthrough type, do more testing for max xferlength, etc
@@ -8039,7 +8055,30 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)))
         {
             printf("\tATA Hacks:\n");
-            //TODO: for legacy ATA passthrough, need to print out the passthrough type
+            switch (inputs->device->drive_info.passThroughHacks.passthroughType)
+            {
+            case ATA_PASSTHROUGH_SAT:
+                printf("\t\tSAT\n");
+                break;
+            case ATA_PASSTHROUGH_CYPRESS:
+                printf("\t\tAPTCYPRESS\n");
+                break;
+            case ATA_PASSTHROUGH_PROLIFIC:
+                printf("\t\tAPTPROLIFIC\n");
+                break;
+            case ATA_PASSTHROUGH_TI:
+                printf("\t\tAPTTI\n");
+                break;
+            case ATA_PASSTHROUGH_NEC:
+                printf("\t\tAPTNEC\n");
+                break;
+            case ATA_PASSTHROUGH_PSP:
+                printf("\t\tAPTPSP\n");
+                break;
+            default:
+                printf("\t\tNOPT\n");
+                break;
+            }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly)
             {
                 printf("\t\tATA28\n");
@@ -8052,33 +8091,36 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             //{
             //    printf("\t\tA1\n");
             //}
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
+            if (inputs->device->drive_info.passThroughHacks.passthroughType == ATA_PASSTHROUGH_SAT)
             {
-                printf("\t\tNA1\n");
-            }
-            else
-            {
-                printf("\t\tA1\n");
-            }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
-            {
-                printf("\t\tRS\n");
-                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
                 {
-                    printf("\t\tRSTD\n");
+                    printf("\t\tNA1\n");
                 }
-                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
+                else
                 {
-                    printf("\t\tRSIE\n");
+                    printf("\t\tA1\n");
                 }
-            }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
-            {
-                printf("\t\tTPSIU\n");
-            }
-            if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
-            {
-                printf("\t\tCHK\n");
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
+                {
+                    printf("\t\tRS\n");
+                    if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
+                    {
+                        printf("\t\tRSTD\n");
+                    }
+                    if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
+                    {
+                        printf("\t\tRSIE\n");
+                    }
+                }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
+                {
+                    printf("\t\tTPSIU\n");
+                }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
+                {
+                    printf("\t\tCHK\n");
+                }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
             {
@@ -8095,6 +8137,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
             {
                 printf("\t\tMMPIO\n");
+            }
+            else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands)
+            {
+                printf("\t\tNOMMPIO\n");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
             {
@@ -8122,7 +8168,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 printf("\t\tMPTXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
             }
         }
-        else if ((inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE) || (inputs->device->drive_info.passThroughHacks.passthroughType >= NVME_PASSTHROUGH_JMICRON && inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN))
+        else if ((inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType == NVME_DRIVE) || (inputs->device->drive_info.passThroughHacks.passthroughType >= NVME_PASSTHROUGH_JMICRON && inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN))
         {
             printf("\tNVMe Hacks:\n");
             switch (inputs->device->drive_info.passThroughHacks.passthroughType)
@@ -8130,9 +8176,27 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             case NVME_PASSTHROUGH_JMICRON:
                 printf("\t\tJMNVME\n");
                 break;
+            case NVME_PASSTHROUGH_ASMEDIA_BASIC:
+                printf("\t\tASMNVMEBASIC\n");
+                break;
+            case NVME_PASSTHROUGH_ASMEDIA:
+                printf("\t\tASMNVME\n");
+                break;
             default:
                 printf("\t\tNOPT\n");
                 break;
+            }
+            if (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedPassthroughCapabilities)
+            {
+                printf("\t\tLIMPT\n");
+                if (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.getLogPage &&
+                    (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyGeneric ||
+                      (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController && inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace)
+                     )
+                   )
+                {
+                    printf("\t\tIDGLP\n");
+                }
             }
         }
         else
