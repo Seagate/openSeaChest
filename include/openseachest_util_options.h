@@ -400,7 +400,7 @@ extern "C"
 
     #define GET_NVME_LOG_IDENTIFIER nvmeGetLogPage
     #define GET_NVME_LOG_VAR int32_t GET_NVME_LOG_IDENTIFIER = -1;
-    #define GET_NVME_LOG_LONG_OPT_STRING "getLogPage"
+    #define GET_NVME_LOG_LONG_OPT_STRING "getNvmeLogPage"
     #define GET_NVME_LOG_LONG_OPT { GET_NVME_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG  clearpciecorrectableerrors
