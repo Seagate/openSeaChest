@@ -361,7 +361,7 @@ extern "C"
 
     #define OUTPUT_MODE_IDENTIFIER outputMode
     #define OUTPUT_MODE_VAR eOutputMode OUTPUT_MODE_IDENTIFIER = 0;
-    #define OUTPUT_MODE_LONG_OPT_STRING "outputMode"
+    #define OUTPUT_MODE_LONG_OPT_STRING "logMode"
     #define OUTPUT_MODE_LONG_OPT { OUTPUT_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define POWER_MODE_IDENTIFIER powerMode
