@@ -89,6 +89,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     printf(" Today: %s", ctime(&g_curTime));
     printf("==========================================================================================\n");
     free(year);
+    year = NULL;
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -1140,18 +1141,6 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
         printf("\t\tascq, and fru will be displayed and a human readable\n");
         printf("\t\ttranslation from the SPC spec will be displayed if one\n");
         printf("\t\tis available.\n\n");
-    }
-}
-
-void print_SAT_12_Byte_CDB_Help(bool shortHelp)
-{
-    printf("\t--%s\n", SAT_12_BYTE_CDBS_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tThis forces the lower layer code to issue SAT spec\n");
-        printf("\t\tATA Pass-through 12 byte commands when possible instead\n");
-        printf("\t\tof 16 byte commands. By default, 16 byte commands are\n");
-        printf("\t\talways used for ATA Pass-through.\n\n");
     }
 }
 

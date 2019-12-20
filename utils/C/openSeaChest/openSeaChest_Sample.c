@@ -621,7 +621,7 @@ int32_t main(int argc, char *argv[])
         if (SAT_12_BYTE_CDBS_FLAG)
         {
             //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
+            deviceList[deviceIter].drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
         }
 
         //check for model number match
@@ -799,7 +799,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
