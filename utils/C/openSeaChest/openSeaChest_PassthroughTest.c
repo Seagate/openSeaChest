@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "0.2.0";
+const char *buildVersion = "0.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -7868,52 +7868,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         printf("Final Test Results\n");
         printf("==================\n");
         set_Console_Colors(true, DEFAULT);
-        printf("Device Reported Information that may be helpful:\n");
-        //MN, designators, firmware, SAT vendor etc
-        if (!inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
-        {
-            printf("\tVendor ID: %s\n", scsiInformation.inquiryData.vendorId);
-            printf("\tProduct ID: %s\n", scsiInformation.inquiryData.productId);
-            printf("\tProduct Rev: %s\n", scsiInformation.inquiryData.productRev);
-            if (scsiInformation.vpdData.unitSN)
-            {
-                printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
-            }
-            if (scsiInformation.vpdData.gotSATVPDPage)
-            {
-                printf("\tSAT Vendor ID: %s\n", inputs->device->drive_info.bridge_info.t10SATvendorID);
-                printf("\tSAT Product ID: %s\n", inputs->device->drive_info.bridge_info.SATproductID);
-                printf("\tSAT Product Rev: %s\n", inputs->device->drive_info.bridge_info.SATfwRev);
-            }
-            //TODO: Designator information that might be benefitial!!!
-            if (scsiInformation.vpdData.gotDeviceIDVPDPage)
-            {
-                printf("\tDevice IDs:\n");
-                for (uint8_t iter = 0; iter < scsiInformation.vpdData.designatorCount; ++iter)
-                {
-                    if (scsiInformation.vpdData.designators[iter].valid)
-                    {
-                        printf("\t\t");
-                        for (uint8_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < 16; ++desIter)
-                        {
-                            printf("%02" PRIX8, scsiInformation.vpdData.designators[iter].designator[desIter]);
-                        }
-                        printf("\n");
-                    }
-                }
-            }
-        }
-        else
-        {
-            printf("\tDevice information could not be detected by this tool since it was reported in a legacy\n");
-            printf("\tvendor specific format from old SCSI or CCS (pre-SCSI2) standards. Detecting this must\n");
-            printf("\tbe done manually by specifying specific offsets at this time for optimal support.\n");
-        }
-        printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
-
+        printf("SEND THIS INFO BELOW TO seaboard@seagate.com:\n");
         //low-level OS device VID/PID/REV as available
-        if(inputs->device->drive_info.adapter_info.infoType != ADAPTER_INFO_UNKNOWN)
-        {   
+        if (inputs->device->drive_info.adapter_info.infoType != ADAPTER_INFO_UNKNOWN)
+        {
             printf("Adapter Information:\n");
             printf("\tInformation Type: ");
             switch (inputs->device->drive_info.adapter_info.infoType)
@@ -7956,8 +7914,60 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 printf("\tRevision: Did not get vendor ID from OS.\n");
             }
         }
+        //MN, designators, firmware, SAT vendor etc
+        if (!inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
+        {
+            printf("\tVendor ID: %s\n", scsiInformation.inquiryData.vendorId);
+            printf("\tProduct ID: %s\n", scsiInformation.inquiryData.productId);
+            printf("\tProduct Rev: %s\n", scsiInformation.inquiryData.productRev);
+            if (scsiInformation.vpdData.unitSN)
+            {
+                printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
+            }
+            if (scsiInformation.vpdData.gotSATVPDPage)
+            {
+                printf("\tSAT Vendor ID: %s\n", inputs->device->drive_info.bridge_info.t10SATvendorID);
+                printf("\tSAT Product ID: %s\n", inputs->device->drive_info.bridge_info.SATproductID);
+                printf("\tSAT Product Rev: %s\n", inputs->device->drive_info.bridge_info.SATfwRev);
+            }
+            //TODO: Designator information that might be benefitial!!!
+            if (scsiInformation.vpdData.gotDeviceIDVPDPage)
+            {
+                printf("\tDevice IDs:\n");
+                for (uint8_t iter = 0; iter < scsiInformation.vpdData.designatorCount; ++iter)
+                {
+                    if (scsiInformation.vpdData.designators[iter].valid)
+                    {
+                        printf("\t\t");
+                        for (uint8_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < 16; ++desIter)
+                        {
+                            printf("%02" PRIX8, scsiInformation.vpdData.designators[iter].designator[desIter]);
+                        }
+                        printf("\n");
+                    }
+                }
+            }
+        }
+        else
+        {
+            printf("\tDevice information could not be detected by this tool since it was reported in a legacy\n");
+            printf("\tvendor specific format from old SCSI or CCS (pre-SCSI2) standards. Detecting this must\n");
+            printf("\tbe done manually by specifying specific offsets at this time for optimal support.\n");
+            printf("\tPlease include the full output from the tool when sending to seaboard@seagate.com\n");
+        }
+        printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
         
-        printf("\nList Of Hacks For This Device:\n");
+        if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
+        {
+            printf("\tSCSI Max Transfer Size: %" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+        }
+        if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)) && inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength < (MAX_ATA_SECTORS_TO_TEST * inputs->device->drive_info.bridge_info.childDeviceBlockSize))
+        {
+            printf("\tPassthrough Max Transfer Size: %" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
+        }
+        //TODO: NVMe passthrough max transfer size
+
+        printf("\nHacks For This Device:\n");
         //go through and print each one on a new line based on what the test found.
         //This should focus on generic SCSI data reporting first, followed by SAT/NVMe/Legacy Passthrough hacks after that
         //Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line option to make sure everything functions optimally.
@@ -7965,247 +7975,243 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             printf("\t\tTURF:%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue);
         }
-        printf("\tSCSI Hacks:\n");
+        printf("\tSCSI Hacks:");
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
         {
-            printf("\t\tPRESCSI2\n");
+            printf(" PRESCSI2,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
         {
-            printf("\t\tUNA\n");
+            printf(" UNA,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.available)
         {
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw6)
             {
-                printf("\t\tRW6\n");
+                printf(" RW6,");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw10)
             {
-                printf("\t\tRW10\n");
+                printf(" RW10,");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw12)
             {
-                printf("\t\tRW12\n");
+                printf(" RW12,");
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw16)
             {
-                printf("\t\tRW16\n");
+                printf(" RW16,");
             }
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noVPDPages)
         {
-            printf("\t\tNVPD\n");
+            printf(" NVPD,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModePages)
         {
-            printf("\t\tNMP\n");
+            printf(" NMP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogPages)
         {
-            printf("\t\tNLP\n");
+            printf(" NLP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSubPages)
         {
-            printf("\t\tNLPS\n");
+            printf(" NLPS,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.mode6bytes)
         {
-            printf("\t\tMP6\n");
+            printf(" MP6,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModeSubPages)
         {
-            printf("\t\tNMSP\n");
+            printf(" NMSP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations)
         {
-            printf("\t\tNRSUPOP\n");
+            printf(" NRSUPOP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.reportSingleOpCodes)
         {
-            printf("\t\tSUPSOP\n");
+            printf(" SUPSOP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.reportAllOpCodes)
         {
-            printf("\t\tREPALLOP\n");
+            printf(" REPALLOP,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported)
         {
-            printf("\t\tSECPROT\n");
+            printf(" SECPROT,");
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512)
         {
-            printf("\t\tSECPROTI512\n");
+            printf(" SECPROTI512,");
         }
         if (inputs->testPotentiallyDeviceHangingCommands)
         {
             if (!inputs->hangCommandsToTest.zeroLengthReads)
             {
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
-                printf("\t\tNORWZ\n");
+                printf(" NORWZ,");
                 set_Console_Colors(true, DEFAULT);
             }
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
         {
-            printf("\t\tMXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+            printf(" MXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
         }
         //////////////////////////////////////////////////////////////////////////////// 
         //TODO: if NVMe don't show this, but rather NVMe specific things. 
         if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN && (inputs->device->drive_info.drive_type != NVME_DRIVE || (inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType != NVME_DRIVE)))
         {
-            printf("\tATA Hacks:\n");
+            printf("\tATA Hacks: ");
             switch (inputs->device->drive_info.passThroughHacks.passthroughType)
             {
             case ATA_PASSTHROUGH_SAT:
-                printf("\t\tSAT\n");
+                printf(" SAT,");
                 break;
             case ATA_PASSTHROUGH_CYPRESS:
-                printf("\t\tAPTCYPRESS\n");
+                printf(" APTCYPRESS,");
                 break;
             case ATA_PASSTHROUGH_PROLIFIC:
-                printf("\t\tAPTPROLIFIC\n");
+                printf(" APTPROLIFIC,");
                 break;
             case ATA_PASSTHROUGH_TI:
-                printf("\t\tAPTTI\n");
+                printf(" APTTI,");
                 break;
             case ATA_PASSTHROUGH_NEC:
-                printf("\t\tAPTNEC\n");
+                printf(" APTNEC,");
                 break;
             case ATA_PASSTHROUGH_PSP:
-                printf("\t\tAPTPSP\n");
+                printf(" APTPSP,");
                 break;
             default:
-                printf("\t\tNOPT\n");
+                printf(" NOPT,");
                 break;
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly)
             {
-                printf("\t\tATA28\n");
+                printf(" ATA28,");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.smartCommandTransportWithSMARTLogCommandsOnly)
             {
-                printf("\t\tSCTSM\n");
+                printf(" SCTSM,");
             }
-            //if (inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible)
-            //{
-            //    printf("\t\tA1\n");
-            //}
             if (inputs->device->drive_info.passThroughHacks.passthroughType == ATA_PASSTHROUGH_SAT)
             {
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported)
                 {
-                    printf("\t\tNA1\n");
+                    printf(" NA1,");
                 }
                 else
                 {
-                    printf("\t\tA1\n");
+                    printf(" A1,");
                 }
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.a1ExtCommandWhenPossible)
                 {
-                    printf("\t\tA1EXT\n");
+                    printf(" A1EXT,");
                 }
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
                 {
-                    printf("\t\tRS\n");
+                    printf(" RS,");
                     if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoNeedsTDIR)
                     {
-                        printf("\t\tRSTD\n");
+                        printf(" RSTD,");
                     }
                     if (inputs->device->drive_info.passThroughHacks.ataPTHacks.returnResponseIgnoreExtendBit)
                     {
-                        printf("\t\tRSIE\n");
+                        printf(" RSIE,");
                     }
                 }
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough)
                 {
-                    printf("\t\tTPSIU\n");
+                    printf(" TPSIU,");
                 }
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
                 {
-                    printf("\t\tCHK\n");
+                    printf(" CHK,");
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
             {
-                printf("\t\tFDMA\n");
+                printf(" FDMA,");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs)
             {
-                printf("\t\tPARTRTFR\n");
+                printf(" PARTRTFR,");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.noRTFRsPossible)
             {
-                printf("\t\tNORTFR\n");
+                printf(" NORTFR,");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
             {
-                printf("\t\tMMPIO\n");
+                printf(" MMPIO,");
             }
             else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands)
             {
-                printf("\t\tNOMMPIO\n");
+                printf(" NOMMPIO,");
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
             {
-                printf("\t\tSPIO\n");
+                printf(" SPIO,");
             }
             if (inputs->device->drive_info.ata_Options.dmaMode == ATA_DMA_MODE_NO_DMA)
             {
-                printf("\t\tNDMA\n");
+                printf(" NDMA,");
             }
             else if (inputs->device->drive_info.ata_Options.dmaMode < ATA_DMA_MODE_UDMA)
             {
-                printf("\t\tFDMA\n");
+                printf(" FDMA,");
             }
             if (inputs->testPotentiallyDeviceHangingCommands)
             {
                 if (!inputs->hangCommandsToTest.sctLogWithGPL)
                 {
                     set_Console_Colors(true, LIKELY_HACK_COLOR);
-                    printf("\t\tSCTSM - please retest to ensure that reading the SCT status log with GPL commands is indeed a necessary hack");
+                    printf(" SCTSM,");// -please retest to ensure that reading the SCT status log with GPL commands is indeed a necessary hack");
                     set_Console_Colors(true, DEFAULT);
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength < (MAX_ATA_SECTORS_TO_TEST * inputs->device->drive_info.bridge_info.childDeviceBlockSize))
             {
-                printf("\t\tMPTXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
+                printf(" MPTXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
             }
         }
         else if ((inputs->suspectedDriveTypeProvidedByUser && inputs->suspectedDriveType == NVME_DRIVE) || (inputs->device->drive_info.passThroughHacks.passthroughType >= NVME_PASSTHROUGH_JMICRON && inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN))
         {
-            printf("\tNVMe Hacks:\n");
+            printf("\tNVMe Hacks: ");
             switch (inputs->device->drive_info.passThroughHacks.passthroughType)
             {
             case NVME_PASSTHROUGH_JMICRON:
-                printf("\t\tJMNVME\n");
+                printf(" JMNVME,");
                 break;
             case NVME_PASSTHROUGH_ASMEDIA_BASIC:
-                printf("\t\tASMNVMEBASIC\n");
+                printf(" ASMNVMEBASIC,");
                 break;
             case NVME_PASSTHROUGH_ASMEDIA:
-                printf("\t\tASMNVME\n");
+                printf(" ASMNVME,");
                 break;
             default:
-                printf("\t\tNOPT\n");
+                printf(" NOPT\n");
                 break;
             }
             if (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedPassthroughCapabilities)
             {
-                printf("\t\tLIMPT\n");
+                printf(" LIMPT,");
                 if (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.getLogPage &&
                     (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyGeneric ||
                       (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController && inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace)
                      )
                    )
                 {
-                    printf("\t\tIDGLP\n");
+                    printf(" IDGLP,");
                 }
             }
         }
         else
         {
-            printf("\t\tNOPT\n");
+            //printf("\t\tNOPT\n");
         }
         printf("\nRecommendations For Device Makers:\n");
         //Add recommendations based on the hacks to improve in future products
@@ -8383,14 +8389,14 @@ void utility_Usage(bool shortUsage)
     print_Run_Passthrough_Test_Help(shortUsage);
 
     //SATA Only Options
-    printf("\n\tSATA Only:\n\t=========\n");
+    //printf("\n\tSATA Only:\n\t=========\n");
 
     //SAS Only Options
-    printf("\n\tSAS Only:\n\t=========\n");
+    //printf("\n\tSAS Only:\n\t=========\n");
 
     //data destructive commands - alphabetized
-    printf("\nData Destructive Commands\n");
-    printf("=========================\n");
+    //printf("\nData Destructive Commands\n");
+    //printf("=========================\n");
     //utility data destructive tests/operations go here
 }
 
