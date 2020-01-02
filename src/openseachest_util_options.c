@@ -61,8 +61,43 @@ void print_Bug_Report_Email(bool shortHelp)
 
 void print_Elevated_Privileges_Text()
 {
-    printf("You must run with elevated privileges to communicate with devices in the system.\n");
-    printf("Examples of elevated priveleges: admin, root, sudo, etc\n");
+    printf("You must run with elevated privileges to communicate with devices in the system.");
+#if defined (_WIN32)
+    printf("(admin)");
+#elif defined (__unix__) || defined(__APPLE__)
+    printf("(root, sudo)");
+#else
+    printf("(admin, root, sudo, etc)");
+#endif
+    printf("\nExamples of elevated priveleges: \n");
+#if defined (_WIN32)
+    printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
+#elif defined (__unix__) || defined(__APPLE__)
+    //TODO: handle the various linux/unix/unix-like OSs with more ifdefs here
+#if defined (__linux__)
+#if defined (VMK_CROSS_COMP)
+    printf("In ESXi, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In ESXi, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#else
+    printf("In Linux, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In Linux, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#endif
+#elif defined (__FreeBSD__)
+    printf("In FreeBSD, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In FreeBSD, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#elif defined (__sun)
+    printf("In Solaris, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In Solaris, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#else //generic unix/unix-like case //TODO: Add more OS specific ifdefs to customize messages above
+    printf("In Linux/Unix, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In Linux/Unix, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#endif
+#else //generic, who knows what OS this is case
+    printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
+    printf("In Linux/Unix, put sudo before the SeaChest command. This may require inputting your login password.\n");
+    printf("In Linux/Unix, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+#endif
+    return;
 }
 
 char* get_current_year(char *temp_year)
