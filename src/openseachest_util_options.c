@@ -59,6 +59,12 @@ void print_Bug_Report_Email(bool shortHelp)
     }
 }
 
+void print_Elevated_Privileges_Text()
+{
+    printf("You must run with elevated privileges to communicate with devices in the system.\n");
+    printf("Examples of elevated priveleges: admin, root, sudo, etc\n");
+}
+
 char* get_current_year(char *temp_year)
 {
     size_t len = strlen(__DATE__);

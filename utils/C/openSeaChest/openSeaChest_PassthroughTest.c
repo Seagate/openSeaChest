@@ -578,7 +578,7 @@ int32_t main(int argc, char *argv[])
     {
         if (!is_Running_Elevated())
         {
-            printf("You must run with elevated privileges to communicate with devices in the system.\n");
+            print_Elevated_Privileges_Text();
             exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
         }
         unsigned int scanControl = DEFAULT_SCAN;
@@ -670,7 +670,7 @@ int32_t main(int argc, char *argv[])
 
     if (!is_Running_Elevated())
     {
-        printf("You must run with elevated privileges to communicate with devices in the system.\n");
+        print_Elevated_Privileges_Text();
         exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
     }
 

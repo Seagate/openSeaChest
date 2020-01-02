@@ -1721,6 +1721,9 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Bug_Report_Email(bool shortHelp);
 
+
+    void print_Elevated_Privileges_Text();
+
     //-----------------------------------------------------------------------------
     //
     //  print_Final_newline()
