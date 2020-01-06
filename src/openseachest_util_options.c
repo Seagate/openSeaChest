@@ -235,19 +235,25 @@ void print_Scan_Flags_Help(bool shortHelp)
         printf("\t\t\tata - show only ATA (SATA) devices\n");
         printf("\t\t\tusb - show only USB devices\n");
         printf("\t\t\tscsi - show only SCSI (SAS) devices\n");
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        printf("\t\t\tnvme - show only NVMe devices\n");
+#endif
         //printf("\t\t\traid - show RAID devices\n");//commented out until we officially add raid support. Currently raids show up as SCSI devices
         printf("\t\t\tinterfaceATA - show devices on an ATA interface\n");
         printf("\t\t\tinterfaceUSB - show devices on a USB interface\n");
         printf("\t\t\tinterfaceSCSI - show devices on a SCSI or SAS interface\n");
-        #if defined(__linux__)
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        printf("\t\t\tinterfaceNVME = show devices on an NVMe interface\n");
+#endif
+#if defined(__linux__)
         printf("\t\t\tsd - show sd device handles\n");
         printf("\t\t\tsgtosd - show the sd and sg device handle mapping\n");
-        #endif
-        #if defined (ENABLE_CSMI)
+#endif
+#if defined (ENABLE_CSMI)
         printf("\t\t\tignoreCSMI - do not scan for any CSMI devices\n");
         printf("\t\t\tallowDuplicates - allow drives with both CSMI and PD handles\n");
         printf("\t\t\t                  to show up multiple times in the list\n");
-        #endif
+#endif
         printf("\n");
     }
 }
