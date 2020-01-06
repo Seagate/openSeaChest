@@ -932,7 +932,12 @@ void print_Short_Generic_Help(bool shortHelp)
         printf("\t\tdrive for 1%% of the LBAs, then a read at the Inner\n");
         printf("\t\tDiameter of the drive for 1%% of the LBAs, and lastly\n");
         printf("\t\ta random read of 5000 LBAs. This test will stop on\n");
-        printf("\t\tthe first read error that occurs.\n\n");
+        printf("\t\tthe first read error that occurs.\n");
+        printf("\t\tInner and outer diameter tests refer to the physical\n");
+        printf("\t\tbeginning and ending sections of a hard disk drive with\n");
+        printf("\t\trotating magnetic media.In the case of SSD devices,\n");
+        printf("\t\tthese tests refer to the logical beginning and ending\n");
+        printf("\t\tsections of the solid state drive.\n\n");
     }
 }
 
@@ -947,7 +952,12 @@ void print_two_Minute_Test_Help(bool shortHelp)
         printf("\t\tseconds, then a read at the Inner Diameter of the\n");
         printf("\t\tdrive for 45 seconds, and lastly a random read test\n");
         printf("\t\tfor 30 seconds. This test will stop on the first\n");
-        printf("\t\tread error that occurs.\n\n");
+        printf("\t\tread error that occurs.\n");
+        printf("\t\tInner and outer diameter tests refer to the physical\n");
+        printf("\t\tbeginning and ending sections of a hard disk drive with\n");
+        printf("\t\trotating magnetic media.In the case of SSD devices,\n");
+        printf("\t\tthese tests refer to the logical beginning and ending\n");
+        printf("\t\tsections of the solid state drive.\n\n");
     }
 }
 
@@ -2739,6 +2749,11 @@ void print_OD_MD_ID_Test_Help(bool shortHelp)
         printf("\t\tEx1: --%s OMI\n", OD_MD_ID_TEST_LONG_OPT_STRING);
         printf("\t\tEx2: --%s O\n", OD_MD_ID_TEST_LONG_OPT_STRING);
         printf("\t\tEx3: --%s MI\n\n", OD_MD_ID_TEST_LONG_OPT_STRING);
+        printf("\t\tInner, middle, and outer diameter tests refer to the physical\n");
+        printf("\t\tbeginning and ending sections of a hard disk drive with\n");
+        printf("\t\trotating magnetic media.In the case of SSD devices,\n");
+        printf("\t\tthese tests refer to the logical beginning and ending\n");
+        printf("\t\tsections of the solid state drive.\n\n");
     }
 }
 
