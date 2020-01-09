@@ -1750,7 +1750,7 @@ void print_SAS_Phy_Test_DWord_Pattern(bool shortHelp)
 
 void print_SAS_Phy_Partial_Help(bool shortHelp)
 {
-    printf("\t--%s [info | enable | disable]\n", SAS_PARTIAL_LONG_OPT_STRING);
+    printf("\t--%s [info | enable | disable] (SAS Only)\n", SAS_PARTIAL_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the partial phy power\n");
@@ -1765,7 +1765,7 @@ void print_SAS_Phy_Partial_Help(bool shortHelp)
 
 void print_SAS_Phy_Slumber_Help(bool shortHelp)
 {
-    printf("\t--%s [info | enable | disable]\n", SAS_SLUMBER_LONG_OPT_STRING);
+    printf("\t--%s [info | enable | disable] (SAS Only)\n", SAS_SLUMBER_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the slumber phy power\n");
