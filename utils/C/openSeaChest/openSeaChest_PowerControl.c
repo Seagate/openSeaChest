@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.11.0";
+const char *buildVersion = "1.12.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -107,6 +107,9 @@ int32_t main(int argc, char *argv[])
     IDLE_VAR
     IDLE_UNLOAD_VAR
     ACTIVE_VAR
+    SAS_PARTIAL_VARS
+    SAS_SLUMBER_VARS
+    SET_PHY_SAS_PHY_IDENTIFIER_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -170,6 +173,9 @@ int32_t main(int argc, char *argv[])
         IDLE_LONG_OPT,
         IDLE_UNLOAD_LONG_OPT,
         ACTIVE_LONG_OPT,
+        SAS_PARTIAL_LONG_OPT,
+        SAS_SLUMBER_LONG_OPT,
+        SET_PHY_SAS_PHY_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -370,6 +376,54 @@ int32_t main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
+            }
+            else if (strncmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SAS_PARTIAL_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    SAS_PARTIAL_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_ENABLE_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_ENABLE_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SAS_PARTIAL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SAS_SLUMBER_LONG_OPT_STRING))) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    SAS_SLUMBER_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_ENABLE_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_ENABLE_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SAS_SLUMBER_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
+            {
+                SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -686,6 +740,11 @@ int32_t main(int argc, char *argv[])
         || SLEEP_FLAG
         || IDLE_FLAG
         || IDLE_UNLOAD_FLAG
+        || ACTIVE_FLAG
+        || SAS_PARTIAL_FLAG
+        || SAS_PARTIAL_INFO_FLAG
+        || SAS_SLUMBER_FLAG
+        || SAS_SLUMBER_INFO_FLAG
         ))
     {
         utility_Usage(true);
@@ -1453,7 +1512,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(SHOW_APM_LEVEL_FLAG)
+        if (SHOW_APM_LEVEL_FLAG)
         {
             switch(get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
             {
@@ -1658,6 +1717,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
         if (SATA_DAPS_FLAG)
         {
             switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], SATA_DAPS_ENABLE_FLAG))
@@ -1691,6 +1751,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
         if (SATA_DAPS_INFO_FLAG)
         {
             bool dapsSupported = false, dapsEnabled = false;
@@ -1731,6 +1792,102 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            }
+        }
+
+        if (SAS_PARTIAL_FLAG || SAS_SLUMBER_FLAG)
+        {
+            char partialSlumberString[40] = { 0 };
+            if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
+            {
+                sprintf(partialSlumberString, "SAS Partial & Slumber");
+            }
+            else if (SAS_PARTIAL_FLAG)
+            {
+                sprintf(partialSlumberString, "SAS Partial");
+            }
+            else if (SAS_SLUMBER_FLAG)
+            {
+                sprintf(partialSlumberString, "Slumber");
+            }
+            switch (scsi_Set_Partial_Slumber(&deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG, SAS_SLUMBER_FLAG, SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully changed %s\n", partialSlumberString);
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Setting %s is not supported on this device.\n", partialSlumberString);
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to set the %s feature!\n", partialSlumberString);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_INFO_FLAG)
+        {
+            int result = SUCCESS;
+            uint8_t phyListSize = 1;
+            if (SET_PHY_SAS_PHY_IDENTIFIER == 0xFF)
+            {
+                result = get_SAS_Enhanced_Phy_Control_Number_Of_Phys(&deviceList[deviceIter], &phyListSize);
+            }
+            if (SUCCESS == result)
+            {
+                ptrSasEnhPhyControl phyData = (ptrSasEnhPhyControl)calloc(phyListSize, sizeof(sasEnhPhyControl));
+                if (phyData)
+                {
+                    //get the information needed, then show it
+                    result = get_SAS_Enhanced_Phy_Control_Partial_Slumber_Settings(&deviceList[deviceIter], SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER, phyData, phyListSize * sizeof(sasEnhPhyControl));
+                    switch (result)
+                    {
+                    case SUCCESS:
+                        show_SAS_Enh_Phy_Control_Partial_Slumber(phyData, phyListSize * sizeof(sasEnhPhyControl), SAS_PARTIAL_INFO_FLAG, SAS_SLUMBER_INFO_FLAG);
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("SAS Enhanced phy control is not supported on this device. Partial and Slumber are not supported.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber settings!\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_Free(phyData);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Error allocating memory before showing SAS Partial/Slumber info!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get the phy count before showing SAS Partial/Slumber info!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
         }
     }
@@ -1828,6 +1985,9 @@ void utility_Usage(bool shortUsage)
     print_Show_APM_Level_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
+    print_SAS_Phy_Help(shortUsage);
+    print_SAS_Phy_Partial_Help(shortUsage);
+    print_SAS_Phy_Slumber_Help(shortUsage);
     print_Set_Power_Consumption_Help(shortUsage);
     print_Show_Power_Consumption_Help(shortUsage);
 }

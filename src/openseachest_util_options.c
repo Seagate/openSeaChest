@@ -1748,6 +1748,36 @@ void print_SAS_Phy_Test_DWord_Pattern(bool shortHelp)
     }
 }
 
+void print_SAS_Phy_Partial_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable]\n", SAS_PARTIAL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to enable or disable the partial phy power\n");
+        printf("\t\tcondition. This is from the enhanced phy control mode page.\n");
+        printf("\t\tUse the --%s option to specify an individual phy,\n", SET_PHY_SAS_PHY_LONG_OPT_STRING);
+        printf("\t\totherwise this will be changed on all phys.\n");
+        printf("\t\tWARNING: Configuring this setting may cause the drive to be\n");
+        printf("\t\tundetectable by other hardware if this power condition is not\n");
+        printf("\t\tsupported by a controller or expander.\n\n");
+    }
+}
+
+void print_SAS_Phy_Slumber_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable]\n", SAS_SLUMBER_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to enable or disable the slumber phy power\n");
+        printf("\t\tcondition. This is from the enhanced phy control mode page.\n");
+        printf("\t\tUse the --%s option to specify an individual phy,\n", SET_PHY_SAS_PHY_LONG_OPT_STRING);
+        printf("\t\totherwise this will be changed on all phys.\n");
+        printf("\t\tWARNING: Configuring this setting may cause the drive to be\n");
+        printf("\t\tundetectable by other hardware if this power condition is not\n");
+        printf("\t\tsupported by a controller or expander.\n\n");
+    }
+}
+
 void print_Supported_Logs_Help(bool shortHelp)
 {
     printf("\t--%s\n", LIST_LOGS_LONG_OPT_STRING);

@@ -1421,6 +1421,28 @@ extern "C"
     #define SATA_DAPS_LONG_OPT_STRING "sataDAPSfeature"
     #define SATA_DAPS_LONG_OPT { SATA_DAPS_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //SAS Partial bit
+    #define SAS_PARTIAL_FLAG sasPartialBit
+    #define SAS_PARTIAL_ENABLE_FLAG sasPartialEnable
+    #define SAS_PARTIAL_INFO_FLAG sasPartialInfo
+    #define SAS_PARTIAL_VARS \
+        bool SAS_PARTIAL_FLAG = false;\
+        bool SAS_PARTIAL_ENABLE_FLAG = false;\
+        bool SAS_PARTIAL_INFO_FLAG = false;
+    #define SAS_PARTIAL_LONG_OPT_STRING "sasPhyPartial"
+    #define SAS_PARTIAL_LONG_OPT { SAS_PARTIAL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //SAS Slumber bit
+    #define SAS_SLUMBER_FLAG sasSlumberBit
+    #define SAS_SLUMBER_ENABLE_FLAG sasSlumberEnable
+    #define SAS_SLUMBER_INFO_FLAG sasSlumberInfo
+    #define SAS_SLUMBER_VARS \
+        bool SAS_SLUMBER_FLAG = false;\
+        bool SAS_SLUMBER_ENABLE_FLAG = false;\
+        bool SAS_SLUMBER_INFO_FLAG = false;
+    #define SAS_SLUMBER_LONG_OPT_STRING "sasPhySlumber"
+    #define SAS_SLUMBER_LONG_OPT { SAS_SLUMBER_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //Free fall control
     #define FREE_FALL_FLAG setFreeFall
     #define FREE_FALL_DISABLE disableFreeFall
@@ -3102,6 +3124,10 @@ extern "C"
     void print_NVM_Format_Metadata_Setting_Help(bool shortHelp);
 
     void print_No_Time_Limit_Help(bool shortHelp);
+
+    void print_SAS_Phy_Partial_Help(bool shortHelp);
+
+    void print_SAS_Phy_Slumber_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
