@@ -377,7 +377,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SAS_PARTIAL_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING, strlen(SAS_PARTIAL_LONG_OPT_STRING)) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -399,7 +399,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
-            else if (strncmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SAS_SLUMBER_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING, strlen(SAS_SLUMBER_LONG_OPT_STRING)) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -421,7 +421,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING)) == 0)
             {
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
             }
@@ -753,7 +753,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)

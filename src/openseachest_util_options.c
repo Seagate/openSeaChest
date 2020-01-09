@@ -2685,7 +2685,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             }
             /*the list has been allocated, now put the handle we've received into the list*/
             /*start by allocating memory for the handle at the new list location*/
-            (*handleList)[(*deviceCount) - 1] = (char*)calloc(strlen(deviceHandle) + 1 * sizeof(char), sizeof(char));
+            (*handleList)[(*deviceCount) - 1] = (char*)calloc(strlen(deviceHandle) + 1, sizeof(char));
             if (!(*handleList)[(*deviceCount) - 1])
             {
                 perror("error allocating memory for adding device handle to list\n");
