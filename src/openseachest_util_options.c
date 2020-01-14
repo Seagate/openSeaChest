@@ -1213,6 +1213,8 @@ void print_Firmware_Download_Help(bool shortHelp)
         printf("\t\tspaces) if the firmware data file is in a different location.\n");
         printf("\t\tThis option will use segmented download by default. Use the\n");
         printf("\t\t--downloadMode option to specify a different download mode.\n\n");
+        printf("\t\tWARNING: Firmware updates may affect all LUNs/namespaces\n");
+        printf("\t\t         for devices with multiple logical units or namespaces.\n\n");
     }
 }
 
