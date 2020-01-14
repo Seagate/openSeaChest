@@ -1203,11 +1203,11 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
 
 void print_Firmware_Download_Help(bool shortHelp)
 {
-    printf("\t--%s [firmware_filename]\t\t\t\t\n", DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\t--%s [firmware_filename]\n", DOWNLOAD_FW_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tDownload firmware to a Seagate storage product. Use only\n");
-        printf("\t\tSeagate authorized firmware data files which are designated\n");
+        printf("\t\tdevice manufacturer authorized firmware data files which are designated\n");
         printf("\t\tfor the specific model drive. Improper use of this option may\n");
         printf("\t\tharm a device and or its data. You may specify the path (without\n");
         printf("\t\tspaces) if the firmware data file is in a different location.\n");
