@@ -709,6 +709,8 @@ void print_EnableDisableEPC_Help(bool shortHelp)
         printf("\t\tdevices. To disable EPC use --EPCfeature disable. Note that the\n");
         printf("\t\tEPC Feature Set is not supported on all devices.\n");
         printf("\t\tUse --deviceInfo option to see if EPC is supported.\n\n");
+        printf("\t\tWARNING: The EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -721,6 +723,8 @@ void print_Spindown_Help(bool shortHelp)
         printf("\t\tcommand. Use this before moving a hard disk drive. The drive\n");
         printf("\t\twill spin back up if the operating system selects the drive.\n");
         printf("\t\tThis means that an active drive will not stay spun down.\n\n");
+        printf("\t\tWARNING: Spindown may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -738,6 +742,8 @@ void print_Standby_Help(bool shortHelp)
         printf("\t\tOn an HDD, this will cause the spindle motor to stop.\n");
         printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
         printf("\t\tan active state.\n\n");
+        printf("\t\tWARNING: Standby may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -754,6 +760,8 @@ void print_Idle_Help(bool shortHelp)
         printf("\t\tbut offers less control over the transition.\n");
         printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
         printf("\t\tan active state.\n\n");
+        printf("\t\tWARNING: Idle may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -770,6 +778,8 @@ void print_Idle_Unload_Help(bool shortHelp)
         printf("\t\tbut offers less control over the transition.\n");
         printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
         printf("\t\tan active state.\n\n");
+        printf("\t\tWARNING: Idle Unload may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -782,6 +792,8 @@ void print_Sleep_Help(bool shortHelp)
         printf("\t\tA reset must be sent to wake a drive from sleep state.\n");
         printf("\t\tThe OS may not be able to wake a drive from this state once it has\n");
         printf("\t\tbeen entered. Use this option with caution!\n\n");
+        printf("\t\tWARNING: Sleep may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -793,6 +805,8 @@ void print_Active_Help(bool shortHelp)
         printf("\t\tThis command will transition a drive to the active power state.\n");
         printf("\t\tThis uses a ATA read-verify command to a random LBA, or a SCSI\n");
         printf("\t\tstart-stop unit command.\n\n");
+        printf("\t\tWARNING: Active may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -843,6 +857,8 @@ void print_Power_Mode_Help(bool shortHelp)
         printf("\t\t\tall (enable or disable only)\n");
         printf("\t\tValid power modes (NVMe): 0 - 30\n");
         printf("\n");
+        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -853,6 +869,8 @@ void print_Timer_Mode_Help(bool shortHelp)
     {
         printf("\t\tUse this option to specify a timer value to use with the\n");
         printf("\t\t--changePower mode option.\n\n");
+        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -864,6 +882,8 @@ void print_Change_Power_Help(bool shortHelp)
         printf("\t\tUse this option to enable or disable certain --powerMode and\n");
         printf("\t\ttheir timers. You can also use this option to restore default\n");
         printf("\t\tvalues to the drive.\n\n");
+        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -903,6 +923,8 @@ void print_Transition_Power_Help(bool shortHelp)
     {
         printf("\t\tUse this option to transition the drive to a specific\n");
         printf("\t\tpower state.\n\n");
+        printf("\t\tWARNING: Transitioning power modes may affect all LUNs/namespaces\n");
+        printf("\t\t         for devices with multiple logical units or namespaces.\n\n");
     }
 }
 
