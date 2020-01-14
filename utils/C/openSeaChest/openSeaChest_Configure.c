@@ -844,7 +844,7 @@ int32_t main(int argc, char *argv[])
                 {
                     SCSI_SHOW_MP_BUFFER_MODE = false;
                 }
-                else if (strcmp(optarg, "threshold") == 0)
+                else if (strcmp(optarg, "buffer") == 0)
                 {
                     SCSI_SHOW_MP_BUFFER_MODE = true;
                 }
