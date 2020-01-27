@@ -15,7 +15,8 @@
 UTIL_SRC_DIR=../../utils/C/openSeaChest
 CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
-STRIP = strip
+STRIP ?= strip
+STRIPOPTS ?= 
 CFLAGS = -Wall -c -std=gnu99
 CFLAGS_I686 = -Wall -c -m32
 	
@@ -35,13 +36,16 @@ INC_DIR= \
 UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
 	FWDLLFLAGS += -lm -lrt
+	STRIPOPTS = -s
 endif
 ifeq ($(UNAME),SunOS)
 	FWDLLFLAGS += -lm
 	export AR=gar
+	STRIPOPTS=
 endif
 ifeq ($(UNAME),FreeBSD)
 	FWDLLFLAGS += -lm -lcam
+	STRIPOPTS = -s
 endif
 
 MACHINE := $(shell uname -m)
@@ -103,7 +107,7 @@ opensea-libs:
 
 $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir 
 	$(CC) $(FIRMWAREOBJS) $(FWDLLFLAGS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
-	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@

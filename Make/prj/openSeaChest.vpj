@@ -103,6 +103,7 @@
                     <F N="../../utils/C/openSeaChest/openSeaChest_PassthroughTest.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_PowerControl.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_Sample.c"/>
+                    <F N="../../utils/C/openSeaChest/openSeaChest_Security.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_SMART.c"/>
                     <F N="../../utils/C/openSeaChest/openSeaChest_ZBD.c"/>
                 </Folder>

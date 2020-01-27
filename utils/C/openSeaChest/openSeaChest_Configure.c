@@ -2121,7 +2121,7 @@ int32_t main(int argc, char *argv[])
         {
             if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
             {
-                if (is_NV_Cache_Supported)
+                if (is_NV_Cache_Supported(&deviceList[deviceIter]))
                 {
                     if (is_NV_Cache_Enabled(&deviceList[deviceIter]))
                     {

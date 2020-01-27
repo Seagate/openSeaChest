@@ -114,6 +114,13 @@ openSeaChestPkg/openSeaChest_Basics.inf {
     opensea-operationslib|opensea-libs/opensea-operations/opensea-operations.inf
     LibPosix|StdLib/PosixLib/PosixLib.inf   # Combines LibErr, LibGen, LibGlob, LibStringlist, GetPass into one library
 }
+openSeaChestPkg/openSeaChest_Security.inf {
+  <LibraryClasses>
+    opensea-commonlib|opensea-libs/opensea-common/opensea-common.inf
+    opensea-transportlib|opensea-libs/opensea-transport/opensea-transport.inf
+    opensea-operationslib|opensea-libs/opensea-operations/opensea-operations.inf
+    LibPosix|StdLib/PosixLib/PosixLib.inf   # Combines LibErr, LibGen, LibGlob, LibStringlist, GetPass into one library
+}
 openSeaChestPkg/openSeaChest_Configure.inf {
   <LibraryClasses>
     opensea-commonlib|opensea-libs/opensea-common/opensea-common.inf
