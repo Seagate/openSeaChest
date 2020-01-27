@@ -30,12 +30,12 @@
 #include "operations.h"
 #include "power_control.h"
 #include "drive_info.h"
-
+#include "seagate_operations.h" //for power telemetry
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.12.1";
+const char *buildVersion = "1.13.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -111,6 +111,9 @@ int32_t main(int argc, char *argv[])
     SAS_SLUMBER_VARS
     SET_PHY_SAS_PHY_IDENTIFIER_VAR
 
+    SHOW_POWER_TELEMETRY_VAR
+    REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS
+
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -176,6 +179,8 @@ int32_t main(int argc, char *argv[])
         SAS_PARTIAL_LONG_OPT,
         SAS_SLUMBER_LONG_OPT,
         SET_PHY_SAS_PHY_LONG_OPT,
+        SHOW_POWER_TELEMETRY_LONG_OPT,
+        REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         LONG_OPT_TERMINATOR
     };
 
@@ -424,6 +429,39 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING)) == 0)
             {
                 SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
+            }
+            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING)) == 0)
+            {
+                REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
+                uint32_t measurementTime = (uint32_t)atoi(optarg);
+                if (measurementTime > 65535)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
+                }
+                else
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = (uint16_t)measurementTime;
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp("all", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 0;
+                }
+                else if (strcmp("5", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 5;
+                }
+                else if (strcmp("12", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 12;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -745,6 +783,8 @@ int32_t main(int argc, char *argv[])
         || SAS_PARTIAL_INFO_FLAG
         || SAS_SLUMBER_FLAG
         || SAS_SLUMBER_INFO_FLAG
+        || SHOW_POWER_TELEMETRY_FLAG
+        || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         ))
     {
         utility_Usage(true);
@@ -1938,6 +1978,89 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
         }
+
+        if (REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG)
+        {
+            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            {
+                switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, (ePowerTelemetryMeasurementOptions)REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE))
+                {
+                case SUCCESS:
+                    //show a time when the measurement is expected to be complete?
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully requested a power measurement.\n");
+                        time_t currentTime = time(NULL);
+                        time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
+                        printf("\n\tCurrent Time: %s\n", ctime((const time_t*)&currentTime));
+                        printf("\tEstimated completion Time : %s", ctime((const time_t *)&futureTime));
+                    }
+                    break;
+                case NOT_SUPPORTED: //unlikely since we checked for support first
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Requesting a power measurement is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to request a power measurement!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                //power telemetry is not supported
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (SHOW_POWER_TELEMETRY_FLAG)
+        {
+            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            {
+                seagatePwrTelemetry pwrTelData;
+                memset(&pwrTelData, 0, sizeof(seagatePwrTelemetry));
+                switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
+                {
+                case SUCCESS:
+                    //show it
+                    show_Power_Telemetry_Data(&pwrTelData);
+                    break;
+                case NOT_SUPPORTED: //unlikely to happen due to outside guard
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Getting a power telemetry data is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get a power telemetry data!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                //power telemetry is not supported
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
     }
     exit(exitCode);
 }
@@ -2016,8 +2139,11 @@ void utility_Usage(bool shortUsage)
     print_Enable_Power_Mode_Help(shortUsage);
     print_Idle_Help(shortUsage);
     print_Idle_Unload_Help(shortUsage);
+    print_Request_Power_Measurement_Mode_Help(shortUsage);
     print_Power_Mode_Help(shortUsage);
+    print_Request_Power_Measurement_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Show_Power_Telemetry_Help(shortUsage);
     print_Sleep_Help(shortUsage);
     print_Spindown_Help(shortUsage);
     print_Standby_Help(shortUsage);

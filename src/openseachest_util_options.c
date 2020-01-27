@@ -3635,3 +3635,59 @@ void print_No_Time_Limit_Help(bool shortHelp)
         printf("\t\tcomplete the test due to other legitimate system activity.\n\n");
     }
 }
+
+void print_Show_Power_Telemetry_Help(bool shortHelp)
+{
+    printf("\t--%s\t(Seagate Only)\n", SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the power telemetry data from\n");
+        printf("\t\ta Seagate drive that supports the power telemetry feature\n");
+        printf("\t\tIf a measurement was not previously requested, this will show\n");
+        printf("\t\tfree-running mode data from the last 10 minutes.\n");
+        printf("\t\tIf this option is provided while a measurement is still\n");
+        printf("\t\tin progress, this will show all data that is currently available\n");
+        printf("\t\tUse the --%s option to request a power\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING);
+        printf("\t\tmeasurement with a set time window.\n\n");
+        printf("\t\tNOTE: Power measurements are for the full device, not individual\n");
+        printf("\t\t      logical units. All logical units will be measured for this data.\n\n");
+    }
+}
+
+void print_Request_Power_Measurement_Help(bool shortHelp)
+{
+    printf("\t--%s [seconds to perform measurement]\t(Seagate Only)\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used to specify a time to perform a power\n");
+        printf("\t\tmeasurement for. The minimum measurement time is 22 seconds\n");
+        printf("\t\tand the maximum is 65535 seconds. If a time less than 22 seconds\n");
+        printf("\t\tis provided, 22 seconds will be used by the drive. A value greater\n");
+        printf("\t\tthan 65535 will result in error.\n");
+        printf("\t\tUse the --%s option to specify which mode to measure.\n\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
+    }
+}
+
+void print_Request_Power_Measurement_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s [all | 5 | 12]\t(Seagate Only)\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option along with --%s to specify\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING);
+        printf("\t\twhich sources to measure power on for the requested time.\n");
+        printf("\t\t all - measure all power sources\n");
+        printf("\t\t 5   - measure only the 5v power\n");
+        printf("\t\t 12  - measure only the 12v power\n");
+        printf("\n");
+    }
+}
+
+void print_Pull_Power_Telemetry_Help(bool shortHelp)
+{
+    printf("\t--%s\t(Seagate Only)\n", PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to pull the power telemetry\n");
+        printf("\t\tdata and save it to a binary file.\n\n");
+    }
+}

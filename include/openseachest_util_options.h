@@ -1699,7 +1699,6 @@ extern "C"
     #define SCSI_SET_MP_LONG_OPT_STRING "setSCSIMP" //mp[-sp]:byte:highestBit:fieldWidthInBits=value OR file=filename.txt
     #define SCSI_SET_MP_LONG_OPT { SCSI_SET_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-
     //reset a SCSI Log page
     #define SCSI_RESET_LP_OP resetSCSILogPage
     #define SCSI_RESET_LP_LPC resetSCSILogPageControl
@@ -1715,6 +1714,34 @@ extern "C"
     #define SCSI_RESET_LP_LONG_OPT { SCSI_RESET_LP_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_PAGE_LONG_OPT {SCSI_RESET_LP_PAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_LONG_OPTS SCSI_RESET_LP_LONG_OPT,SCSI_RESET_LP_PAGE_LONG_OPT
+
+    //power telemetry options
+    //show power telemetry on SeaChest screen
+    #define SHOW_POWER_TELEMETRY_FLAG showPowerTelemetry
+    #define SHOW_POWER_TELEMETRY_VAR \
+    getOptBool SHOW_POWER_TELEMETRY_FLAG = goFalse;
+    #define SHOW_POWER_TELEMETRY_LONG_OPT_STRING "showPowerTelemetry"
+    #define SHOW_POWER_TELEMETRY_LONG_OPT { SHOW_POWER_TELEMETRY_LONG_OPT_STRING, no_argument, &SHOW_POWER_TELEMETRY_FLAG, goTrue }
+
+    //request a time to perform the measurement for
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG requestPowerMeasurement
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS requestPowerTelemetryTime
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE requestPowerTelemetryMode /*5v 12v. etc*/
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS \
+    bool REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = false;\
+    uint16_t REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 0;\
+    int REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 0;
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING "powerMeasurementMode"
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT { REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING "requestPowerMeasurement"
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT { REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT,REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT
+
+    //pull the power telemetry data to a file
+    #define PULL_POWER_TELEMETRY_DATA_FLAG pullPowerTelemetry
+    #define PULL_POWER_TELEMETRY_DATA_VAR getOptBool PULL_POWER_TELEMETRY_DATA_FLAG = goFalse;
+    #define PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING "pullPowerTelemetry"
+    #define PULL_POWER_TELEMETRY_DATA_LONG_OPT { PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING, no_argument, &PULL_POWER_TELEMETRY_DATA_FLAG, goTrue }
 
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -1742,7 +1769,6 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Bug_Report_Email(bool shortHelp);
-
 
     void print_Elevated_Privileges_Text();
 
@@ -3126,6 +3152,14 @@ extern "C"
     void print_SAS_Phy_Partial_Help(bool shortHelp);
 
     void print_SAS_Phy_Slumber_Help(bool shortHelp);
+
+    void print_Show_Power_Telemetry_Help(bool shortHelp);
+
+    void print_Request_Power_Measurement_Help(bool shortHelp);
+
+    void print_Request_Power_Measurement_Mode_Help(bool shortHelp);
+
+    void print_Pull_Power_Telemetry_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
