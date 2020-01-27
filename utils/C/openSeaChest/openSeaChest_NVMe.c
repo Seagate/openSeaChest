@@ -748,7 +748,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1046,7 +1046,7 @@ int32_t main(int argc, char *argv[])
                     {
                         size = 32 * size; //Get first 32 entries.
                     }
-                    logBuffer = (uint8_t *)calloc((size_t)size, 1);
+                    logBuffer = (uint8_t *)calloc((size_t)size, sizeof(uint8_t));
                     if (logBuffer != NULL)
                     {
                         cmdOpts.nsid = NVME_ALL_NAMESPACES;
@@ -1244,7 +1244,7 @@ int32_t main(int argc, char *argv[])
 
                 memset(&cmdOpts,0, sizeof(nvmeGetLogPageCmdOpts));
 
-                logBuffer = (uint8_t*)calloc(size, 1);
+                logBuffer = (uint8_t*)calloc(size, sizeof(uint8_t));
 
                 if (logBuffer != NULL)
                 {
@@ -1560,7 +1560,7 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 long firmwareFileSize = get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
+                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize, sizeof(uint8_t));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;

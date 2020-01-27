@@ -559,7 +559,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -913,7 +913,7 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 long firmwareFileSize = get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
+                uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -1052,7 +1052,7 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     }
-                    safe_Free(firmwareMem);
+                    safe_Free_aligned(firmwareMem);
                 }
                 else
                 {
@@ -1188,7 +1188,7 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     //SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE
     int totalErrorCodes = SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-    ptrToolSpecificxitCode seachestFirmwareExitCodes = (ptrToolSpecificxitCode)calloc(totalErrorCodes * sizeof(toolSpecificxitCode), sizeof(toolSpecificxitCode));
+    ptrToolSpecificxitCode seachestFirmwareExitCodes = (ptrToolSpecificxitCode)calloc(totalErrorCodes, sizeof(toolSpecificxitCode));
     //now set up all the exit codes and their meanings
     if (seachestFirmwareExitCodes)
     {

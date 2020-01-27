@@ -311,7 +311,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "crypto") == 0)
                 {
-                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_NO_SECURE_ERASE_REQUESTED;
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
                 }
                 else
                 {
@@ -712,7 +712,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -987,7 +987,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc(deviceList[deviceIter].drive_info.deviceBlockSize * sizeof(uint8_t), sizeof(uint8_t));
+            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1011,7 +1011,7 @@ int32_t main(int argc, char *argv[])
                 printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free(displaySector);
+            safe_Free_aligned(displaySector);
         }
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)

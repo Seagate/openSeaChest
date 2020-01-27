@@ -1257,7 +1257,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2734,7 +2734,7 @@ int32_t main(int argc, char *argv[])
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
                     long fileLength = get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
-                    uint8_t *modePageBuffer = (uint8_t*)calloc(fileLength, sizeof(uint8_t));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                    uint8_t *modePageBuffer = (uint8_t*)calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
                     char *fileBuf = (char*)calloc(fileLength, sizeof(char));
                     if (modePageBuffer && fileBuf)
                     {
@@ -2812,7 +2812,7 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
-                        safe_Free(modePageBuffer);
+                        safe_Free_aligned(modePageBuffer);
                     }
                     else
                     {
@@ -2823,7 +2823,7 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                     fclose(modePageFile);
-                    safe_Free(modePageBuffer);
+                    safe_Free_aligned(modePageBuffer);
                     safe_Free(fileBuf);
                 }
                 else

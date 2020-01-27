@@ -1727,7 +1727,6 @@ void utility_Usage(bool shortUsage)
     print_Display_LBA_Help(shortUsage);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
-    print_Poll_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);

@@ -543,7 +543,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1028,7 +1028,7 @@ int32_t main(int argc, char *argv[])
             if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
-                ptrZoneDescriptor zoneDescriptors = (ptrZoneDescriptor)calloc(numberOfZones * sizeof(zoneDescriptor), sizeof(uint8_t));
+                ptrZoneDescriptor zoneDescriptors = (ptrZoneDescriptor)calloc(numberOfZones, sizeof(zoneDescriptor));
                 if (!zoneDescriptors)
                 {
                     perror("cannot allocate memory for zone descriptors");
