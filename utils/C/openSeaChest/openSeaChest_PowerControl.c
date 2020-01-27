@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.12.0";
+const char *buildVersion = "1.12.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1466,6 +1466,10 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully set power consumption value for device!\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1614,6 +1618,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Successfully disabled Seagate Power Balance!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1852,6 +1860,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed %s\n", partialSlumberString);
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:

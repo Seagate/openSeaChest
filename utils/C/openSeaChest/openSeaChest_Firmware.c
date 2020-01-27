@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.8.0";
+const char *buildVersion = "2.8.1";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -991,6 +991,10 @@ int32_t main(int argc, char *argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
                         }
                         else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
@@ -999,6 +1003,10 @@ int32_t main(int argc, char *argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("This drive requires a full power cycle to activate the new code.\n");
+                            }
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
                             }
                         }
                         else
@@ -1021,6 +1029,10 @@ int32_t main(int argc, char *argv[])
                                 else
                                 {
                                     printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                }
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                         }
@@ -1103,6 +1115,10 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;

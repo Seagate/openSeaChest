@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.18.0";
+const char *buildVersion = "1.18.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1553,6 +1553,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1678,12 +1682,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed Ready LED behavior!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
+                    printf("Changing Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1723,6 +1731,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Write cache successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -2146,6 +2158,10 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Non-Volatile Cache successfully disabled!\n");
                     }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2193,6 +2209,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Read look-ahead successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -2562,6 +2582,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully reset mode page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2589,6 +2613,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully restored mode page to saved values!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2616,6 +2644,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully saved mode page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2661,6 +2693,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully reset the log page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2737,6 +2773,10 @@ int32_t main(int argc, char *argv[])
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("Successfully set SCSI mode page!\n");
+                                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                        {
+                                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        }
                                     }
                                     break;
                                 case NOT_SUPPORTED:
@@ -2759,7 +2799,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An error occured while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                    printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
@@ -2768,7 +2808,7 @@ int32_t main(int argc, char *argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An error occured while trying to parse the file. Please check the file format.\n");
+                                printf("An error occurred while trying to parse the file. Please check the file format.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -2889,12 +2929,16 @@ int32_t main(int argc, char *argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Successfully set SCSI mode page!\n");
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
                             break;
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                printf("Unable to change the requested values in the mode page. These may not be changeable or are an invalid combination.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;

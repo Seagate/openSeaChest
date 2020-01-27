@@ -2737,8 +2737,6 @@ extern "C"
 
     void print_Restore_Max_LBA_Help(bool shortHelp);
 
-    void printf_Set_Phy_Speed_Help(bool shortHelp);
-
     void print_Set_Ready_LED_Help(bool shortHelp);
 
     void print_Read_Look_Ahead_Help(bool shortHelp);

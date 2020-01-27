@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "2.1.0";
+const char *buildVersion = "2.1.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1476,6 +1476,10 @@ int32_t main(int argc, char *argv[])
                             printf("Successfully sent the remove physical element command!\n");
                             printf("The device may take a long time before it is ready to accept all commands again.\n");
                             printf("Use the --%s option to check if the depopulate is still in progress or complete.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1537,6 +1541,10 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("RevertSP Successful!\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1613,6 +1621,10 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been erased.\n");
                             printf("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was completely erased.\n\n");
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
@@ -1737,6 +1749,10 @@ int32_t main(int argc, char *argv[])
                                 {
                                     printf("Sanitize command has been started. Use the --%s sanitize option\n", PROGRESS_LONG_OPT_STRING);
                                     printf("to check for progress.\n");
+                                }
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             break;
@@ -1957,6 +1973,10 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Format Unit was started Successfully!\n");
                             printf("Use --%s format to check for progress.\n", PROGRESS_LONG_OPT_STRING);
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;

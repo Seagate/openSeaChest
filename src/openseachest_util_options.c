@@ -69,7 +69,7 @@ void print_Elevated_Privileges_Text()
 #else
     printf("(admin, root, sudo, etc)");
 #endif
-    printf("\nExamples of elevated priveleges: \n");
+    printf("\nExamples of elevated privileges: \n");
 #if defined (_WIN32)
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
 #elif defined (__unix__) || defined(__APPLE__)
@@ -447,6 +447,8 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
         printf("\t\tfreezelock command from locking out the sanitize feature set.\n");
         printf("\t\tIt is only available on ATA drives that support the ACS3, or\n");
         printf("\t\tnewer specification.\n\n");
+        printf("\t\tWARNING: Sanitize may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -500,7 +502,7 @@ void print_Revert_Help(bool shortHelp)
         printf("\t\tThis operation performs an Opal SSC spec Revert on the adminSP.\n");
         printf("\t\tThis operation is only available on Seagate TCG Opal drives.\n");
         printf("\t\tThe --%s flag can be provided to perform the revert with\n", TCG_PSID_LONG_OPT_STRING);
-        printf("\t\tthe PSID authority incase of a lost password.\n");
+        printf("\t\tthe PSID authority in case of a lost password.\n");
         printf("\t\tThe --%s flag can be provided to perform the revert with SID.\n", TCG_SID_LONG_OPT_STRING);
         printf("\t\tIf neither the --%s or the --%s options are provided, then the\n", TCG_PSID_LONG_OPT_STRING, TCG_SID_LONG_OPT_STRING);
         printf("\t\trevert will be sent setting SID as the MSID value. This will only work\n");
@@ -509,6 +511,8 @@ void print_Revert_Help(bool shortHelp)
         printf("\t\tuser data being cryptographically erased and all other settings\n");
         printf("\t\tset to factory defaults. If this operation fails, try using --%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
         printf("\t\tinstead.\n\n");
+        printf("\t\tWARNING: The Revert may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -524,6 +528,8 @@ void print_RevertSP_Help(bool shortHelp)
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
         printf("\t\tuser data being cryptographically erased and all other\n");
         printf("\t\tsettings set to factory defaults.\n\n");
+        printf("\t\tWARNING: The RevertSP may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1263,6 +1269,8 @@ void print_Firmware_Activate_Help(bool shortHelp)
         printf("\t\tYou can use this along with a --%s & --%s to\n", DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
         printf("\t\tautomatically issue the activate command after the download has\n");
         printf("\t\tcompleted.\n\n");
+        printf("\t\tWARNING: Firmware activation may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1275,6 +1283,8 @@ void print_Firmware_Switch_Help(bool shortHelp)
         printf("\t\tNVMe drive. You must specify a slot with the --%s option\n", FIRMWARE_SLOT_LONG_OPT_STRING);
         printf("\t\tor this will fail. The specified slot must already have a\n");
         printf("\t\tvalid firmware image in it as well.\n\n");
+        printf("\t\tWARNING: Switching firmware may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1294,6 +1304,8 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
         printf("\t\t\t           device, but does not activate the new\n");
         printf("\t\t\t           firmware until a powercycle or activate\n");
         printf("\t\t\t           command is sent.\n\n");
+        printf("\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1426,22 +1438,6 @@ void print_Restore_Max_LBA_Help(bool shortHelp)
     }
 }
 
-void printf_Set_Phy_Speed_Help(bool shortHelp)
-{
-    printf("\t--%s [0 | 1 | 2 | 3] (SATA Only) (Seagate Only)\n", SET_PHY_SPEED_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to change the PHY speed to a\n");
-        printf("\t\tnew maximum value.\n");
-        printf("\t\t0 - allow full negotiation (default drive behavior)\n");
-        printf("\t\t1 - allow negotiation up to 1.5Gb/s\n");
-        printf("\t\t2 - allow negotiation up to 3.0Gb/s\n");
-        printf("\t\t3 - allow negotiation up to 6.0Gb/s\n");
-        //printf("\t\t4 - allow negotiation up to 12.0Gb/s (SAS Only)\n");//enable this when SAS support for this option has been enabled
-        printf("\n");
-    }
-}
-
 void print_Set_SSC_Help(bool shortHelp)
 {
     printf("\t--%s [info | default | enable | disable] (SATA Only) (Seagate Only)\n", SSC_FEATURE_LONG_OPT_STRING);
@@ -1473,6 +1469,8 @@ void print_Set_Ready_LED_Help(bool shortHelp)
         printf("\t\t    off - sets the ready LED to usually on unless\n");
         printf("\t\t          processing a command\n");
         printf("\t\t    default - sets the ready LED to the drive's default value\n\n");
+        printf("\t\tWARNING: The EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1484,6 +1482,8 @@ void print_Read_Look_Ahead_Help(bool shortHelp)
         printf("\t\tUse this option to enable or disable read look-ahead\n");
         printf("\t\tsupport on a drive. Use the \"info\" argument to get\n");
         printf("\t\tthe current status of the read look ahead feature.\n\n");
+        printf("\t\tWARNING: Changing Read look-ahead may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1496,6 +1496,8 @@ void print_NV_Cache_Bit_Help(bool shortHelp)
         printf("\t\tUse this option to enable or disable the SCSI Non-Volatile cache\n");
         printf("\t\t on a drive. Use the \"info\" argument to get\n");
         printf("\t\tthe current status of the Non-Volatile Cache setting.\n\n");
+        printf("\t\tWARNING: Changing NV Cache may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1507,6 +1509,8 @@ void print_Write_Cache_Help(bool shortHelp)
         printf("\t\tUse this option to enable or disable write cache\n");
         printf("\t\tsupport on a drive. Use the \"info\" argument to get\n");
         printf("\t\tthe current status of the write cache feature.\n\n");
+        printf("\t\tWARNING: Changing Write Cache may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1632,6 +1636,8 @@ void print_Phy_Speed_Help(bool shortHelp)
         printf("\t\t4 - allow negotiation up to 12.0Gb/s (SAS Only)\n");
         printf("\t\t5 - allow negotiation up to 22.5Gb/s (SAS Only)\n");
         printf("\n");
+        printf("\t\tWARNING: Changing Phy speed may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1784,6 +1790,8 @@ void print_SAS_Phy_Partial_Help(bool shortHelp)
         printf("\t\tWARNING: Configuring this setting may cause the drive to be\n");
         printf("\t\tundetectable by other hardware if this power condition is not\n");
         printf("\t\tsupported by a controller or expander.\n\n");
+        printf("\t\tWARNING: Changing SAS Phy partial may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1799,6 +1807,8 @@ void print_SAS_Phy_Slumber_Help(bool shortHelp)
         printf("\t\tWARNING: Configuring this setting may cause the drive to be\n");
         printf("\t\tundetectable by other hardware if this power condition is not\n");
         printf("\t\tsupported by a controller or expander.\n\n");
+        printf("\t\tWARNING: Changing SAS Phy slumber may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1923,6 +1933,8 @@ void print_Show_Supported_Erase_Modes_Help(bool shortHelp)
         printf("\t\tThis option checks the drive to determine which methods of\n");
         printf("\t\tdata erasure are supported and lists them, from fastest to\n");
         printf("\t\tslowest.\n\n");
+        printf("\t\tWARNING: Some erase methods may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1940,6 +1952,8 @@ void print_Perform_Quickest_Erase_Help(bool shortHelp)
         printf("\t\tenabled by default.\n");
         printf("\t\tNote 2: If revertSP is the fastest, it will not be started since\n");
         printf("\t\tthe drive PSID must be passed in on the command line.\n\n");
+        printf("\t\tWARNING: Some erase methods may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -1954,6 +1968,8 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tsize to use upon format completion. This command will erase all\n");
         printf("\t\tdata on the drive. Combine this option with --%s to poll\n", POLL_LONG_OPT_STRING);
         printf("\t\tfor progress until the format is complete.\n\n");
+        printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -2088,7 +2104,7 @@ void print_Format_New_Max_LBA_Help(bool shortHelp)
         printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
         printf("\t\tformat unit operation. This can speed up a format unit if\n");
         printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
-        printf("\t\tcapacity while formattting.\n\n");
+        printf("\t\tcapacity while formatting.\n\n");
     }
 }
 
@@ -2119,6 +2135,8 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\tThis option should be used to quickly change between 5xxe and\n");
         printf("\t\t4xxx sector sizes. Using this option to change from 512 to 520\n");
         printf("\t\tor similar is not recommended at this time due to limited drive\n\t\tsupport\n\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -2340,6 +2358,8 @@ void print_Set_MRIE_Help(bool shortHelp)
         printf("\t\t    4 - Unconditionally generate recovered error\n");
         printf("\t\t    5 - Generate no sense\n");
         printf("\t\t    6 - Report on request\n\n");
+        printf("\t\tWARNING: Changing MRIE may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -2864,6 +2884,8 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
         printf("\t\tusable without the provided element #.\n");
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
         printf("\t\tof the depopulation operation.\n\n");
+        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -2907,6 +2929,8 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
         printf("\t\tused instead since it allows more levels of control.\n");
         printf("\t\tThis option and the --%s option are incompatible\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
         printf("\t\tbecause they use the same mode page fields (1Ah-01h).\n\n");
+        printf("\t\tWARNING: Seagate Power Balance may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3089,7 +3113,7 @@ void print_Show_SMART_Error_Log_Help(bool shortHelp)
         printf("\t\tSpecifying \"comprehensive\" will automatically pull the ext error log\n");
         printf("\t\ton drives that support 48bit LBAs.\n");
         printf("\t\tNote: The summary error log will truncate 48bit commands, so some information\n");
-        printf("\t\t      will be missing to desribe the operation of certain commands.\n");
+        printf("\t\t      will be missing to describe the operation of certain commands.\n");
         printf("\n");
     }
 }
@@ -3147,7 +3171,7 @@ void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
         printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
         printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
         printf("\t\tATA Security Erase takes a very long time to complete at\n");
-        printf("\t\tapproximately three (3) hours per Terabyte (HDD). Some Seagate\n");
+        printf("\t\tapproximately three (3) hours per Tera-byte (HDD). Some Seagate\n");
         printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
         printf("\t\tmode and the time for completion is reported as 2 minutes by\n");
         printf("\t\tthe drive, but will take only seconds. This industry\n");
@@ -3160,7 +3184,7 @@ void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
         printf("\t\ttool will attempt to automatically clear the password that was set\n");
         printf("\t\tupon failure. The default password used by the tool is\n");
         printf("\t\t\"%s\", plain ASCII letters without the quotes\n\n", password);
-        printf("\t\t* normal writes binary zeroes (0) or ones (1) to all user\n");
+        printf("\t\t* normal writes binary zeros (0) or ones (1) to all user\n");
         printf("\t\tdata areas.\n\n");
         printf("\t\t* enhanced will fill all user data areas and reallocated\n");
         printf("\t\tuser data with a vendor specific pattern. Some Seagate\n");
@@ -3355,6 +3379,8 @@ void print_SCSI_MP_Reset_Help(bool shortHelp)
         printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to reset all mode pages.\n");
         printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will reset all those subpages.\n");
         printf("\t\tUsing both MP 3Fh and SP FFh will reset all pages and subpages on a device.\n\n");
+        printf("\t\tWARNING: Resetting mode pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3369,6 +3395,8 @@ void print_SCSI_MP_Restore_Help(bool shortHelp)
         printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to restore all mode pages.\n");
         printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will restore all those subpages.\n");
         printf("\t\tUsing both MP 3Fh and SP FFh will restore all pages and subpages on a device.\n\n");
+        printf("\t\tWARNING: Restoring mode pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3383,6 +3411,8 @@ void print_SCSI_MP_Save_Help(bool shortHelp)
         printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to save all mode pages.\n");
         printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will save all those subpages.\n");
         printf("\t\tUsing both MP 3Fh and SP FFh will save all pages and subpages on a device.\n\n");
+        printf("\t\tWARNING: Saving mode pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3425,6 +3455,8 @@ void print_SCSI_Reset_LP_Help(bool shortHelp)
         printf("\t\t    defCumulative - reset the cumulative values to default without saving.\n");
         printf("\t\t    defThreshold  - reset the threshold values to default without saving.\n");
         printf("\t\t    all - sends the log page reset command to all of the above control values\n\n");
+        printf("\t\tWARNING: Resetting log pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3437,6 +3469,8 @@ void print_SCSI_Reset_LP_Page_Help(bool shortHelp)
         printf("\t\tto be used with the --%s option.\n", SCSI_RESET_LP_LONG_OPT_STRING);
         printf("\t\tNOTE: This option will only work on newer drives compliant with\n");
         printf("\t\tthe SPC4 specification.\n\n");
+        printf("\t\tWARNING: Resetting log pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -3464,6 +3498,8 @@ void print_Set_SCSI_MP_Help(bool shortHelp)
         printf("\t\t3. Setting DLC to one on Control Extension MP from command line:\n");
         printf("\t\t   command line: 0A-01:4:3:1=1\n");
         printf("\n");
+        printf("\t\tWARNING: Changing mode pages may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
