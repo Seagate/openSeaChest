@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "1.13.0";
+const char *buildVersion = "1.13.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1796,6 +1796,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully set MRIE mode to %" PRIu8"\n", SET_MRIE_MODE_VALUE);
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:

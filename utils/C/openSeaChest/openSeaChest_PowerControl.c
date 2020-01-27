@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.12.0";
+const char *buildVersion = "1.12.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1041,6 +1041,10 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Successfully Disabled EPC Feature Set on %s.\n", deviceList[deviceIter].os_info.name);
                     }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1069,6 +1073,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish spinning down.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1094,8 +1102,12 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully tansitioned to idle state.\n");
+                    printf("\nSuccessfully transitioned to idle state.\n");
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1122,8 +1134,12 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully tansitioned to idle (unload) state.\n");
+                    printf("\nSuccessfully transitioned to idle (unload) state.\n");
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1150,8 +1166,12 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully tansitioned to standby state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nSuccessfully transitioned to standby state.\nPlease give device a few seconds to transition.\n");
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1178,8 +1198,12 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully tansitioned to sleep state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nSuccessfully transitioned to sleep state.\nPlease give device a few seconds to transition.\n");
                     printf("\nNOTE: drive will now require a reset to wake.\tThe system may not be able to rediscover it without a reboot.\n\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1206,8 +1230,12 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully tansitioned to active state.\nPlease give device a few seconds to transition.\n");
+                    printf("\nSuccessfully transitioned to active state.\nPlease give device a few seconds to transition.\n");
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1238,6 +1266,10 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("\nPower State Transition Successful.\nPlease give device a few seconds to transition.\n");
                         printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1314,6 +1346,10 @@ int32_t main(int argc, char *argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Successfully changed power mode settings.\n");
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
                             break;
                         case NOT_SUPPORTED:
@@ -1430,6 +1466,10 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully set power consumption value for device!\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1578,6 +1618,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Successfully disabled Seagate Power Balance!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1816,6 +1860,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed %s\n", partialSlumberString);
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:

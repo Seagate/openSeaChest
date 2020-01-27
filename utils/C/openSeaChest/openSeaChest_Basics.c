@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.9.0";
+const char *buildVersion = "2.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1103,6 +1103,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish spinning down.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1390,6 +1394,10 @@ int32_t main(int argc, char *argv[])
                                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                                 printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
                             }
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1447,6 +1455,10 @@ int32_t main(int argc, char *argv[])
                         printf("Firmware activate successful\n");
                         fill_Drive_Info_Data(&deviceList[deviceIter]);
                         printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1483,6 +1495,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1546,12 +1562,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed ready LED behavior!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
+                    printf("Changing Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1591,6 +1611,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Write cache successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1651,6 +1675,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Read look-ahead successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;

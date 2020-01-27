@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "1.5.0";
+const char *buildVersion = "1.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1153,6 +1153,10 @@ int32_t main(int argc, char *argv[])
                             printf("Format Unit was started Successfully!\n");
                             printf("Use --%s format to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1196,7 +1200,11 @@ int32_t main(int argc, char *argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Successfully set sector size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
+                        printf("Successfully set sector size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
