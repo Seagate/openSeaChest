@@ -314,78 +314,124 @@ extern "C"
     #define SPIN_DOWN_LONG_OPT_STRING "spinDown"
     #define SPIN_DOWN_LONG_OPT { SPIN_DOWN_LONG_OPT_STRING, no_argument, &SPIN_DOWN_FLAG, goTrue }
 
-    #define STANDBY_FLAG standby
-    #define STANDBY_VAR getOptBool STANDBY_FLAG = goFalse;
-    #define STANDBY_LONG_OPT_STRING "standby"
-    #define STANDBY_LONG_OPT { STANDBY_LONG_OPT_STRING, no_argument, &STANDBY_FLAG, goTrue }
-
-    #define SLEEP_FLAG sleep
-    #define SLEEP_VAR getOptBool SLEEP_FLAG = goFalse;
-    #define SLEEP_LONG_OPT_STRING "sleep"
-    #define SLEEP_LONG_OPT { SLEEP_LONG_OPT_STRING, no_argument, &SLEEP_FLAG, goTrue }
-
-    #define IDLE_FLAG idle
-    #define IDLE_VAR getOptBool IDLE_FLAG = goFalse;
-    #define IDLE_LONG_OPT_STRING "idle"
-    #define IDLE_LONG_OPT { IDLE_LONG_OPT_STRING, no_argument, &IDLE_FLAG, goTrue }
-
-    #define IDLE_UNLOAD_FLAG idleUnload
-    #define IDLE_UNLOAD_VAR getOptBool IDLE_UNLOAD_FLAG = goFalse;
-    #define IDLE_UNLOAD_LONG_OPT_STRING "idleUnload"
-    #define IDLE_UNLOAD_LONG_OPT { IDLE_UNLOAD_LONG_OPT_STRING, no_argument, &IDLE_UNLOAD_FLAG, goTrue }
-
-    #define ACTIVE_FLAG activeState
-    #define ACTIVE_VAR getOptBool ACTIVE_FLAG = goFalse;
-    #define ACTIVE_LONG_OPT_STRING "active"
-    #define ACTIVE_LONG_OPT { ACTIVE_LONG_OPT_STRING, no_argument, &ACTIVE_FLAG, goTrue }
-
-    #define ENABLE_POWER_MODE_FLAG enablePowerMode
-    #define ENABLE_POWER_MODE_VAR getOptBool ENABLE_POWER_MODE_FLAG = goFalse;
-    #define ENABLE_POWER_MODE_LONG_OPT_STRING "enableMode"
-    #define ENABLE_POWER_MODE_LONG_OPT { ENABLE_POWER_MODE_LONG_OPT_STRING, no_argument, &ENABLE_POWER_MODE_FLAG, goTrue }
-
-    #define DISABLE_POWER_MODE_FLAG disablePowerMode
-    #define DISABLE_POWER_MODE_VAR getOptBool DISABLE_POWER_MODE_FLAG = goFalse;
-    #define DISABLE_POWER_MODE_LONG_OPT_STRING "disableMode"
-    #define DISABLE_POWER_MODE_LONG_OPT { DISABLE_POWER_MODE_LONG_OPT_STRING, no_argument, &DISABLE_POWER_MODE_FLAG, goTrue }
-
-    #define DEFAULT_POWER_MODE_FLAG restoreDefaultPowerMode
-    #define DEFAULT_POWER_MODE_VAR getOptBool DEFAULT_POWER_MODE_FLAG = goFalse;
-    #define DEFAULT_POWER_MODE_LONG_OPT_STRING "defaultMode"
-    #define DEFAULT_POWER_MODE_LONG_OPT { DEFAULT_POWER_MODE_LONG_OPT_STRING, no_argument, &DEFAULT_POWER_MODE_FLAG, goTrue }
-
     #define OUTPUT_MODE_IDENTIFIER outputMode
     #define OUTPUT_MODE_VAR eOutputMode OUTPUT_MODE_IDENTIFIER = 0;
     #define OUTPUT_MODE_LONG_OPT_STRING "logMode"
     #define OUTPUT_MODE_LONG_OPT { OUTPUT_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    #define POWER_MODE_IDENTIFIER powerMode
-    #define POWER_MODE_VAR ePowerConditionID POWER_MODE_IDENTIFIER = PWR_CND_NOT_SET;
-    #define POWER_MODE_LONG_OPT_STRING "powerMode"
-    #define POWER_MODE_LONG_OPT { POWER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define EPC_ENABLED_IDENTIFIER enableEPC
     #define EPC_ENABLED_VAR eEPCFeatureSet EPC_ENABLED_IDENTIFIER = ENABLE_EPC_NOT_SET;
     #define EPC_ENABLED_LONG_OPT_STRING "EPCfeature"
     #define EPC_ENABLED_LONG_OPT { EPC_ENABLED_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define POWER_MODE_TIMER powerModeTimer
-    #define POWER_MODE_TIMER_VALID powerModeTimerValid
-    #define POWER_MODE_TIMER_VARS \
-    uint32_t POWER_MODE_TIMER = -1;\
-    bool POWER_MODE_TIMER_VALID = false;
-    #define POWER_MODE_TIMER_LONG_OPT_STRING "modeTimer"
-    #define POWER_MODE_TIMER_LONG_OPT { POWER_MODE_TIMER_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    #define CHANGE_POWER_MODE_FLAG changePowerMode
-    #define CHANGE_POWER_MODE_VAR getOptBool CHANGE_POWER_MODE_FLAG = goFalse;
-    #define CHANGE_POWER_MODE_LONG_OPT_STRING "changePower"
-    #define CHANGE_POWER_MODE_LONG_OPT { CHANGE_POWER_MODE_LONG_OPT_STRING, no_argument, &CHANGE_POWER_MODE_FLAG, goTrue }
+    #define POWER_STATE_ACTIVE_STRING       "active"
+    #define POWER_STATE_IDLE_STRING         "idle"
+    #define POWER_STATE_IDLE_UNLOAD_STRING  "idleUnload"
+    #define POWER_STATE_STANDBY_STRING      "standby"
+    #define POWER_STATE_IDLE_A_STRING       "idle_a"
+    #define POWER_STATE_IDLE_B_STRING       "idle_b"
+    #define POWER_STATE_IDLE_C_STRING       "idle_c"
+    #define POWER_STATE_STANDBY_Y_STRING    "standby_y"
+    #define POWER_STATE_STANDBY_Z_STRING    "standby_z"
+    #define POWER_STATE_SLEEP_STRING        "sleep"
 
     #define TRANSITION_POWER_MODE_FLAG transitionPowerMode
-    #define TRANSITION_POWER_MODE_VAR getOptBool TRANSITION_POWER_MODE_FLAG = goFalse;
+    #define TRANSITION_POWER_MODE_TO_POWER_MODE transtitionPowerModeToMode
+    #define TRANSITION_POWER_MODE_VARS \
+    bool TRANSITION_POWER_MODE_FLAG = false;\
+    int TRANSITION_POWER_MODE_TO_POWER_MODE = -1;/*-1 = not set*/
     #define TRANSITION_POWER_MODE_LONG_OPT_STRING "transitionPower"
-    #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, no_argument, &TRANSITION_POWER_MODE_FLAG, goTrue }
+    #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //New EPC Configuration settings to make things easier for changing multiple or individual settings at once with a simpler command line option
+    #define POWER_MODE_STATE_ENABLE INT8_C(1)
+    #define POWER_MODE_STATE_DISABLE INT8_C(0)
+    #define POWER_MODE_STATE_DEFAULT INT8_C(-1)
+
+    #define IDLE_A_POWER_MODE_FLAG changeIdleASettings
+    #define IDLE_A_POWER_MODE_TIMER idleATimerValue
+    #define IDLE_A_TIMER_VALID idleATimerValid
+    #define IDLE_A_STATE idleAState /*enable or disable*/
+    #define IDLE_A_POWER_MODE_VARS \
+    bool IDLE_A_POWER_MODE_FLAG = false;\
+    bool IDLE_A_TIMER_VALID = false;\
+    uint32_t IDLE_A_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_A_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_A_LONG_OPT_STRING "idle_a"
+    #define IDLE_A_LONG_OPT { IDLE_A_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define IDLE_B_POWER_MODE_FLAG changeIdleBSettings
+    #define IDLE_B_POWER_MODE_TIMER idleBTimerValue
+    #define IDLE_B_TIMER_VALID idleBTimerValid
+    #define IDLE_B_STATE idleBState /*enable or disable*/
+    #define IDLE_B_POWER_MODE_VARS \
+    bool IDLE_B_POWER_MODE_FLAG = false;\
+    bool IDLE_B_TIMER_VALID = false;\
+    uint32_t IDLE_B_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_B_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_B_LONG_OPT_STRING "idle_b"
+    #define IDLE_B_LONG_OPT { IDLE_B_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define IDLE_C_POWER_MODE_FLAG changeIdleCSettings
+    #define IDLE_C_POWER_MODE_TIMER idleCTimerValue
+    #define IDLE_C_TIMER_VALID idleCTimerValid
+    #define IDLE_C_STATE idleCState /*enable or disable*/
+    #define IDLE_C_POWER_MODE_VARS \
+    bool IDLE_C_POWER_MODE_FLAG = false;\
+    bool IDLE_C_TIMER_VALID = false;\
+    uint32_t IDLE_C_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_C_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_C_LONG_OPT_STRING "idle_c"
+    #define IDLE_C_LONG_OPT { IDLE_C_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define STANDBY_Z_POWER_MODE_FLAG changeStandbyZSettings
+    #define STANDBY_Z_POWER_MODE_TIMER standbyZTimerValue
+    #define STANDBY_Z_TIMER_VALID standbyZTimerValid
+    #define STANDBY_Z_STATE standbyZState /*enable or disable*/
+    #define STANDBY_Z_POWER_MODE_VARS \
+    bool STANDBY_Z_POWER_MODE_FLAG = false;\
+    bool STANDBY_Z_TIMER_VALID = false;\
+    uint32_t STANDBY_Z_POWER_MODE_TIMER = 0;\
+    int8_t STANDBY_Z_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define STANDBY_Z_LONG_OPT_STRING "standby_z"
+    #define STANDBY_Z_LONG_OPT { STANDBY_Z_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define STANDBY_Y_POWER_MODE_FLAG changeStandbyYSettings
+    #define STANDBY_Y_POWER_MODE_TIMER standbyYTimerValue
+    #define STANDBY_Y_TIMER_VALID standbyYTimerValid
+    #define STANDBY_Y_STATE standbyYState /*enable or disable*/
+    #define STANDBY_Y_POWER_MODE_VARS \
+    bool STANDBY_Y_POWER_MODE_FLAG = false;\
+    bool STANDBY_Y_TIMER_VALID = false;\
+    uint32_t STANDBY_Y_POWER_MODE_TIMER = 0;\
+    int8_t STANDBY_Y_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define STANDBY_Y_LONG_OPT_STRING "standby_y"
+    #define STANDBY_Y_LONG_OPT { STANDBY_Y_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Legacy standby and idle (SAS only) timers
+    #define LEGACY_IDLE_POWER_MODE_FLAG changeIdleSettings
+    #define LEGACY_IDLE_POWER_MODE_TIMER idleTimerValue
+    #define LEGACY_IDLE_TIMER_VALID idleTimerValid
+    #define LEGACY_IDLE_STATE idleState /*enable or disable*/
+    #define LEGACY_IDLE_POWER_MODE_VARS \
+    bool LEGACY_IDLE_POWER_MODE_FLAG = false;\
+    bool LEGACY_IDLE_TIMER_VALID = false;\
+    uint32_t LEGACY_IDLE_POWER_MODE_TIMER = 0;\
+    int8_t LEGACY_IDLE_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define LEGACY_IDLE_LONG_OPT_STRING "idle"
+    #define LEGACY_IDLE_LONG_OPT { LEGACY_IDLE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define LEGACY_STANDBY_POWER_MODE_FLAG changeStandbySettings
+    #define LEGACY_STANDBY_POWER_MODE_TIMER standbyTimerValue
+    #define LEGACY_STANDBY_TIMER_VALID standbyTimerValid
+    #define LEGACY_STANDBY_STATE standbyState /*enable or disable*/
+    #define LEGACY_STANDBY_POWER_MODE_VARS \
+    bool LEGACY_STANDBY_POWER_MODE_FLAG = false;\
+    bool LEGACY_STANDBY_TIMER_VALID = false;\
+    uint32_t LEGACY_STANDBY_POWER_MODE_TIMER = 0;\
+    int8_t LEGACY_STANDBY_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define LEGACY_STANDBY_LONG_OPT_STRING "standby"
+    #define LEGACY_STANDBY_LONG_OPT { LEGACY_STANDBY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Following is for NVMe Utilities.
     #define TRANSITION_POWER_STATE_TO transitionPowerState
@@ -2307,96 +2353,6 @@ extern "C"
 
     //-----------------------------------------------------------------------------
     //
-    //  print_Enable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the enableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Enable_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Disable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the disableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Disable_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Default_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the defaultMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Default_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Enable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the enableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Timer_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the modeTimer (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Timer_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Change_Power_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the changePower option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Change_Power_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
     //  print_Transition_Power_Help()
     //
     //! \brief   Description:  This function prints out the short or long help for the transitionPower option
@@ -2409,6 +2365,15 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_Help(bool shortHelp);
+
+    void print_Idle_A_Help(bool shortHelp);
+    void print_Idle_B_Help(bool shortHelp);
+    void print_Idle_C_Help(bool shortHelp);
+    void print_Standby_Y_Help(bool shortHelp);
+    void print_Standby_Z_Help(bool shortHelp);
+
+    void print_Legacy_Idle_Help(bool shortHelp);
+    void print_Legacy_Standby_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2978,16 +2943,6 @@ extern "C"
     void print_DIPM_Help(bool shortHelp);
 
     void print_DAPS_Help(bool shortHelp);
-
-    void print_Active_Help(bool shortHelp);
-
-    void print_Sleep_Help(bool shortHelp);
-
-    void print_Idle_Unload_Help(bool shortHelp);
-
-    void print_Idle_Help(bool shortHelp);
-
-    void print_Standby_Help(bool shortHelp);
 
     void print_Free_Fall_Help(bool shortHelp);
 

@@ -528,8 +528,6 @@ void print_RevertSP_Help(bool shortHelp)
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
         printf("\t\tuser data being cryptographically erased and all other\n");
         printf("\t\tsettings set to factory defaults.\n\n");
-        printf("\t\tWARNING: The RevertSP may affect all LUNs/namespaces for devices\n");
-        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -734,161 +732,146 @@ void print_Spindown_Help(bool shortHelp)
     }
 }
 
-void print_Standby_Help(bool shortHelp)
+void print_Idle_A_Help(bool shortHelp)
 {
-    printf("\t--%s\n", STANDBY_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\n", IDLE_A_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis command will transition a drive to the standby power state.\n");
-        printf("\t\tThis command will flush the cache before the transition to this state.\n");
-        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
-        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
-        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
-        printf("\t\tbut offers less control over the transition.\n");
-        printf("\t\tOn an HDD, this will cause the spindle motor to stop.\n");
-        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
-        printf("\t\tan active state.\n\n");
-        printf("\t\tWARNING: Standby may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the EPC Idle_A power mode settings.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Idle_Help(bool shortHelp)
+void print_Idle_B_Help(bool shortHelp)
 {
-    printf("\t--%s\n", IDLE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\n", IDLE_B_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis command will transition a drive to the idle power state.\n");
-        printf("\t\tThis command may flush the cache before the transition to this state.\n");
-        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
-        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
-        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
-        printf("\t\tbut offers less control over the transition.\n");
-        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
-        printf("\t\tan active state.\n\n");
-        printf("\t\tWARNING: Idle may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the EPC Idle_B power mode settings.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Idle_Unload_Help(bool shortHelp)
+void print_Idle_C_Help(bool shortHelp)
 {
-    printf("\t--%s\n", IDLE_UNLOAD_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\n", IDLE_C_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis command will transition a drive to the idle, heads unloaded, power state.\n");
-        printf("\t\tThis command may flush the cache before the transition to this state.\n");
-        printf("\t\tThis command is for non-EPC enabled drives. If the drive has the EPC\n");
-        printf("\t\tfeature enabled, it is recommended that the --%s option\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
-        printf("\t\tbe used instead. This option is compatible with EPC enabled drives as well,");
-        printf("\t\tbut offers less control over the transition.\n");
-        printf("\t\tIf the operating system selects this drive, it will transition it back to\n");
-        printf("\t\tan active state.\n\n");
-        printf("\t\tWARNING: Idle Unload may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the EPC Idle_C power mode settings.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Sleep_Help(bool shortHelp)
+void print_Standby_Y_Help(bool shortHelp)
 {
-    printf("\t--%s\n", SLEEP_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\n", STANDBY_Y_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis command will transition a drive to the sleep power state.\n");
-        printf("\t\tA reset must be sent to wake a drive from sleep state.\n");
-        printf("\t\tThe OS may not be able to wake a drive from this state once it has\n");
-        printf("\t\tbeen entered. Use this option with caution!\n\n");
-        printf("\t\tWARNING: Sleep may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the EPC Standby_Y power mode settings.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Active_Help(bool shortHelp)
+void print_Standby_Z_Help(bool shortHelp)
 {
-    printf("\t--%s\n", ACTIVE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\n", STANDBY_Z_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis command will transition a drive to the active power state.\n");
-        printf("\t\tThis uses a ATA read-verify command to a random LBA, or a SCSI\n");
-        printf("\t\tstart-stop unit command.\n\n");
-        printf("\t\tWARNING: Active may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the EPC Standby_Z power mode settings.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Enable_Power_Mode_Help(bool shortHelp)
+void print_Legacy_Idle_Help(bool shortHelp)
 {
-    printf("\t--%s\n", ENABLE_POWER_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ]\t(SAS Only)\n", LEGACY_IDLE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option with the change power mode option to enable\n");
-        printf("\t\ta specific power mode.\n\n");
-    }
-}
-
-void print_Disable_Power_Mode_Help(bool shortHelp)
-{
-    printf("\t--%s\n", DISABLE_POWER_MODE_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option with the change power mode option to disable\n");
-        printf("\t\ta specific power mode.\n\n");
-    }
-}
-
-void print_Default_Power_Mode_Help(bool shortHelp)
-{
-    printf("\t--%s\n", DEFAULT_POWER_MODE_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option with the change power mode option restore the \n");
-        printf("\t\tdefault settings for a specific power mode.\n\n");
-    }
-}
-
-void print_Power_Mode_Help(bool shortHelp)
-{
-    printf("\t--%s [powermode]\n", POWER_MODE_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to specify a power mode. This should be used\n");
-        printf("\t\twith the --transitionPower or --changePower options.\n");
-        printf("\t\tValid power modes (SAS and SATA):\n");
-        printf("\t\t\tidle_a\n");
-        printf("\t\t\tidle_b\n");
-        printf("\t\t\tidle_c\n");
-        printf("\t\t\tstandby_y (SAS only)\n");
-        printf("\t\t\tstandby_z\n");
-        printf("\t\t\tactive (SAS only)\n");
-        printf("\t\t\tall (enable or disable only)\n");
-        printf("\t\tValid power modes (NVMe): 0 - 30\n");
-        printf("\n");
-        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the idle power mode settings.\n");
+        printf("\t\tNOTE: This is the legacy idle timer before EPC drives.\n");
+        printf("\t\t      If this is used on an EPC drive, this will modify\n");
+        printf("\t\t      the idle_a power state and timer values.\n");
+        printf("\t\t    enable  - enable the power state\n");
+        printf("\t\t    disable - disable the power state\n");
+        printf("\t\t    default - restore default settings for this power state\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 Spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tThis is only available on SAS/SCSI drives as ATA drives did not\n");
+        printf("\t\thave a separate configurable idle timer.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
-void print_Timer_Mode_Help(bool shortHelp)
+void print_Legacy_Standby_Help(bool shortHelp)
 {
-    printf("\t--%s [timer value in milliseconds]\n", POWER_MODE_TIMER_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_IDLE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to specify a timer value to use with the\n");
-        printf("\t\t--changePower mode option.\n\n");
-        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
-        printf("\t\t         with multiple logical units or namespaces.\n\n");
-    }
-}
-
-void print_Change_Power_Help(bool shortHelp)
-{
-    printf("\t--%s\n", CHANGE_POWER_MODE_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to enable or disable certain --powerMode and\n");
-        printf("\t\ttheir timers. You can also use this option to restore default\n");
-        printf("\t\tvalues to the drive.\n\n");
-        printf("\t\tWARNING: EPC settings may affect all LUNs/namespaces for devices\n");
+        printf("\t\tUse this setting to change the standby power mode settings.\n");
+        printf("\t\tNOTE: This is the legacy standby timer before EPC drives.\n");
+        printf("\t\t      If this is used on an EPC drive, this will modify\n");
+        printf("\t\t      the standby_z power state and timer values.\n");
+        printf("\t\t    enable  - enable the power state\t(SAS Only)\n");
+        printf("\t\t    disable - disable the power state\t(SAS Only)\n");
+        printf("\t\t    default - restore default settings for this power state\t(SAS Only)\n");
+        printf("\t\t    timerValue - number of milliseconds to set for the timer\n");
+        printf("\t\t                 used in this power state. If a timer is provided\n");
+        printf("\t\t                 the state will also be enabled, if not already.\n");
+        printf("\t\t                 Spec timers are set in 100 millisecond increments.\n");
+        printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tATA drives can only change the standby timer, not disable it.\n");
+        printf("\t\tOn ATA drives, the standby timer set by this command is volatile\n");
+        printf("\t\tand drive defaults are restored on next power cycle.\n\n");
+        printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
@@ -914,21 +897,36 @@ void print_pcierr_Help (bool shortHelp)
 
 void print_Transition_Power_State_Help(bool shortHelp)
 {
-    printf("\t--%s [new power state]\n", TRANSITION_POWER_STATE_LONG_OPT_STRING);
+    printf("\t--%s [new power state]\t(NVMe Only)\n", TRANSITION_POWER_STATE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to transition to a specific power state.\n");
-        printf("\t\tHINT:\n\t\t  Use --%s to show number of supported states\n\n",DEVICE_INFO_LONG_OPT_STRING);
+        printf("\t\tHINT:\n\t\t  Use --%s to show number of supported states\n\n", DEVICE_INFO_LONG_OPT_STRING);
     }
 }
 
 void print_Transition_Power_Help(bool shortHelp)
 {
-    printf("\t--%s\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+    printf("\t--%s [active | idle | idleUnload | standby | idle_a | idle_b | idle_c | standby_y | standby_z | sleep]\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to transition the drive to a specific\n");
-        printf("\t\tpower state.\n\n");
+        printf("\t\tUse this option to transition the drive to a specific power state.\n");
+        printf("\t\tEPC and legacy power states are supported. EPC states are only available\n");
+        printf("\t\ton devices supporting the EPC feature.\n");
+        printf("\t\tSupported power states:\n");
+        printf("\t\t  active\n");
+        printf("\t\t  idle - idle mode (legacy mode equivalent to idle_a on EPC)\n");
+        printf("\t\t  idleUnload - same as above, but heads are unloaded. This may not\n");
+        printf("\t\t               be supported on all devices.\n");
+        printf("\t\t  standby - standby mode (legacy mode equivalent to standby_z on EPC)\n");
+        printf("\t\t  idle_a - EPC idle mode\n");
+        printf("\t\t  idle_b - EPC lower power idle mode\n");
+        printf("\t\t  idle_c - EPC lowest power idle mode\n");
+        printf("\t\t  standby_y - EPC low power standby mode\n");
+        printf("\t\t  standby_z - EPC lowest power standby mode\n");
+        printf("\t\t  sleep - Sleep state. WARNING: This requires a reset to wake from.\n");
+        printf("\t\t          Once in this state, this tool cannot wake the drive on its own.\n");
+        printf("\t\t          The OS or adapter will need to issue a reset, which may or may not happen.\n\n");
         printf("\t\tWARNING: Transitioning power modes may affect all LUNs/namespaces\n");
         printf("\t\t         for devices with multiple logical units or namespaces.\n\n");
     }
