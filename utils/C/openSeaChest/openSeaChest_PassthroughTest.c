@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "0.3.0";
+const char *buildVersion = "0.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -4044,7 +4044,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
         ret = scsi_Mode_Sense_6(device, pageCode, *dataBufferLength, subPageCode, false, MPC_CURRENT_VALUES, *dataBuffer);
         if (ret == SUCCESS)
         {
-            uint8_t modeDataLength = (*dataBuffer)[0];
+            //uint8_t modeDataLength = (*dataBuffer)[0];
             uint8_t blockDescriptorLength = (*dataBuffer)[3];
             uint8_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
             uint8_t readpageCode = M_GETBITRANGE((*dataBuffer)[offset + 0], 5, 0);
@@ -4106,7 +4106,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
         ret = scsi_Mode_Sense_10(device, pageCode, *dataBufferLength, subPageCode, false, false, MPC_CURRENT_VALUES, *dataBuffer);
         if (ret == SUCCESS)
         {
-            uint16_t modeDataLength = M_BytesTo2ByteValue((*dataBuffer)[0], (*dataBuffer)[1]);
+            //uint16_t modeDataLength = M_BytesTo2ByteValue((*dataBuffer)[0], (*dataBuffer)[1]);
             uint16_t blockDescriptorLength = M_BytesTo2ByteValue((*dataBuffer)[6], (*dataBuffer)[7]);
             uint16_t offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
             uint8_t readpageCode = M_GETBITRANGE((*dataBuffer)[offset + 0], 5, 0);
@@ -5641,7 +5641,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 printf("\tPending Defect %" PRIu16 "\n", parameterCode);
                                 uint32_t poh = M_BytesTo4ByteValue(pageToRead[offset + 4], pageToRead[offset + 5], pageToRead[offset + 6], pageToRead[offset + 7]);
                                 printf("\t\tAccumulated Power On Hours: ");
-                                if (poh == UINT64_MAX)
+                                if (poh == UINT32_MAX)
                                 {
                                     printf("Unknown\n");
                                 }
@@ -7768,6 +7768,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //TODO: Move these passthrough tests to separate functions.
         if (!inputs->disableTranslatorPassthroughTesting)
         {
+#if !defined (DISABLE_NVME_PASSTHROUGH)
             if (strncmp(scsiInformation.inquiryData.vendorId, "NVMe", 4) == 0 || inputs->suspectedDriveType == NVME_DRIVE) //NVMe
             {
                 set_Console_Colors(true, HEADING_COLOR);
@@ -7819,7 +7820,9 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     //TODO: Based on passthrough type, do more testing for max xferlength, etc
                 }
             }
-            else if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
+            else 
+#endif 
+                if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
             {
                 //TODO: need to move this SAT testing to another function.
                 if (!test_SAT_Capabilities(inputs, &scsiInformation))
@@ -7920,7 +7923,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\tVendor ID: %s\n", scsiInformation.inquiryData.vendorId);
             printf("\tProduct ID: %s\n", scsiInformation.inquiryData.productId);
             printf("\tProduct Rev: %s\n", scsiInformation.inquiryData.productRev);
-            if (scsiInformation.vpdData.unitSN)
+            if (strlen(scsiInformation.vpdData.unitSN) > 0)
             {
                 printf("\tUnit Serial Number: %s\n", scsiInformation.vpdData.unitSN);
             }
