@@ -950,7 +950,9 @@ int32_t main(int argc, char *argv[])
         || STANDBY_Y_POWER_MODE_FLAG
         || LEGACY_IDLE_POWER_MODE_FLAG
         || LEGACY_STANDBY_POWER_MODE_FLAG
+#if !defined (DISABLE_NVME_PASSTHROUGH)
         || (TRANSITION_POWER_STATE_TO > 0)
+#endif
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         ))
@@ -976,7 +978,11 @@ int32_t main(int argc, char *argv[])
     version.version = DEVICE_BLOCK_VERSION;
     version.size = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG || (TRANSITION_POWER_STATE_TO > 0))
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        || (TRANSITION_POWER_STATE_TO > 0)
+#endif
+        )
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
@@ -1346,6 +1352,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+#if !defined (DISABLE_NVME_PASSTHROUGH)
         if (TRANSITION_POWER_STATE_TO >= 0)
         {
             switch (transition_NVM_Power_State(&deviceList[deviceIter], (uint8_t)TRANSITION_POWER_STATE_TO))
@@ -1373,6 +1380,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+#endif
 
         //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
         if (CHECK_POWER_FLAG)
