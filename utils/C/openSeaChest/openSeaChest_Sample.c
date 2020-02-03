@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Sample";
-const char *buildVersion = "0.3.0";
+const char *buildVersion = "0.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -733,7 +733,13 @@ int32_t main(int argc, char *argv[])
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
+
+        //Util specific options here
+
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 

@@ -89,8 +89,8 @@ int32_t main(int argc, char *argv[])
     CHECK_POWER_VAR
     TRANSITION_POWER_STATE_VAR
     GET_NVME_LOG_VAR
-    GET_NVME_TELE_VAR
-    NVME_TELE_DATA_AREA_VAR
+    GET_TELEMETRY_VAR
+    TELEMETRY_DATA_AREA_VAR
     OUTPUT_MODE_VAR
     GET_FEATURES_VAR
     NVME_TEMP_STATS_VAR
@@ -146,8 +146,8 @@ int32_t main(int argc, char *argv[])
         CHECK_POWER_LONG_OPT,
         TRANSITION_POWER_STATE_LONG_OPT,
         GET_NVME_LOG_LONG_OPT,
-        GET_NVME_TELE_LONG_OPT,
-        NVME_TELE_DATA_AREA_LONG_OPT,
+        GET_TELEMETRY_LONG_OPT,
+        TELEMETRY_DATA_AREA_LONG_OPT,
         CONFIRM_LONG_OPT,
         OUTPUT_MODE_LONG_OPT,
         GET_FEATURES_LONG_OPT,
@@ -341,15 +341,15 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, GET_NVME_TELE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_NVME_TELE_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, GET_TELEMETRY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_TELEMETRY_LONG_OPT_STRING))) == 0)
             {
                 if (strncmp("host", optarg, strlen(optarg)) == 0)
                 {
-                    GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
                 }
                 else if (strncmp("ctrl", optarg, strlen(optarg)) == 0)
                 {
-                    GET_NVME_TELE_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
                 }
                 else
                 {
@@ -358,12 +358,12 @@ int32_t main(int argc, char *argv[])
                     printf("Please use -h option to print help\n\n");
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, NVME_TELE_DATA_AREA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NVME_TELE_DATA_AREA_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, TELEMETRY_DATA_AREA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TELEMETRY_DATA_AREA_LONG_OPT_STRING))) == 0)
             {
                 //set the telemetry data area
                 if (isdigit(optarg[0]))//this will get the valid NVMe telemetry data area
                 {
-                    NVME_TELE_DATA_AREA = atoi(optarg);
+                    TELEMETRY_DATA_AREA = atoi(optarg);
                 }
                 else
                 {
@@ -731,7 +731,7 @@ int32_t main(int argc, char *argv[])
           || CHECK_POWER_FLAG
           || (TRANSITION_POWER_STATE_TO >= 0)
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
-          || (GET_NVME_TELE_IDENTIFIER > 0)
+          || (GET_TELEMETRY_IDENTIFIER > 0)
           || (GET_FEATURES_IDENTIFIER >= 0)
           || EXT_SMART_LOG_FLAG1
           || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
@@ -914,36 +914,36 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Controller Identify Information:\n");
                 printf("================================\n");
-                print_Data_Buffer((uint8_t *)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl,sizeof(nvmeIDCtrl),true);
+                print_Data_Buffer((uint8_t *)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl, sizeof(nvmeIDCtrl), true);
                 printf("\nNamespace Identify Information:\n");
                 printf("================================\n");
-                print_Data_Buffer((uint8_t *)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns,sizeof(nvmeIDNameSpaces),true);
+                print_Data_Buffer((uint8_t *)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns, sizeof(nvmeIDNameSpaces), true);
             }
             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
             {
                 FILE *      pIdentifyFile = NULL;
-                char identifyFileName[OPENSEA_PATH_MAX] = {0};
+                char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                 char * fileNameUsed = &identifyFileName[0];
-                if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pIdentifyFile, NULL,\
-                                                        "CTRL_IDENTIFY", "bin", 1, &fileNameUsed) )
+                if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pIdentifyFile, NULL, \
+                    "CTRL_IDENTIFY", "bin", 1, &fileNameUsed))
                 {
                     fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
                     fflush(pIdentifyFile);
                     fclose(pIdentifyFile);
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Created %s file with Controller Information\n",fileNameUsed);
+                        printf("Created %s file with Controller Information\n", fileNameUsed);
                     }
-                    memset(fileNameUsed,0,OPENSEA_PATH_MAX);
-                    if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pIdentifyFile, NULL,\
-                                                            "NAMESPACE_IDENTIFY", "bin", 1, &fileNameUsed) )
+                    memset(fileNameUsed, 0, OPENSEA_PATH_MAX);
+                    if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pIdentifyFile, NULL, \
+                        "NAMESPACE_IDENTIFY", "bin", 1, &fileNameUsed))
                     {
                         fwrite(&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns, sizeof(uint8_t), sizeof(nvmeIDNameSpaces), pIdentifyFile);
                         fflush(pIdentifyFile);
                         fclose(pIdentifyFile);
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Created %s file with Namespace Information\n",fileNameUsed);
+                            printf("Created %s file with Namespace Information\n", fileNameUsed);
                         }
                     }
                     else
@@ -1016,12 +1016,12 @@ int32_t main(int argc, char *argv[])
             }
             else if (GET_FEATURES_IDENTIFIER == 0x0E) //List them all
             {
-                nvme_Print_All_Feature_Identifiers(&deviceList[deviceIter], NVME_CURRENT_FEAT_SEL, false );
+                nvme_Print_All_Feature_Identifiers(&deviceList[deviceIter], NVME_CURRENT_FEAT_SEL, false);
             }
             else
             {
                 //Get the feature
-                if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES_IDENTIFIER, NVME_CURRENT_FEAT_SEL ) != SUCCESS)
+                if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES_IDENTIFIER, NVME_CURRENT_FEAT_SEL) != SUCCESS)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -1041,7 +1041,7 @@ int32_t main(int argc, char *argv[])
                 nvmeGetLogPageCmdOpts cmdOpts;
                 if ((nvme_Get_Log_Size(GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
                 {
-                    memset(&cmdOpts,0, sizeof(nvmeGetLogPageCmdOpts));
+                    memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
                     if (NVME_LOG_ERROR_ID == GET_NVME_LOG_IDENTIFIER)
                     {
                         size = 32 * size; //Get first 32 entries.
@@ -1053,40 +1053,40 @@ int32_t main(int argc, char *argv[])
                         cmdOpts.addr = logBuffer;
                         cmdOpts.dataLen = (uint32_t)size;
                         cmdOpts.lid = GET_NVME_LOG_IDENTIFIER;
-                        if(nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts)==SUCCESS)
+                        if (nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts) == SUCCESS)
                         {
                             if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)
                             {
-                                printf("Log Page %d Buffer:\n",GET_NVME_LOG_IDENTIFIER);
+                                printf("Log Page %d Buffer:\n", GET_NVME_LOG_IDENTIFIER);
                                 printf("================================\n");
-                                print_Data_Buffer((uint8_t *)logBuffer,(uint32_t)size,true);
+                                print_Data_Buffer((uint8_t *)logBuffer, (uint32_t)size, true);
                                 printf("================================\n");
                             }
                             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
                             {
                                 FILE * pLogFile = NULL;
-                                char identifyFileName[OPENSEA_PATH_MAX] = {0};
+                                char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                                 char * fileNameUsed = &identifyFileName[0];
                                 char logName[16];
-                                sprintf(logName, "LOG_PAGE_%d",GET_NVME_LOG_IDENTIFIER);
-                                if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL,\
-                                                                        logName, "bin", 1, &fileNameUsed) )
+                                sprintf(logName, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
+                                if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
+                                    logName, "bin", 1, &fileNameUsed))
                                 {
                                     fwrite(logBuffer, sizeof(uint8_t), (size_t)size, pLogFile);
                                     fflush(pLogFile);
                                     fclose(pLogFile);
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Created %s with Log Page %" PRId32 " Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
+                                        printf("Created %s with Log Page %" PRId32 " Information\n", fileNameUsed, GET_NVME_LOG_IDENTIFIER);
                                     }
                                 }
                                 else
                                 {
-                                        if (VERBOSITY_QUIET < toolVerbosity)
-                                        {
-                                            printf("ERROR: failed to open file to write Log Page Information\n");
-                                        }
-                                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("ERROR: failed to open file to write Log Page Information\n");
+                                    }
+                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
                             }
                             else
@@ -1121,7 +1121,7 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
+                        printf("Log Page %d not available at this time. \n", GET_NVME_LOG_IDENTIFIER);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
@@ -1130,104 +1130,104 @@ int32_t main(int argc, char *argv[])
             {
                 switch (GET_NVME_LOG_IDENTIFIER)
                 {
-                    case NVME_LOG_SMART_ID:
-                        switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTR_OUTPUT_RAW))
-                        {
-                        case SUCCESS:
-                            //nothing to print here since if it was successful, the log will be printed to the screen
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A failure occured while trying to get SMART/Health Information Log\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    break;
-                    case NVME_LOG_ERROR_ID:
-                        switch(nvme_Print_ERROR_Log_Page(&deviceList[deviceIter], 0))
-                        {
-                        case SUCCESS:
-                            //nothing to print here since if it was successful, the log will be printed to the screen
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A failure occured while trying to get Error Information Log\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    break;
-                    case NVME_LOG_FW_SLOT_ID:
-                        switch(nvme_Print_FWSLOTS_Log_Page(&deviceList[deviceIter]))
-                        {
-                        case SUCCESS:
-                            //nothing to print here since if it was successful, the log will be printed to the screen
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A failure occured while trying to get FW Slot Information Log\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    break;
-                    case NVME_LOG_CMD_SPT_EFET_ID:
-                        switch(nvme_Print_CmdSptEfft_Log_Page(&deviceList[deviceIter]))
-                        {
-                        case SUCCESS:
-                            //nothing to print here since if it was successful, the log will be printed to the screen
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    break;
-                    case NVME_LOG_DEV_SELF_TEST:
-                        switch(nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
-                        {
-                        case SUCCESS:
-                            //nothing to print here since if it was successful, the log will be printed to the screen
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A failure occured while trying to get Device Self-test Information Log\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    break;
+                case NVME_LOG_SMART_ID:
+                    switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTR_OUTPUT_RAW))
+                    {
+                    case SUCCESS:
+                        //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Log Page %d not available at this time. \n",GET_NVME_LOG_IDENTIFIER);
+                            printf("A failure occured while trying to get SMART/Health Information Log\n");
                         }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    break;
+                case NVME_LOG_ERROR_ID:
+                    switch (nvme_Print_ERROR_Log_Page(&deviceList[deviceIter], 0))
+                    {
+                    case SUCCESS:
+                        //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to get Error Information Log\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    break;
+                case NVME_LOG_FW_SLOT_ID:
+                    switch (nvme_Print_FWSLOTS_Log_Page(&deviceList[deviceIter]))
+                    {
+                    case SUCCESS:
+                        //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to get FW Slot Information Log\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    break;
+                case NVME_LOG_CMD_SPT_EFET_ID:
+                    switch (nvme_Print_CmdSptEfft_Log_Page(&deviceList[deviceIter]))
+                    {
+                    case SUCCESS:
+                        //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to get Commands Supported and Effects Information Log\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    break;
+                case NVME_LOG_DEV_SELF_TEST:
+                    switch (nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
+                    {
+                    case SUCCESS:
+                        //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to get Device Self-test Information Log\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Log Page %d not available at this time. \n", GET_NVME_LOG_IDENTIFIER);
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 }
             }
         }
 
-        if (GET_NVME_TELE_IDENTIFIER > 0) //Since 0 is reserved log
+        if (GET_TELEMETRY_IDENTIFIER > 0) //Since 0 is reserved log
         {
             /**
-             * Checking for validty of NVME_TELE_DATA_AREA
+             * Checking for validty of TELEMETRY_DATA_AREA
              * If it is not in between 1-3 we should exit with error
              */
 
-            if ((NVME_TELE_DATA_AREA < 1) && (NVME_TELE_DATA_AREA > 3))
+            if ((TELEMETRY_DATA_AREA < 1) && (TELEMETRY_DATA_AREA > 3))
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%d is an invalid temetry data area. \n", NVME_TELE_DATA_AREA);
+                    printf("%d is an invalid temetry data area. \n", TELEMETRY_DATA_AREA);
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
 
@@ -1242,7 +1242,7 @@ int32_t main(int argc, char *argv[])
                 int rtnVal;
                 nvmeTemetryLogHdr   *teleHdr;
 
-                memset(&cmdOpts,0, sizeof(nvmeGetLogPageCmdOpts));
+                memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
 
                 logBuffer = (uint8_t*)calloc(size, sizeof(uint8_t));
 
@@ -1251,13 +1251,13 @@ int32_t main(int argc, char *argv[])
                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
                     cmdOpts.addr = logBuffer;
                     cmdOpts.dataLen = size;
-                    cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
+                    cmdOpts.lid = GET_TELEMETRY_IDENTIFIER;
                     cmdOpts.offset = offset;
 
                     rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
                     offset += BLOCK_SIZE;
 
-                    if(rtnVal == SUCCESS)
+                    if (rtnVal == SUCCESS)
                     {
                         teleHdr = (nvmeTemetryLogHdr *)logBuffer;
 
@@ -1267,17 +1267,17 @@ int32_t main(int argc, char *argv[])
                         printf("Telemetry Data Area 3 : %d \n", teleHdr->teleDataArea3);
 #endif
 
-                        if(NVME_TELE_DATA_AREA == 1)
+                        if (TELEMETRY_DATA_AREA == 1)
                         {
                             fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea1;
                         }
 
-                        if(NVME_TELE_DATA_AREA == 2)
+                        if (TELEMETRY_DATA_AREA == 2)
                         {
                             fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea2;
                         }
 
-                        if(NVME_TELE_DATA_AREA == 3)
+                        if (TELEMETRY_DATA_AREA == 3)
                         {
                             fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea3;
                         }
@@ -1285,65 +1285,65 @@ int32_t main(int argc, char *argv[])
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||
                             (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN))
                         {
-                            printf("Log Page %d Buffer:\n",GET_NVME_TELE_IDENTIFIER);
+                            printf("Log Page %d Buffer:\n", GET_TELEMETRY_IDENTIFIER);
                             printf("================================\n");
-                            print_Data_Buffer((uint8_t *)logBuffer,size,true);
+                            print_Data_Buffer((uint8_t *)logBuffer, size, true);
 
-                            while(offset < fullSize)
+                            while (offset < fullSize)
                             {
                                 memset(logBuffer, 0, size);
                                 cmdOpts.nsid = NVME_ALL_NAMESPACES;
                                 cmdOpts.addr = logBuffer;
                                 cmdOpts.dataLen = size;
-                                cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
+                                cmdOpts.lid = GET_TELEMETRY_IDENTIFIER;
                                 cmdOpts.offset = offset;
 
                                 rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
                                 offset += BLOCK_SIZE;
 
-                                if(rtnVal != SUCCESS)
+                                if (rtnVal != SUCCESS)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                        printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     break;
                                 }
 
-                                print_Data_Buffer((uint8_t *)logBuffer,size,true);
+                                print_Data_Buffer((uint8_t *)logBuffer, size, true);
                             }
                             printf("================================\n");
                         }
                         else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
                         {
                             FILE * pLogFile = NULL;
-                            char identifyFileName[OPENSEA_PATH_MAX] = {0};
+                            char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                             char * fileNameUsed = &identifyFileName[0];
                             char logName[16];
-                            sprintf(logName, "LOG_PAGE_%d",GET_NVME_LOG_IDENTIFIER);
-                            if(SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL,\
-                                                                    logName, "bin", 1, &fileNameUsed) )
+                            sprintf(logName, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
+                            if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
+                                logName, "bin", 1, &fileNameUsed))
                             {
                                 fwrite(logBuffer, sizeof(uint8_t), size, pLogFile);
 
-                                while(offset < fullSize)
+                                while (offset < fullSize)
                                 {
                                     memset(logBuffer, 0, size);
                                     cmdOpts.nsid = NVME_ALL_NAMESPACES;
                                     cmdOpts.addr = logBuffer;
                                     cmdOpts.dataLen = size;
-                                    cmdOpts.lid = GET_NVME_TELE_IDENTIFIER;
+                                    cmdOpts.lid = GET_TELEMETRY_IDENTIFIER;
                                     cmdOpts.offset = offset;
 
                                     rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
                                     offset += BLOCK_SIZE;
 
-                                    if(rtnVal != SUCCESS)
+                                    if (rtnVal != SUCCESS)
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_NVME_TELE_IDENTIFIER, offset - BLOCK_SIZE);
+                                            printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
@@ -1359,16 +1359,16 @@ int32_t main(int argc, char *argv[])
 
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Created %s with Log Page %d Information\n",fileNameUsed,GET_NVME_LOG_IDENTIFIER);
+                                    printf("Created %s with Log Page %d Information\n", fileNameUsed, GET_NVME_LOG_IDENTIFIER);
                                 }
                             }
                             else
                             {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("ERROR: failed to open file to write Log Page Information\n");
-                                    }
-                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("ERROR: failed to open file to write Log Page Information\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
                         }
                         else
@@ -1384,7 +1384,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Error: Could not retrieve Log Page %d\n", GET_NVME_TELE_IDENTIFIER);
+                            printf("Error: Could not retrieve Log Page %d\n", GET_TELEMETRY_IDENTIFIER);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1403,7 +1403,7 @@ int32_t main(int argc, char *argv[])
 
         if (NVME_TEMP_STATS_FLAG)
         {
-            switch(nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
+            switch (nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the log will be printed to the screen
@@ -1420,7 +1420,7 @@ int32_t main(int argc, char *argv[])
 
         if (NVME_PCI_STATS_FLAG)
         {
-            switch(nvme_Print_PCI_Statistics(&deviceList[deviceIter]))
+            switch (nvme_Print_PCI_Statistics(&deviceList[deviceIter]))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the log will be printed to the screen
@@ -1442,12 +1442,12 @@ int32_t main(int argc, char *argv[])
 
         if (TRANSITION_POWER_STATE_TO >= 0)
         {
-            switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_STATE_TO) )
+            switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_STATE_TO))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully transitioned to power state %d.\n",TRANSITION_POWER_STATE_TO);
+                    printf("\nSuccessfully transitioned to power state %d.\n", TRANSITION_POWER_STATE_TO);
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
                 }
                 break;
@@ -1461,7 +1461,7 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not transition to the new power state %d\n",TRANSITION_POWER_STATE_TO);
+                    printf("ERROR: Could not transition to the new power state %d\n", TRANSITION_POWER_STATE_TO);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1493,7 +1493,7 @@ int32_t main(int argc, char *argv[])
         }
 
 
-         //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
+        //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
         if (EXT_SMART_LOG_FLAG1)
         {
             switch (get_Ext_Smrt_Log(&deviceList[deviceIter]))
@@ -1927,8 +1927,11 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
 #endif //DISABLE_NVME_PASSTHROUGH
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 

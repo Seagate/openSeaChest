@@ -1366,9 +1366,54 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
     }
 }
 
+void print_Get_Telemetry_Help(bool shortHelp)
+{
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+    printf("\t--%s [host | current || ctrl | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
+#else
+    printf("\t--%s [current | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
+#endif
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to get the Telemetry data for a device.\n");
+        printf("\t\tThis log is also known as the internal status log on SATA\n");
+        printf("\t\tand SAS devices.\n");
+        printf("\t\tUse the --%s option to control the amount of \n", GET_TELEMETRY_LONG_OPT_STRING);
+        printf("\t\tdata collected. \n\n");
+        printf("\t\tSupported Modes:\n");
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        printf("\t\t\thost - get Host initiated Telemetry on NVMe (same as \"current\")\n");
+        printf("\t\t\tctrl - get Controller initiated Telemetry on NVMe (Same as \"saved\"\n");
+#endif
+        printf("\t\t\tcurrent - get the current internal status log on SAS/SATA\n");
+        printf("\t\t\tsaved - get the saved internal status log on SAS/SATA\n");
+        printf("\n");
+    }
+}
+
+void print_Telemetry_Data_Set_Help(bool shortHelp)
+{
+    printf("\t--%s [1 | 2 | 3 | 4 (SAS only)]\n", TELEMETRY_DATA_AREA_LONG_OPT_STRING);
+
+    if (!shortHelp)
+    {
+        printf("\t\tThis is a sub-command which defines the amount of data \n");
+        printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_TELEMETRY_LONG_OPT_STRING);
+        printf("\t\tif this option is not used. \n");
+        printf("\n");
+        printf("\t\tSupported Data Areas:\n");
+        printf("\t\t1 - get minimal telemetry data (data set 1)\n");
+        printf("\t\t2 - get additional/medium telemetry data (data set 2)\n");
+        printf("\t\t3 - get additional/large telemetry data (data set 3) (default)\n");
+        printf("\t\t4 - get additional/x-large telemetry data (data set 4) (SAS only)\n");
+        printf("\n");
+    }
+}
+
+//NOTE: This is legacy for SeaChest_NVMe only!
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
-    printf("\t--%s [host | ctrl]\n", GET_NVME_TELE_LONG_OPT_STRING);
+    printf("\t--%s [host | ctrl]\n", GET_TELEMETRY_LONG_OPT_STRING);
 
     if (!shortHelp)
     {
@@ -1381,18 +1426,18 @@ void print_NVMe_Get_Tele_Help(bool shortHelp)
         printf("\n");
     }
 
-    printf("\t--%s [1 | 2 | 3]\n", NVME_TELE_DATA_AREA_LONG_OPT_STRING);
+    printf("\t--%s [1 | 2 | 3]\n", TELEMETRY_DATA_AREA_LONG_OPT_STRING);
 
     if(!shortHelp)
     {
         printf("\t\tThis is a sub-command which defines the amount of data \n");
-        printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_NVME_TELE_LONG_OPT_STRING);
+        printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_TELEMETRY_LONG_OPT_STRING);
         printf("\t\tif this option is not used. \n");
         printf("\n");
         printf("\t\tSupported Data Area.\n");
         printf("\t\t1 - get minimal telemetry data\n");
-        printf("\t\t2 - get telemetry data additional to data area 1\n");
-        printf("\t\t3 - get telemetry data additional to data area 2 (default data area)\n");
+        printf("\t\t2 - get telemetry data additional to data area 2\n");
+        printf("\t\t3 - get telemetry data additional to data area 3 (default data area)\n");
         printf("\n");
     }
 }

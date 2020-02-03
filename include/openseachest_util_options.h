@@ -466,17 +466,17 @@ extern "C"
     #define NVME_PCI_STATS_LONG_OPT_STRING "pciStats"
     #define NVME_PCI_STATS_LONG_OPT { NVME_PCI_STATS_LONG_OPT_STRING, no_argument, &NVME_PCI_STATS_FLAG, goTrue }
 
-    // NVMe Telemetry
-    #define GET_NVME_TELE_IDENTIFIER nvmeGetTelemetry
-    #define GET_NVME_TELE_VAR int32_t GET_NVME_TELE_IDENTIFIER = -1;
-    #define GET_NVME_TELE_LONG_OPT_STRING "getTelemetry"
-    #define GET_NVME_TELE_LONG_OPT { GET_NVME_TELE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    //Telemetry
+    #define GET_TELEMETRY_IDENTIFIER getTelemetryData
+    #define GET_TELEMETRY_VAR int32_t GET_TELEMETRY_IDENTIFIER = -1;
+    #define GET_TELEMETRY_LONG_OPT_STRING "getTelemetry" /* host | cntl | current | saved */
+    #define GET_TELEMETRY_LONG_OPT { GET_TELEMETRY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    // NVMe Telemetry Data Area
-    #define NVME_TELE_DATA_AREA telemetryDataArea
-    #define NVME_TELE_DATA_AREA_VAR int32_t NVME_TELE_DATA_AREA = 3;
-    #define NVME_TELE_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
-    #define NVME_TELE_DATA_AREA_LONG_OPT { NVME_TELE_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
+    //Telemetry Data Area
+    #define TELEMETRY_DATA_AREA telemetryDataArea
+    #define TELEMETRY_DATA_AREA_VAR int32_t TELEMETRY_DATA_AREA = 3;
+    #define TELEMETRY_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
+    #define TELEMETRY_DATA_AREA_LONG_OPT { TELEMETRY_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
@@ -3115,6 +3115,10 @@ extern "C"
     void print_Request_Power_Measurement_Mode_Help(bool shortHelp);
 
     void print_Pull_Power_Telemetry_Help(bool shortHelp);
+
+    void print_Get_Telemetry_Help(bool shortHelp);
+
+    void print_Telemetry_Data_Set_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
