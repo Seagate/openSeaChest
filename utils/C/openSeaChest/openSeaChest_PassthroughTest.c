@@ -1040,7 +1040,10 @@ int32_t main(int argc, char *argv[])
             perform_Passthrough_Test(&params);
             
         }
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
