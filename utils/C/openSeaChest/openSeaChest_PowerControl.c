@@ -2582,7 +2582,6 @@ void utility_Usage(bool shortUsage)
     //utility tests/operations go here - alphabetized
     print_Check_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
-    print_Legacy_Idle_Help(shortUsage);
     print_Idle_A_Help(shortUsage);
     print_Idle_B_Help(shortUsage);
     print_Idle_C_Help(shortUsage);
@@ -2606,6 +2605,7 @@ void utility_Usage(bool shortUsage)
     print_Show_APM_Level_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
+    print_Legacy_Idle_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
     print_SAS_Phy_Slumber_Help(shortUsage);
