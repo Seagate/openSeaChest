@@ -2000,6 +2000,8 @@ void utility_Usage(bool shortUsage)
     print_NVMe_Get_Log_Help(shortUsage);
     print_NVMe_Get_Tele_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
+    print_Poll_Help(shortUsage);
+    print_Progress_Help(shortUsage, "nvmformat");
     print_pcierr_Help(shortUsage);
     print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
