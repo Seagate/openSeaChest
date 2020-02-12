@@ -2143,13 +2143,16 @@ void print_Format_Stop_On_List_Error_Help(bool shortHelp)
 
 void print_Format_New_Max_LBA_Help(bool shortHelp)
 {
-    printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
+    printf("\t--%s [ new max LBA ]\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
-        printf("\t\tformat unit operation. This can speed up a format unit if\n");
+        printf("\t\tformat unit operation. This may speed up a format unit if\n");
         printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
-        printf("\t\tcapacity while formatting.\n\n");
+        printf("\t\tcapacity while formatting.\n");
+        printf("\t\tNOTE: Not all devices support reducing capacity during a format.\n");
+        printf("\t\tSome may ignore this parameter and format the full medium anyways.\n");
+        printf("\t\tThis is not guaranteed to stick or reduce formatting time.\n\n");
     }
 }
 
