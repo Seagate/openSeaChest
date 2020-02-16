@@ -860,7 +860,7 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Closing zone(s) not supportd\n");
+                        printf("Closing zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -908,7 +908,7 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Finishing zone(s) not supportd\n");
+                        printf("Finishing zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -956,7 +956,7 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Opening zone(s) not supportd\n");
+                        printf("Opening zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1004,14 +1004,14 @@ int32_t main(int argc, char *argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Reseting write pointer(s) not supportd\n");
+                        printf("Resetting write pointer(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Reseting write pointer(s) failed\n");
+                        printf("Resetting write pointer(s) failed\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
