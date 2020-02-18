@@ -271,7 +271,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_NEW_MAX_LBA = (uint64_t)atoll(optarg);
+                sscanf(optarg, "%" SCNu64 "", &FORMAT_UNIT_NEW_MAX_LBA);
             }
 #if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
@@ -1068,7 +1068,7 @@ int32_t main(int argc, char *argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("The format status log is not supportd on this device.\n");
+                    printf("The format status log is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;

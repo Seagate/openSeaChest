@@ -1775,4 +1775,3 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Erase_Help(shortUsage, "SeaChest");//old implementation used the utility name as the password, switching to SeaChest
 }
-

@@ -855,7 +855,7 @@ void print_Legacy_Idle_Help(bool shortHelp)
 
 void print_Legacy_Standby_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_IDLE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_STANDBY_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this setting to change the standby power mode settings.\n");
@@ -3146,7 +3146,9 @@ void print_FARM_Log_Help(bool shortHelp)
     printf("\t--%s\n", FARM_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tPull the Seagate FARM log from the specified drive.\n\n");
+        printf("\t\tPull the Seagate Field Accessible Reliability Metrics (FARM)\n");
+        printf("\t\tLog from the specified drive.Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin\n\n");
     }
 }
 

@@ -52,6 +52,7 @@ extern "C"
         UTIL_EXIT_CANNOT_OPEN_FILE,
         UTIL_EXIT_FILE_ALREADY_EXISTS,
         UTIL_EXIT_NEED_ELEVATED_PRIVILEGES,
+		UTIL_EXIT_NOT_ENOUGH_RESOURCES,
         //TODO: More generic exit codes go here
         //Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE = 32,//Use this value in a tool to start the tool's specific error code enumeration

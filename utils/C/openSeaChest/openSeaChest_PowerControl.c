@@ -31,6 +31,7 @@
 #include "power_control.h"
 #include "drive_info.h"
 #include "seagate_operations.h" //for power telemetry
+#include "vendor/seagate/seagate_common_types.h" //power telemetry type
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
