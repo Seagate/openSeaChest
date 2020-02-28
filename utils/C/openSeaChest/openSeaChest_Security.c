@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1775,4 +1775,3 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Erase_Help(shortUsage, "SeaChest");//old implementation used the utility name as the password, switching to SeaChest
 }
-

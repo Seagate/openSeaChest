@@ -855,7 +855,7 @@ void print_Legacy_Idle_Help(bool shortHelp)
 
 void print_Legacy_Standby_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_IDLE_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_STANDBY_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this setting to change the standby power mode settings.\n");
@@ -2143,13 +2143,16 @@ void print_Format_Stop_On_List_Error_Help(bool shortHelp)
 
 void print_Format_New_Max_LBA_Help(bool shortHelp)
 {
-    printf("\t--%s\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
+    printf("\t--%s [ new max LBA ]\n", FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a new Max LBA for a drive during a\n");
-        printf("\t\tformat unit operation. This can speed up a format unit if\n");
+        printf("\t\tformat unit operation. This may speed up a format unit if\n");
         printf("\t\tformatting to test something, or also desiring to reduce a drive's\n");
-        printf("\t\tcapacity while formatting.\n\n");
+        printf("\t\tcapacity while formatting.\n");
+        printf("\t\tNOTE: Not all devices support reducing capacity during a format.\n");
+        printf("\t\tSome may ignore this parameter and format the full medium anyways.\n");
+        printf("\t\tThis is not guaranteed to stick or reduce formatting time.\n\n");
     }
 }
 
@@ -3143,7 +3146,9 @@ void print_FARM_Log_Help(bool shortHelp)
     printf("\t--%s\n", FARM_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tPull the Seagate FARM log from the specified drive.\n\n");
+        printf("\t\tPull the Seagate Field Accessible Reliability Metrics (FARM)\n");
+        printf("\t\tLog from the specified drive.Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin\n\n");
     }
 }
 

@@ -1,7 +1,7 @@
 //
 // openSeaChest_NVMe.c
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -2001,6 +2001,8 @@ void utility_Usage(bool shortUsage)
     print_NVMe_Get_Tele_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_pcierr_Help(shortUsage);
+    print_Poll_Help(shortUsage);
+    print_Progress_Help(shortUsage, "nvmformat");
     print_extSmatLog_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
     print_NVMe_Temp_Stats_Help(shortUsage);

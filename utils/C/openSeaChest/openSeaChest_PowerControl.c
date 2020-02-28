@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,6 +31,7 @@
 #include "power_control.h"
 #include "drive_info.h"
 #include "seagate_operations.h" //for power telemetry
+#include "vendor/seagate/seagate_common_types.h" //power telemetry type
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -2582,7 +2583,6 @@ void utility_Usage(bool shortUsage)
     //utility tests/operations go here - alphabetized
     print_Check_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
-    print_Legacy_Idle_Help(shortUsage);
     print_Idle_A_Help(shortUsage);
     print_Idle_B_Help(shortUsage);
     print_Idle_C_Help(shortUsage);
@@ -2606,6 +2606,7 @@ void utility_Usage(bool shortUsage)
     print_Show_APM_Level_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
+    print_Legacy_Idle_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
     print_SAS_Phy_Slumber_Help(shortUsage);
