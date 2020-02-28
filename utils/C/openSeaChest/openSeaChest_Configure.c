@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "1.17.0";
+const char *buildVersion = "1.18.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -76,7 +76,6 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -138,7 +137,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -179,6 +177,14 @@ int32_t main(int argc, char *argv[])
     };
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
+
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
 
     ////////////////////////
     //  Argument Parsing  //
@@ -838,7 +844,7 @@ int32_t main(int argc, char *argv[])
                 {
                     SCSI_SHOW_MP_BUFFER_MODE = false;
                 }
-                else if (strcmp(optarg, "threshold") == 0)
+                else if (strcmp(optarg, "buffer") == 0)
                 {
                     SCSI_SHOW_MP_BUFFER_MODE = true;
                 }
@@ -1066,6 +1072,11 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            print_Elevated_Privileges_Text();
+            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if(AGRESSIVE_SCAN_FLAG)
         {
@@ -1119,10 +1130,6 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
         if (scanIgnoreCSMI)
         {
@@ -1156,6 +1163,13 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        print_Elevated_Privileges_Text();
+        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
@@ -1243,7 +1257,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1332,7 +1346,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -1389,12 +1405,6 @@ int32_t main(int argc, char *argv[])
                 }*/
                 continue;
             }
-        }
-
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
         }
 
         //check for model number match
@@ -1543,6 +1553,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1668,12 +1682,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed Ready LED behavior!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
+                    printf("Changing Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1713,6 +1731,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Write cache successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -2099,7 +2121,7 @@ int32_t main(int argc, char *argv[])
         {
             if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
             {
-                if (is_NV_Cache_Supported)
+                if (is_NV_Cache_Supported(&deviceList[deviceIter]))
                 {
                     if (is_NV_Cache_Enabled(&deviceList[deviceIter]))
                     {
@@ -2135,6 +2157,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Non-Volatile Cache successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -2183,6 +2209,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Read look-ahead successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -2552,6 +2582,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully reset mode page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2579,6 +2613,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully restored mode page to saved values!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2606,6 +2644,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully saved mode page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2651,6 +2693,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully reset the log page!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2688,7 +2734,7 @@ int32_t main(int argc, char *argv[])
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
                     long fileLength = get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
-                    uint8_t *modePageBuffer = (uint8_t*)calloc(fileLength, sizeof(uint8_t));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                    uint8_t *modePageBuffer = (uint8_t*)calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
                     char *fileBuf = (char*)calloc(fileLength, sizeof(char));
                     if (modePageBuffer && fileBuf)
                     {
@@ -2727,6 +2773,10 @@ int32_t main(int argc, char *argv[])
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("Successfully set SCSI mode page!\n");
+                                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                        {
+                                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        }
                                     }
                                     break;
                                 case NOT_SUPPORTED:
@@ -2749,7 +2799,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An error occured while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                    printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
@@ -2758,11 +2808,11 @@ int32_t main(int argc, char *argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An error occured while trying to parse the file. Please check the file format.\n");
+                                printf("An error occurred while trying to parse the file. Please check the file format.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
-                        safe_Free(modePageBuffer);
+                        safe_Free_aligned(modePageBuffer);
                     }
                     else
                     {
@@ -2773,7 +2823,7 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                     fclose(modePageFile);
-                    safe_Free(modePageBuffer);
+                    safe_Free_aligned(modePageBuffer);
                     safe_Free(fileBuf);
                 }
                 else
@@ -2879,12 +2929,16 @@ int32_t main(int argc, char *argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Successfully set SCSI mode page!\n");
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
                             break;
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                printf("Unable to change the requested values in the mode page. These may not be changeable or are an invalid combination.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
@@ -2917,7 +2971,10 @@ int32_t main(int argc, char *argv[])
                 }
             }
         }
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -2971,7 +3028,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 

@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.8.0";
+const char *buildVersion = "2.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -83,7 +83,6 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -102,6 +101,7 @@ int32_t main(int argc, char *argv[])
     SHORT_DST_VAR
     SMART_ATTRIBUTES_VARS
     ABORT_DST_VAR
+    IGNORE_OPERATION_TIMEOUT_VAR
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
     DOWNLOAD_FW_VARS
@@ -148,7 +148,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -164,6 +163,7 @@ int32_t main(int argc, char *argv[])
         SHORT_DST_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         ABORT_DST_LONG_OPT,
+        IGNORE_OPERATION_TIMEOUT_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -193,6 +193,14 @@ int32_t main(int argc, char *argv[])
     };
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
+
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
 
     ////////////////////////
     //  Argument Parsing  //
@@ -611,6 +619,11 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            print_Elevated_Privileges_Text();
+            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if(AGRESSIVE_SCAN_FLAG)
         {
@@ -664,10 +677,6 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
         if (scanIgnoreCSMI)
         {
@@ -701,6 +710,13 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        print_Elevated_Privileges_Text();
+        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
@@ -777,7 +793,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -866,7 +882,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -923,12 +941,6 @@ int32_t main(int argc, char *argv[])
                 }*/
                 continue;
             }
-        }
-
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
         }
 
         //check for model number match
@@ -1056,7 +1068,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc(deviceList[deviceIter].drive_info.deviceBlockSize * sizeof(uint8_t), sizeof(uint8_t));
+            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1080,7 +1092,7 @@ int32_t main(int argc, char *argv[])
                 printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free(displaySector);
+            safe_Free_aligned(displaySector);
         }
 
         if (SPIN_DOWN_FLAG)
@@ -1091,6 +1103,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish spinning down.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1190,7 +1206,7 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get SMART attributes\n");
+                    printf("A failure occurred while trying to get SMART attributes\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1245,7 +1261,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Short DST\n");
             }
-            DSTResult = run_DST(&deviceList[deviceIter], 1, POLL_FLAG, false);
+            DSTResult = run_DST(&deviceList[deviceIter], 1, POLL_FLAG, false, IGNORE_OPERATION_TIMEOUT);
             switch (DSTResult)
             {
             case UNKNOWN:
@@ -1278,7 +1294,8 @@ int32_t main(int argc, char *argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short DST aborted!\n");
+                    printf("Short DST was aborted! You can add the --%s flag to allow DST to continue\n", IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
+                    printf("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
@@ -1321,7 +1338,7 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 long firmwareFileSize = get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize * sizeof(uint8_t), sizeof(uint8_t));
+                uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -1377,6 +1394,10 @@ int32_t main(int argc, char *argv[])
                                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                                 printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
                             }
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1394,7 +1415,7 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     }
-                    safe_Free(firmwareMem);
+                    safe_Free_aligned(firmwareMem);
                 }
                 else
                 {
@@ -1434,6 +1455,10 @@ int32_t main(int argc, char *argv[])
                         printf("Firmware activate successful\n");
                         fill_Drive_Info_Data(&deviceList[deviceIter]);
                         printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1470,6 +1495,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1533,12 +1562,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully changed ready LED behavior!\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Changin Ready LED behavior is not supported on this device or this device type.\n");
+                    printf("Changing Ready LED behavior is not supported on this device or this device type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1578,6 +1611,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Write cache successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1638,6 +1675,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Read look-ahead successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1985,7 +2026,10 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -2041,9 +2085,9 @@ void utility_Usage(bool shortUsage)
     print_Model_Match_Help(shortUsage);
     print_Time_Minutes_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
+    print_No_Time_Limit_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Time_Seconds_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);

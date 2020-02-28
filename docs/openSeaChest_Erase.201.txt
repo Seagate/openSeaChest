@@ -1,9 +1,9 @@
-openSeaChest_Firmware.txt                                 Revision: 08-Jan-2019
+openSeaChest_Erase.txt                                    Revision: 19-Jul-2019
 ===============================================================================
- openSeaChest_Firmware for Linux and Windows - Seagate drive utilities
+ openSeaChest_Erase for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_Firmware Version: 2.6.0
- Build Date: Jan  7 2018
+ openSeaChest_Erase Version: 2.0.1
+ Build Date: Jul 19 2019
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -19,12 +19,8 @@ been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
 
-This User Guide file contains important information about openSeaChest Firmware.
+This User Guide file contains important information about openSeaChest Erase.
 Please read this entire file before using this software.
-
-openSeaChest_Firmware is a comprehensive command line tool that can be used to
-update firmware, also known as microcode, on Seagate disk drives (this includes
-Seagate, Maxtor, Samsung and LaCie).
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -41,19 +37,38 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Seagate products are run by firmware.  Having the latest firmware can improve
-performance and or reliability of your product.  Seagate recommends applying
-new firmware to enhance the performance and or reliability of your drive.  Like
-any software, firmware is improved over time and problems are also fixed. 
-Every drive family has a couple of firmware releases during the life of the
-product.  Please check in regularly to determine if new firmware is available
-for your drive.
+openSeaChest_Erase is a comprehensive command line tool that can be used to
+efficiently erase data on Seagate disk drives (this includes Seagate, Maxtor,
+Samsung and LaCie).
 
-openSeaChest_Firmware allows for both single drive and sequential batch mode
-firmware download.
+NOTE: openSeaChest_Erase may not be fully functional on non-Seagate drives.
 
 If this is your drive, you should always keep a current backup of your
 important data.
+
+If this is not your drive and the original owner has no claim of ownership to
+it or the data stored on it, then you may still be responsible for the data in
+your possession.   To protect yourself from potential liability and to protect
+the previous owner's privacy, you should remove all data by performing a data
+erasure on this drive.
+
+Be very careful because using openSeaChest_Erase will cause data loss. Seagate
+is not responsible for lost user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -64,39 +79,30 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-Be very careful using openSeaChest_Firmware. Power failure during a firmware
-download will cause data loss. Never apply firmware to a drive unless you are
-certain that the firmware data file is specifically prepared for your drive.
-Seagate is not responsible for lost user data.
-
-NOTE: openSeaChest_Firmware may not be fully functional on non-Seagate drives.
-
-NOTE: Windows severely restricts downloading firmware to SATA drives.  Please
-see the section below "Windows Restrictions Over SATA Firmware Downloads".
-openSeaChest_Firmware may not be fully functional on non-Seagate drives.
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
 
 Usage - Linux
 =============
-        openSeaChest_Firmware [-d <sg_device>] {arguments} {options}
+        openSeaChest_Erase [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        openSeaChest_Firmware --scan
-        openSeaChest_Firmware -d /dev/sg2 -i
-        openSeaChest_Firmware -d /dev/sg2 --fwdlInfo
-        openSeaChest_Firmware -d /dev/sg2 --downloadFW fwfilename
+        openSeaChest_Erase --scan
+        openSeaChest_Erase -d /dev/sg2 -i
+        openSeaChest_Erase --device /dev/sg1 --sanitize info
 
 Usage - Windows
 ===============
-        openSeaChest_Firmware [-d <device>] {arguments} {options}
+        openSeaChest_Erase [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_Firmware --scan
-        openSeaChest_Firmware -d PD2 -i
-        openSeaChest_Firmware -d PD2 --fwdlInfo
+        openSeaChest_Erase --scan
+        openSeaChest_Erase -d PD2 -i
+        openSeaChest_Erase --device PD1 --sanitize info
 
-Utility arguments
+Utility Arguments
 =================
         -s, --scan
                 Scan the system and list all storage devices with logical
@@ -122,9 +128,11 @@ Utility arguments
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
+                     nvme           - show only NVMe devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                     interfaceNVME  - show devices on a NVMe interface
                     Linux:
                      sd             - show /dev/sd? device handles
                      sgtosd         - show the sd and sg device handle mapping
@@ -151,8 +159,8 @@ Utility arguments
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add --usbChildInfo
-                to display details about the drive within the USB enclosure.
+                as communicated by the USB-SATA bridge.  Add--usbChildInfo to
+                display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -164,62 +172,113 @@ Utility arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --fwdlInfo
-                Use this option to show the firmware download support
-                information for a drive.
+        --displayLBA [LBA | maxLBA]
+                This option will read and display the contents of the specified
+                LBA to the screen. The display format is hexadecimal with an
+                ASCII translation on the side (when available).  The predefined
+                text string "maxLBA" (without quotes) may be entered to
+                indicate the last sector on the drive instead of the specific
+                LBA number.
 
-        --downloadFW [fwfilename]
-                Download firmware to a Seagate storage product. Use only
-                Seagate authorized firmware data files which are designated for
-                the specific model drive. Improper use of this option may harm
-                a device and or its data. You may specify the path if the
-                firmware data file is in a different location. This option will
-                use segmented download by default. Use the --downloadMode
-                option to specify a different download mode.
+        --showEraseSupport
+                This option checks the drive to determine which methods of data
+                erasure are supported and lists them, from fastest to slowest.
+                Gives overwrite erase time estimate.
 
-        --downloadMode [full | segmented | deferred]
-                Use this command along with the --downloadFW option to set the
-                firmware download mode.
+        --poll
+                Use this option to cause another operation to poll for progress
+                until it has completed.  This argument does not return to the
+                command prompt and prints ongoing completion percentages (%)
+                and the final test result.  Full drive procedures will take a
+                very long time.  Used with --sanitize, --ataSecureErase (SATA),
+                --writeSame (SATA), or --formatUnit (SAS).
 
-                Supported Modes:
-                     full      - Performs a download in one large transfer to
-                                 the device.
-                     segmented - Downloads the firmware in multiple segments to
-                                 the device. (Most compatible)
-                     deferred  - Performs a segmented download to the device,
-                                 but does not activate the new firmware until a
-                                 power cycle or activate command is sent. Drives
-                                 with this feature are not common. See
-                                 --activateFW.
+        --progress [sanitize, format]
+                Get the progress for a test that was started quietly (default)
+                specify a test to check progress. The progress counts up from
+                0% to 100%.
 
-                Note: See the --modelMatch and --onlyFW utility options which
-                may assist in creating commands to update multiple similar
-                drives.
+        --showPhysicalElementStatus
+                Use this option to see the status/health of the storage
+                elements inside a drive. Use the element # shown with the
+                --removePhysicalElement option to remove that storage element
+                from use. This option can also be used to see if a depopulation
+                is still in progress or if it has completed.  See the section
+                below 'Interpreting Head Health and Status' for more
+                information.
 
-        --activateFW
-                Use this option to issue the command to activate code that was
-                sent to the drive using a deferred download command. This will
-                immediately activate the new code on the drive. You can use
-                this along with a --downloadFW and --downloadMode to
-                automatically issue the activate command after the deferred
-                download has completed.
+SATA Only
+---------
+        --ataSATsecurityProtocol [enable | disable]         (SATA only)
+                This option can be used to force enable or disable using the
+                ATA security protocol as specified in the SAT specification. By
+                default, the tool will use this method when it is supported to
+                allow the SATL to understand and manage the security commands
+                being performed and prevent other issues.
 
-        --fwdlSegSize [segment size in 512B blocks]
-                Use this option to specify a segment size in 512B blocks to use
-                for a segmented or deferred download. This option will not
-                affect an immediate download (full buffer at once). The default
-                segment size used is 64. Larger segment sizes may be faster,
-                however they may also be incompatible with controllers or
-                drivers in the system. Smaller values are more likely to be
-                compatible, but also slower. Use this option if the default
-                used by the tool is not working correctly for firmware updates.
+                Use this option to disable an ATA security password. If a drive
+                lost power during an ATA Security Erase in SeaChest, then using
+                the password SeaChest with type 'user' will remove the temporary
+                password set by the utility.
 
-        --firmwareSlot/--fwBufferID slot#
-                Use this option to specify a firmware slot (NVMe) or a buffer
-                ID (SCSI) along with the --downloadMode (SCSI) or --activateFW
-                (NVMe & SCSI) options.  If this option is not used, a value of
-                zero will be used instead, which means the drive will
-                automatically select the slot number.
+                Example:
+                --ataSATsecurityProtocol disable --ataSecPassword SeaChest --ataSecPassType user
+
+                Some commands like --scan and --deviceInfo will still run on a
+                locked drive. To disable a password set by a BIOS, the BIOS
+                must have set the password in ASCII. A BIOS may choose to hash
+                the password typed in the configuration however it chooses and
+                this utility has no idea how to match what the BIOS has done so
+                it may not always work to remove a password set by something
+                other than this utility. See the --ataSecPWMod command below
+                for additional alternatives.
+
+        --ataSecPassword ["ASCII password" | SeaChest | empty]      (SATA only)
+                Use this option to specify a password to use with an ATA
+                security operation. If specifying a password with spaces,
+                quotes must be used. If SeaChest is given, the default SeaChest
+                password will be used. If empty is given, an empty password
+                will be used.
+
+                Examples:
+                  "This is a valid password"
+                  ThisIsAlsoValid
+                  "This password uses \"quotes\"
+                  "This password is \/\/eird"
+
+                Note: Windows PE offers an ATA Security Erase feature. If the
+                erase is interrupted then a temporary password
+                AutoATAWindowsString12345678901 is still set.
+
+                Note: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
+
+        --ataSecPassType [user | master]                (SATA only)
+                Use this option to specify if the password being given with the
+                --ataSecPassword option is a user or a master password. If this
+                option is not provided, user is assumed.
+
+        --ataSecPWMod [byteswapped | zeropad | spacepad | fpad | leftAlign |
+          rightAlign | uppercase | lowercase | invertcase] (SATA Only)
+                Use this option to have the utility make modifications to the
+                ATA security password to attempt other various ways it may be
+                sent by a system bios. These are not guaranteed to work, but
+                may help unlock a drive that was locked by a BIOS that encoded
+                the password in a unique way. This option can be presented
+                multiple times to select multiple modifications.
+
+                EX: --ataSecPWMod byteswapped --ataSecPWMod invertcase
+                  byteswapped - byteswaps the password. EX: blah -> lbha
+                  zeropad - zero pads the password if less than 32 characters
+                  spacepad - space pads the password if less than 32 characters
+                  fpad - pads the passwords with Fh (all 1's) if less than
+                     32characters
+                  leftAlign - left aligns the password in the buffer
+                  rightAlign - right aligns the password in the buffer
+                  uppercase - sends the password as all uppercase
+                  lowercase - sends the password as all lowercase
+                  invertcase - switches uppercase for lower, and lowercase for
+                  upper
 
 Utility Options
 ===============
@@ -228,7 +287,7 @@ Utility Options
 
         -v [0-4], --verbose [0 | 1 | 2 | 3 | 4]
                 Show verbose information. Verbosity levels are
-                0 - quiet,
+                0 - quiet
                 1 - default
                 2 - command descriptions
                 3 - command descriptions and values
@@ -259,6 +318,10 @@ Utility Options
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
 
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
                 Pass-through 12-byte commands when possible instead of 16-byte
@@ -286,12 +349,17 @@ Utility Options
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
 
-        --newFW [firmware revision]
-                Use this option to skip drives matching the provided firmware
-                revision. This option will only do an exact match. This option
-                should be used to skip performing an update if a drive already
-                has this firmware revision loaded. The option --childNewFW may
-                be used to match drives in USB enclosures.
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -341,6 +409,296 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
+Data Destructive Commands
+========================================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+        --confirm I-understand-this-command-will-erase ... etc
+
+        --performQuickestErase
+                This option checks the drive to determine which methods of data
+                erasure are supported and determines which is the quickest to
+                erase ALL data on the drive. It then starts the quickest erase.
+                Combine this option with the --poll option to enable polling
+                for progress on the fastest erase.  See also --showEraseSupport.
+
+                Note 1: Some erase methods require polling and will have polling
+                enabled by default.
+
+                Note 3: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
+
+Note: Windows 8 (and newer) native drivers block Sanitize commands.
+
+        --sanitize [info | blockerase | cryptoerase | overwrite | freezelock |
+                    antifreezelock]
+                Use the info argument to show supported sanitize operations.
+                Optionally, use blockerase, cryptoerase, or overwrite to start
+                a sanitize operation.
+
+                Example:--sanitize info
+                Example:--sanitize blockerase
+
+                * blockerase on some solid state drives (SSD) is very fast at
+                less than one (1) second, while on other SSDs it can take
+                longer than 30 seconds. It performs a physical low level block
+                erase operation on all current, past and potential user data
+                making previous data irretrievable. Consider using the --poll
+                option to monitor % completion.
+
+                * cryptoerase is very fast at less than one (1) second. It
+                changes the internal encryption keys that are used for user
+                data causing all previous data to be useless.
+
+                * overwrite physically overwrites all current, past and
+                potential user data. The ATA specification gives overwrite the
+                option to set a user defined pattern and multiple passes.
+                openSeaChest_Erase will use zeros (0) and one pass.
+
+                Overwrite on hard disk drives (HDD) takes a very long time to
+                complete at approximately three (3) hours per terabyte. Once
+                this command starts it must finish the overwrite erase before
+                normal use of the drive is returned. Even if a power reset is
+                performed during overwrite erase the drive will continue from
+                where it was stopped until it reaches the end of the of
+                erasure. Automatic sector reallocation (repair) is permitted
+                during the operation of this function.
+
+                The optional --poll argument does not return to the command
+                prompt and prints ongoing completion percentages (%) and the
+                final test result. Otherwise, the Sanitize command begins and
+                immediately returns to the command prompt.  Use the --progress
+                sanitize command to check on the completion percentage (%) and
+                test result.
+
+                * freezelock is a command to block processing of sanitize
+                operations until a power cycle is performed on a device. It is
+                only available on ATA drives. Once this command has been sent,
+                the freezelock status becomes immediate and cannot be cleared
+                until the drive has been powered off. All sanitize commands,
+                except a sanitize status will be aborted.
+
+                * antifreezelock is a command which is designed to block a
+                freezelock command from locking out the sanitize feature set.
+                It is only available on ATA drives that support the ACS3, or
+                higher specification.
+
+        --overwrite [starting LBA | maxLBA]
+                Use this option to start an overwrite erase at the specified
+                starting LBA.  Use 0 for the starting LBA to mean the beginning
+                of the drive.  The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The overwrite data pattern
+                will be all zeros (0000... etc) for the specified range.  You
+                must combine this option with either the --overwriteRange to
+                set the range count of the erasure, or the time settings
+                (--minutes, etc. see above).
+
+                Example: --overwrite 0 --overwriteRange 1000000
+                         --overwrite 0 --hours 1 --minutes 30
+
+                Important: If the end of the drive is reached before the time
+                is up, the operation will continue at the beginning of the
+                drive until the specified time is finished.  This means your
+                starting LBA may not be the lowest LBA erased.  Use --overwrite
+                and --overwriteRange together instead for more control of the
+                starting and ending LBAs.  This test always issues write
+                commands to the drive. No TRIM or UNMAP commands are used
+                during this operation.
+
+                Note: This erase may be used on HDD (hard disk drive) or SSD
+                (solid state disk) devices, although not advised for SSD
+                because it impacts endurance life due to abnormal write
+                activity.
+
+        --overwriteRange [LBA count]
+                Use with the --overwrite option to specify a range of LBAs to
+                erase on the selected drive.  If the starting LBA and the range
+                count together exceed the MaxLBA (last sector of the drive)
+                then the test will end at the MaxLBA.  Also, if this command is
+                omitted then the end of the drive is assumed and the test will
+                end at the MaxLBA.
+
+        --trim [starting LBA | maxLBA]         (SATA and NVMe)
+        --unmap [starting LBA | maxLBA]        (SAS only)
+                Use this option to start a TRIM (SATA) or UNMAP (SAS) operation
+                at the specified starting LBA.  Use 0 for the starting LBA to
+                mean the beginning of the drive.  The predefined text string
+                "maxLBA" (without quotes) may be entered to indicate the last
+                sector on the drive instead of the specific LBA number.  These
+                commands are common on SSD devices and less common on HDDs.
+                You must combine this option with the corresponding --trimRange
+                or --unmapRange to set the range of the operation.
+
+        --trimRange [LBA count]         (SATA and NVMe)
+        --unmapRange [LBA count]        (SAS only)
+                Use one of these options to specify a range of LBAs to TRIM or
+                UNMAP on a drive. A starting point must be specified with the
+                corresponding --trim or --unmap option.  If the starting LBA
+                and the range count together exceed the MaxLBA (last sector of
+                the drive) then the test will end at the MaxLBA.  Also, if this
+                command is omitted then the end of the drive is assumed and the
+                test will end at the MaxLBA.
+
+        --writeSame [starting LBA | maxLBA]
+                Use this option to start a WRITE SAME erase at the specified
+                starting LBA.  Use 0 for the starting LBA to mean the beginning
+                of the drive.  The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The Write Same data
+                pattern will be all zeros (0000... etc) for the specified
+                range.  You must combine this option with the --writeSameRange
+                to set the range of the erasure.
+
+                On SCSI devices, this uses the writesame16 command. On ATA
+                devices, this uses the SCT writesame feature.
+
+                Note: For SATA drives, adding the --poll option will cause this
+                operation to poll for progress until complete. This is not
+                available on SAS and SCSI drives because SCSI drives do not
+                report the progress on a Write Same operation.
+
+        --writeSameRange [LBA count]
+                Use with the --writeSame option to specify a range of LBAs to
+                erase on the selected drive.  If the starting LBA and the range
+                count together exceed the MaxLBA (last sector of the drive)
+                then the test will end at the MaxLBA.  Also, if this command is
+                omitted then the end of the drive is assumed and the test will
+                end at the MaxLBA.
+
+        --pattern [repeat:asciinospaces | random | increment:startValue |
+             file:filename]
+                Use this option with overwrite, sanitize, and format unit
+                operations to write a specific pattern to a range of LBAs or
+                the whole drive.
+
+                * repeat - without spaces, enter an ASCII text string or a
+                hexadecimal string terminated by a lower case "h". This pattern
+                will be repeated until it fills the logical size of the LBA.
+                i.e. helloword or FFFFFFFFh
+                Note: A hexadecimal pattern will be interpreted as a 32bit
+                      unsigned integer. 4 hex bytes (8 characters) must be
+                      given for a hex value to be used. Ex: 1F037AC8h or
+                      0000FFFFh
+
+                * random - the entire logical sector size will be filled with
+                random bytes. This pattern will be written to all LBAs in the
+                desired range.
+
+                * increment - enter the starting numerical value. Starting with
+                this value, each byte will be written with 1 + previous value.
+
+                * file - user supplied file name to use for a pattern. The file
+                will be truncated or padded with zeros to the logical sector
+                size.
+                Note 1: Each file will be interpreted as a binary file.
+                Note 2: A path must also be provided if the file is not in the
+                        local directory.
+                Note 3: Sanitize Overwrite on SATA only supports a 32bit
+                        pattern. The file option will get truncated to a 32bit
+                        pattern for SATA products.
+
+        --removePhysicalElement [element #]
+                Use this option to remove a storage element from use on a
+                drive. When this is done, the drive will erase all user data
+                and lower the capacity to a new point where the drive is still
+                usable without the provided element #. Use the
+                --showPhysicalElementStatus option to see the status of the
+                depopulation operation.
+
+SATA Only
+---------
+        --ataSecureErase [normal | enhanced]          (SATA only)
+                Use the normal or enhanced argument to start an ATA security
+                erase on a device.
+
+                * normal writes binary zeros (0) to all user data areas.
+
+                * enhanced writes binary zeros (0) to all user data areas,
+                including sectors that are no longer in use due to
+                reallocation. Not all drives support the enhanced mode. For
+                some models (ISE enabled), enhanced mode erase can take seconds
+                because it uses crypto erase internally.
+
+                ATA Security Erase on standard drives (non-SED) takes a very
+                long time to complete at approximately three (3) hours per
+                terabyte. Self Encrypting Drives (SED) may run an quick
+                cryptographic erase by changing the drive's encryption keys.
+                The industry standard command ATA Security Erase begins by
+                locking the drive with a temporary password which is cleared at
+                the end of the erasure. Do not run this command unless you have
+                ample time to allow it to run through to the end. If the
+                procedure is interrupted prior to completion, then the drive
+                will remain in a locked state and you must manually restart it
+                from the beginning. The temporary password to unlock the drive
+                is "SeaChest", plain ASCII letters without the quotes.  See the
+                various ATA password options in the Utility Arguments section
+                above.
+
+                If the drive reports that it is freezelocked, then this is
+                usually put on by a BIOS command at startup.  After the
+                operating system is finished booting you can try removing the
+                power to just the hard drive.  This should allow it to restart
+                without the freezelock command.
+
+                Note: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
+
+SAS Only
+--------
+        --formatUnit [current | new sector size]    (SAS Only)
+                This option will start a format unit operation on a SAS drive
+                Use "current" to perform a format unit operation with the
+                Sector size currently being used, otherwise enter a new sector
+                size to use upon format completion.
+
+                Valid sector sizes are given by the --showSupportedSectorSizes
+                command (see above) or  listed in the device Product Manual.
+                This command will erase all data on the drive. The security
+                initialize feature is not used and protection information will
+                not be set. Combine this option with --poll or --progress to
+                check for completion status until the format is complete.
+
+                Warning: Once a Format Unit command is started it must be
+                allowed to finish in order to calculate the total number of
+                logical blocks (LBAs) at the finish.  If the sector size has
+                changed then there will be a corresponding change to the total
+                number of LBAs. If a device stops a Format Unit before it
+                completes then the device will report a "Corrupted Format"
+                sense code, "03-31".  Restart the format and allow it to finish
+                to correct this error.
+
+        --fastFormat [fast format mode] (SAS Only) (SBC4 required)
+                You must use this option with the --formatUnit option to run a
+                fast format. Available fast format modes:
+                    0 - This is a standard format unit command. All logical
+                        blocks will be overwritten. This command will take a
+                        very long time.
+                    1 - This is a fast format unit command keeping existing
+                        data in the physical sector. This option can be used to
+                        quickly change the the logical sector size between 5xx
+                        emulation and 4xxx native logical block sizes.
+                        Resulting LBA (sector) count is either /8 or *8 the
+                        current Read Capacity, depending on the direction of
+                        the conversion.  The media may be readable, but data
+                        may be unspecified or may return errors on read access
+                        according to it's error processing algorithms.
+                    2 - This is a fast format unit command that can change the
+                        logical sector size quickly. Media may or may not be
+                        read accessible until a write has been performed to
+                        the media.
+
+                Example: --formatUnit 512 --fastFormat 1 --confirm I-... etc
+                Example: --formatUnit 4096 --fastFormat 1 --confirm I-... etc
+
+                Note: There is no electronic method to test if a SAS drive
+                      supports Fast Format. Refer to the drive product manual
+                      to determine if it supports the sub-command.  (See the
+                      help topic below: About FastFormat)
+
+
 Return codes
 ============
         0       No Error Found
@@ -352,16 +710,6 @@ Return codes
         6       File Path Not Found
         7       Cannot Open File
         8       File Already Exists
-        ---openSeaChest_Firmware specific exit codes---
-        32 = Firmware Download Complete
-        33 = Deferred Firmware Download Complete
-        34 = Deferred Code Activated
-        35 = No Drive or Firmware match found
-        36 = Model number matched, but Firmware mismatched
-        37 = Firmware File Hash Error
-        38 = Firmware Already up to date
-        39 = Firmware Match Found for update
-        40 = Firmware Match Found for update - deferred update supported
         Anything else = unknown error
 
 ================
@@ -423,6 +771,90 @@ may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
 
+When drives are reported Security "Frozen" by openSeaChest
+------------------------------------------------------
+Note:  Your system or the openSeaChest software may report that a SATA password
+cannot be changed because it is "frozen". Many systems BIOS will automatically
+set the ATA SECURITY FREEZE LOCK command on all SATA drives at start up. The
+SECURITY FREEZE LOCK command prevents changes to all Security states until a
+following power-on reset or hardware reset. The purpose of the SECURITY FREEZE
+LOCK command is to prevent password setting attacks on the security system.
+
+The openSeaChest --deviceInfo command will display something similar to this:
+"ATA Security Information: Supported, Frozen". To disable Freeze Lock, first
+check your BIOS SATA disk options to control the setting at start up.
+Otherwise, you might pause the boot up shortly after powering on the system and
+then temporarily remove the power to the security frozen drive (let it
+completely spin down). When the power is back on the drive it will start
+without being frozen.
+
+Windows systems may also decide not to recognize the drive if it is ATA
+Security Locked and it will not be listed by the openSeaChest --scan command.
+If the drive remains undetected in Windows, your alternative is to make a
+bootable USB flash drive and run openSeaChest_Erase from the Linux operating
+system.
+
+Interpreting Head Health and Status
+-----------------------------------
+Beginning in 2016, some Seagate nearline drives started to support the
+Remanufacture command set which allows a disk drive with a manageable
+read/write head problem to remain in service at a reduced capacity by
+"depopulating" the head element.  You can check if a drive supports the
+Remanufacture command set by running --deviceInfo and looking for 'Storage
+Element Depopulation' in the list of supported features.  (Not to be confused
+with 'SATA Rebuild Assist' which is a feature used to rebuild RAID systems.)
+
+A drive failure (due to a head problem) that is easily removed from the system
+is replaced with a spare drive.  A drive that is nearly inaccessible may make
+sense to remain in the system at a reliable lesser capacity by depopulating the
+problem head.
+
+If supported by the drive, the --showPhysicalElementStatus command will display
+a simple table showing head number, type, health, and status.
+
+The Health level is represented like a percentage, 0-100.  0 is perfectly
+healthy, 100 = at manufacturer's limit, above this to 207 is above the
+manufacturer's limit. A report of 254 means a depopulate is in progress.
+
+The Status levels are active, in limit, degraded, truncated, truncate failed.
+
+If a drive head has developed isolated, degraded performance, and does not
+affect any other reliability in the system, then the head can be removed from
+service. A drive with seven platters and fourteen heads would lose 1/14th of
+its storage capacity, or ~7%.  Likewise, a four head drive would lose 25%.
+
+If a drive is reported as "degraded" by --showPhysicalElementStatus then it can
+be depopulated using the --removePhysicalElement command.  When a head is
+depopulated the drive must perform a complete full pack write; this is
+obviously data destructive and takes a very long time to complete.
+
+When disk drives are built the post assembly factory process includes media
+scanning, any defects mapping, defining sector sizes, and establishing system,
+cache and data zones.  This activity is generically known as a low-level
+format.  During head depopulation (i.e. removing a physical element) the drive
+performs a kind of 'mid-level format' using Sanitize Overwrite which has the
+unique behavior that once started it must finish.  If power is interrupted
+during a Sanitize Overwrite it will pick up again where it left off when power
+returns.
+
+================
+About FastFormat
+================
+A FastFormat (quickly changing the logical sector size) may take a few minutes
+for the process to complete. The disk activity LED may show activity during the
+conversion.  The larger the drive, the longer it takes.
+
+NOTE: Operating systems do a device discovery during start up and set various
+parameters, like total sectors and sector size, into the storage device
+descriptions. The logical sector size times the number or logical sectors
+defines the drive capacity.  You should expect to see OS I/O errors if you
+change the logical sector size on a drive and then perform read or write
+operations before the OS has updated its storage device descriptions.  Some
+operating systems will throw an error after accessing a drive that has just run
+a FastFormat but during its error recovery routines it may re-discover the
+device parameters and update the system logs.  A system restart, however, is
+the most reliable way to refresh the storage device descriptions.
+
 Windows Only Usage
 ==================
 All Windows version tools support finding CSMI devices and talking to them like
@@ -439,28 +871,6 @@ If you want to see both handles, add --scanFlags allowDuplicates to the command
 line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
 the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
 troubleshooting CSMI device handles questions.
-
-Windows Restrictions Over SATA Firmware Downloads
--------------------------------------------------
-You should not attempt downloading firmware to a SATA disk drive in the Windows
-operating system unless the drive supports the 'deferred' mode.  You define the
-mode with the openSeaChest command line option '--downloadMode deferred'.  If
-the drive does not support deferred mode then the command will be aborted.
-Windows may not be so restrictive on secondary, non-boot SATA drives or SATA
-drives attached to host bus adapters (HBAs, controllers, USB, etc).
-
-If you force a primary SATA boot drive to download firmware in Windows using a
-different --downloadMode setting, then the result will likely be a BSOD (blue
-screen of death) system crash.  This is because the legacy SATA firmware
-download modes require the drive to spin down and then back up and the
-momentary disappearance of the drive causes the operating system to crash.
-Windows is actually protecting the system when it thinks the drive has stopped
-responding (see wikis about Ring 0 Protection).
-
-The 'deferred' mode does not spin down the drive.  Instead, the drive waits for
-a future reboot of the system and self-activates the firmware at that time.
-Other operating systems may utilize the openSeaChest --activateFW command to
-trigger the switch to the new firmware version.
 
 =========================
 Linux General Usage Hints
@@ -853,134 +1263,120 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-v0.0.1  22-Mar-2016  1_9_1 libraries.  SeaChest_Firmware Windows, initial beta
-                     test release.  Branched from SeaChest_Basics v1.1.0.  Adds
-                     firmware download batch modes by model number and various
-                     firmware revision checks.
-v0.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+SeaChest_Erase is branched off from SeaChest Basics v1.0.3.
+
+v0.0.1  14-Mar-2015  Added --writeSame, --revertSP and TCG --revert.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Modified some commands to consist of two parts - starting
+                     LBA and LBA range count.  Improved device discovery.
+                     Corrections to verbose output.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+                     Added -sat12byte to increase compatibility.  Added
+                     --SATInfo to compare ATA vs SCSI identification
+                     differences.
+v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
+                     --onlySeagate restriction.  Added --modelMatch and
+                     --onlyFW filters. Added logic change for --overwrite and
+                     --trim commands to assume Max LBA (end of the drive) as
+                     the range when the erase range is not specified.  Added
+                     --performQuickestErase, --formatUnit, --fastFormat,
+                     --showEraseSupport.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
                      Fixed a bug where we could accidentally clear some stored
                      identify data from the device structure. Fixed continuing
                      on when there was a permission denied error opening a
-                     drive.
-v1.0.0  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     drive. Adjustments to --fastFormat.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
                      commands. Fixed bugs with --modelMatch and --onlyFW
                      filters.
-v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
-v1.1.0  14-Jul-2016  1_10_1 libraries adds SMART and power management
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --displayLBA and --pattern.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher.
-v2.0.3  16-Aug-2016  Adds --fwdlInfo, --activateFW, --fwdlConfig and
-                     --fwdlSegSize.  Add user defined configuration
-                     files.
-v2.1.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
-                     minor bug fixes. Fixed --SATInfo command. After firmware
-                     download messages improved. Logic to exclude using both
-                     --fwdlConfig and --downloadFW at the same time.
-v2.1.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v2.2.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v2.2.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v2.2.2  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v2.2.2  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v2.2.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.3.2  10-Nov-2016  1_11_8 libraries fixed issue with Sanitize Overwrite
+                     patterns. Also improved logic when using the various Range
+                     commands.
+v1.3.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
-v2.3.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+v1.4.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --fwdlDryRun. New -F, --scanFlags
-                     [options: ignoreCSMI allowDuplicates] for Windows tools.
-                     Add CSMI support to all Windows version tools.
-v2.3.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     passthrough IOCTLs. --showEraseSupport now gives overwrite
+                     erase time estimate.  --progress support for writesame
+                     removed (caused test to abort), use --poll instead. Add
+                     --hideLBACounter. New -F, --scanFlags [options: ignoreCSMI
+                     allowDuplicates] for Windows tools. Add CSMI support to
+                     all Windows version tools.
+v1.4.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
                      for SAS features.
-v2.3.2  09-Mar-2017  Fixes to config file processing.
-v2.3.3  12-Apr-2017  1_13_4 libraries. Fixes issue where tool was not
-                     defaulting to segmented download if not specified.  Adds
-                     several new return exit codes to help manage scripts using
-                     configuration files.
-v2.3.4  10-May-2017  1_13_4 libraries. Fixes issue where where --fwdlInfo
-                     command was sometimes missing segmented on SAS products.
-v2.4.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+v1.5.0  24-May-2017  1_14_3 libraries. Added "Storage Element Depopulation" if
+                     a supported feature.  Adds --showPhysicalElementStatus,
+                     --forceSeagateDepop, --removePhysicalElement.
+v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
                      Bug fix where the "-d all" was not filtering out csmi
                      drives like it is supposed to causing duplicate drives to
                      show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.
-v2.5.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix with --showEraseSupport showing non-ascii characters.
+                     Added --showPhysicalElementStatus and
+                     --removePhysicalElement.
+v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
                      Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
                      note the capital S) aggressive system scan.
-v2.5.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v2.5.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v2.5.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-v2.5.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Added option to specify a buffer ID or FW slot,
-                     file name added to the output of --showFileHash. Added
-                     --firmwareSlot and --fwBufferID.
-v2.5.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help. Added remanufacturing time for SCSI.
+v1.7.3  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+                     Added detection of current SAS format protection mode.
+v1.7.3  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.7.3  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.3  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
-The above history is provided as a courtesy to show the orginal SeaChest
+The above history is provided as a courtesy to show the original SeaChest
 development activity.
 
 ============================
 openSeaChest Version History
 ============================
-v2.5.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+v1.7.1  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
-v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
-                     that don't show as SATA and don't support the SAT VPD
-                     page; added Automatic fallback to 12byte CDBs during
-                     initial device discovery;  integrated fixes for SAS
-                     firmware download and fixes for SAS LongDST time
-                     calculation; added detection of TCG Pyrite and Opalite
-                     drives.
-v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
-                     on some LSI adapters, corrects firmware download issue
-                     under Windows 10 API.
-v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
-v2.5.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
-                     USB flash drives, support for early 90's PATA drives that
-                     don't support LBA mode, bug fix where the last digit of
-                     the SCSI Unit Serial Number was being dropped, additional
-                     logic for deferred download completion status. --scan
-                     --onlySeagate for just Seagate drives in a large system,
-                     Long Drive Self Test Time in the -i output, write protect
-                     status has been added for SCSI and NVMe in the -i output,
-                     IDD enhancements for SAS, IDD enhancements to allow
-                     captive mode on SATA, added USB Hacks to better support
-                     some odd-ball USB devices and prevent crashes and improve
-                     performance for some operations on them by issuing test
-                     unit ready commands when something fails during device
-                     discovery, automatic fall back to SAT 10 byte commands
-                     during device discovery to help work with some USB
-                     devices, some Legacy SCSI support enhancements (partially
-                     from USB hacks development), enhanced SD to SG mapping in
-                     Linux.
-v2.5.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+v1.7.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      field to get the OS name under linux; NVMe enabled;  fixed
                      a bug in the ATA activate FW command; added in reading ID
                      Data log and Device statistics logs page 0 to check the
@@ -991,11 +1387,24 @@ v2.5.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      spaces in the name. Added additional information to the
                      banner and -V data to show support levels. Add general
                      support for NVMe and NVMe specific identify data to "-i"
-                     command. Add --allowFlexibleFWDLAPIUse.
-v2.5.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v2.6.0  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     command.
+v1.7.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.9.0  28-Feb-2019  1_19_2 libraries.  ATA Security password options sometimes
+                     needed for ATA Security Erase controls.  Added
+                     --ataSATsecurityProtocol, --ataSecPassword,
+                     --ataSecPassType, --ataSecPWMod. Removed
+                     --disableATASecurityPW. Rename --secureErase to
+                     --ataSecureErase.
+v2.0.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
-                     section.
+                     section,  --deviceInfo now gives Low Current Spinup
+                     status. Adds --psid (removes that argument from
+                     --revertSP), adds --sid.
+v2.0.1 10-Jun-2019   1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     updated software SAT translator to use dataset management
+                     XL command, fixes for issuing vendor unique commands under
+                     Windows, improved fast format support detection, and
+                     refactored verbose output for NVMe commands.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

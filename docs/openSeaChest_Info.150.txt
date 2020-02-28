@@ -1,9 +1,9 @@
-openSeaChest_Info.txt                                     Revision: 08-Jan-2019
+openSeaChest_Info.txt                                     Revision: 19-Jul-2019
 ===============================================================================
  openSeaChest_Info for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
  openSeaChest_Info Version: 1.5.0
- Build Date: Jan  7 2018
+ Build Date: Jul 19 2019
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -113,7 +113,7 @@ Examples - Windows
         openSeaChest_Info --scan
         openSeaChest_Info -d PD0 -i
 
-Utility arguments
+Utility Arguments
 =================
         -s, --scan
                 Scan the system and list all storage devices with logical
@@ -139,9 +139,11 @@ Utility arguments
                      ata            - show only ATA (SATA) devices
                      usb            - show only USB devices
                      scsi           - show only SCSI (SAS)) devices
+                     nvme           - show only NVMe devices
                      interfaceATA   - show devices on an ATA interface
                      interfaceUSB   - show devices on a USB interface
                      interfaceSCSI  - show devices on a SCSI or SAS interface
+                     interfaceNVME  - show devices on a NVMe interface
                     Linux:
                      sd             - show /dev/sd? device handles
                      sgtosd         - show the sd and sg device handle mapping
@@ -933,9 +935,15 @@ v1.4.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      support for NVMe and NVMe specific identify data to "-i"
                      command.
 v1.4.1  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.5.0  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+v1.5.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
-                     section.
+                     section,  --deviceInfo now gives Low Current Spinup
+                     status.
+v1.5.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     updated software SAT translator to use dataset management
+                     XL command, fixes for issuing vendor unique commands under
+                     Windows, improved fast format support detection, and
+                     refactored verbose output for NVMe commands.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -30,12 +30,13 @@
 #include "operations.h"
 #include "power_control.h"
 #include "drive_info.h"
-
+#include "seagate_operations.h" //for power telemetry
+#include "vendor/seagate/seagate_common_types.h" //power telemetry type
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "1.10.0";
+const char *buildVersion = "2.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -73,7 +74,6 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -86,14 +86,11 @@ int32_t main(int argc, char *argv[])
     //utility specific functions
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
-    ENABLE_POWER_MODE_VAR
-    DISABLE_POWER_MODE_VAR
-    DEFAULT_POWER_MODE_VAR
     EPC_ENABLED_VAR
-    POWER_MODE_VAR
-    POWER_MODE_TIMER_VARS
-    CHANGE_POWER_MODE_VAR
-    TRANSITION_POWER_MODE_VAR
+    TRANSITION_POWER_MODE_VARS
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+    TRANSITION_POWER_STATE_VAR
+#endif
     SET_POWER_CONSUMPTION_VARS
     SHOW_POWER_CONSUMPTION_VAR
     SET_APM_LEVEL_VARS
@@ -103,11 +100,18 @@ int32_t main(int argc, char *argv[])
     SEAGATE_POWER_BALANCE_VARS
     SATA_DIPM_VARS
     SATA_DAPS_VARS
-    STANDBY_VAR
-    SLEEP_VAR
-    IDLE_VAR
-    IDLE_UNLOAD_VAR
-    ACTIVE_VAR
+    SAS_PARTIAL_VARS
+    SAS_SLUMBER_VARS
+    SET_PHY_SAS_PHY_IDENTIFIER_VAR
+    IDLE_A_POWER_MODE_VARS
+    IDLE_B_POWER_MODE_VARS
+    IDLE_C_POWER_MODE_VARS
+    STANDBY_Z_POWER_MODE_VARS
+    STANDBY_Y_POWER_MODE_VARS
+    LEGACY_IDLE_POWER_MODE_VARS
+    LEGACY_STANDBY_POWER_MODE_VARS
+    SHOW_POWER_TELEMETRY_VAR
+    REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -135,7 +139,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -150,13 +153,7 @@ int32_t main(int argc, char *argv[])
         //tool specific options go here
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
-        ENABLE_POWER_MODE_LONG_OPT,
-        DISABLE_POWER_MODE_LONG_OPT,
-        DEFAULT_POWER_MODE_LONG_OPT,
-        POWER_MODE_LONG_OPT,
         EPC_ENABLED_LONG_OPT,
-        POWER_MODE_TIMER_LONG_OPT,
-        CHANGE_POWER_MODE_LONG_OPT,
         TRANSITION_POWER_MODE_LONG_OPT,
         SHOW_POWER_CONSUMPTION_LONG_OPT,
         SET_POWER_CONSUMPTION_LONG_OPT,
@@ -167,15 +164,33 @@ int32_t main(int argc, char *argv[])
         SEAGATE_POWER_BALANCE_LONG_OPT,
         SATA_DIPM_LONG_OPT,
         SATA_DAPS_LONG_OPT,
-        STANDBY_LONG_OPT,
-        SLEEP_LONG_OPT,
-        IDLE_LONG_OPT,
-        IDLE_UNLOAD_LONG_OPT,
-        ACTIVE_LONG_OPT,
+        SAS_PARTIAL_LONG_OPT,
+        SAS_SLUMBER_LONG_OPT,
+        SET_PHY_SAS_PHY_LONG_OPT,
+        IDLE_A_LONG_OPT,
+        IDLE_B_LONG_OPT,
+        IDLE_C_LONG_OPT,
+        STANDBY_Z_LONG_OPT,
+        STANDBY_Y_LONG_OPT,
+        LEGACY_IDLE_LONG_OPT,
+        LEGACY_STANDBY_LONG_OPT,
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        TRANSITION_POWER_STATE_LONG_OPT,
+#endif
+        SHOW_POWER_TELEMETRY_LONG_OPT,
+        REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         LONG_OPT_TERMINATOR
     };
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
+
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
 
     ////////////////////////
     //  Argument Parsing  //
@@ -217,59 +232,67 @@ int32_t main(int argc, char *argv[])
                 }
             }
             //parse long options that have no short option and required arguments here
-            else if (strncmp(longopts[optionIndex].name, POWER_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_MODE_LONG_OPT_STRING, strlen(TRANSITION_POWER_MODE_LONG_OPT_STRING)) == 0)
             {
+                TRANSITION_POWER_MODE_FLAG = true;
                 //set the power mode
-                if (isdigit(optarg[0]))//this will get the valid NVMe power levels
+                if (strncmp(POWER_STATE_ACTIVE_STRING, optarg, strlen(optarg)) == 0)
                 {
-                    POWER_MODE_IDENTIFIER = atoi(optarg);
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_ACTIVE;
+                }
+                else if (strncmp(POWER_STATE_IDLE_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE;
+                }
+                else if (strncmp(POWER_STATE_IDLE_UNLOAD_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_UNLOAD;
+                }
+                else if (strncmp(POWER_STATE_STANDBY_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY;
+                }
+                else if (strncmp(POWER_STATE_IDLE_A_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_A;
+                }
+                else if (strncmp(POWER_STATE_IDLE_B_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_B;
+                }
+                else if (strncmp(POWER_STATE_IDLE_C_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_C;
+                }
+                else if (strncmp(POWER_STATE_STANDBY_Y_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Y;
+                }
+                else if (strncmp(POWER_STATE_STANDBY_Z_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Z;
+                }
+                else if (strncmp(POWER_STATE_SLEEP_STRING, optarg, strlen(optarg)) == 0)
+                {
+                    TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_SLEEP;
                 }
                 else
                 {
-                    if (strncmp("active", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_ACTIVE;
-                    }
-                    else if (strncmp("idle_a", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_IDLE_A;
-                    }
-                    else if (strncmp("idle_b", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_IDLE_B;
-                    }
-                    else if (strncmp("idle_c", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_IDLE_C;
-                    }
-                    else if (strncmp("standby_z", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_STANDBY_Z;
-                    }
-                    else if (strncmp("standby_y", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_STANDBY_Y;
-                    }
-                    else if (strncmp("all", optarg, strlen(optarg)) == 0)
-                    {
-                        POWER_MODE_IDENTIFIER = PWR_CND_ALL;
-                    }
-                    else
-                    {
-                        print_Error_In_Cmd_Line_Args(POWER_MODE_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                    }
+                    TRANSITION_POWER_MODE_FLAG = false;
+                    print_Error_In_Cmd_Line_Args(TRANSITION_POWER_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, POWER_MODE_TIMER_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(POWER_MODE_TIMER_LONG_OPT_STRING))) == 0)
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+            else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
             {
                 //set the timer value
-                POWER_MODE_TIMER = atoi(optarg);
-                POWER_MODE_TIMER_VALID = true;
+                TRANSITION_POWER_STATE_TO = atoi(optarg);
             }
+#endif
             else if (strncmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_POWER_CONSUMPTION_LONG_OPT_STRING))) == 0)
             {
-                //set the flag for making the power consimption change
+                //set the flag for making the power consumption change
                 SET_POWER_CONSUMPTION_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
@@ -362,6 +385,248 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SATA_DAPS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING, strlen(SAS_PARTIAL_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    SAS_PARTIAL_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_ENABLE_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_ENABLE_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SAS_PARTIAL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING, strlen(SAS_SLUMBER_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    SAS_SLUMBER_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_ENABLE_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_ENABLE_FLAG = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SAS_SLUMBER_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING)) == 0)
+            {
+                SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, IDLE_A_LONG_OPT_STRING) == 0)
+            {
+                IDLE_A_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    IDLE_A_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    IDLE_A_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    IDLE_A_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    IDLE_A_TIMER_VALID = true;
+                    IDLE_A_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, IDLE_B_LONG_OPT_STRING) == 0)
+            {
+                IDLE_B_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    IDLE_B_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    IDLE_B_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    IDLE_B_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    IDLE_B_TIMER_VALID = true;
+                    IDLE_B_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, IDLE_C_LONG_OPT_STRING) == 0)
+            {
+                IDLE_C_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    IDLE_C_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    IDLE_C_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    IDLE_C_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    IDLE_C_TIMER_VALID = true;
+                    IDLE_C_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, STANDBY_Z_LONG_OPT_STRING) == 0)
+            {
+                STANDBY_Z_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    STANDBY_Z_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    STANDBY_Z_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    STANDBY_Z_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    STANDBY_Z_TIMER_VALID = true;
+                    STANDBY_Z_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, STANDBY_Y_LONG_OPT_STRING) == 0)
+            {
+                STANDBY_Y_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    STANDBY_Y_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    STANDBY_Y_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    STANDBY_Y_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    STANDBY_Y_TIMER_VALID = true;
+                    STANDBY_Y_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, LEGACY_IDLE_LONG_OPT_STRING) == 0)
+            {
+                LEGACY_IDLE_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    LEGACY_IDLE_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    LEGACY_IDLE_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    LEGACY_IDLE_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    LEGACY_IDLE_TIMER_VALID = true;
+                    LEGACY_IDLE_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, LEGACY_STANDBY_LONG_OPT_STRING) == 0)
+            {
+                LEGACY_STANDBY_POWER_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    LEGACY_STANDBY_STATE = POWER_MODE_STATE_DEFAULT;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    LEGACY_STANDBY_STATE = POWER_MODE_STATE_ENABLE;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    LEGACY_STANDBY_STATE = POWER_MODE_STATE_DISABLE;
+                }
+                else
+                {
+                    //the set function expects time in 100 millisecond units
+                    //Take the input millisecond time and divide it by 100
+                    LEGACY_STANDBY_TIMER_VALID = true;
+                    LEGACY_STANDBY_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING)) == 0)
+            {
+                REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
+                uint32_t measurementTime = (uint32_t)atoi(optarg);
+                if (measurementTime > 65535)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
+                }
+                else
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = (uint16_t)measurementTime;
+                }
+            } 
+            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp("all", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 0;
+                }
+                else if (strcmp("5", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 5;
+                }
+                else if (strcmp("12", optarg) == 0)
+                {
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 12;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -514,6 +779,11 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            print_Elevated_Privileges_Text();
+            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if (AGRESSIVE_SCAN_FLAG)
         {
@@ -567,10 +837,6 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
         if (scanIgnoreCSMI)
         {
@@ -604,6 +870,13 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        print_Elevated_Privileges_Text();
+        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
@@ -653,7 +926,6 @@ int32_t main(int argc, char *argv[])
         //check for other tool specific options here
         || CHECK_POWER_FLAG
         || SPIN_DOWN_FLAG
-        || CHANGE_POWER_MODE_FLAG
         || TRANSITION_POWER_MODE_FLAG
         || SHOW_POWER_CONSUMPTION_FLAG
         || SET_POWER_CONSUMPTION_FLAG
@@ -668,10 +940,22 @@ int32_t main(int argc, char *argv[])
         || SATA_DIPM_FLAG
         || SATA_DAPS_INFO_FLAG
         || SATA_DAPS_FLAG
-        || STANDBY_FLAG
-        || SLEEP_FLAG
-        || IDLE_FLAG
-        || IDLE_UNLOAD_FLAG
+        || SAS_PARTIAL_FLAG
+        || SAS_PARTIAL_INFO_FLAG
+        || SAS_SLUMBER_FLAG
+        || SAS_SLUMBER_INFO_FLAG
+        || IDLE_A_POWER_MODE_FLAG
+        || IDLE_B_POWER_MODE_FLAG
+        || IDLE_C_POWER_MODE_FLAG
+        || STANDBY_Z_POWER_MODE_FLAG
+        || STANDBY_Y_POWER_MODE_FLAG
+        || LEGACY_IDLE_POWER_MODE_FLAG
+        || LEGACY_STANDBY_POWER_MODE_FLAG
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        || (TRANSITION_POWER_STATE_TO > 0)
+#endif
+        || SHOW_POWER_TELEMETRY_FLAG
+        || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         ))
     {
         utility_Usage(true);
@@ -680,7 +964,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -695,7 +979,11 @@ int32_t main(int argc, char *argv[])
     version.version = DEVICE_BLOCK_VERSION;
     version.size = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG || STANDBY_FLAG || IDLE_FLAG || IDLE_UNLOAD_FLAG || SLEEP_FLAG)
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        || (TRANSITION_POWER_STATE_TO > 0)
+#endif
+        )
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
@@ -769,7 +1057,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -826,12 +1116,6 @@ int32_t main(int argc, char *argv[])
                 }*/
                 continue;
             }
-        }
-
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
         }
 
         //check for model number match
@@ -972,6 +1256,10 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Successfully Disabled EPC Feature Set on %s.\n", deviceList[deviceIter].os_info.name);
                     }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1000,6 +1288,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish spinning down.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1018,157 +1310,21 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (IDLE_FLAG)
-        {
-            switch (transition_To_Idle(&deviceList[deviceIter], false))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\nSuccessfully tansitioned to idle state.\n");
-                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Transitioning to idle not allowed on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: Could not transition to idle state\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (IDLE_UNLOAD_FLAG)
-        {
-            switch (transition_To_Idle(&deviceList[deviceIter], true))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\nSuccessfully tansitioned to idle (unload) state.\n");
-                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Transitioning to idle (unload) not allowed on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: Could not transition to idle (unload) state\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (STANDBY_FLAG)
-        {
-            switch (transition_To_Standby(&deviceList[deviceIter]))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\nSuccessfully tansitioned to standby state.\nPlease give device a few seconds to transition.\n");
-                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Transitioning to standby not allowed on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: Could not transition to standby state\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (SLEEP_FLAG)
-        {
-            switch (transition_To_Sleep(&deviceList[deviceIter]))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\nSuccessfully tansitioned to sleep state.\nPlease give device a few seconds to transition.\n");
-                    printf("\nNOTE: drive will now require a reset to wake.\tThe system may not be able to rediscover it without a reboot.\n\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Transitioning to sleep not allowed on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: Could not transition to sleep state\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
-        if (ACTIVE_FLAG)
-        {
-            switch (transition_To_Active(&deviceList[deviceIter]))
-            {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\nSuccessfully tansitioned to active state.\nPlease give device a few seconds to transition.\n");
-                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Transitioning to active not allowed on this device\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: Could not transition to active state\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
-            }
-        }
-
         if (TRANSITION_POWER_MODE_FLAG)
         {
-            if (POWER_MODE_IDENTIFIER != PWR_CND_NOT_SET && POWER_MODE_IDENTIFIER != PWR_CND_ALL)
+            if (TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_NOT_SET && TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_ALL)
             {
-                switch (transition_Power_State(&deviceList[deviceIter], POWER_MODE_IDENTIFIER))
+                switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_MODE_TO_POWER_MODE))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("\nPower State Transition Successful.\nPlease give device a few seconds to transition.\n");
-                        printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                        printf("\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
+                        printf("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+	                    {
+	                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+	                    }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1197,6 +1353,36 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+        if (TRANSITION_POWER_STATE_TO >= 0)
+        {
+            switch (transition_NVM_Power_State(&deviceList[deviceIter], (uint8_t)TRANSITION_POWER_STATE_TO))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\nSuccessfully transitioned to power state %" PRIu32 ".\n", TRANSITION_POWER_STATE_TO);
+                    printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Transitioning power states not allowed on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Could not transition to the new power state %" PRIu32 "\n", TRANSITION_POWER_STATE_TO);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+#endif
+
         //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
         if (CHECK_POWER_FLAG)
         {
@@ -1221,75 +1407,481 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (CHANGE_POWER_MODE_FLAG)
+        if (IDLE_A_POWER_MODE_FLAG || IDLE_B_POWER_MODE_FLAG || IDLE_C_POWER_MODE_FLAG || STANDBY_Z_POWER_MODE_FLAG || STANDBY_Y_POWER_MODE_FLAG)
         {
-            //first check that we got enable, disable, or defaults (but not a combination of any of these options)
-            if (ENABLE_POWER_MODE_FLAG || DISABLE_POWER_MODE_FLAG || DEFAULT_POWER_MODE_FLAG)
+            //setup the structure and send these changes to the drive.
+            powerConditionTimers powerTimers;
+            memset(&powerTimers, 0, sizeof(powerConditionTimers));
+            if (IDLE_A_POWER_MODE_FLAG)
             {
-                //make sure they didn't pass a combination of these flags since we can't make sense of that
-                if (ENABLE_POWER_MODE_FLAG != DISABLE_POWER_MODE_FLAG || DEFAULT_POWER_MODE_FLAG)
+                powerTimers.idle_a.powerConditionValid = true;
+                if (IDLE_A_TIMER_VALID)
                 {
-                    if (POWER_MODE_IDENTIFIER != PWR_CND_NOT_SET)
+                    powerTimers.idle_a.timerValid = IDLE_A_TIMER_VALID;
+                    powerTimers.idle_a.timerInHundredMillisecondIncrements = IDLE_A_POWER_MODE_TIMER;
+                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
+                    powerTimers.idle_a.enable = true;
+                    powerTimers.idle_a.enableValid = true;
+                }
+                else
+                {
+                    switch (IDLE_A_STATE)
                     {
-                        if (ENABLE_POWER_MODE_FLAG)
+                    case POWER_MODE_STATE_ENABLE:
+                        powerTimers.idle_a.enable = true;
+                        powerTimers.idle_a.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DISABLE:
+                        powerTimers.idle_a.enable = false;
+                        powerTimers.idle_a.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DEFAULT:
+                        powerTimers.idle_a.restoreToDefault = true;
+                        break;
+                    default:
+                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        //TODO: Should this throw an error instead???
+                        powerTimers.idle_a.powerConditionValid = false;
+                        break;
+                    }
+                }
+            }
+            if (IDLE_B_POWER_MODE_FLAG)
+            {
+                powerTimers.idle_b.powerConditionValid = true;
+                if (IDLE_B_TIMER_VALID)
+                {
+                    powerTimers.idle_b.timerValid = IDLE_B_TIMER_VALID;
+                    powerTimers.idle_b.timerInHundredMillisecondIncrements = IDLE_B_POWER_MODE_TIMER;
+                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
+                    powerTimers.idle_b.enable = true;
+                    powerTimers.idle_b.enableValid = true;
+                }
+                else
+                {
+                    switch (IDLE_B_STATE)
+                    {
+                    case POWER_MODE_STATE_ENABLE:
+                        powerTimers.idle_b.enable = true;
+                        powerTimers.idle_b.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DISABLE:
+                        powerTimers.idle_b.enable = false;
+                        powerTimers.idle_b.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DEFAULT:
+                        powerTimers.idle_b.restoreToDefault = true;
+                        break;
+                    default:
+                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        //TODO: Should this throw an error instead???
+                        powerTimers.idle_b.powerConditionValid = false;
+                        break;
+                    }
+                }
+            }
+            if (IDLE_C_POWER_MODE_FLAG)
+            {
+                powerTimers.idle_c.powerConditionValid = true;
+                if (IDLE_C_TIMER_VALID)
+                {
+                    powerTimers.idle_c.timerValid = IDLE_C_TIMER_VALID;
+                    powerTimers.idle_c.timerInHundredMillisecondIncrements = IDLE_C_POWER_MODE_TIMER;
+                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
+                    powerTimers.idle_c.enable = true;
+                    powerTimers.idle_c.enableValid = true;
+                }
+                else
+                {
+                    switch (IDLE_C_STATE)
+                    {
+                    case POWER_MODE_STATE_ENABLE:
+                        powerTimers.idle_c.enable = true;
+                        powerTimers.idle_c.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DISABLE:
+                        powerTimers.idle_c.enable = false;
+                        powerTimers.idle_c.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DEFAULT:
+                        powerTimers.idle_c.restoreToDefault = true;
+                        break;
+                    default:
+                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        //TODO: Should this throw an error instead???
+                        powerTimers.idle_c.powerConditionValid = false;
+                        break;
+                    }
+                }
+            }
+            if (STANDBY_Z_POWER_MODE_FLAG)
+            {
+                powerTimers.standby_z.powerConditionValid = true;
+                if (STANDBY_Z_TIMER_VALID)
+                {
+                    powerTimers.standby_z.timerValid = STANDBY_Z_TIMER_VALID;
+                    powerTimers.standby_z.timerInHundredMillisecondIncrements = STANDBY_Z_POWER_MODE_TIMER;
+                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
+                    powerTimers.standby_z.enable = true;
+                    powerTimers.standby_z.enableValid = true;
+                }
+                else
+                {
+                    switch (STANDBY_Z_STATE)
+                    {
+                    case POWER_MODE_STATE_ENABLE:
+                        powerTimers.standby_z.enable = true;
+                        powerTimers.standby_z.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DISABLE:
+                        powerTimers.standby_z.enable = false;
+                        powerTimers.standby_z.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DEFAULT:
+                        powerTimers.standby_z.restoreToDefault = true;
+                        break;
+                    default:
+                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        //TODO: Should this throw an error instead???
+                        powerTimers.standby_z.powerConditionValid = false;
+                        break;
+                    }
+                }
+            }
+            if (STANDBY_Y_POWER_MODE_FLAG)
+            {
+                powerTimers.standby_y.powerConditionValid = true;
+                if (STANDBY_Y_TIMER_VALID)
+                {
+                    powerTimers.standby_y.timerValid = STANDBY_Y_TIMER_VALID;
+                    powerTimers.standby_y.timerInHundredMillisecondIncrements = STANDBY_Y_POWER_MODE_TIMER;
+                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
+                    powerTimers.standby_y.enable = true;
+                    powerTimers.standby_y.enableValid = true;
+                }
+                else
+                {
+                    switch (STANDBY_Y_STATE)
+                    {
+                    case POWER_MODE_STATE_ENABLE:
+                        powerTimers.standby_y.enable = true;
+                        powerTimers.standby_y.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DISABLE:
+                        powerTimers.standby_y.enable = false;
+                        powerTimers.standby_y.enableValid = true;
+                        break;
+                    case POWER_MODE_STATE_DEFAULT:
+                        powerTimers.standby_y.restoreToDefault = true;
+                        break;
+                    default:
+                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        //TODO: Should this throw an error instead???
+                        powerTimers.standby_y.powerConditionValid = false;
+                        break;
+                    }
+                }
+            }
+            //At this point, all power timers should be configured, so we can issue the command to the drive
+            switch (scsi_Set_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully configured the requested EPC settings.\n");
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Configuring EPC Settings is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("An Error occurred while trying to configure the EPC settings.\n");
+                    printf("NOTE: Some settings may have been changed, but at least one failed.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (LEGACY_IDLE_POWER_MODE_FLAG || LEGACY_STANDBY_POWER_MODE_FLAG)
+        {
+            if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && LEGACY_IDLE_POWER_MODE_FLAG && LEGACY_STANDBY_POWER_MODE_FLAG)
+            {
+                //SCSI drive can set both of these timers at the same time
+                powerConditionSettings standbyTimer, idleTimer;
+                uint8_t restoreCount = 0;
+                memset(&standbyTimer, 0, sizeof(powerConditionSettings));
+                memset(&idleTimer, 0, sizeof(powerConditionSettings));
+                switch (LEGACY_STANDBY_STATE)
+                {
+                case POWER_MODE_STATE_ENABLE:
+                    standbyTimer.enable = true;
+                    standbyTimer.enableValid = true;
+                    break;
+                case POWER_MODE_STATE_DISABLE:
+                    standbyTimer.enable = false;
+                    standbyTimer.enableValid = true;
+                    break;
+                case POWER_MODE_STATE_DEFAULT:
+                    standbyTimer.restoreToDefault = true;
+                    ++restoreCount;
+                    break;
+                default:
+                    //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                    //TODO: Should this throw an error instead???
+                    standbyTimer.powerConditionValid = false;
+                    break;
+                }
+                if (LEGACY_STANDBY_TIMER_VALID)
+                {
+                    standbyTimer.enable = false;
+                    standbyTimer.enableValid = true;
+                    standbyTimer.timerInHundredMillisecondIncrements = LEGACY_STANDBY_POWER_MODE_TIMER;
+                }
+                switch (LEGACY_IDLE_STATE)
+                {
+                case POWER_MODE_STATE_ENABLE:
+                    idleTimer.enable = true;
+                    idleTimer.enableValid = true;
+                    break;
+                case POWER_MODE_STATE_DISABLE:
+                    idleTimer.enable = false;
+                    idleTimer.enableValid = true;
+                    break;
+                case POWER_MODE_STATE_DEFAULT:
+                    idleTimer.restoreToDefault = true;
+                    ++restoreCount;
+                    break;
+                default:
+                    //This shouldn't happen, but turn the power condition to an invalid state and continue.
+                    //TODO: Should this throw an error instead???
+                    idleTimer.powerConditionValid = false;
+                    break;
+                }
+                if (LEGACY_IDLE_TIMER_VALID)
+                {
+                    idleTimer.enable = false;
+                    idleTimer.enableValid = true;
+                    idleTimer.timerInHundredMillisecondIncrements = LEGACY_IDLE_POWER_MODE_TIMER;
+                }
+
+                switch (scsi_Set_Legacy_Power_Conditions(&deviceList[deviceIter], restoreCount == 2 ? true : false, &standbyTimer, &idleTimer))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully configured the requested idle and standby settings.\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+	                    {
+	                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+	                    }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Configuring standby and idle settings is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("An Error occurred while trying to configure the standby and idle settings.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                //need to check if SCSI since ATA won't allow some of these.
+                //deviceList[deviceIter].drive_info.drive_type
+                if (LEGACY_IDLE_POWER_MODE_FLAG)
+                {
+                    if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                    {
+                        if (LEGACY_IDLE_TIMER_VALID)
                         {
-                            ret = set_Device_Power_Mode(&deviceList[deviceIter], DEFAULT_POWER_MODE_FLAG, true, POWER_MODE_IDENTIFIER, POWER_MODE_TIMER, POWER_MODE_TIMER_VALID);
+                            switch (set_Idle_Timer(&deviceList[deviceIter], LEGACY_IDLE_POWER_MODE_TIMER, false))
+                            {
+                            case SUCCESS:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Successfully configured the requested idle settings.\n");
+                                }
+                                break;
+                            case NOT_SUPPORTED:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Configuring idle settings is not supported on this device.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                break;
+                            default:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                break;
+                            }
                         }
                         else
                         {
-                            ret = set_Device_Power_Mode(&deviceList[deviceIter], DEFAULT_POWER_MODE_FLAG, false, POWER_MODE_IDENTIFIER, POWER_MODE_TIMER, POWER_MODE_TIMER_VALID);
+                            int ret = SUCCESS;
+                            switch (LEGACY_IDLE_STATE)
+                            {
+                            case POWER_MODE_STATE_ENABLE:
+                                ret = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
+                                break;
+                            case POWER_MODE_STATE_DISABLE:
+                                ret = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
+                                break;
+                            case POWER_MODE_STATE_DEFAULT:
+                                ret = set_Idle_Timer(&deviceList[deviceIter], 0, true);
+                                break;
+                            default:
+                                break;
+                            }
+                            switch (ret)
+                            {
+                            case SUCCESS:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Successfully configured the requested idle settings.\n");
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+				                    {
+				                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+				                    }
+                                }
+                                break;
+                            case NOT_SUPPORTED:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Configuring idle settings is not supported on this device.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                break;
+                            default:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                break;
+                            }
                         }
-                        switch (ret)
+                    }
+                    else
+                    {
+                        //not supported
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Configuring idle settings is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    }
+                }
+                if (LEGACY_STANDBY_POWER_MODE_FLAG)
+                {
+                    if (LEGACY_STANDBY_TIMER_VALID)
+                    {
+                        switch (set_Standby_Timer(&deviceList[deviceIter], LEGACY_STANDBY_POWER_MODE_TIMER, false))
                         {
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Successfully changed power mode settings.\n");
+                                printf("Successfully configured the requested standby settings.\n");
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+			                    {
+			                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+			                    }
                             }
                             break;
                         case NOT_SUPPORTED:
-                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Changing power settings is not supported on this drive.\n");
+                                printf("Configuring standby settings is not supported on this device.\n");
                             }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
                         default:
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: Could not change power mode settings.\n");
+                                printf("An Error occurred while trying to configure the standby settings.\n");
                             }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
                     }
                     else
                     {
-                        //invalid power mode
-                        exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                        if (VERBOSITY_QUIET < toolVerbosity)
+                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
-                            printf("ERROR: Invalid power mode entered.\n");
+                            int ret = SUCCESS;
+                            switch (LEGACY_STANDBY_STATE)
+                            {
+                            case POWER_MODE_STATE_ENABLE:
+                                ret = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
+                                break;
+                            case POWER_MODE_STATE_DISABLE:
+                                ret = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
+                                break;
+                            case POWER_MODE_STATE_DEFAULT:
+                                ret = set_Standby_Timer(&deviceList[deviceIter], 0, true);
+                                break;
+                            default:
+                                break;
+                            }
+                            switch (ret)
+                            {
+                            case SUCCESS:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Successfully configured the requested standby settings.\n");
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+				                    {
+				                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+				                    }
+                                }
+                                break;
+                            case NOT_SUPPORTED:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Configuring standby settings is not supported on this device.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                break;
+                            default:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("An Error occurred while trying to configure the standby settings.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            //not supported
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Configuring standby settings is not supported on this device.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
                     }
-                }
-                else
-                {
-                    //only specify enable or disable but not both
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("ERROR: You can only specify enableMode or disableMode, not both.\n");
-                    }
-                }
-            }
-            else
-            {
-                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                //you must specify enable disable or defaults
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("ERROR: You must specify enableMode, disableMode, or defaultMode.\n");
                 }
             }
         }
@@ -1361,6 +1953,10 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully set power consumption value for device!\n");
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1443,7 +2039,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(SHOW_APM_LEVEL_FLAG)
+        if (SHOW_APM_LEVEL_FLAG)
         {
             switch(get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
             {
@@ -1509,6 +2105,10 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("Successfully disabled Seagate Power Balance!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1648,6 +2248,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
         if (SATA_DAPS_FLAG)
         {
             switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], SATA_DAPS_ENABLE_FLAG))
@@ -1681,6 +2282,7 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
         if (SATA_DAPS_INFO_FLAG)
         {
             bool dapsSupported = false, dapsEnabled = false;
@@ -1723,7 +2325,194 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+
+        if (SAS_PARTIAL_FLAG || SAS_SLUMBER_FLAG)
+        {
+            char partialSlumberString[40] = { 0 };
+            if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
+            {
+                sprintf(partialSlumberString, "SAS Partial & Slumber");
+            }
+            else if (SAS_PARTIAL_FLAG)
+            {
+                sprintf(partialSlumberString, "SAS Partial");
+            }
+            else if (SAS_SLUMBER_FLAG)
+            {
+                sprintf(partialSlumberString, "Slumber");
+            }
+            switch (scsi_Set_Partial_Slumber(&deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG, SAS_SLUMBER_FLAG, SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully changed %s\n", partialSlumberString);
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Setting %s is not supported on this device.\n", partialSlumberString);
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to set the %s feature!\n", partialSlumberString);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_INFO_FLAG)
+        {
+            int result = SUCCESS;
+            uint8_t phyListSize = 1;
+            if (SET_PHY_SAS_PHY_IDENTIFIER == 0xFF)
+            {
+                result = get_SAS_Enhanced_Phy_Control_Number_Of_Phys(&deviceList[deviceIter], &phyListSize);
+            }
+            if (SUCCESS == result)
+            {
+                ptrSasEnhPhyControl phyData = (ptrSasEnhPhyControl)calloc(phyListSize, sizeof(sasEnhPhyControl));
+                if (phyData)
+                {
+                    //get the information needed, then show it
+                    result = get_SAS_Enhanced_Phy_Control_Partial_Slumber_Settings(&deviceList[deviceIter], SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER, phyData, phyListSize * sizeof(sasEnhPhyControl));
+                    switch (result)
+                    {
+                    case SUCCESS:
+                        show_SAS_Enh_Phy_Control_Partial_Slumber(phyData, phyListSize * sizeof(sasEnhPhyControl), SAS_PARTIAL_INFO_FLAG, SAS_SLUMBER_INFO_FLAG);
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("SAS Enhanced phy control is not supported on this device. Partial and Slumber are not supported.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber settings!\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_Free(phyData);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Error allocating memory before showing SAS Partial/Slumber info!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get the phy count before showing SAS Partial/Slumber info!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
+        if (REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG)
+        {
+            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            {
+                switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, (ePowerTelemetryMeasurementOptions)REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE))
+                {
+                case SUCCESS:
+                    //show a time when the measurement is expected to be complete?
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully requested a power measurement.\n");
+                        time_t currentTime = time(NULL);
+                        time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
+                        printf("\n\tCurrent Time: %s\n", ctime((const time_t*)&currentTime));
+                        printf("\tEstimated completion Time : %s", ctime((const time_t *)&futureTime));
+                    }
+                    break;
+                case NOT_SUPPORTED: //unlikely since we checked for support first
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Requesting a power measurement is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to request a power measurement!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                //power telemetry is not supported
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (SHOW_POWER_TELEMETRY_FLAG)
+        {
+            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            {
+                seagatePwrTelemetry pwrTelData;
+                memset(&pwrTelData, 0, sizeof(seagatePwrTelemetry));
+                switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
+                {
+                case SUCCESS:
+                    //show it
+                    show_Power_Telemetry_Data(&pwrTelData);
+                    break;
+                case NOT_SUPPORTED: //unlikely to happen due to outside guard
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Getting a power telemetry data is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get a power telemetry data!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                //power telemetry is not supported
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -1777,7 +2566,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
@@ -1793,25 +2581,24 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
-    print_Active_Help(shortUsage);
-    print_Change_Power_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
-    print_Default_Power_Mode_Help(shortUsage);
-    print_Disable_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
-    print_Enable_Power_Mode_Help(shortUsage);
-    print_Idle_Help(shortUsage);
-    print_Idle_Unload_Help(shortUsage);
-    print_Power_Mode_Help(shortUsage);
+    print_Idle_A_Help(shortUsage);
+    print_Idle_B_Help(shortUsage);
+    print_Idle_C_Help(shortUsage);
+    print_Request_Power_Measurement_Mode_Help(shortUsage);
+    print_Request_Power_Measurement_Help(shortUsage);
+    print_Seagate_Power_Balance_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
-    print_Sleep_Help(shortUsage);
+    print_Show_Power_Telemetry_Help(shortUsage);
     print_Spindown_Help(shortUsage);
-    print_Standby_Help(shortUsage);
-    print_Timer_Mode_Help(shortUsage);
+    print_Legacy_Standby_Help(shortUsage);
+    print_Standby_Y_Help(shortUsage);
+    print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
+
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
-    print_Seagate_Power_Balance_Help(shortUsage);
     print_Disable_APM_Help(shortUsage);
     print_DAPS_Help(shortUsage);
     print_DIPM_Help(shortUsage);
@@ -1819,6 +2606,15 @@ void utility_Usage(bool shortUsage)
     print_Show_APM_Level_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
+    print_Legacy_Idle_Help(shortUsage);
+    print_SAS_Phy_Help(shortUsage);
+    print_SAS_Phy_Partial_Help(shortUsage);
+    print_SAS_Phy_Slumber_Help(shortUsage);
     print_Set_Power_Consumption_Help(shortUsage);
     print_Show_Power_Consumption_Help(shortUsage);
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+    //NVMe Only
+    printf("\n\tNVMe Only:\n\t=========\n");
+    print_Transition_Power_State_Help(shortUsage);
+#endif
 }

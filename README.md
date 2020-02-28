@@ -136,7 +136,7 @@ Required Tools:
 
 We support the [MSYS2](https://github.com/msys2/msys2/wiki/MSYS2-introduction) with [MinGW](http://www.mingw.org/) development environments.  Make files are located under the individual ./Make/gccWin folders. Please see the README in the `opensSeaChest/Make/gccWin` folder for a comprehensive explanation of how to install and utilize these environments.
 
-#### Solaris/OpenSolaris
+#### Solaris/OpenSolaris/FreeBSD
 Required Tools:
 * gcc
 * gmake

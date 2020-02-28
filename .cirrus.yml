@@ -1,0 +1,11 @@
+task:
+  name: FreeBSD
+  freebsd_instance:
+    matrix:
+      image_family: freebsd-13-0-snap
+      image_family: freebsd-12-0
+  install_script: pkg install -y git gmake
+  submodules_script: git submodule update --init --recursive --progress
+  release_script:
+    - cd Make/gcc
+    - gmake release

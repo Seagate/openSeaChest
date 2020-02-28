@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Info";
-const char *buildVersion = "1.5.0";
+const char *buildVersion = "1.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -77,7 +77,6 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -118,7 +117,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -139,6 +137,14 @@ int32_t main(int argc, char *argv[])
     };
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
+
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
 
     ////////////////////////
     //  Argument Parsing  //
@@ -392,6 +398,11 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            print_Elevated_Privileges_Text();
+            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if (AGRESSIVE_SCAN_FLAG)
         {
@@ -445,10 +456,6 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
         if (scanIgnoreCSMI)
         {
@@ -482,6 +489,13 @@ int32_t main(int argc, char *argv[])
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        print_Elevated_Privileges_Text();
+        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
@@ -543,7 +557,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -632,7 +646,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -689,12 +705,6 @@ int32_t main(int argc, char *argv[])
                 }*/
                 continue;
             }
-        }
-
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
         }
 
         //check for model number match
@@ -891,7 +901,10 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -945,7 +958,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 

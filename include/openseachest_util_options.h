@@ -51,6 +51,8 @@ extern "C"
         UTIL_EXIT_PATH_NOT_FOUND,
         UTIL_EXIT_CANNOT_OPEN_FILE,
         UTIL_EXIT_FILE_ALREADY_EXISTS,
+        UTIL_EXIT_NEED_ELEVATED_PRIVILEGES,
+		UTIL_EXIT_NOT_ENOUGH_RESOURCES,
         //TODO: More generic exit codes go here
         //Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE = 32,//Use this value in a tool to start the tool's specific error code enumeration
@@ -138,11 +140,6 @@ extern "C"
     #define TEST_UNIT_READY_VAR getOptBool TEST_UNIT_READY_FLAG = goFalse;
     #define TEST_UNIT_READY_LONG_OPT_STRING "testUnitReady"
     #define TEST_UNIT_READY_LONG_OPT { TEST_UNIT_READY_LONG_OPT_STRING, no_argument, &TEST_UNIT_READY_FLAG, goTrue }
-
-    #define SAT_12_BYTE_CDBS_FLAG useSat12
-    #define SAT_12_BYTE_CDBS_VAR getOptBool SAT_12_BYTE_CDBS_FLAG = goFalse;
-    #define SAT_12_BYTE_CDBS_LONG_OPT_STRING "sat12byte"
-    #define SAT_12_BYTE_CDBS_LONG_OPT { SAT_12_BYTE_CDBS_LONG_OPT_STRING, no_argument, &SAT_12_BYTE_CDBS_FLAG, goTrue }
 
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
@@ -271,6 +268,11 @@ extern "C"
     #define CAPTIVE_FOREGROUND_LONG_OPTS \
     CAPTIVE_LONG_OPT, FOREGROUND_LONG_OPT
 
+    #define IGNORE_OPERATION_TIMEOUT ignoreOperationMaxTimeLimit
+    #define IGNORE_OPERATION_TIMEOUT_VAR getOptBool IGNORE_OPERATION_TIMEOUT = goFalse;
+    #define IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING "noTimeLimit"
+    #define IGNORE_OPERATION_TIMEOUT_LONG_OPT { IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING, no_argument, &IGNORE_OPERATION_TIMEOUT, goTrue }
+
     #define SMART_ATTRIBUTES_FLAG showSMARTAttributes
     #define SMART_ATTRIBUTES_MODE_FLAG showSMARTAttributesMode
     #define SMART_ATTRIBUTES_VARS \
@@ -302,11 +304,6 @@ extern "C"
     #define DST_AND_CLEAN_LONG_OPT_STRING "dstAndClean"
     #define DST_AND_CLEAN_LONG_OPT { DST_AND_CLEAN_LONG_OPT_STRING, no_argument, &DST_AND_CLEAN_FLAG, goTrue }
 
-    #define SEAGATE_CLEAN_FLAG runSeagateClean
-    #define SEAGATE_CLEAN_VAR getOptBool SEAGATE_CLEAN_FLAG = goFalse;
-    #define SEAGATE_CLEAN_LONG_OPT_STRING "seagateClean"
-    #define SEAGATE_CLEAN_LONG_OPT { SEAGATE_CLEAN_LONG_OPT_STRING, no_argument, &SEAGATE_CLEAN_FLAG, goTrue }
-
     //Power related options
     #define CHECK_POWER_FLAG checkPower
     #define CHECK_POWER_VAR getOptBool CHECK_POWER_FLAG = goFalse;
@@ -318,78 +315,124 @@ extern "C"
     #define SPIN_DOWN_LONG_OPT_STRING "spinDown"
     #define SPIN_DOWN_LONG_OPT { SPIN_DOWN_LONG_OPT_STRING, no_argument, &SPIN_DOWN_FLAG, goTrue }
 
-    #define STANDBY_FLAG standby
-    #define STANDBY_VAR getOptBool STANDBY_FLAG = goFalse;
-    #define STANDBY_LONG_OPT_STRING "standby"
-    #define STANDBY_LONG_OPT { STANDBY_LONG_OPT_STRING, no_argument, &STANDBY_FLAG, goTrue }
-
-    #define SLEEP_FLAG sleep
-    #define SLEEP_VAR getOptBool SLEEP_FLAG = goFalse;
-    #define SLEEP_LONG_OPT_STRING "sleep"
-    #define SLEEP_LONG_OPT { SLEEP_LONG_OPT_STRING, no_argument, &SLEEP_FLAG, goTrue }
-
-    #define IDLE_FLAG idle
-    #define IDLE_VAR getOptBool IDLE_FLAG = goFalse;
-    #define IDLE_LONG_OPT_STRING "idle"
-    #define IDLE_LONG_OPT { IDLE_LONG_OPT_STRING, no_argument, &IDLE_FLAG, goTrue }
-
-    #define IDLE_UNLOAD_FLAG idleUnload
-    #define IDLE_UNLOAD_VAR getOptBool IDLE_UNLOAD_FLAG = goFalse;
-    #define IDLE_UNLOAD_LONG_OPT_STRING "idleUnload"
-    #define IDLE_UNLOAD_LONG_OPT { IDLE_UNLOAD_LONG_OPT_STRING, no_argument, &IDLE_UNLOAD_FLAG, goTrue }
-
-    #define ACTIVE_FLAG activeState
-    #define ACTIVE_VAR getOptBool ACTIVE_FLAG = goFalse;
-    #define ACTIVE_LONG_OPT_STRING "active"
-    #define ACTIVE_LONG_OPT { ACTIVE_LONG_OPT_STRING, no_argument, &ACTIVE_FLAG, goTrue }
-
-    #define ENABLE_POWER_MODE_FLAG enablePowerMode
-    #define ENABLE_POWER_MODE_VAR getOptBool ENABLE_POWER_MODE_FLAG = goFalse;
-    #define ENABLE_POWER_MODE_LONG_OPT_STRING "enableMode"
-    #define ENABLE_POWER_MODE_LONG_OPT { ENABLE_POWER_MODE_LONG_OPT_STRING, no_argument, &ENABLE_POWER_MODE_FLAG, goTrue }
-
-    #define DISABLE_POWER_MODE_FLAG disablePowerMode
-    #define DISABLE_POWER_MODE_VAR getOptBool DISABLE_POWER_MODE_FLAG = goFalse;
-    #define DISABLE_POWER_MODE_LONG_OPT_STRING "disableMode"
-    #define DISABLE_POWER_MODE_LONG_OPT { DISABLE_POWER_MODE_LONG_OPT_STRING, no_argument, &DISABLE_POWER_MODE_FLAG, goTrue }
-
-    #define DEFAULT_POWER_MODE_FLAG restoreDefaultPowerMode
-    #define DEFAULT_POWER_MODE_VAR getOptBool DEFAULT_POWER_MODE_FLAG = goFalse;
-    #define DEFAULT_POWER_MODE_LONG_OPT_STRING "defaultMode"
-    #define DEFAULT_POWER_MODE_LONG_OPT { DEFAULT_POWER_MODE_LONG_OPT_STRING, no_argument, &DEFAULT_POWER_MODE_FLAG, goTrue }
-
     #define OUTPUT_MODE_IDENTIFIER outputMode
     #define OUTPUT_MODE_VAR eOutputMode OUTPUT_MODE_IDENTIFIER = 0;
-    #define OUTPUT_MODE_LONG_OPT_STRING "outputMode"
+    #define OUTPUT_MODE_LONG_OPT_STRING "logMode"
     #define OUTPUT_MODE_LONG_OPT { OUTPUT_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    #define POWER_MODE_IDENTIFIER powerMode
-    #define POWER_MODE_VAR ePowerConditionID POWER_MODE_IDENTIFIER = PWR_CND_NOT_SET;
-    #define POWER_MODE_LONG_OPT_STRING "powerMode"
-    #define POWER_MODE_LONG_OPT { POWER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define EPC_ENABLED_IDENTIFIER enableEPC
     #define EPC_ENABLED_VAR eEPCFeatureSet EPC_ENABLED_IDENTIFIER = ENABLE_EPC_NOT_SET;
     #define EPC_ENABLED_LONG_OPT_STRING "EPCfeature"
     #define EPC_ENABLED_LONG_OPT { EPC_ENABLED_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    #define POWER_MODE_TIMER powerModeTimer
-    #define POWER_MODE_TIMER_VALID powerModeTimerValid
-    #define POWER_MODE_TIMER_VARS \
-    uint32_t POWER_MODE_TIMER = -1;\
-    bool POWER_MODE_TIMER_VALID = false;
-    #define POWER_MODE_TIMER_LONG_OPT_STRING "modeTimer"
-    #define POWER_MODE_TIMER_LONG_OPT { POWER_MODE_TIMER_LONG_OPT_STRING, required_argument, NULL, 0 }
-
-    #define CHANGE_POWER_MODE_FLAG changePowerMode
-    #define CHANGE_POWER_MODE_VAR getOptBool CHANGE_POWER_MODE_FLAG = goFalse;
-    #define CHANGE_POWER_MODE_LONG_OPT_STRING "changePower"
-    #define CHANGE_POWER_MODE_LONG_OPT { CHANGE_POWER_MODE_LONG_OPT_STRING, no_argument, &CHANGE_POWER_MODE_FLAG, goTrue }
+    #define POWER_STATE_ACTIVE_STRING       "active"
+    #define POWER_STATE_IDLE_STRING         "idle"
+    #define POWER_STATE_IDLE_UNLOAD_STRING  "idleUnload"
+    #define POWER_STATE_STANDBY_STRING      "standby"
+    #define POWER_STATE_IDLE_A_STRING       "idle_a"
+    #define POWER_STATE_IDLE_B_STRING       "idle_b"
+    #define POWER_STATE_IDLE_C_STRING       "idle_c"
+    #define POWER_STATE_STANDBY_Y_STRING    "standby_y"
+    #define POWER_STATE_STANDBY_Z_STRING    "standby_z"
+    #define POWER_STATE_SLEEP_STRING        "sleep"
 
     #define TRANSITION_POWER_MODE_FLAG transitionPowerMode
-    #define TRANSITION_POWER_MODE_VAR getOptBool TRANSITION_POWER_MODE_FLAG = goFalse;
+    #define TRANSITION_POWER_MODE_TO_POWER_MODE transtitionPowerModeToMode
+    #define TRANSITION_POWER_MODE_VARS \
+    bool TRANSITION_POWER_MODE_FLAG = false;\
+    int TRANSITION_POWER_MODE_TO_POWER_MODE = -1;/*-1 = not set*/
     #define TRANSITION_POWER_MODE_LONG_OPT_STRING "transitionPower"
-    #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, no_argument, &TRANSITION_POWER_MODE_FLAG, goTrue }
+    #define TRANSITION_POWER_MODE_LONG_OPT { TRANSITION_POWER_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //New EPC Configuration settings to make things easier for changing multiple or individual settings at once with a simpler command line option
+    #define POWER_MODE_STATE_ENABLE INT8_C(1)
+    #define POWER_MODE_STATE_DISABLE INT8_C(0)
+    #define POWER_MODE_STATE_DEFAULT INT8_C(-1)
+
+    #define IDLE_A_POWER_MODE_FLAG changeIdleASettings
+    #define IDLE_A_POWER_MODE_TIMER idleATimerValue
+    #define IDLE_A_TIMER_VALID idleATimerValid
+    #define IDLE_A_STATE idleAState /*enable or disable*/
+    #define IDLE_A_POWER_MODE_VARS \
+    bool IDLE_A_POWER_MODE_FLAG = false;\
+    bool IDLE_A_TIMER_VALID = false;\
+    uint32_t IDLE_A_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_A_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_A_LONG_OPT_STRING "idle_a"
+    #define IDLE_A_LONG_OPT { IDLE_A_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define IDLE_B_POWER_MODE_FLAG changeIdleBSettings
+    #define IDLE_B_POWER_MODE_TIMER idleBTimerValue
+    #define IDLE_B_TIMER_VALID idleBTimerValid
+    #define IDLE_B_STATE idleBState /*enable or disable*/
+    #define IDLE_B_POWER_MODE_VARS \
+    bool IDLE_B_POWER_MODE_FLAG = false;\
+    bool IDLE_B_TIMER_VALID = false;\
+    uint32_t IDLE_B_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_B_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_B_LONG_OPT_STRING "idle_b"
+    #define IDLE_B_LONG_OPT { IDLE_B_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define IDLE_C_POWER_MODE_FLAG changeIdleCSettings
+    #define IDLE_C_POWER_MODE_TIMER idleCTimerValue
+    #define IDLE_C_TIMER_VALID idleCTimerValid
+    #define IDLE_C_STATE idleCState /*enable or disable*/
+    #define IDLE_C_POWER_MODE_VARS \
+    bool IDLE_C_POWER_MODE_FLAG = false;\
+    bool IDLE_C_TIMER_VALID = false;\
+    uint32_t IDLE_C_POWER_MODE_TIMER = 0;\
+    int8_t IDLE_C_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define IDLE_C_LONG_OPT_STRING "idle_c"
+    #define IDLE_C_LONG_OPT { IDLE_C_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define STANDBY_Z_POWER_MODE_FLAG changeStandbyZSettings
+    #define STANDBY_Z_POWER_MODE_TIMER standbyZTimerValue
+    #define STANDBY_Z_TIMER_VALID standbyZTimerValid
+    #define STANDBY_Z_STATE standbyZState /*enable or disable*/
+    #define STANDBY_Z_POWER_MODE_VARS \
+    bool STANDBY_Z_POWER_MODE_FLAG = false;\
+    bool STANDBY_Z_TIMER_VALID = false;\
+    uint32_t STANDBY_Z_POWER_MODE_TIMER = 0;\
+    int8_t STANDBY_Z_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define STANDBY_Z_LONG_OPT_STRING "standby_z"
+    #define STANDBY_Z_LONG_OPT { STANDBY_Z_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define STANDBY_Y_POWER_MODE_FLAG changeStandbyYSettings
+    #define STANDBY_Y_POWER_MODE_TIMER standbyYTimerValue
+    #define STANDBY_Y_TIMER_VALID standbyYTimerValid
+    #define STANDBY_Y_STATE standbyYState /*enable or disable*/
+    #define STANDBY_Y_POWER_MODE_VARS \
+    bool STANDBY_Y_POWER_MODE_FLAG = false;\
+    bool STANDBY_Y_TIMER_VALID = false;\
+    uint32_t STANDBY_Y_POWER_MODE_TIMER = 0;\
+    int8_t STANDBY_Y_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define STANDBY_Y_LONG_OPT_STRING "standby_y"
+    #define STANDBY_Y_LONG_OPT { STANDBY_Y_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Legacy standby and idle (SAS only) timers
+    #define LEGACY_IDLE_POWER_MODE_FLAG changeIdleSettings
+    #define LEGACY_IDLE_POWER_MODE_TIMER idleTimerValue
+    #define LEGACY_IDLE_TIMER_VALID idleTimerValid
+    #define LEGACY_IDLE_STATE idleState /*enable or disable*/
+    #define LEGACY_IDLE_POWER_MODE_VARS \
+    bool LEGACY_IDLE_POWER_MODE_FLAG = false;\
+    bool LEGACY_IDLE_TIMER_VALID = false;\
+    uint32_t LEGACY_IDLE_POWER_MODE_TIMER = 0;\
+    int8_t LEGACY_IDLE_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define LEGACY_IDLE_LONG_OPT_STRING "idle"
+    #define LEGACY_IDLE_LONG_OPT { LEGACY_IDLE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define LEGACY_STANDBY_POWER_MODE_FLAG changeStandbySettings
+    #define LEGACY_STANDBY_POWER_MODE_TIMER standbyTimerValue
+    #define LEGACY_STANDBY_TIMER_VALID standbyTimerValid
+    #define LEGACY_STANDBY_STATE standbyState /*enable or disable*/
+    #define LEGACY_STANDBY_POWER_MODE_VARS \
+    bool LEGACY_STANDBY_POWER_MODE_FLAG = false;\
+    bool LEGACY_STANDBY_TIMER_VALID = false;\
+    uint32_t LEGACY_STANDBY_POWER_MODE_TIMER = 0;\
+    int8_t LEGACY_STANDBY_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
+    #define LEGACY_STANDBY_LONG_OPT_STRING "standby"
+    #define LEGACY_STANDBY_LONG_OPT { LEGACY_STANDBY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Following is for NVMe Utilities.
     #define TRANSITION_POWER_STATE_TO transitionPowerState
@@ -399,7 +442,7 @@ extern "C"
 
     #define GET_NVME_LOG_IDENTIFIER nvmeGetLogPage
     #define GET_NVME_LOG_VAR int32_t GET_NVME_LOG_IDENTIFIER = -1;
-    #define GET_NVME_LOG_LONG_OPT_STRING "getLogPage"
+    #define GET_NVME_LOG_LONG_OPT_STRING "getNvmeLogPage"
     #define GET_NVME_LOG_LONG_OPT { GET_NVME_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG  clearpciecorrectableerrors
@@ -424,17 +467,17 @@ extern "C"
     #define NVME_PCI_STATS_LONG_OPT_STRING "pciStats"
     #define NVME_PCI_STATS_LONG_OPT { NVME_PCI_STATS_LONG_OPT_STRING, no_argument, &NVME_PCI_STATS_FLAG, goTrue }
 
-    // NVMe Telemetry
-    #define GET_NVME_TELE_IDENTIFIER nvmeGetTelemetry
-    #define GET_NVME_TELE_VAR int32_t GET_NVME_TELE_IDENTIFIER = -1;
-    #define GET_NVME_TELE_LONG_OPT_STRING "getTelemetry"
-    #define GET_NVME_TELE_LONG_OPT { GET_NVME_TELE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    //Telemetry
+    #define GET_TELEMETRY_IDENTIFIER getTelemetryData
+    #define GET_TELEMETRY_VAR int32_t GET_TELEMETRY_IDENTIFIER = -1;
+    #define GET_TELEMETRY_LONG_OPT_STRING "getTelemetry" /* host | cntl | current | saved */
+    #define GET_TELEMETRY_LONG_OPT { GET_TELEMETRY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    // NVMe Telemetry Data Area
-    #define NVME_TELE_DATA_AREA telemetryDataArea
-    #define NVME_TELE_DATA_AREA_VAR int32_t NVME_TELE_DATA_AREA = 3;
-    #define NVME_TELE_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
-    #define NVME_TELE_DATA_AREA_LONG_OPT { NVME_TELE_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
+    //Telemetry Data Area
+    #define TELEMETRY_DATA_AREA telemetryDataArea
+    #define TELEMETRY_DATA_AREA_VAR int32_t TELEMETRY_DATA_AREA = 3;
+    #define TELEMETRY_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
+    #define TELEMETRY_DATA_AREA_LONG_OPT { TELEMETRY_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
@@ -1425,6 +1468,28 @@ extern "C"
     #define SATA_DAPS_LONG_OPT_STRING "sataDAPSfeature"
     #define SATA_DAPS_LONG_OPT { SATA_DAPS_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //SAS Partial bit
+    #define SAS_PARTIAL_FLAG sasPartialBit
+    #define SAS_PARTIAL_ENABLE_FLAG sasPartialEnable
+    #define SAS_PARTIAL_INFO_FLAG sasPartialInfo
+    #define SAS_PARTIAL_VARS \
+        bool SAS_PARTIAL_FLAG = false;\
+        bool SAS_PARTIAL_ENABLE_FLAG = false;\
+        bool SAS_PARTIAL_INFO_FLAG = false;
+    #define SAS_PARTIAL_LONG_OPT_STRING "sasPhyPartial"
+    #define SAS_PARTIAL_LONG_OPT { SAS_PARTIAL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //SAS Slumber bit
+    #define SAS_SLUMBER_FLAG sasSlumberBit
+    #define SAS_SLUMBER_ENABLE_FLAG sasSlumberEnable
+    #define SAS_SLUMBER_INFO_FLAG sasSlumberInfo
+    #define SAS_SLUMBER_VARS \
+        bool SAS_SLUMBER_FLAG = false;\
+        bool SAS_SLUMBER_ENABLE_FLAG = false;\
+        bool SAS_SLUMBER_INFO_FLAG = false;
+    #define SAS_SLUMBER_LONG_OPT_STRING "sasPhySlumber"
+    #define SAS_SLUMBER_LONG_OPT { SAS_SLUMBER_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //Free fall control
     #define FREE_FALL_FLAG setFreeFall
     #define FREE_FALL_DISABLE disableFreeFall
@@ -1681,7 +1746,6 @@ extern "C"
     #define SCSI_SET_MP_LONG_OPT_STRING "setSCSIMP" //mp[-sp]:byte:highestBit:fieldWidthInBits=value OR file=filename.txt
     #define SCSI_SET_MP_LONG_OPT { SCSI_SET_MP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-
     //reset a SCSI Log page
     #define SCSI_RESET_LP_OP resetSCSILogPage
     #define SCSI_RESET_LP_LPC resetSCSILogPageControl
@@ -1697,6 +1761,34 @@ extern "C"
     #define SCSI_RESET_LP_LONG_OPT { SCSI_RESET_LP_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_PAGE_LONG_OPT {SCSI_RESET_LP_PAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
     #define SCSI_RESET_LP_LONG_OPTS SCSI_RESET_LP_LONG_OPT,SCSI_RESET_LP_PAGE_LONG_OPT
+
+    //power telemetry options
+    //show power telemetry on SeaChest screen
+    #define SHOW_POWER_TELEMETRY_FLAG showPowerTelemetry
+    #define SHOW_POWER_TELEMETRY_VAR \
+    getOptBool SHOW_POWER_TELEMETRY_FLAG = goFalse;
+    #define SHOW_POWER_TELEMETRY_LONG_OPT_STRING "showPowerTelemetry"
+    #define SHOW_POWER_TELEMETRY_LONG_OPT { SHOW_POWER_TELEMETRY_LONG_OPT_STRING, no_argument, &SHOW_POWER_TELEMETRY_FLAG, goTrue }
+
+    //request a time to perform the measurement for
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG requestPowerMeasurement
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS requestPowerTelemetryTime
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE requestPowerTelemetryMode /*5v 12v. etc*/
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS \
+    bool REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = false;\
+    uint16_t REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 0;\
+    int REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE = 0;
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING "powerMeasurementMode"
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT { REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING "requestPowerMeasurement"
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT { REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT,REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT
+
+    //pull the power telemetry data to a file
+    #define PULL_POWER_TELEMETRY_DATA_FLAG pullPowerTelemetry
+    #define PULL_POWER_TELEMETRY_DATA_VAR getOptBool PULL_POWER_TELEMETRY_DATA_FLAG = goFalse;
+    #define PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING "pullPowerTelemetry"
+    #define PULL_POWER_TELEMETRY_DATA_LONG_OPT { PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING, no_argument, &PULL_POWER_TELEMETRY_DATA_FLAG, goTrue }
 
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -1724,6 +1816,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Bug_Report_Email(bool shortHelp);
+
+    void print_Elevated_Privileges_Text();
 
     //-----------------------------------------------------------------------------
     //
@@ -2260,96 +2354,6 @@ extern "C"
 
     //-----------------------------------------------------------------------------
     //
-    //  print_Enable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the enableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Enable_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Disable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the disableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Disable_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Default_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the defaultMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Default_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Enable_Power_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the enableMode (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Power_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Timer_Mode_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the modeTimer (power) option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Timer_Mode_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Change_Power_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the changePower option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Change_Power_Help(bool shortHelp);
-
-    //-----------------------------------------------------------------------------
-    //
     //  print_Transition_Power_Help()
     //
     //! \brief   Description:  This function prints out the short or long help for the transitionPower option
@@ -2362,6 +2366,15 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_Help(bool shortHelp);
+
+    void print_Idle_A_Help(bool shortHelp);
+    void print_Idle_B_Help(bool shortHelp);
+    void print_Idle_C_Help(bool shortHelp);
+    void print_Standby_Y_Help(bool shortHelp);
+    void print_Standby_Z_Help(bool shortHelp);
+
+    void print_Legacy_Idle_Help(bool shortHelp);
+    void print_Legacy_Standby_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2694,21 +2707,6 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
 
-    //-----------------------------------------------------------------------------
-    //
-    //  print_SAT_12_Byte_CDB_Help()
-    //
-    //! \brief   Description:  This function prints out the short or long help for the SAT 12byte CDBs option
-    //
-    //  Entry:
-    //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_SAT_12_Byte_CDB_Help(bool shortHelp);
-
     void print_Firmware_Download_Help(bool shortHelp);
 
     void print_Firmware_Slot_Buffer_ID_Help(bool shortHelp);
@@ -2730,8 +2728,6 @@ extern "C"
     void print_Set_Max_LBA_Help(bool shortHelp);
 
     void print_Restore_Max_LBA_Help(bool shortHelp);
-
-    void printf_Set_Phy_Speed_Help(bool shortHelp);
 
     void print_Set_Ready_LED_Help(bool shortHelp);
 
@@ -2949,16 +2945,6 @@ extern "C"
 
     void print_DAPS_Help(bool shortHelp);
 
-    void print_Active_Help(bool shortHelp);
-
-    void print_Sleep_Help(bool shortHelp);
-
-    void print_Idle_Unload_Help(bool shortHelp);
-
-    void print_Idle_Help(bool shortHelp);
-
-    void print_Standby_Help(bool shortHelp);
-
     void print_Free_Fall_Help(bool shortHelp);
 
     void print_SCSI_Defects_Help(bool shortHelp);
@@ -3117,9 +3103,27 @@ extern "C"
 
     void print_NVM_Format_Metadata_Setting_Help(bool shortHelp);
 
+    void print_No_Time_Limit_Help(bool shortHelp);
+
+    void print_SAS_Phy_Partial_Help(bool shortHelp);
+
+    void print_SAS_Phy_Slumber_Help(bool shortHelp);
+
+    void print_Show_Power_Telemetry_Help(bool shortHelp);
+
+    void print_Request_Power_Measurement_Help(bool shortHelp);
+
+    void print_Request_Power_Measurement_Mode_Help(bool shortHelp);
+
+    void print_Pull_Power_Telemetry_Help(bool shortHelp);
+
+    void print_Get_Telemetry_Help(bool shortHelp);
+
+    void print_Telemetry_Data_Set_Help(bool shortHelp);
+
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
-#if defined (ENABLE_CSMI) //Since we are using macros to instert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
+#if defined (ENABLE_CSMI) //Since we are using macros to insert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
     #define SCAN_FLAGS_UTIL_VARS \
         bool                scanSD = false;\
         bool                scanSDandSG = false;\
