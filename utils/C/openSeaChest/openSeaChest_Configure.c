@@ -2739,67 +2739,77 @@ int32_t main(int argc, char *argv[])
                     if (modePageBuffer && fileBuf)
                     {
                         //read the file
-                        fread(fileBuf, sizeof(char), fileLength, modePageFile);
-                        //parse the file
-                        char *delimiters = " \n\r-_\\/|\t:;";
-                        char *token = strtok(fileBuf, delimiters);//add more to the delimiter list as needed
-                        if (token)
+                        if (fileLength == fread(fileBuf, sizeof(char), fileLength, modePageFile))
                         {
-                            bool invalidCharacterOrMissingSeparator = false;
-                            uint32_t modeBufferElementCount = 0;
-                            do
+                            //parse the file
+                            char *delimiters = " \n\r-_\\/|\t:;";
+                            char *token = strtok(fileBuf, delimiters);//add more to the delimiter list as needed
+                            if (token)
                             {
-                                if (strlen(token) > 2)
+                                bool invalidCharacterOrMissingSeparator = false;
+                                uint32_t modeBufferElementCount = 0;
+                                do
                                 {
-                                    invalidCharacterOrMissingSeparator = true;
-                                    break;
-                                }
-                                if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
-                                {
-                                    invalidCharacterOrMissingSeparator = true;
-                                    break;
-                                }
-                                //not an invalid character or a missing separator, so convert the string to an array value.
-                                modePageBuffer[modeBufferElementCount] = (uint8_t)strtoul(token, NULL, 16);
-                                ++modeBufferElementCount;
-                                token = strtok(NULL, delimiters);
-                            } while (token);
-                            if (!invalidCharacterOrMissingSeparator)
-                            {
-                                //file is read, send the change
-                                switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
-                                {
-                                case SUCCESS:
-                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    if (strlen(token) > 2)
                                     {
-                                        printf("Successfully set SCSI mode page!\n");
-                                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                        invalidCharacterOrMissingSeparator = true;
+                                        break;
+                                    }
+                                    if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
+                                    {
+                                        invalidCharacterOrMissingSeparator = true;
+                                        break;
+                                    }
+                                    //not an invalid character or a missing separator, so convert the string to an array value.
+                                    modePageBuffer[modeBufferElementCount] = (uint8_t)strtoul(token, NULL, 16);
+                                    ++modeBufferElementCount;
+                                    token = strtok(NULL, delimiters);
+                                } while (token);
+                                if (!invalidCharacterOrMissingSeparator)
+                                {
+                                    //file is read, send the change
+                                    switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
+                                    {
+                                    case SUCCESS:
+                                        if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                            printf("Successfully set SCSI mode page!\n");
+                                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                            {
+                                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                            }
                                         }
+                                        break;
+                                    case NOT_SUPPORTED:
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                        }
+                                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                        break;
+                                    default:
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("Failed to set the mode page changes that were requested.\n");
+                                        }
+                                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                        break;
                                     }
-                                    break;
-                                case NOT_SUPPORTED:
+                                }
+                                else
+                                {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
-                                    }
-                                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                                    break;
-                                default:
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("Failed to set the mode page changes that were requested.\n");
+                                        printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                    break;
                                 }
                             }
                             else
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                    printf("An error occurred while trying to parse the file. Please check the file format.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
@@ -2808,7 +2818,7 @@ int32_t main(int argc, char *argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An error occurred while trying to parse the file. Please check the file format.\n");
+                                printf("Error reading contents of firmwaremode page file!\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }

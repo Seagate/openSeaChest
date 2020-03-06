@@ -949,108 +949,118 @@ int32_t main(int argc, char *argv[])
                             //*/
                         }
                     }
-                    fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
+                    if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
+                    {   
 
-                    memset(&dlOptions, 0, sizeof(firmwareUpdateData));
-                    memset(&commandTimer, 0, sizeof(seatimer_t));
-                    dlOptions.dlMode = DOWNLOAD_FW_MODE;
-                    if (FWDL_SEGMENT_SIZE_FROM_USER)
-                    {
-                        dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
-                    }
-                    else
-                    {
-                        dlOptions.segmentSize = 0;
-                    }
-                    dlOptions.firmwareFileMem = firmwareMem;
-                    dlOptions.firmwareMemoryLength = firmwareFileSize;
-                    dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
-                    start_Timer(&commandTimer);
-                    ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
-                    stop_Timer(&commandTimer);
-                    switch (ret)
-                    {
-                    case SUCCESS:
-                        exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-                        if (VERBOSITY_QUIET < toolVerbosity)
+                        memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+                        memset(&commandTimer, 0, sizeof(seatimer_t));
+                        dlOptions.dlMode = DOWNLOAD_FW_MODE;
+                        if (FWDL_SEGMENT_SIZE_FROM_USER)
                         {
-                            printf("Firmware Download successful\n");
-                            printf("Firmware Download time");
-                            print_Time(get_Nano_Seconds(commandTimer));
-                            printf("Average time/segment ");
-                            print_Time(dlOptions.avgSegmentDlTime);
-                            if (DOWNLOAD_FW_MODE != DL_FW_DEFERRED)
-                            {
-                                printf("Activate Time         ");
-                                print_Time(dlOptions.activateFWTime);
-                            }
-                        }
-                        if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
-                        {
-                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
-                                }
-                            }
-                        }
-                        else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
-                        {
-                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("This drive requires a full power cycle to activate the new code.\n");
-                            }
-                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                            {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
-                            }
+                            dlOptions.segmentSize = FWDL_SEGMENT_SIZE_FLAG;
                         }
                         else
                         {
-                            fill_Drive_Info_Data(&deviceList[deviceIter]);
+                            dlOptions.segmentSize = 0;
+                        }
+                        dlOptions.firmwareFileMem = firmwareMem;
+                        dlOptions.firmwareMemoryLength = firmwareFileSize;
+                        dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
+                        start_Timer(&commandTimer);
+                        ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
+                        stop_Timer(&commandTimer);
+                        switch (ret)
+                        {
+                        case SUCCESS:
+                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                if (NEW_FW_MATCH_FLAG)
+                                printf("Firmware Download successful\n");
+                                printf("Firmware Download time");
+                                print_Time(get_Nano_Seconds(commandTimer));
+                                printf("Average time/segment ");
+                                print_Time(dlOptions.avgSegmentDlTime);
+                                if (DOWNLOAD_FW_MODE != DL_FW_DEFERRED)
                                 {
-                                    if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                                    printf("Activate Time         ");
+                                    print_Time(dlOptions.activateFWTime);
+                                }
+                            }
+                            if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                            {
+                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
-                                        printf("Successfully validated firmware after download!\n");
-                                        printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
-                                    }
-                                    else
-                                    {
-                                        printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
-                                else
+                            }
+                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
+                            {
+                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                    printf("This drive requires a full power cycle to activate the new code.\n");
                                 }
                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                 {
                                     printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
+                            else
+                            {
+                                fill_Drive_Info_Data(&deviceList[deviceIter]);
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    if (NEW_FW_MATCH_FLAG)
+                                    {
+                                        if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                                        {
+                                            printf("Successfully validated firmware after download!\n");
+                                            printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                        }
+                                        else
+                                        {
+                                            printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                    }
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    }
+                                }
+                            }
+                            break;
+                        case NOT_SUPPORTED:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Firmware Download not supported\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                            break;
+                        default:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Firmware Download failed\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            break;
                         }
-                        break;
-                    case NOT_SUPPORTED:
+                    }
+                    else
+                    {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Firmware Download not supported\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Firmware Download failed\n");
+                            printf("Error reading contents of firmware file!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
                     }
                     safe_Free_aligned(firmwareMem);
                 }
