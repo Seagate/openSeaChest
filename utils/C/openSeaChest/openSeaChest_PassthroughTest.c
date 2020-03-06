@@ -430,22 +430,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(FW_STRING_FLAG, optarg, 8);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
             }
             break;
         case ':'://missing required argument
@@ -4236,18 +4236,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-        uint16_t pageLength = modeData[offset + 1];
+        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
         }
-        if (subpageFormat)
-        {
-            pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-        }
+        //if (subpageFormat)
+        //{
+        //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+        //}
         //now save the fields we care about
         printf("Control Mode Page\n");
         successfullyReadAtLeastOnePage = true;
@@ -4277,18 +4277,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             uint16_t blockDescriptorLength = modeData[3];
             uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-            bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-            uint16_t pageLength = modeData[offset + 1];
+            //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //uint16_t pageLength = modeData[offset + 1];
             if (!use6Byte)
             {
                 blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                 offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
             }
-            if (subpageFormat)
-            {
-                pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-            }
+            //if (subpageFormat)
+            //{
+            //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+            //}
             //now save the fields we care about
             printf("Control Extension Mode Page\n");
             successfullyReadAtLeastOnePage = true;
@@ -4311,18 +4311,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-        uint16_t pageLength = modeData[offset + 1];
+        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
         }
-        if (subpageFormat)
-        {
-            pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-        }
+        //if (subpageFormat)
+        //{
+        //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+        //}
         //now save the fields we care about
         scsiDevInfo->modeData.gotReadWriteErrorRecoveryPage = true;
         printf("Read Write Error Recovery Mode Page\n");
@@ -4415,18 +4415,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-        uint16_t pageLength = modeData[offset + 1];
+        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
         }
-        if (subpageFormat)
-        {
-            pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-        }
+        //if (subpageFormat)
+        //{
+        //   pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+        //}
         //now save the fields we care about
         scsiDevInfo->modeData.gotRigidDiskPage = true;
         printf("Rigid Disk Geometry Mode Page\n");
@@ -4493,18 +4493,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-        uint16_t pageLength = modeData[offset + 1];
+        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
         }
-        if (subpageFormat)
-        {
-            pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-        }
+        //if (subpageFormat)
+        //{
+        //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+        //}
         //now save the fields we care about
         scsiDevInfo->modeData.gotInformationalExceptionsControlPage = true;
         printf("Informational Exceptions Control Mode Page\n");
@@ -4621,18 +4621,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 uint16_t blockDescriptorLength = modeData[3];
                 uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-                bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-                uint16_t pageLength = modeData[offset + 1];
+                //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //uint16_t pageLength = modeData[offset + 1];
                 if (!use6Byte)
                 {
                     blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                     offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                    subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                    //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
                 }
-                if (subpageFormat)
-                {
-                    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-                }
+                //if (subpageFormat)
+                //{
+                //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+                //}
                 //now save the fields we care about
                 scsiDevInfo->modeData.gotPataControlPage = true;
                 printf("PATA Control Mode Page\n");
@@ -4663,18 +4663,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             uint16_t blockDescriptorLength = modeData[3];
             uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-            bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
-            uint16_t pageLength = modeData[offset + 1];
+            //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //uint16_t pageLength = modeData[offset + 1];
             if (!use6Byte)
             {
                 blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                 offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
             }
-            if (subpageFormat)
-            {
-                pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
-            }
+            //if (subpageFormat)
+            //{
+            //    pageLength = M_BytesTo2ByteValue(modeData[offset + 2], modeData[offset + 3]);
+            //}
             //now save the fields we care about
             scsiDevInfo->modeData.gotATAPowerConditionPage = true;
             printf("ATA Power Condition Mode Page\n");
@@ -6267,7 +6267,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
     printf("Testing SCSI default self-test.\n");
     //send diagnostic for default device self test. Wait up to 5 minutes for this command since some devices could take longer to process this
     //TODO: it is possible for self-test to fail, which we should catch since it performed the test and didn't return invalid operation code or invalid field in CDB
-    int selfTestResult = scsi_Send_Diagnostic(device, 0, 0, 1, 0, 0, 0, NULL, 0, 5 * 60);
+    /*int selfTestResult =*/ scsi_Send_Diagnostic(device, 0, 0, 1, 0, 0, 0, NULL, 0, 5 * 60);
     if (!does_Sense_Data_Show_Invalid_OP(device))
     {
         scsiCmds->sendDiagnostic = true;
