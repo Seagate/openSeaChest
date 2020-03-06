@@ -204,22 +204,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(FW_STRING_FLAG, optarg, 8);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
@@ -386,7 +386,12 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile);
+                        if(0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                        {
+                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
+                            fclose(patternFile);
+                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                        }
                         //close file
                         fclose(patternFile);
                         safe_Free(filename);
