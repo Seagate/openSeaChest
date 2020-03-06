@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "0.3.1";
+const char *buildVersion = "0.3.2";
 
 ////////////////////////////
 //  functions to declare  //
