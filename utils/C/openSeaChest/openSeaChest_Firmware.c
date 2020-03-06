@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "2.8.1";
+const char *buildVersion = "2.8.2";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
