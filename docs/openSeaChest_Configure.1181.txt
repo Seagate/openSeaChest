@@ -1,9 +1,9 @@
-openSeaChest_NVMe.txt                                     Revision: 19-Jul-2019
+openSeaChest_Configure.txt                                Revision: 09-Mar-2020
 ===============================================================================
- openSeaChest_NVMe for Linux and Windows - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_NVMe Version: 1.0.0
- Build Date: Jul 19 2019
+ openSeaChest_Configure for Linux and Windows - Seagate drive utilities
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ openSeaChest_Configure Version: 1.18.1
+ Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -34,22 +34,22 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-openSeaChest_NVMe is a comprehensive command line tool that can be used to
+openSeaChest_Configure is a comprehensive command line tool that can be used to
 configure, change or set various properties on Seagate disk drives (this
 includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
 data on the drive to become inaccessible.  Some commands may affect the
 performance of the drive.
 
-NOTE: openSeaChest_NVMe may not be fully functional on non-Seagate drives.
+NOTE: openSeaChest_Configure may not be fully functional on non-Seagate drives.
 
 This User Guide file contains important information about
-openSeaChest_NVMe.  Please read this entire file before using this
+openSeaChest_Configure.  Please read this entire file before using this
 software.
 
 If this is your drive, you should always keep a current backup of your
 important data.
 
-Be very careful using openSeaChest_NVMe. Power failure during a
+Be very careful using openSeaChest_Configure. Power failure during a
 configuration change may cause data loss. Seagate is not responsible for lost
 user data.
 
@@ -77,33 +77,45 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-Usage - Linux
-=============
-        openSeaChest_NVMe [-d <sg_device>] {arguments} {options}
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Configure [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        openSeaChest_NVMe --scan
-        openSeaChest_NVMe -d /dev/nvme0n1 --deviceInfo
+        sudo openSeaChest_Configure --scan
+        sudo openSeaChest_Configure -d /dev/sg2 --deviceInfo
 
-Usage - Windows
-===============
-        openSeaChest_NVMe [-d <device>] {arguments} {options}
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Configure [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_NVMe --scan
-        openSeaChest_NVMe -d PD0 --deviceInfo
+        openSeaChest_Configure --scan
+        openSeaChest_Configure -d PD0 --deviceInfo
 
 Utility Arguments
 =================
         -s, --scan
-                Scan the system and list all storage devices with Physical
-                Device assignments. Shows model, serial and firmware numbers.
-                If your device is not listed on a scan immediately after
-                booting, then wait 10 seconds and run it again.
+                Scan the system and list all storage devices with logical
+                /dev/sg? assignments. Shows model, serial and firmware
+                numbers. If your device is not listed on a scan immediately
+                after booting, then wait 10 seconds and run it again.
 
-       -F, --scanFlags [option list]
+        -S, --Scan   (note the capital letter S)
+                This option is the same as --scan or -s, however it will also
+                perform a low level rescan to pick up other devices. This
+                low-level rescan may wake devices from low power states and may
+                cause the OS to re-enumerate them. Use this diagnostic option
+                when a device is plugged in and not discovered in a normal scan.
+
+                NOTE: A low-level rescan may not be available on all interfaces
+                or all OSs.  The low-level rescan is not guaranteed to find
+                additional devices in the system when the device is unable to
+                come to a ready state.
+
+        -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
                      ata            - show only ATA (SATA) devices
@@ -143,131 +155,344 @@ Utility Arguments
                 as communicated by the USB-SATA bridge.  Add --usbChildInfo
                 to display details about the drive within the USB enclosure.
 
+        --SATInfo                       (SATA only)
+                Displays SATA device information on any interface using both
+                SCSI Inquiry/VPD/Log reported data (translated according to
+                SAT) and the ATA Identify/Log reported data.
+
         --testUnitReady
                 A simple check to see if the device responds to commands from
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --downloadFW [firmware filename]
-                Download firmware to a Seagate storage product. Use only
-                Seagate authorized firmware data files which are designated for
-                the specific model drive. Improper use of this option may harm
-                a device and or its data. You may specify the path if the
-                firmware data file is in a different location. This option will
-                use segmented download by default. Use the --downloadMode
-                option to specify a different download mode.
+        --setMaxLBA [newMaxLBA | maxLBA]
+                Set the max accessible address of your drive to any value less
+                than the device's default native size. A power cycle is
+                required after this command before resetting or setting a new
+                max LBA. The final capacity will depend on the logical sector
+                size.  If the Logical Block Address (LBA) is set to 1953125 and
+                the sector size is 512, then the capacity is 1,000,000,000
+                bytes. If the logical sector size is 4096, then the capacity is
+                8,000,000,000 bytes.  If the logical sector size is 512 but the
+                physical sector size is 4096 (called Advanced Format), then
+                normal practice is to pick an LBA value which is divisible by
+                8. Use the -i, --deviceInfo to show logical and physical sector
+                sizes.  The predefined text string "maxLBA" (without quotes)
+                may be entered to indicate the last sector on the drive,
+                otherwise see --restoreMaxLBA.
 
-                Please see the section below "Windows Restrictions Over SATA
-                Firmware Downloads".
+        --restoreMaxLBA
+                Restore the max accessible address of your drive to its native
+                size. A power cycle is required after this command before
+                setting a new max LBA.
 
-        --downloadMode [immediate | deferred | activate]
-                Use this option along with the --downloadFW option to set the
-                firmware download mode. The "activate" option can be run
-                without the --downloadFW option.
+        --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
+                Use this option to change the PHY speed to a new maximum value.
+                This change persists over power cycles and resets. On SAS, this
+                option will set all phys to the specified speed unless the
+                --sasPhy option is given to select a specific phy.
 
-                Supported Modes:
-                     immediate - Performs the download command and sends the
-                                 activate/commit command.
-                     deferred  - Performs a segmented download to the device,
-                                 but does not activate the new firmware until a
-                                 reset / activate command is sent.
-                     activate  - Only sends the activate/commit command to
-                                 activate previously downloaded firmware.
+                0 - allow full negotiation (default drive behavior)
+                1 - allow negotiation up to 1.5Gb/s
+                2 - allow negotiation up to 3.0Gb/s
+                3 - allow negotiation up to 6.0Gb/s
+                4 - allow negotiation up to 12.0Gb/s (SAS Only)
+                5 - allow negotiation up to 22.5Gb/s (SAS Only)
 
-                Note: See the --modelMatch and --onlyFW utility options which
-                may assist in creating commands to update multiple similar
-                drives.
+        --nvCache [info | enable | disable]     (SAS Only)
+                Use this option to enable or disable the SCSI Non-Volatile
+                cache on a drive. Use the "info" argument to get the current
+                status of the Non-Volatile Cache setting.
+                WARNING: Changing NV Cache may affect all LUNs/namespaces for
+                devices with multiple logical units or namespaces.
 
-        --firmwareSlot/--fwBufferID slot#               (Seagate Only)
-                Use this option to specify a firmware slot (NVMe) or a buffer
-                ID (SCSI) along with the --downloadMode (SCSI) or --activateFW
-                (NVMe & SCSI) options. If this option is not used, a value of
-                zero will be used instead, which means the drive will
-                automatically select the slot number.
+       --readLookAhead [info | enable | disable]
+                Use this option to enable or disable read look-ahead support on
+                a drive.  Use the "info" argument to get the current status of
+                the read look ahead feature.  This change is not preserved over
+                power cycles.
 
-        --fwdlSegSize [segment size in 512B blocks]
-                Use this option to specify a segment size in 512B blocks to use
-                for a segmented or deferred download. This option will not
-                affect an immediate download (full buffer at once). The default
-                segment size used is 64. Larger segment sizes may be faster,
-                however they may also be incompatible with controllers or
-                drivers in the system. Smaller values are more likely to be
-                compatible, but also slower. Use this option if the default
-                used by the tool is not working correctly for firmware updates.
+        --writeCache [info | enable | disable]
+                Use this option to enable or disable write cache support on a
+                drive.  Use the "info" argument to get the current status of
+                the write cache feature.  Changes may not be preserved over
+                power cycles.
 
-        --checkPowerMode
-                Get the current power mode of a drive. On SCSI devices, this
-                will only work if the drive has transitioned from active state
-                to another state.
+                Note: Windows, Device Manager, Disk drives, <your model>,
+                Policies tab, Write-caching policy may override this
+                --writeCache setting if the policy is enabled in Device
+                Manager. You can change the Windows policy or you can try
+                --sctWriteCache, if necessary, to control the cache regardless
+                of the policy.
 
-        --transitionPowerState [new power state]
-                Use this option to transition to a specific power state.
-                HINT:
-                  Use --deviceInfo to show number of supported states
+SATA Only
+---------
+        --freeFall [info | enable | disable | sensitivity value]  (SATA only)
+                Use this option to configure the Free Fall control feature
+                found on some SATA drives. This feature allows the drive to
+                take action if it detects it is in free fall to protect the
+                data from harm due to a drop.
 
-        --getFeatures  [help | list | #]
-                Use this option to list the NVMe features
-                Supported Modes:
-                        help  - prints the descriptions of all
-                                the features
-                        list  - lists raw values of all mandatory
-                                features supported by device
-                        #     - feature number will print the
-                                humanized details
+                info - use this to see the current sensitivity value
+                enable - this option will set the sensitivity to the vendor's
+                        recommended value.
+                disable - this will disable the free fall control feature.
+                sensitivity value - set a value between 1 and 255 to control
+                        how sensitive the detection is. A value of zero will
+                        set the vendor's recommended value.
 
-        --getLogPage   [Error | SMART | FWSlots | SuppCmds | SelfTest | #]
-                Use this option to get the NVMe log pages
-                Supported Modes:
-                        Error   - lists the valid entries found in the
-                                  Error Information Log.
-                        SMART   - lists information found in the
-                                  SMART/Health Information Log
-                        FWSlots - lists currently active Firmware slot
-                                  and Firmware Revision in each slot.
-                        SuppCmds - lists the commands that the controller
-                                  supports and the effects of those commands.
-                        SelfTest - lists the status of any device
-                                  self-test operation in progress
-                                  and the results of the last 20 device
-                                  self-test operations.
-                        #       - option to get the log page using
-                                  a number
+        --lowCurrentSpinup [ low | ultra | disable ]  (SATA Only) (Seagate Only)
+                Use this option to set the state of the low current spinup
+                feature on Seagate SATA drives.  When this setting is enabled
+                for low or ultra low mode, the drive will take longer to spinup
+                and become ready.
+                Note: This feature is not available on every drive.
+                Note: Some products will support low, but not the ultra low
+                current spinup mode.
 
-        --getTelemetry [HOST | CTRL] --telemetryDataArea [1 | 2 | 3]
-                Use this option to get the NVMe Telemetry
-                Supported Modes:
-                        HOST    - get Host Telemetry
-                        CTRL    - get Ctrl Telemetry
+        --puisFeature [enable | disable]  (SATA Only)
+                Use this option to enable or disable the Power Up In Standby
+                (PUIS) feature on SATA drives.
+                Note: If this is configured on the drive with a jumper, this
+                      command will fail.
+                Note2: Not all products support this feature.
 
-        --clearPciErr
-                Use this option to clear correctable errors.
+        --sscFeature [info | default | enable | disable] (SATA Only)
+                Use this option to change or view the SSC (Spread Spectrum
+                Clocking) mode on a Seagate SATA drive. Only change this
+                setting if you are experiencing compatibility problems with the
+                drive in a system.
 
-        --extSmartLog
-                Use this option to pull the Extended Smart Log Attributes.
+                info - show current SSC state
+                default - set to drive default mode
+                enable - enable SSC
+                disable - disable SSC
 
-        --outputMode   [raw | binary]
-                Use this option with others options such as --getLogPage and
-                --deviceInfo to show a buffer output or to create a binary file.
+        --sctReadTimer [info | value] (SATA Only)
+                Use this option to set the SMART command transport read command
+                timer value for synchronous commands and NCQ commands with
+                in-order data delivery enabled. Note: this timer starts at the
+                time that the drive processes the command, not the time it is
+                received. This timer value is volatile and is cleared at each
+                power cycle. Use the "info" argument to get the current status
+                of the read timer. A value of 0 means that all possible error
+                recovery will be performed before returning status (i.e. the
+                Read Command Timer is disabled). Other values should include a
+                unit to know the time to use. If no unit is provided, it is
+                assumed to be the value * 100 ms. The maximum time that can be
+                specified is 1 hour, 49 minutes, 13 seconds. Note: On some SAT
+                HBAs/bridges, status will not be able to be determined due to
+                HBA/bridge limitations.
 
-                Supported Modes:
-                        raw    - prints the raw buffer on stdout
-                        binary - writes data to a file with device
-                                 Serial Number & time stamp
+                Ex1: --sctReadTimer 7s for a 7 second timer.
+                Ex2: --sctReadTimer 7000ms for a 7 second timer expressed in
+                     milliseconds
+                Ex2: --sctReadTimer 70 for a 7 second timer with no units
+                     specified
 
-        --tempStats
-                Use this option to get the NVMe Temperature Statistics
+                Note: this command is part of SMART Command Transport Error
+                Recovery Control (SCTERC). These commands may also be known as
+                TLER or CCTL.  For additional information see
+                https://en.wikipedia.org/wiki/Error_recovery_control .  Consult
+                your RAID controller documentation to learn its timeout for
+                determining drive failure and subsequent RAID rebuilding of a
+                spare drive. These SCTERC commands, if supported by the drive
+                firmware, allow setting a drive level timeout which is less
+                than the RAID controller rebuild timeout.  For example, 7
+                seconds on the drive and 8 seconds on the controller.  This
+                time difference may allow the RAID to perform error recovery at
+                the file level instead of replacing the device since the
+                timeout may be caused by a sector that is just difficult to
+                read, not an entire failure of the drive.
 
-        --pciStats
-                Use this option to get the NVMe PCIe Statistics
+        --sctWriteCache [info | enable | disable | default]
+                (SATA Only)
+                Use this option to enable or disable write cache support on a
+                drive using SMART command transport. When using this option,
+                the setting is non-volatile. Use this with the --volatile flag
+                to make the setting volatile. When using this option, the
+                --writeCache will always return success, but no write cache
+                changes will occur. This follows ATA spec. Using the "default"
+                argument returns the drive to default settings and allowing the
+                --writeCache option to work again. Use the "info" argument to
+                get the current status of the write cache feature. Note: On
+                some SAT HBAs/bridges, status will not be able to be determined
+                due to HBA/bridge limitations.
 
-        --showSupportedFormats
-                This option will show the supported formats of a device. These
-                can be used to change the sector size or used with a format
-                operation. On SAS, this is the supported block lengths and
-                protection types VPD page (SBC4 and later). On SATA, this is
-                the sector configuration log (ACS4 and later). If the device
-                does not report supported sector sizes, please consult your
-                product manual.
+        --sctWriteCacheReordering [info | enable | disable | default]
+                (SATA Only)
+                Use this option to enable or disable write cache reordering
+                support on a drive using SMART command transport. Write cache
+                reordering allows the drive to reorder moving data out of cache
+                to media for better performance on synchronous commands.
+                Asynchronous commands are only affected when in-order data
+                delivery is enabled. When using this option, the setting is
+                non-volatile. Use this with the --volatile flag to make the
+                setting volatile. Use the "info" argument to get the current
+                status of the write cache reordering feature. Note: On some SAT
+                HBAs/bridges, status will not be able to be determined due to
+                HBA/bridge limitations.
+
+        --sctWriteTimer [info | value] (SATA Only)
+                Use this option to set the SMART command transport write
+                command timer value for synchronous commands and NCQ commands
+                with in-order data delivery enabled. Note: this timer starts at
+                the time that the drive processes the command, not the time it
+                is received. This timer value is volatile and is cleared at
+                each power cycle. Use the "info" argument to get the current
+                status of the write timer. A value of 0 means that all possible
+                error recovery will be performed before returning status (i.e.
+                the Write Command Timer is disabled). Other values should
+                include a unit to know the time to use. If no unit is provided,
+                it is assumed to be the value * 100 ms. The maximum time that
+                can be specified is 1 hour, 49 minutes, 13 seconds. Note: On
+                some SAT HBAs/bridges, status will not be able to be determined
+                due to HBA/bridge limitations.
+
+                Ex1: --sctWriteTimer 7s for a 7 second timer.
+                Ex2: --sctWriteTimer 7000ms for a 7 second timer expressed in
+                     milliseconds
+                Ex2: --sctWriteTimer 70 for a 7 second timer with no units
+                     specified
+
+                Note: see additional information above for --sctReadTimer.
+
+SAS Only
+--------
+        --readyLED [info | on | off | default] (SAS Only)
+                Use this option to change the behavior of pin 11, the ready
+                LED. See the SPL spec for full details on how this changes LED
+                behavior.
+                    info - gets the current state of the ready LED.
+                    on - sets the ready LED to usually off unless
+                         processing a command.
+                    off - sets the ready LED to usually on unless
+                          processing a command
+                    default - sets the ready LED to the drive's default value
+
+        --sasPhy [identifier value]
+                Use this option to specify a specific phy to use with another
+                option that uses a phy identifier value. Some tool options will
+                assume all SAS Phys when this option is not present. Others
+                will produce an error when a specific phy is needed for an
+                operation. Use the -i option to learn more about the supported
+                phys.
+
+        --scsiLPReset [cumulative | threshold | defCumulative | defThreshold | all]   (SAS only)
+                Use this option to reset all SCSI Log Pages. If the device is
+                compliant with SPC4 or later, the --scsiLPResetPage option may
+                be used to specify a specific page to reset. The --volatile
+                option may also be passed to prevent saving changes.
+                            cumulative - reset the cumulative values
+                            threshold  - reset the threshold values
+                            defCumulative - reset the cumulative values to
+                               default without saving.
+                            defThreshold  - reset the threshold values to
+                               default without saving.
+                            all - sends the log page reset command to all of
+                               the above control values
+
+        --scsiLPResetPage [page# | page-subpage#]               (SAS only)
+                This option is used to specify a specific page, and/or subpage
+                to be used with the --scsiLPReset option.
+                NOTE: This option will only work on newer drives compliant with
+                the SPC4 specification.
+
+        --scsiMPReset [page# | page-subpage#]           (SAS only)
+                This option will reset the specified mode page(s) to their
+                default settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                reset all mode pages. (SP) Subpage FFh specifies all subpages
+                of a given page and will reset all those subpages. Using both
+                MP 3Fh and SP FFh will reset all pages and subpages on a device.
+
+        --scsiMPRestore [page# | page-subpage#]         (SAS only)
+                This option will restore the specified mode page(s) to their
+                saved settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                restore all mode pages. (SP) Subpage FFh specifies all subpages
+                of a given page and will restore all those subpages. Using both
+                MP 3Fh and SP FFh will restore all pages and subpages on a
+                device.
+
+        --scsiMPSave [page# | page-subpage#]            (SAS only)
+                This option will save the current specified mode page(s) to the
+                saved settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                save all mode pages. (SP) Subpage FFh specifies all subpages of
+                a given page and will save all those subpages. Using both MP
+                3Fh and SP FFh will save all pages and subpages on a device.
+
+         --setSCSIMP [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]  (SAS only) (Seagate Only)
+                Use this option to set a specific field in a mode page to a
+                value. There are two argument formats to this option:
+                1. The first format expects a mode page (in hex), optionally a
+                   subpage code (in hex), the byte offset that the field starts
+                   at (in decimal), the highest bit the field starts at (0-7),
+                   the width of the field in as a number of bits (decimal), and
+                   the value to set (hex or decimal).  A maximum of 64bits can
+                   be set at a time with this option.
+                2. The second format is a text file that contains all bytes of
+                   the mode page in hex. Each byte must be separated by a
+                   space, new line, or underscore. It is recommended that this
+                   file is created by copy-pasting the output of the
+                   --showSCSIMP option's default classic view, then modifying
+                   after that.
+
+                Example use of the arguments:
+                1. Setting WCE to zero on Caching MP 8 from command line:
+                   command line: 08:2:2:1=0
+                2. Setting DLC to one on Control Extension MP from command line:
+                   command line: 0A-01:4:3:1=1
+                3. Setting WCE to zero on Caching MP 8 from a text file:
+                   command line: file=cachingModePage.txt
+                   File contents: 88 12 10 00 FF FF 00 00 FF FF FF FF 90 20 00 00 00 00 00 00
+
+        --showSCSIMP [page# | page-subpage#]            (SAS only)
+                This option will display the specified mode page on the screen
+                as raw hexadecimal data bytes. Use --showSCSIMPControl to
+                control the output.  If --showSCSIMPControl is not provided,
+                the current values will be shown.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                show all mode pages. (SP) Subpage FFh specifies all subpages of
+                a given page and will show all those subpages. Using both MP
+                3Fh and SP FFh will show all pages and subpages on a device.
+
+                Note: page# is a decimal value unless it has the characters A
+                through F, then it is hexadecimal. Page 18, for example,  would
+                be 12h so be sure to say 18h if that is the page you want.
+
+                Example: --showSCSIMP 3F-FF
+                         --showSCSIMP 18h
+                         --showSCSIMP 24    (shows page 18h)
+
+        --showSCSIMPControl [current | default | saved | changeable | all]  (SAS only)
+                Use this option to control the output of the --showSCSIMP
+                option.
+                        current - show the current values of the mode page.
+                        default - show the default values of the mode page.
+                        saved   - show the saved values of the mode page.
+                        changeable - show the changeable fields in a mode page.
+                        all - show all of the above formats for a given mode
+                              page.
+                Example: --showSCSIMP 8 --showSCSIMPControl all
+
+        --showMPOutputMode [classic | buffer]   (SAS Only)
+                Use this option to control the format of the output when
+                displaying a SCSI mode page. Modes:
+                   classic - This output is a classic output from old SCSI
+                      manuals where the bytes of the page are output in a
+                      series of rows across the screen in hexadecimal format.
+                   buffer  - This output is a formatted buffer showing offsets
+                      on the top and side in hex. This will output each row
+                      with up to 16 bytes of data before moving to the next row.
 
 Utility Options
 ===============
@@ -298,6 +523,26 @@ Utility Options
                 Shows the command line above the banner in the standard output.
                 Useful when saving output to logs.
 
+        --enableLegacyUSBPassthrough
+                Only use this option on old USB or IEEE1394 (Firewire) products
+                that do not otherwise work with the tool. This option will
+                enable a trial and error method that attempts sending various
+                ATA Identify commands through vendor specific means. Because of
+                this, certain products may respond in unintended ways since
+                they may interpret these commands differently than the bridge
+                chip the command was designed for.
+
+        --sat12byte
+                This forces the lower layer code to issue SAT spec ATA
+                Pass-through 12-byte commands when possible instead of 16-byte
+                commands.  By default, 16-byte commands are always used for ATA
+                Pass-through.  USB products may need this option as a
+                workaround if the default does not perform.
+
+        --onlySeagate
+                Use this option to match only Seagate drives for the options
+                provided.
+
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
                 model number. This option will provide a closest match although
@@ -313,6 +558,31 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
+
+        --forceATA
+                Using this option will force the current drive to be treated as
+                a ATA drive. Only ATA commands will be used to talk to the
+                drive.
+
+        --forceATADMA   (SATA Only)
+                Using this option will force the tool to issue SAT commands to
+                ATA device using the protocol set to DMA whenever possible (on
+                DMA commands). This option can be combined with --forceATA.
+
+        --forceATAPIO   (SATA Only)
+                Using this option will force the tool to issue PIO commands to
+                ATA device when possible. This option can be combined with
+                --forceATA.
+
+        --forceATAUDMA  (SATA Only)
+                Using this option will force the tool to issue SAT commands to
+                ATA device using the protocol set to UDMA whenever possible (on
+                DMA commands). This option can be combined with --forceATA.
+
+        --forceSCSI
+                Using this option will force the current drive to be treated as
+                a SCSI drive. Only SCSI commands will be used to talk to the
+                drive.
 
         Windows only:
         --csmiIgnorePort
@@ -343,78 +613,20 @@ Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
 Seagate is not responsible for lost user data.
 
-        --confirm this-will-erase-data ... etc
+        --confirm I-understand-this-command-will-erase ... etc
 
-        --nvmFormat [current | format # | sector size]  (NVMe Only)
-                This option is used to start an NVM format operation. Use
-                "current" to perform a format operation with the Sector size
-                currently being used. If a value between 0 and 15 is given,
-                then that will issue the NVM format with the specified sector
-                size/metadata size for that supported format on the drive.
-                Values 512 and higher will be treated as a new sector size to
-                switch to and will be matched to an appropriate LBA format
-                supported by the drive. This command will erase all data on the
-                drive. Combine this option with --poll to poll for progress
-                until the format is complete.
-
-                HINT: Use --showSupportedFormats to print supported LBA Formats
-
-        --nvmFmtSecErase [none | user | crypto]         (NVMe Only)
-                This option is used to specify the type of erase to perform
-                during an NVM format operation. All user data will be
-                inaccessible upon completing format, no matter the erase
-                requested.
-
-                Options:
-                     none   - no secure erase requested (previous data will not
-                              be accessible)
-                     user   - requests all user data is erased by the device.
-                     crypto - requests a cryptographic erase of all user data.
-                              Note: this mode is not supported on all devices.
-
-        --nvmFmtMetadataSet [xlba | separate]   (NVMe Only)
-                Use this option to specify how metadata is transmitted to
-                the host system.
-                Options:
-                     xlba - metadata is transferred as part of the logical
-                            block data
-                     separate - metadata is transferred as a separate buffer
-
-                Note: Not all devices support specifying this. If this option
-                      is not provided, the NVM format will reuse the current
-                      setting.
-
-        --nvmFmtMS [# of bytes for metadata]    (NVMe Only)
-                This option is used to specify the length of metadata with a
-                requested logical block size. The device must support the
-                combination of logical block size and metadata size or the
-                format will be rejected by the device.
-
-        --nvmFmtNSID [all | current]    (NVMe Only)
-                This option changes the namespace ID (NSID) used when issuing
-                the NVM format command. This can be used to control formatting
-                device or a specific namespace if the device supports
-                specifying specific namespaces for a format command. Not all
-                devices support this behaviors no effect on devices that do not
-                support targeting and will format the entire device.  If this
-                option is not given, the format will be issued to all
-                namespaces by default.
-
-        --nvmFmtPI [0 | 1 | 2 | 3]      (NVMe Only)
-                Use this option to specify the protection type to format the
-                medium with.
-
-                Note: Not all devices support protection types. If this option
-                      is not provided, the NVM format will reuse the current
-                      setting.
-
-        --nvmFmtPIL [beginning | end]   (NVMe Only)
-                Use this option to specify the location protection information
-                in an NVM device's metadata.
-
-                Note: Not all devices support specifying this. If this option
-                      is not provided, the NVM format will reuse the current
-                      setting.
+        --provision [newMaxLBA | maxLBA]
+                Provision your drive to a new max LBA to any value less than
+                the device's current max LBA. The predefined text string
+                "maxLBA" (without quotes) may be entered to indicate the last
+                sector on the drive instead of the specific LBA number.  A
+                power cycle is required after this command before resetting the
+                max LBA or changing the provisioning again. This command erases
+                all data between the new maxLBA specified and the current
+                maxLBA of the device. TRIM (SATA) or UNMAP (SAS) will be used
+                when supported by the device, including SSDs.  For most HDDs
+                this test will write 0's to the device and possibly take a very
+                long time to complete.
 
 Return codes
 ============
@@ -427,6 +639,7 @@ Return codes
         6       File Path Not Found
         7       Cannot Open File
         8       File Already Exists
+        9       Need Elevated Privileges (sudo, run as administrator)
         Anything else = unknown error
 
 ================
@@ -581,6 +794,25 @@ device details like model numbers try "6 4 1 7".  The command to set is 'sudo
 sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
 parameters at runtime" for more.
 
+Tesing storage devices on the USB and Thunderbolt interfaces
+------------------------------------------------------------
+Sometimes, when testing a storage device, it is more convenient to attach it as
+an external drive to the test system. In the case of SATA drives there are very
+many SATA-to-USB 'bridge' adapters available.  The quality and range of command
+'passthrough' support for these adapters varies greatly.  Our tools will
+attempt to work through these adapters.
+
+If your notebook has a Thunderbolt interface connection then you may be able to
+test a wide range of devices.  External Thunderbolt expansion systems provide a
+PCIe slot in a chassis that can hold a SAS, NVMe, or SATA host adapter. The
+host adapters would have cables that go out to your test bench where you would
+provide the drive and an external power supply for the drives. Thunderbolt 2
+expansion systems work in Linux by default. Thunderbolt 3 expansion systems
+need to be enabled in the kernel with boot time options before it will be
+recognized by the Linux operating system. See
+https://www.kernel.org/doc/html/v4.14/admin-guide/thunderbolt.html for
+information about how to activate the interface.
+
 ===========================
 Windows General Usage Hints
 ===========================
@@ -626,7 +858,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -702,7 +934,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -769,7 +1001,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -833,7 +1065,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
@@ -896,7 +1128,85 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-v0.0.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.0.0  02-May-2016  1_9_1 libraries.  SeaChest_Configure Linux, initial beta
+                     test release.  Branched from SeaChest_Basics v2.0.0.
+                     Added --lowCurrentSpinup
+v1.1.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     Fixed a bug where we could accidentally clear some stored
+                     identify data from the device structure. Fixed continuing
+                     on when there was a permission denied error opening a
+                     drive. Adjustments to --setSectorSize. Added
+                     --sctWriteCache, --sctWriteCacheReordering.
+v1.1.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     commands. Fixed bugs with --modelMatch and --onlyFW
+                     filters.  Support SATA non-volatile WCE.
+v1.3.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --puisFeature.
+v1.3.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     functions, format polling, endianess detection, buffer
+                     size fixes, SAS device statistics, Win32 IOCTL
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.4.0  01-Sep-2016  1_11_1 libraries add updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.4.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     and --forceATAUDMA  (SATA Only).
+v1.5.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.5.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
+                     the -i --SATInfo output.
+v1.5.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+                     --enableLegacyUSBPassthrough
+v1.5.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+                     settings.
+v1.5.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+                     the corresponding command range option, SAS power mode
+                     setting, and Sanitize erase patterns.
+v1.7.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+                     22.5Gb/s physical bus speeds, support for double buffered
+                     passthrough IOCTLs. Add --sasPhy, --sscFeature. New -F,
+                     --scanFlags [options: ignoreCSMI allowDuplicates] for
+                     Windows tools. Add CSMI support to all Windows version
+                     tools.
+v1.7.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features.
+v1.8.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     should exit with code = 1; added detection of parallel ATA
+                     and SCSI speeds; temperature data on ATA now uses the
+                     values from the SCT status log or device statistics log.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.
+v1.9.0  06-Jul-2017  Added --sctReadTimer, --sctWriteTimer.
+v1.10.0 14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Sense Data Reporting feature enabled, changes to how we
+                     interpret the completion status from the drive, new Sense
+                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
+                     note the capital S) aggressive system scan.
+v1.10.0 27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.10.0 19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+                     reading remanufacture time for SAS when the drive reports
+                     a time, fixed SAS --abortDST.
+v1.10.0 25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+                     SAS adapters, added NVMe read, write & Flush commands.
+v1.11.0 10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+                     device, SAT library strings, and fixes to Read-Buffer
+                     error history (ISL). Updated copyright notice, invalid
+                     command line options now only display an error instead of
+                     long help. Removed --setSectorSize now in SeaChest_Format.
+v1.11.0 12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.11.0 26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v1.11.0 31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+v1.11.0 02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -904,23 +1214,67 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v0.0.8  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+v1.11.0  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+open source project for storage devices.
+v1.12.0 19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v1.12.2 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command. Add --freeFall
+v1.12.2 18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.13.0 07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
                      section.
-v0.0.9  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+v1.14.0 24-Jan-2019  Add Log and Mode Page commands --scsiLPReset,
+                     --scsiLPResetPage, --scsiMPReset, --scsiMPRestore,
+                     --scsiMPSave, --setSCSIMP, --showMPOutputMode,
+                     --showSCSIMP, --showSCSIMPControl
+v1.15.0 10-Feb-2019  Device information now shows "Low Current Spinup" status
+v1.16.0 28-Feb-2019  Add ultra to --lowCurrentSpinup
+v1.17.0 03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
-                     section,  --deviceInfo now gives Low Current Spinup
-                     status. Adds  --firmwareSlot/--fwBufferID, adds
-                     --fwdlSegSize, adds --getTelemetry,  adds
-                     --telemetryDataArea, adds showSupportedFormats, removes
-                     --formatUnit. Adds several new commands in support of NVMe
-                     format: --nvmFormat, --nvmFmtSecErase, --nvmFmtMS,
-                     --nvmFmtNSID, --nvmFmtPI, --nvmFmtPIL, --nvmFmtMetadataSet.
-v1.0.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     section.
+v1.17.0 10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
+v1.18.1 04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1037,7 +1391,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

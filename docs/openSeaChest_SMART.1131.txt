@@ -1,9 +1,9 @@
-openSeaChest_GenericTests.txt                             Revision: 19-Jul-2019
+openSeaChest_SMART.txt                                    Revision: 09-Mar-2020
 ===============================================================================
- openSeaChest_GenericTests for Linux and Windows - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_GenericTests Version: 1.8.0
- Build Date: Jul 19 2019
+ openSeaChest_SMART for Linux and Windows - Seagate drive utilities
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ openSeaChest_SMART Version: 1.13.1
+ Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -39,55 +39,59 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-One of the fundamental units of data on a storage device like a disk drive is
-the sector.  In the case of a hard disk drive, a sector is a physical section
-of a circular magnetized track accessed by read write heads over the rotating
-media.  The original hard drive sectors are 512 bytes each.  If you take the
-number or logical sectors on a disk drive and multiply it by 512 you get the
-total capacity of the drive in bytes.  Since the mid-1990's the term sector has
-been replaced by an acronym synonym LBA, which stands for Logical Block
-Address.  All drives start with LBA 0 and count up to the full capacity of the
+Disk drives are constantly monitoring and analyzing their own performance,
+integrity and environment.  The current state of this technology is the result
+of more than 20 years of innovative Seagate engineering focused on self-testing.
+
+With the backing of personal computer manufacturers, the disk drive industry
+adopted an analysis system in the 1990's called Self Monitoring Analysis and
+Reporting Technology, or SMART. The idea then and today is to predict a failure
+before it happens. Various attributes are being monitored and measured against
+certain threshold limits. If any one attribute exceeds a threshold then a
+general SATA SMART Status test will change from Pass to Fail.
+
+Many computers automatically check SMART Status when they start up which is
+when most people become aware of the issue. If still under warranty, then SMART
+Status FAIL is a valid condition for warranty replacement.
+
+You can use openSeaChest_SMART software with --smartCheck to test the SATA SMART
+status of the drive.
+
+When a SMART Status test has a FAIL it is extremely important that you back up
+all of your important data. SMART Status FAIL is a near-term prediction of
+drive failure and the drive usually functions like normal. Unfortunately, there
+is no way to specifically predict when the failure will occur, so your best
+response is to back up your data as soon as possible.
+
+openSeaChest does not interpret attributes or thresholds.  As a practical
+matter, the technology supporting SMART is constantly being improved.  Each new
+design incorporates improvements that increase the accuracy of the SMART
+prediction. As a matter of policy, Seagate does not publish attributes and
+thresholds. Seagate Support does not help to analyze SMART attributes.
+
+In addition, the SMART command set includes short and long Drive Self Test
+(Offline Immediate).
+
+Seagate drives employ a background media scan (BGMS) during idle activity
+times.  The BGMS is a sequential read of sectors from the beginning to the end
+the of the drive.  If BGMS is interrupted it later restarts where it left off.
+BGMS has no effect on performance.  BGMS collects information about
+"suspicious" sectors.  When the Short DST is run the first step is a review of
+these "suspicious" sectors.  It is possible for Short DST to fail quickly if
+one of these BGMS sectors is unreadable.
+
+It may be possible to repair a problem when Short DST fails due to failure to
+read a particular sector (LBA).  You might consider the -dstAndClean command
+line option.  See the sections below "Sector Repair Commands" and "Bad LBA
+(Sector) Found" for more information on this subject.
+
+If you wish to test the drive for physical integrity, please use Short Drive
+Self Test (--shortDST).  Because the BGMS has continuously collected
+information on the entire drive, Short DST is effectively testing the entire
 drive.
 
-In the example above, the physical sector size is 512 bytes and logical sector
-size is also 512 bytes.  Beginning around the year 2010 disk drives have been
-manufactured with a physical sector size of 4096 bytes but the disk drive
-delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
-expects 512 and is not concerned about the actual physical size.  These drives
-are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
-are manufactured with 4096 byte for both physical and logical block sizes.
-
-openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
-unreadable.
-
-It may be possible to repair a problem when a generic read test fails due to
-failure to read a particular sector (LBA).  You might consider the
---repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
-options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
-Found" for more information on this subject.
-
-This User Guide file contains important information about openSeaChest
-GenericTests.  Please read this entire file before using this software.
-
-Inner and outer diameter tests refer to the physical beginning and ending
-sections of a hard disk drive with rotating magnetic media.  In the case of SSD
-devices, these tests refer to the logical beginning and ending sections of the
-solid state drive.
-
-Important note: Many tests in this tool directly reference storage device data
-sectors, also known as Logical Block Addresses (LBA). Test arguments may
-require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
-refers to the last sector on the drive.  Many older SATA and SAS storage
-controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
-limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
-2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
-2.1TB limitation either will result in an error or simply the last readable LBA
-(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
-limitation can have important consequences.  For example, if you intended to
-erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
-even twice!) and the last 2TB will remain untouched.  You should carefully
-evaluate your system hardware to understand if your storage controllers provide
-support for greater than 2.1TB.
+This User Guide file contains important information about openSeaChest SMART.
+Please read this entire file before using this software.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -98,28 +102,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
-drives.
+If this is your drive, you should always keep a current backup of your
+important data.
 
-Usage - Linux
-=============
-        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_SMART [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        openSeaChest_GenericTests --scan
-        openSeaChest_GenericTests -d /dev/sg2 -i
-        openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
+        sudo openSeaChest_SMART --scan
+        sudo openSeaChest_SMART -d /dev/sg2 -i
+        sudo openSeaChest_SMART -d /dev/sg1 --shortDST --poll
 
-Usage - Windows
-===============
-        openSeaChest_GenericTests [-d <device>] {arguments} {options}
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_SMART [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_GenericTests --scan
-        openSeaChest_GenericTests -d PD0 -i
-        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
+        openSeaChest_SMART --scan
+        openSeaChest_SMART -d PD0 -i
+        openSeaChest_SMART -d PD1 --shortDST --poll
 
 Utility Arguments
 =================
@@ -178,8 +182,8 @@ Utility Arguments
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add --usbChildInfo to
-                display details about the drive within the USB enclosure.
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo
+                to display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -191,130 +195,209 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --bufferTest
-                This option will perform a test using the device's echo buffer.
-                The write buffer and read buffer commands are used to send &
-                receive different data patterns.  The patterns are compared and
-                interface CRC errors are also checked (when available).  Test
-                patterns performed are all 0's, all F's, all 5's, all A's,
-                walking 1's, walking 0's, and random data patterns.  At
-                completion, a count of the number of errors will be displayed.
+        --poll
+                Use this option to cause another operation to poll for progress
+                until it has completed.  This argument does not return to the
+                command prompt and prints ongoing completion percentages (%)
+                and the final test result.  Full drive procedures will take a
+                very long time.  Used with --shortDST and --longDST.
 
-        --genericMode [ read | write  | verify ]
-                This options allows selection of the type of commands to use
-                while performing a generic test.  If this option is omitted
-                then read is the default mode.
+        --shortDST
+                Execute a short diagnostic drive self test. This test can take
+                up to 2 minutes to complete.  Use with the --poll argument to
+                let openSeaChest check for progress and print it to the screen
+                until complete.  If the --poll argument is not used then the
+                test begins and immediately returns to the command prompt.  Use
+                the --progress DST command to check on the completion
+                percentage (%) and test result. The poll argument does not
+                return to the command prompt and prints ongoing completion
+                percentages (%) until the final test result.
 
-                Supported modes are:
-                  read - performs a generic test using read commands, data safe
-                  write - performs a generic test using write commands, any
-                          data on sectors written during the test will be
-                          lost.  Seagate is not responsible for lost user
-                          data. --confirm acknowledgment command will be
-                          required.
-                  verify - performs a generic test using verify commands, data
-                           safe, sometimes faster than read commands.
+                Note: Use --progress DST or --showDSTLog to see details about
+                the last DST run on the drive.
 
-        --shortGeneric
-                This option will run a short generic read test on a specified
-                device. A short generic read test has 3 components. A
-                sequential read at the Outer Diameter (OD) of the drive for 1%
-                the LBAs (sectors), then a sequential read at the Inner
-                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
-                read of 5000 LBAs. This test will stop on the first read error
-                that occurs.
+        --conveyanceDST
+                Execute a conveyance diagnostic drive self test. A conveyance
+                test can be used to check if a drive has incurred handling
+                damage. This test can take up to 2 minutes to complete. Use the
+                --poll argument to make this operation poll for progress until
+                complete. Use the --progress dst command to check on the
+                completion percentage (%) and test result.
 
-        --twoMinuteGeneric
-                This option will run a 2 minute generic read test on a
-                specified device. There are 3 components to this test. A read
-                at the Outer Diameter (OD) of the drive for 45 seconds, then a
-                read at the Inner Diameter of the drive for 45 seconds, and
-                lastly a random read test for 30 seconds. This test will stop
-                on the first read error that occurs.
+        --longDST
+                Execute a long diagnostic drive self test. This test takes
+                hours to finish. A 2TB drive may take six (6) hours to
+                complete. The start argument begins the test and immediately
+                returns to the command prompt.  Use the --progress DST command
+                to check on the completion percentage (%) and test result. The
+                poll argument does not return to the command prompt and prints
+                ongoing completion percentages (%) and the final test result.
 
-        --longGeneric
-                This option will run a long generic read test on a specified
-                device. A long generic read test sequentially reads every LBA
-                on the device and gives a report of error LBAs at the end of
-                the test, or when the error limit has been reached. Using the
-                --stopOnError option will make this test stop on the first read
-                error that occurs. The default error limit is 50 x number of
-                logical sectors per physical sector.
+                This test stops on the first error. Use --abortDST to manually
+                stop the test. SAS drives give status in 1% increments. SATA
+                drives give status in 10% increments which means more than an
+                hour may elapse between updates on a SATA drive >2TB.
 
-                Example error limits are as follows:
+                Because of the extreme length of time required to run the Long
+                DST command on a large disk drive an additional command line
+                argument is required as confirmation of your understanding that
+                the test will take a very long time to complete.
 
-                        512L/512P: error limit = 50
-                        4096L/4096P: error limit = 50
-                        512L/4096P: error limit = 400 (50 * 8)
-
-        --userGenericStart [starting LBA | maxLBA]
-                Use this option to specify the starting LBA number for a
-                generic read test. The predefined text string "maxLBA" (without
-                quotes) may be entered to indicate the last sector on the drive
-                instead of the specific LBA number.  The --userGenericRange or
-                timed (--hours, minutes, seconds) options must be used with
-                this one in order to start the test. Use the --stopOnError
-                repair flag and/or --errorLimit flags to further customize this
+                If the --longDST poll option is running and you want to abort
+                the test then you will need to open a second terminal window
+                and run the --abortDST command.  Otherwise, it is safe to
+                restart the system while long DST is running which also ends the
                 test.
 
-        --userGenericRange [LBA count]
-                Use this option to specify the range for a generic read test.
-                See the --userGenericStart help for additional information
-                about using the User Generic Read tests.
+        --progress DST
+                Get the progress for a test that was started quietly (default).
+                Specify a test with: DST to check progress. The progress counts
+                up from 0% to 100%.
 
-        --diameterTest [O | M | I]
-                Use this option to perform a generic read/write/verify test at
-                the specified diameter of the drive. The different diameters
-                can be combined or run individually. Use the time options to
-                specify a time-based test or the --diameterTestRange option for
-                a range-based test. If --diameterTestRange is omitted the
-                default is a one minute test.
+        --abortDST
+                Abort a diagnostic Drive Self Test that is in progress.
 
-                    O - outer diameter
-                    M - middle diameter
-                    I - inner diameter
+        --captive or --foreground
+                Use this option to run a DST operation in captive/foreground
+                mode. This mode may allow a device to test more of itself and
+                may be slightly faster than offline/background mode since it
+                does not need to service additional command during the test.
+                When using this mode, the utility must wait the entire time for
+                the DST to complete and progress cannot be indicated during
+                this time.
 
-                Ex1: --diameterTest OMI
-                Ex2: --diameterTest O
-                Ex3: --diameterTest MI
+        --showDSTLog
+                This option will show the entries in the DST log. Up to 21
+                entries may be shown (pending drive support) and will be shown
+                with the most recent entry first.
 
-        --diameterTestRange [range]
-                Use this option with the --diameterTest option to perform a
-                range based test. If a range is specified without any units, it
-                is assumed to be an LBA count. Valid units are KB, KiB, MB,
-                MiB, GB, GiB, TB and TiB.
+        --smartInfo (SATA Only)
+                This option will show SMART information reported by a given
+                device.
 
-                Ex1: "--diameterTestRange 1234567" for an LBA count
-                Ex2: "--diameterTestRange 2GB" for a 2GB range.
+        --smartFeature [enable | disable]            (SATA Only)
+                Use this option to enable or disable the SMART feature on a
+                SATA drive.  When disabled, the entire SMART feature set, minus
+                the enable command, is turned off.  This includes all SMART
+                logging, attributes, SMART trip ability, and DST ability.
+                Note: This command is declared obsolete in ACS4.
 
-        --stopOnError
-                Use this option to make a generic read test stop on the first
-                error found. Please see the section below "Sector Repair
-                Commands".
+        --smartCheck
+                Perform a SMART check on a device to see if any internal
+                thresholds have been tripped or if the drive is still operating
+                within specification.
 
-        --errorLimit [limit in number of LBAs]
+        --smartAttributes [raw | analyzed]           (SATA Only)
+                The drive will display its list of supported SMART attributes.
+                Some attributes names are commonly standard and most others are
+                vendor unique. In either case, the attribute thresholds are
+                always vendor unique. Most attributes are informational and not
+                used to determine a warranty return. Use the --smartCheck
+                command to determine if one of the warranty attributes has been
+                tripped. Seagate Support does not help to analyze SMART
+                attributes.
+
+        --smartAttributeAutosave [enable | disable]  (SATA Only)
+                Use this option to enable or disable SMART attribute auto-save
+                on an ATA drive.  This is the drive's ability to update the
+                attributes on it's own without the "update attributes" command.
+                By default, this is enabled and on new drives may just be a
+                no-op.
+                Note: This command is declared obsolete in ACS4.
+
+        --smartAutoOffline [enable | disable]  (SATA Only)
+                Use this option to enable or disable SMART auto-offline feature
+                on an ATA drive.  This command was never officially adopted by
+                ATA committee, but was in the original SMART spec from
+                Compaq/HP. This allows the drive to do an offline scan on it's
+                own. This is not quite a background media scan (BGMS described
+                above), nor is it the same as a DST. It's a drive scan that
+                will go check itself for issues and update attributes. Uncommon
+                and not supported on most drives.
+
+        --idd [short | long]    (Seagate Only)
+                Start an In Drive Diagnostic (IDD) test on a Seagate SATA
+                drive. Not all tests are supported by all products. If a
+                selected test is not supported, the utility will return
+                an error code meaning "not supported".
+
+                short:   Reset and Recalibration test. Be careful running this
+                         test on the boot device.
+                long:   Test G list and P list for readability.
+                repair:  Reset and Recalibration test and test G list and
+                         P list and attempt to repair or reallocate bad
+                         sectors.
+
+                Add --poll to the command line to see periodic status during
+                the test.  Otherwise, use --progress DST after 60 seconds to
+                allow the drive time to spin back up after the recalibration
+                test.
+
+                Example: --idd short --poll
+
+        --abortIDD (Seagate Only)
+                Abort a Seagate In Drive Diagnostic (IDD) that is in progress.
+
+        --errorLimit [limit in number of physical LBAs | none]
                 Use this option to specify a different error limit for a user
                 generic or long generic read test. This must be a number of
                 logical LBAs to have errors. If a drive has multiple logical
                 sectors per physical sector, this number will be adjusted for
-                you to reflect the drive architecture.
+                you to reflect the drive architecture. (The default error limit
+                is 50 x number of logical sectors per physical sector.) The
+                predefined text string "none" (without quotes) may be entered
+                to indicate that there is no error limit.
 
-        --randomTest
-                Use this option to start a random read test. This is a timed
-                operation. Use the time options to control how long to run this
-                test. The default time for this test is 1 minute.  This test
-                should be limited to 1 minute or less.
+                Caution: You should closely monitor your system if using the
+                "none" argument because some failure modes, like a bad cable,
+                might see every sector as defective. Storage devices are
+                defined with billions of physical sectors and if you are
+                capturing a log without an error limit, then it would quickly
+                grow to fill up all available capacity on the capture device.
 
-                Example: --randomTest --seconds 10
+SAS Only:
+                --setMRIE [ default | 0 - 6 ]  (SAS Only)
+                Use this option to change the MRIE mode on the informational
+                exceptions mode page.
+                    default - set to the drive default
+                    0 - Disable exception reporting
+                    1 - Asynchronous reporting (obsolete)
+                    2 - Establish unit attention condition
+                    3 - Conditionally generate recovered error
+                    4 - Unconditionally generate recovered error
+                    5 - Generate no sense
+                    6 - Report on request
 
-        --butterflyTest
-                Use this option to start a butterfly read test.  A butterfly
-                read test is a read test that moves back and forth between the
-                OD and ID of the drive over and over again until the time has
-                expired.  This is a timed operation. Use the time options to
-                control how long to run this test. The default time for this
-                test is 1 minute.  This test should be limited to 1 minute
-                or less.
+        --showSCSIDefects [ p | g | pg ]        (SAS Only)
+                This option will display the SCSI defects on the screen. The
+                arguments to this will tell whether to get the grown, primary,
+                or primary and grown defects from the drive. Use the
+                --defectFormat option to specify the mode to display the
+                defects. If no mode is specified, physical cylinder-head-sector
+                mode is assumed.
+
+                Arguments:
+                p - use this option to pull and display the primary (factory)
+                    defects
+                g - use this option to pull and display the grown (reallocated)
+                    defects
+                pg - the options can be combined to pull and display both
+                    defect lists.
+
+        --defectFormat [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ] (SAS Only)
+                This option set the format of the defects to output. Not all
+                drives will support all defect modes. SSDs will only support
+                block modes.
+
+                Arguments: show the defects in either name or # mode
+                shortBlock | 0    short block address mode (drives < 32bit LBA)
+                xbfi       | 1    extended bytes from index mode
+                xchs       | 2    extended physical cylinder-head-sector mode
+                longBlock  | 3    long block address mode (drives > 32bit LBA)
+                bfi        | 4    bytes from index mode
+                chs        | 5    physical cylinder-head-sector mode
+
+                Examples: --defectFormat 3, or --defectFormat longBlock
 
 Utility Options
 ===============
@@ -332,11 +415,11 @@ Utility Options
                 Example: -v 3 or --verbose 3
 
         -q, --quiet
-                Run SeaChest in quiet mode. This is the same as -v0
+                Run openSeaChest in quiet mode. This is the same as -v0
                 or --verbose 0
 
         -V, --version
-                Show SeaChest version and copyright information & exit
+                Show openSeaChest version and copyright information & exit
 
         --license
                 Display the Seagate End User License Agreement (EULA).
@@ -353,10 +436,6 @@ Utility Options
                 this, certain products may respond in unintended ways since
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
-
-        --hideLBACounter
-                Use this option to supress the output from options that show
-                LBA counters without turning off all output to the screen.
 
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
@@ -385,17 +464,11 @@ Utility Options
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
 
-        --hours [hours]
-                Use this option to specify a time in hours for a timed
-                operation to run.
-
-        --minutes [minutes]
-                Use this option to specify a time in minutes for a timed
-                operation to run.
-
-        --seconds [seconds]
-                Use this option to specify a time in seconds for a timed
-                operation to run.
+         --noTimeLimit
+                Use with utility command arguments which have build in timeout
+                values. For example, --shortDST has a 10 minutes default
+                timeout.  In some cases a good drive may need more time to
+                complete the test due to other legitimate system activity.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -451,15 +524,13 @@ Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
 Seagate is not responsible for lost user data.
 
-        --confirm I-understand-this-command-will-erase ... etc
+        --confirm I-understand-this-command-may-erase ... etc
 
-        --repairOnFly
-                Use this option to repair any bad sectors found during a long
-                or user generic read test as they are found.
-
-        --repairAtEnd
-                Use this option to repair any bad sectors found during a long
-                or user generic read test at the end of the test.
+        --dstAndClean
+                Runs DST, then checks for an error and repairs the error if
+                possible. This continues until all errors reported by DST are
+                fixed, or when the error limit is reached. The default limit is
+                50 errors.  See --errorLimit to change limit.
 
 See the section below "Bad LBA (Sector) Found" for more information on this
 subject.
@@ -475,6 +546,7 @@ Return codes
         6       File Path Not Found
         7       Cannot Open File
         8       File Already Exists
+        9       Need Elevated Privileges (sudo, run as administrator)
         Anything else = unknown error
 
 ================
@@ -551,7 +623,7 @@ bytes are not readable.
 **** NOTE **** The following information applies only to Seagate Technology,
 Maxtor, Samsung and LaCie brand disk drives:
 
-When SeaChest discovers a bad LBA (sector) through reading, it displays a count
+When openSeaChest discovers a bad LBA (sector) through reading, it displays a count
 of the bad sectors.
 
 Sectors are often not in use. If a sector is in use, then that file is
@@ -565,7 +637,7 @@ need professional recovery services to possibly reclaim the data. In this case,
 select to scan without trying to repair sectors on the drive.
 
 If you have decided that the file or folder is replaceable, already backed up
-or just not important to you, then you can tell SeaChest to attempt to attempt
+or just not important to you, then you can tell openSeaChest to attempt to attempt
 to repair the sector.  See the Sector Repair Commands section above.
 
 By design, modern disk drives maintain spare sectors for reallocation purposes.
@@ -576,7 +648,7 @@ disk drive writes data and encounters a problem, the drive firmware retires the
 problem sector and activates a replacement before giving successful write
 status.
 
-If you give permission to attempt to repair a bad sector, then SeaChest will
+If you give permission to attempt to repair a bad sector, then openSeaChest will
 attempt to write a 512-byte pattern of zeros to that single error sector.
 Usually, this action will assist the disk drive firmware in managing the
 problem by retiring the problem sector and activating a spare in its place. If
@@ -678,6 +750,25 @@ device details like model numbers try "6 4 1 7".  The command to set is 'sudo
 sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
 parameters at runtime" for more.
 
+Tesing storage devices on the USB and Thunderbolt interfaces
+------------------------------------------------------------
+Sometimes, when testing a storage device, it is more convenient to attach it as
+an external drive to the test system. In the case of SATA drives there are very
+many SATA-to-USB 'bridge' adapters available.  The quality and range of command
+'passthrough' support for these adapters varies greatly.  Our tools will
+attempt to work through these adapters.
+
+If your notebook has a Thunderbolt interface connection then you may be able to
+test a wide range of devices.  External Thunderbolt expansion systems provide a
+PCIe slot in a chassis that can hold a SAS, NVMe, or SATA host adapter. The
+host adapters would have cables that go out to your test bench where you would
+provide the drive and an external power supply for the drives. Thunderbolt 2
+expansion systems work in Linux by default. Thunderbolt 3 expansion systems
+need to be enabled in the kernel with boot time options before it will be
+recognized by the Linux operating system. See
+https://www.kernel.org/doc/html/v4.14/admin-guide/thunderbolt.html for
+information about how to activate the interface.
+
 ===========================
 Windows General Usage Hints
 ===========================
@@ -723,7 +814,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -799,7 +890,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -866,7 +957,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -930,7 +1021,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
@@ -990,102 +1081,142 @@ Win: openSeaChest_Basics -i -d PD1
                 Format Unit
                 Sanitize
 
+SATA SSD SMART Attributes example.
+
+The drive will display its list of supported SMART attributes. Some attributes
+are industry standard and most others are vendor unique. Most attributes are
+informational and not used to determine a warranty return. Use the --smartCheck
+command to determine if one of the warranty attributes has been tripped.
+
+Reminder: Seagate Support does not help to analyze SMART attributes.
+
+Lin: sudo ./openSeaChest_Basics -d /dev/sg1 --smartAttributes
+Win: openSeaChest_Basics -d PD1 --smartAttributes
+===============================================================================
+ openSeaChest - Seagate drive utilities
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+===============================================================================
+Attribute Name:                   Status: Nominal: Worst:     Raw (hex):
+  1 Read Error Rate               0x000F    0x75    0x63      0x0000000969AFB4
+  3 Spin Up Time                  0x0003    0x61    0x61      0x00000000000000
+  4 Start/Stop Count              0x0032    0x63    0x63      0x0000000000079E
+  5 Retired Sectors Count         0x0033    0x64    0x64      0x00000000000000
+  7 Seek Error Rate               0x000F    0x52    0x3C      0x0000000A4D0DAA
+  9 Power On Hours                0x0032    0x5D    0x5D      0x00000000001A84
+ 10 Spin Retry Count              0x0013    0x64    0x64      0x00000000000000
+ 12 Drive Power Cycle Count       0x0032    0x63    0x63      0x000000000007A5
+184 IOEDC Count                   0x0032    0x55    0x55      0x0000000000000F
+187 Reported Un-correctable       0x0032    0x64    0x64      0x00000000000000
+188 Command Timeout               0x0032    0x64    0xFD      0x00000000000000
+189 High Fly Writes               0x003A    0x64    0x64      0x00000000000000
+190 Airflow Temperature           0x0022    0x40    0x2E      0x00000026110024
+191 Shock Sensor Counter          0x0032    0x64    0x64      0x00000000000000
+192 Emergency Retract Count       0x0032    0x64    0x64      0x00000000000042
+193 Load-Unlock Count             0x0032    0x44    0x44      0x0000000000FA61
+194 Temperature                   0x0022    0x24    0x36      0x00000A00000024
+195 ECC On The Fly Count          0x001A    0x2D    0x29      0x0000000969AFB4
+197 Pending-Sparing Count         0x0012    0x64    0x64      0x00000000000000
+198 Offline Uncorrectable Sectors 0x0010    0x64    0x64      0x00000000000000
+199 Ultra DMA CRC Error           0x003E    0xC8    0xC8      0x00000000000000
+
 ===============
 Version History
 ===============
-SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
+SeaChest_SMART is branched off from SeaChest Basics v1.0.4.
 
-v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
-                     sequential read tests. Added Random and Butterfly read
-                     tests.  Added sector repair on Long and user defined
-                     generic read tests.
-v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
-v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
+v0.0.1  14-Apr-2015  Initial SMART release.  Added --poll.
+v0.0.2  12-Aug-2015  Added --testUnitReady. Improved device discovery.
                      Corrections to verbose output.
-v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+v0.0.2  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
                      Added -sat12byte to increase compatibility.  Added
                      --SATInfo to compare ATA vs SCSI identification
                      differences.
 v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
                      --onlySeagate restriction.  Added --modelMatch and
-                     --onlyFW filters. Added --genericMode.
-v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     --onlyFW filters. --smartAttributes update, added
+                     --errorLimit, --dstAndClean
+v1.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
                      Fixed a bug where we could accidentally clear some stored
                      identify data from the device structure. Fixed continuing
                      on when there was a permission denied error opening a
-                     drive.
-v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     drive. Fixed missing Long DST confirmation.
+v1.0.3  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
                      commands. Fixed bugs with --modelMatch and --onlyFW
                      filters.
-v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
-v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+v1.2.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --smartInfo, --showDSTLog, --smartAutoOffline,
+                     --conveyanceDST, --smartAttributeAutosave, and
+                     --smartFeature
+v1.2.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added support for
-                     maxLBA keyword.
-v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     pass-through fix on Win8 and higher. Additional checks
+                     when SMART is disabled.
+v1.3.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
                      minor bug fixes. Fixed --SATInfo command.
-v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+v1.3.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.4.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.4.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.4.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.4.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.4.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
 v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
-                     --diameterTestRange. New -F, --scanFlags [options:
+                     passthrough IOCTLs. New -F, --scanFlags [options:
                      ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
-                     support to all Windows version tools. Random Range scaling
-                     has less biasing.
+                     support to all Windows version tools.
 v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features. --userGenericStart now able to use timed
-                     options.
-v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
-v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     for SAS features.
+v1.6.0  02-May-2017  1_14_3 libraries.  Adds --seagateClean.
+v1.6.1  15-May-2017  Refinements to --seagateClean.  Fixed an exit code for
+                     unknown options
+v1.7.0  01-Jun-2017  Adds --seagateClean.
+v1.8.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
                      Bug fix where the "-d all" was not filtering out csmi
                      drives like it is supposed to causing duplicate drives to
                      show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
-                     fix user generic test start LBA gets reset when a defect
-                     is encountered.
-v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  --idd
+                     now supports SAS.  --idd [short | long | repair]  replaces
+                     '70 | 71 | 72' syntax. --abortIDD added.   --setMRIE added.
+v1.9.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
                      Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
                      note the capital S) aggressive system scan.
-v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+v1.9.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.9.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.9.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.9.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help.
-v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help. Added showing the SMART trip failure reason when
+                     possible.
+v1.9.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.9.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.9.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
+v1.9.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -1093,8 +1224,9 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
-v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+v1.9.1   12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+open source project for storage devices.
+v1.9.1  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      USB flash drives, support for early 90's PATA drives that
                      don't support LBA mode, bug fix where the last digit of
                      the SCSI Unit Serial Number was being dropped, additional
@@ -1111,8 +1243,9 @@ v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      during device discovery to help work with some USB
                      devices, some Legacy SCSI support enhancements (partially
                      from USB hacks development), enhanced SD to SG mapping in
-                     Linux.  Added --bufferTest.
-v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     Linux.
+v1.10.0 25-Jul-2018  Adds --defectFormat, --showSCSIDefects
+v1.11.0 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      field to get the OS name under linux; NVMe enabled;  fixed
                      a bug in the ATA activate FW command; added in reading ID
                      Data log and Device statistics logs page 0 to check the
@@ -1123,17 +1256,29 @@ v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      spaces in the name. Added additional information to the
                      banner and -V data to show support levels. Add general
                      support for NVMe and NVMe specific identify data to "-i"
-                     command.
-v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.8.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+                     command. Adds --showSMARTErrorLog, --smartErrorLogFormat.
+v1.11.0 18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.12.0 03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
                      section,  --deviceInfo now gives Low Current Spinup
                      status.
-v1.8.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+v1.12.0 10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
+v1.12.2 19-Jul-2019  1_19_25 libraries. Adds --noTimeLimit option for DST.
+v1.13.1 04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1250,7 +1395,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have

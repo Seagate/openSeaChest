@@ -1,9 +1,9 @@
-openSeaChest_PowerControl.txt                             Revision: 19-Jul-2019
+openSeaChest_GenericTests.txt                             Revision: 09-Mar-2020
 ===============================================================================
- openSeaChest_PowerControl for Linux and Windows - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
- openSeaChest_PowerControl Version: 1.10.0
- Build Date: Jul 19 2019
+ openSeaChest_GenericTests for Linux and Windows - Seagate drive utilities
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ openSeaChest_GenericTests Version: 1.9.0
+ Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -39,42 +39,55 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Optimization within the framework of a complex company data center requires
-dynamic technology. As storage capacity demands increase due to virtualization
-and growing volumes of data, managing power usage in an intelligent way is
-critical for reducing Total Cost of Ownership (TCO).
+One of the fundamental units of data on a storage device like a disk drive is
+the sector.  In the case of a hard disk drive, a sector is a physical section
+of a circular magnetized track accessed by read write heads over the rotating
+media.  The original hard drive sectors are 512 bytes each.  If you take the
+number or logical sectors on a disk drive and multiply it by 512 you get the
+total capacity of the drive in bytes.  Since the mid-1990's the term sector has
+been replaced by an acronym synonym LBA, which stands for Logical Block
+Address.  All drives start with LBA 0 and count up to the full capacity of the
+drive.
 
-There are, roughly, three general frameworks for disk drive power management.
-The earlier specification is part of Advanced Power Management (APM) which
-provided controls over many devices in a system, including disk drives.  APM
-has since been replaced by a new framework called Extended Power Controls
-(EPC).  Seagate's implementation of EPC began to phase in starting in 2010 and
-is named by the marketing term "PowerChoice".  Seagate PowerChoice
-technology—specifically developed for enterprise environments—offers more
-energy efficiency and control over the amount of power hard drives consume.
+In the example above, the physical sector size is 512 bytes and logical sector
+size is also 512 bytes.  Beginning around the year 2010 disk drives have been
+manufactured with a physical sector size of 4096 bytes but the disk drive
+delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
+expects 512 and is not concerned about the actual physical size.  These drives
+are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
+are manufactured with 4096 byte for both physical and logical block sizes.
 
-You may need to learn what capabilities for power management your drive offers,
-such as supporting APM or EPC, and maybe both.  See the commands
---showEPCSettings or --showAPMLevel(SATA Only) or --deviceInfo for various
-reports containing power settings and features supported.  Most enterprise
-drives after 2016 only support EPC (PowerChoice).
+openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
+unreadable.
 
-PowerChoice technology improves on earlier technology and allows for
-energy-saving during periods of command inactivity, allowing for greater power
-reductions. As idle time increases, the power-saving benefits also increase,
-and the drives will still quickly respond to commands even after long idling
-periods. In addition, PowerChoice technology supports four customizable modes
-to give businesses significantly more control of power usage by allowing for up
-to a 54% reduction in the amount of energy used.
-
-See the section below "How PowerChoice Technology Works"
-
-The third and newest drive power management framework exists for SATA drives
-and is named PowerBalance.  Seagate's PowerBalance feature will adjust drive
-performance during random operations to reduce power consumption of the drive.
+It may be possible to repair a problem when a generic read test fails due to
+failure to read a particular sector (LBA).  You might consider the
+--repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
+options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
+Found" for more information on this subject.
 
 This User Guide file contains important information about openSeaChest
-PowerControl.  Please read this entire file before using this software.
+GenericTests.  Please read this entire file before using this software.
+
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -85,28 +98,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-If this is your drive, you should always keep a current backup of your
-important data.
+NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
+drives.
 
-Usage - Linux
-=============
-        openSeaChest_PowerControl [-d <sg_device>] {arguments} {options}
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        openSeaChest_PowerControl --scan
-        openSeaChest_PowerControl -d /dev/sg2 -i
-        openSeaChest_PowerControl -d /dev/sg1 --deviceInfo
+        sudo openSeaChest_GenericTests --scan
+        sudo openSeaChest_GenericTests -d /dev/sg2 -i
+        sudo openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
 
-Usage - Windows
-===============
-        openSeaChest_PowerControl [-d <device>] {arguments} {options}
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_GenericTests [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_PowerControl --scan
-        openSeaChest_PowerControl -d PD0 -i
-        openSeaChest_PowerControl -d PD1 --deviceInfo
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d PD0 -i
+        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
 
 Utility Arguments
 =================
@@ -165,8 +178,8 @@ Utility Arguments
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add --usbChildInfo
-                to display details about the drive within the USB enclosure.
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo to
+                display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -178,199 +191,140 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --checkPowerMode
-                Get the current power mode of a drive. On SCSI devices, this
-                will only work if the drive has transitioned from active state
-                to another state.  While the popular /dev/sd? device handles
-                can be used in most cases, the --checkPowerMode command with
-                /dev/sd causes the drive to wake up if it is in a reduced power
-                state.  Use /dev/sg device handles to avoid this effect.
+        --bufferTest
+                This option will perform a test using the device's echo buffer.
+                The write buffer and read buffer commands are used to send &
+                receive different data patterns.  The patterns are compared and
+                interface CRC errors are also checked (when available).  Test
+                patterns performed are all 0's, all F's, all 5's, all A's,
+                walking 1's, walking 0's, and random data patterns.  At
+                completion, a count of the number of errors will be displayed.
 
-        --spinDown
-                Removes power to the disk drive motor with the Standby
-                Immediate for SATA, or standby_z for SAS. Use this before
-                moving a hard disk drive. The drive will spin back up if the
-                operating system selects the drive. This means that an active
-                drive will not stay spun down.
+        --genericMode [ read | write  | verify ]
+                This options allows selection of the type of commands to use
+                while performing a generic test.  If this option is omitted
+                then read is the default mode.
 
-        --idle
-                This command will transition a drive to the idle power state.
-                This command may flush the cache before the transition to this
-                state.  This command is for non-EPC enabled drives. If the
-                drive has the EPC feature enabled, it is recommended that the
-                --transitionPower option be used instead. This option is
-                compatible with EPC enabled drives as well, but offers less
-                control over the transition. If the operating system selects
-                this drive, it will transition it back to an active state.
+                Supported modes are:
+                  read - performs a generic test using read commands, data safe
+                  write - performs a generic test using write commands, any
+                          data on sectors written during the test will be
+                          lost.  Seagate is not responsible for lost user
+                          data. --confirm acknowledgment command will be
+                          required.
+                  verify - performs a generic test using verify commands, data
+                           safe, sometimes faster than read commands.
 
-        --idleUnload
-                This command will transition a drive to the idle, heads
-                unloaded, power state. This command may flush the cache before
-                the transition to this state.  This command is for non-EPC
-                enabled drives.  If the drive has the EPC feature enabled, it
-                is recommended that the --transitionPower option be used
-                instead. This option is compatible with EPC enabled drives as
-                well, but offers less control over the transition. If the
-                operating system selects this drive, it will transition it back
-                to an active state.
+        --shortGeneric
+                This option will run a short generic read test on a specified
+                device. A short generic read test has 3 components. A
+                sequential read at the Outer Diameter (OD) of the drive for 1%
+                the LBAs (sectors), then a sequential read at the Inner
+                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
+                read of 5000 LBAs. This test will stop on the first read error
+                that occurs.
 
-        --standby
-                This command will transition a drive to the standby power
-                state.  This command will flush the cache before the transition
-                to this state.  This command is for non-EPC enabled drives. If
-                the drive has the EPC feature enabled, it is recommended that
-                the --transitionPower option be used instead. This option is
-                compatible with EPC enabled drives as well, but offers less
-                control over the transition.  On an HDD, this will cause the
-                spindle motor to stop.  If the operating system selects this
-                drive, it will transition it back to an active state.
+        --twoMinuteGeneric
+                This option will run a 2 minute generic read test on a
+                specified device. There are 3 components to this test. A read
+                at the Outer Diameter (OD) of the drive for 45 seconds, then a
+                read at the Inner Diameter of the drive for 45 seconds, and
+                lastly a random read test for 30 seconds. This test will stop
+                on the first read error that occurs.
 
-        --active
-                This command will transition a drive to the active power state.
-                This uses a ATA read-verify command to a random LBA, or a SCSI
-                start-stop unit command.
+        --longGeneric
+                This option will run a long generic read test on a specified
+                device. A long generic read test sequentially reads every LBA
+                on the device and gives a report of error LBAs at the end of
+                the test, or when the error limit has been reached. Using the
+                --stopOnError option will make this test stop on the first read
+                error that occurs. The default error limit is 50 x number of
+                logical sectors per physical sector.
 
-        --showEPCSettings
-                Use this option to show the current Extended Power Conditions
-                (EPC) settings on the screen. Only drives supporting the EPC
-                feature will show this data and only supported power conditions
-                will be shown.
+                Example error limits are as follows:
 
-        --EPCfeature [enable | disable]
-                Enables or disables Extended Power Conditions (EPC) support for
-                devices.  To disable EPC use --EPCfeature disable. Note that the
-                EPC Feature Set is not supported on all devices. Use
-                --deviceInfo option to see if EPC is supported.
+                        512L/512P: error limit = 50
+                        4096L/4096P: error limit = 50
+                        512L/4096P: error limit = 400 (50 * 8)
 
-        --changePower
-                Use this option to enable or disable certain --powerMode and
-                their timers. You can also use this option to restore default
-                values to the drive. The available power modes are idle_a,
-                idle_b, idle_c, standby_y (SAS only), standby_z, or all. "all"
-                can only be used to enable/disable/default everything. It
-                cannot be used to set a timer. Timer values are specified in
-                milliseconds.
+        --userGenericStart [starting LBA | maxLBA]
+                Use this option to specify the starting LBA number for a
+                generic read test. The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The --userGenericRange or
+                timed (--hours, minutes, seconds) options must be used with
+                this one in order to start the test. Use the --stopOnError
+                repair flag and/or --errorLimit flags to further customize this
+                test.
 
-                Example restore: --changePower --defaultMode --powerMode idle_a
-                Example enable: --changePower --enableMode --powerMode idle_a
-                Example set timer: --changePower --enableMode --powerMode idle_a
-                                   --modeTimer 5000
+        --userGenericRange [LBA count]
+                Use this option to specify the range for a generic read test.
+                See the --userGenericStart help for additional information
+                about using the User Generic Read tests.
 
-        --enableMode
-                Use this option with the --changePower mode option to enable
-                a specific --powerMode.
+        --diameterTest [O | M | I]
+                Use this option to perform a generic read/write/verify test at
+                the specified diameter of the drive. The different diameters
+                can be combined or run individually. Use the time options to
+                specify a time-based test or the --diameterTestRange option for
+                a range-based test. If --diameterTestRange is omitted the
+                default is a one minute test.
 
-        --modeTimer [timer value in milliseconds]
-                Use this option to specify a timer value to use with the
-                --changePower mode option.
+                    O - outer diameter
+                    M - middle diameter
+                    I - inner diameter
 
-        --disableMode
-                Use this option with the --changePower mode option to disable
-                a specific --powerMode.
+                Ex1: --diameterTest OMI
+                Ex2: --diameterTest O
+                Ex3: --diameterTest MI
 
-        --defaultMode
-                Use this option with the --changePower mode option to restore
-                the default settings for a specific --powerMode.  The "all"
-                option is only valid for SAS interface drives.
+        --diameterTestRange [range]
+                Use this option with the --diameterTest option to perform a
+                range based test. If a range is specified without any units, it
+                is assumed to be an LBA count. Valid units are KB, KiB, MB,
+                MiB, GB, GiB, TB and TiB.
 
-        --transitionPower
-                Use this option to actively change --powerMode. The available
-                power modes are idle_a, idle_b, idle_c, standby_y (SAS only),
-                standby_z, or active (SAS only).
+                Ex1: "--diameterTestRange 1234567" for an LBA count
+                Ex2: "--diameterTestRange 2GB" for a 2GB range.
 
-                Note: Hard disk drives require a few seconds time to spin up or
-                down. The drive will report the old power mode until it is
-                fully established in the new mode.  The openSeaChest --spinDown
-                command is similar.  On SAS --spinDown is equivalent to Motor
-                Stop and --transitionPower --powerMode active is equivalent to
-                Motor Start.
+        --stopOnError
+                Use this option to make a generic read test stop on the first
+                error found. Please see the section below "Sector Repair
+                Commands".
 
-                Example: --transitionPower --powerMode idle_a
-                Example: --transitionPower --powerMode standby_y
+        --errorLimit [limit in number of physical LBAs | none]
+                Use this option to specify a different error limit for a user
+                generic or long generic read test. This must be a number of
+                logical LBAs to have errors. If a drive has multiple logical
+                sectors per physical sector, this number will be adjusted for
+                you to reflect the drive architecture. (The default error limit
+                is 50 x number of logical sectors per physical sector.) The
+                predefined text string "none" (without quotes) may be entered
+                to indicate that there is no error limit.
 
-        --powerMode [powermode]
-                Use this option to specify a power mode. This should be used
-                with the --changePower or --transitionPower options.
-                Valid power modes (SAS and SATA):
-                        idle_a
-                        idle_b
-                        idle_c
-                        standby_y (SAS only)
-                        standby_z
-                        active (SAS only, used with --trasitionPower)
-                        all (used with --changePower enable, disable or default)
-                Valid power modes (NVMe): 0 - 30
+                Caution: You should closely monitor your system if using the
+                "none" argument because some failure modes, like a bad cable,
+                might see every sector as defective. Storage devices are
+                defined with billions of physical sectors and if you are
+                capturing a log without an error limit, then it would quickly
+                grow to fill up all available capacity on the capture device.
 
-        --showPowerConsumption  (SAS Only)
-                This option will show the power consumption rates supported by
-                the device and the current power consumption rate of the
-                device. Use a supported watt value with the
-                --setPowerConsumption option to set the power consumption to
-                that value.
+        --randomTest
+                Use this option to start a random read test. This is a timed
+                operation. Use the time options to control how long to run this
+                test. The default time for this test is 1 minute.  This test
+                should be limited to 1 minute or less.
 
-        --setPowerConsumption [default | highest | intermediate | lowest |
-          watt value]   (SAS Only)
-                This option will set the power consumption rate of the device
-                to the value input.
-                Options:
-                        default - sets the device back to default settings
-                        highest - sets the active level to "highest"
-                        intermediate - sets the active level to "intermediate"
-                        lowest - sets the active level to "lowest"
-                        watt value - sets the device to a nearest watt value
-                           less than or equal to the value entered.
+                Example: --randomTest --seconds 10
 
-                Power consumption watt values are listed with the
-                --showPowerConsumption command line option.
-
-        --showAPMLevel   (SATA Only)
-                Use this option to show the current Advanced Power Management
-                (APM) level of a device
-
-        --setAPMLevel [1 - 254]   (SATA Only)
-                Use this option to set the APM level of a device. Valid values
-                are between 1 and 254.
-                      1 = Minimum power consumption with standby mode
-                  2-127 = Intermediate power management with standby mode
-                    128 = Minimum power consumption without standby mode
-                129-253 = Intermediate power management without standby mode
-                    254 = Maximum Performance
-
-        --disableAPM   (SATA Only)
-                Use this option to disable the current Advanced Power Management
-                (APM) level of a device
-
-        --powerBalanceFeature [ info | enable | disable ]   (SATA Only)
-                Use this option to see the state of the Seagate PowerBalance
-                feature or to change its state. Seagate's PowerBalance feature
-                will adjust drive performance during random operations to
-                reduce power consumption of the drive.
-                    info - will display the state of the PowerBalance feature
-                           on the screen
-                    enable - use this to enable PowerBalance
-                    disable - use this to disable PowerBalance
-                Note: SAS products should use the --setPowerConsumption option
-                instead.
-
-        --sataDAPSfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Automatic
-                Partial To Slumber Transitions (DAPS) feature. Use the "info"
-                option to see the current state of the DIPM feature on the
-                device. The use of this feature requires that the DIPM feature
-                is enabled.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
-
-        --sataDIPMfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Initiated
-                Power Management (DIPM) feature. Use the "info" option to see
-                the current state of the DIPM feature on the device.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
+        --butterflyTest
+                Use this option to start a butterfly read test.  A butterfly
+                read test is a read test that moves back and forth between the
+                OD and ID of the drive over and over again until the time has
+                expired.  This is a timed operation. Use the time options to
+                control how long to run this test. The default time for this
+                test is 1 minute.  This test should be limited to 1 minute
+                or less.
 
 Utility Options
 ===============
@@ -388,11 +342,11 @@ Utility Options
                 Example: -v 3 or --verbose 3
 
         -q, --quiet
-                Run openSeaChest in quiet mode. This is the same as -v0
+                Run SeaChest in quiet mode. This is the same as -v0
                 or --verbose 0
 
         -V, --version
-                Show openSeaChest version and copyright information & exit
+                Show SeaChest version and copyright information & exit
 
         --license
                 Display the Seagate End User License Agreement (EULA).
@@ -409,6 +363,10 @@ Utility Options
                 this, certain products may respond in unintended ways since
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
+
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
 
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
@@ -436,6 +394,18 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
+
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -485,6 +455,25 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
+Sector Repair Commands
+======================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+        --confirm I-understand-this-command-will-erase ... etc
+
+        --repairOnFly
+                Use this option to repair any bad sectors found during a long
+                or user generic read test as they are found.
+
+        --repairAtEnd
+                Use this option to repair any bad sectors found during a long
+                or user generic read test at the end of the test.
+
+See the section below "Bad LBA (Sector) Found" for more information on this
+subject.
+
 Return codes
 ============
         0       No Error Found
@@ -496,6 +485,7 @@ Return codes
         6       File Path Not Found
         7       Cannot Open File
         8       File Already Exists
+        9       Need Elevated Privileges (sudo, run as administrator)
         Anything else = unknown error
 
 ================
@@ -557,49 +547,54 @@ may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
 
-================================
-How PowerChoice Technology Works
-================================
-See the Seagate technology paper "Seagate® PowerChoice™ Technology Provides
-Unprecedented Hard Drive Power Savings and Flexibility"
-http://www.seagate.com/files/docs/pdf/en-GB/whitepaper/tp608-powerchoice-tech-provides-gb.pdf
+======================
+Bad LBA (Sector) Found
+======================
+IMPORTANT: Please read and carefully consider all of the following information
+about your "Bad LBA (Logical Block Address, or Sector) Found" options.
 
-Each individual power condition builds on the capabilities of the previous
-higher power condition in order to save incrementally more power. The specific
-energy-saving steps implemented for each power condition are as follows:
+A bad sector is a small 512-byte area on the disk drive that is reporting
+errors and cannot be accessed properly. New bad sectors, sometimes called grown
+defects, are often caused by some kind of physical damage. If a file or folder
+uses this sector, then the file is already incomplete or corrupt because the
+bytes are not readable.
 
-Idle_A
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Discs rotating at full speed (7,200 RPM)
-Idle_B
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Discs rotating at full speed (7,200 RPM)
-Idle_C/Standby_Y (SAS Only)
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Drive speed reduced to a lower RPM (reduced RPM)
-Standby_Z
-        - Heads are unloaded to drive ramp.
-        - Drive motor is spun down.
-        - Drive still responds to non-media access host commands.
+**** NOTE **** The following information applies only to Seagate Technology,
+Maxtor, Samsung and LaCie brand disk drives:
 
-Flexibility is a key feature of PowerChoice technology, enabling commands from
-the host side to customize power condition settings and direct a drive into or
-out of power conditions as required. Two different options are available for
-the user to modify PowerChoice technology settings, depending on the interface
-used:
+When SeaChest discovers a bad LBA (sector) through reading, it displays a count
+of the bad sectors.
 
-SAS
-        Host-definable timers via mode pages
-        Immediate host-commanded power transitions via Start/Stop Unit (SSU)
-        command
-SATA
-        Host-definable timers via Set Features commands
-        Immediate host-commanded power transitions via Set Features commands
+Sectors are often not in use. If a sector is in use, then that file is
+incomplete or corrupt. When a bad sector happens to align with a folder or
+directory listing structure, then the links to files and sub-folders it manages
+may be broken.
+
+You should carefully consider the importance of your data. While the sector is
+currently unreadable, if the file or folder is important to you then you may
+need professional recovery services to possibly reclaim the data. In this case,
+select to scan without trying to repair sectors on the drive.
+
+If you have decided that the file or folder is replaceable, already backed up
+or just not important to you, then you can tell SeaChest to attempt to attempt
+to repair the sector.  See the Sector Repair Commands section above.
+
+By design, modern disk drives maintain spare sectors for reallocation purposes.
+Usually, sectors become difficult to read long before they become impossible to
+read. In this situation the actual data bytes in the sector are preserved and
+transferred to the new spare during a sector reallocation. Similarly, when a
+disk drive writes data and encounters a problem, the drive firmware retires the
+problem sector and activates a replacement before giving successful write
+status.
+
+If you give permission to attempt to repair a bad sector, then SeaChest will
+attempt to write a 512-byte pattern of zeros to that single error sector.
+Usually, this action will assist the disk drive firmware in managing the
+problem by retiring the problem sector and activating a spare in its place. If
+the attempted repair fails to reallocate the LBA to an available spare, then
+the test is a FAIL and the drive is bad.
+
+Note: Seagate Technology is not responsible for lost user data.
 
 Windows Only Usage
 ==================
@@ -694,6 +689,25 @@ device details like model numbers try "6 4 1 7".  The command to set is 'sudo
 sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
 parameters at runtime" for more.
 
+Tesing storage devices on the USB and Thunderbolt interfaces
+------------------------------------------------------------
+Sometimes, when testing a storage device, it is more convenient to attach it as
+an external drive to the test system. In the case of SATA drives there are very
+many SATA-to-USB 'bridge' adapters available.  The quality and range of command
+'passthrough' support for these adapters varies greatly.  Our tools will
+attempt to work through these adapters.
+
+If your notebook has a Thunderbolt interface connection then you may be able to
+test a wide range of devices.  External Thunderbolt expansion systems provide a
+PCIe slot in a chassis that can hold a SAS, NVMe, or SATA host adapter. The
+host adapters would have cables that go out to your test bench where you would
+provide the drive and an external power supply for the drives. Thunderbolt 2
+expansion systems work in Linux by default. Thunderbolt 3 expansion systems
+need to be enabled in the kernel with boot time options before it will be
+recognized by the Linux operating system. See
+https://www.kernel.org/doc/html/v4.14/admin-guide/thunderbolt.html for
+information about how to activate the interface.
+
 ===========================
 Windows General Usage Hints
 ===========================
@@ -739,7 +753,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000DX001-1CE168
         Serial Number: ZQ3034X7R
@@ -815,7 +829,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST120FP0021
         Serial Number: PQ57011BD
@@ -882,7 +896,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST4000NM0043
         Serial Number: Z1QZ04KVG
@@ -946,7 +960,7 @@ Lin: sudo ./openSeaChest_Basics -i -d /dev/sg1
 Win: openSeaChest_Basics -i -d PD1
 ===============================================================================
  openSeaChest - Seagate drive utilities
- Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+ Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ===============================================================================
         Model Number: ST400FM0053
         Serial Number: P3QF13026
@@ -1009,60 +1023,62 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-SeaChest_PowerChoice is branched off from SeaChest Basics v1.0.3.
+SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
 
-v0.0.1  14-Apr-2015  Intitial PowerChoice release.
-v0.0.2  12-Aug-2015  Added --testUnitReady. Improved device discovery.
+v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
+                     sequential read tests. Added Random and Butterfly read
+                     tests.  Added sector repair on Long and user defined
+                     generic read tests.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
                      Corrections to verbose output.
-v0.0.4  22-Sep-2015  Added --showPowerConsumption and --setPowerConsumption,
-                     both are SAS only.
-v0.0.4  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
                      Added -sat12byte to increase compatibility.  Added
                      --SATInfo to compare ATA vs SCSI identification
                      differences.
-v0.0.6  26-Jan-2016  1_8_1 libraries.  Added --EPCfeature for SATA.
 v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
                      --onlySeagate restriction.  Added --modelMatch and
-                     --onlyFW filters.
-v1.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     --onlyFW filters. Added --genericMode.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
                      Fixed a bug where we could accidentally clear some stored
                      identify data from the device structure. Fixed continuing
                      on when there was a permission denied error opening a
-                     drive. Fixed --checkPowerMode always returning "active" on
-                     SAT interfaces (SATA over SAS). Fixed --transitionPower
-                     always failing (It was  trying an incompatible value).
-v1.0.3  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     drive.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
                      commands. Fixed bugs with --modelMatch and --onlyFW
                      filters.
-v1.2.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
-                     --showEPCSettings, --showAPMLevel, and --setAPMLevel.
-v1.2.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added --disableAPM.
-v1.3.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
                      minor bug fixes. Fixed --SATInfo command.
-v1.3.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v1.4.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.4.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v1.4.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v1.4.2  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v1.4.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
 v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. EPCfeature now supports SAS. New -F,
-                     --scanFlags [options: ignoreCSMI allowDuplicates] for
-                     Windows tools. Add CSMI support to all Windows version
-                     tools.
+                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
+                     --diameterTestRange. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools. Random Range scaling
+                     has less biasing.
 v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features.
+                     for SAS features. --userGenericStart now able to use timed
+                     options.
+v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
 v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
@@ -1070,7 +1086,9 @@ v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      Bug fix where the "-d all" was not filtering out csmi
                      drives like it is supposed to causing duplicate drives to
                      show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix user generic test start LBA gets reset when a defect
+                     is encountered.
 v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
@@ -1080,28 +1098,24 @@ v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
 v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.8.1  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-                     Added --powerBalanceFeature, --sataDAPSfeature and
-                     --sataDIPMfeature, all of which are SATA only.
-v1.8.2  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Name change from SeaChest_PowerChoice to
-                     SeaChest_PowerControl.
-v1.8.2  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.8.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help.
+v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v1.8.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v1.8.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -1109,9 +1123,8 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v1.8.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
-open source project for storage devices.
-v1.9.0  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      USB flash drives, support for early 90's PATA drives that
                      don't support LBA mode, bug fix where the last digit of
                      the SCSI Unit Serial Number was being dropped, additional
@@ -1128,9 +1141,8 @@ v1.9.0  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      during device discovery to help work with some USB
                      devices, some Legacy SCSI support enhancements (partially
                      from USB hacks development), enhanced SD to SG mapping in
-                     Linux.  Added --idle (Immediate), --idleUnload, --standby
-                     (Immediate), --active.
-v1.9.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     Linux.  Added --bufferTest.
+v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      field to get the OS name under linux; NVMe enabled;  fixed
                      a bug in the ATA activate FW command; added in reading ID
                      Data log and Device statistics logs page 0 to check the
@@ -1142,16 +1154,27 @@ v1.9.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      banner and -V data to show support levels. Add general
                      support for NVMe and NVMe specific identify data to "-i"
                      command.
-v1.9.1  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.10.0  03-May-2019 1_19_18 libraries added per device verbosity, --deviceInfo
+v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.8.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
                      section,  --deviceInfo now gives Low Current Spinup
                      status.
-v1.10.0  10-Jun-2019 1_19_23 libraries added SNTL (SCSI to NVMe translator),
+v1.8.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
+v1.9.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
@@ -1268,7 +1291,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
 ======================================================================
 
 BINARIES and SOURCE CODE files of the openSeaChest open source project have
