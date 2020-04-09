@@ -1,9 +1,7 @@
-openSeaChest_PassthroughTest.txt                          Revision: 09-Mar-2020
+openSeaChest_PassthroughTest.txt                          Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_PassthroughTest for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_PassthroughTest Version: 0.1.0
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -41,6 +39,15 @@ running software from the operating system command prompt. CLI tools are in the
 English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
+
+openSeaChest_PassThroughTest is a comprehensive command line tool that can be
+used to identify and analyze the unique quirks which may be present in a
+USB-to-SATA or USB-to-NVMe bridge adapter.  The findings from this tool are
+studied to help optimize openSeaChest libraries to send the best and safest
+device interface commands, which are passed through to the storage device.
+
+NOTE: openSeaChest_PassThroughTest may not be fully functional on non-Seagate
+drives.
 
 If this is your drive, you should always keep a current backup of your
 important data.

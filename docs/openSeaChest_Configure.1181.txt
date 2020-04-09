@@ -1,9 +1,7 @@
-openSeaChest_Configure.txt                                Revision: 09-Mar-2020
+openSeaChest_Configure.txt                                Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Configure for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Configure Version: 1.18.1
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -687,6 +685,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help

@@ -1,9 +1,7 @@
-openSeaChest_NVMe.txt                                     Revision: 09-Mar-2020
+openSeaChest_NVMe.txt                                     Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_NVMe for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_NVMe Version: 1.1.0
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -218,26 +216,47 @@ Utility Arguments
         --getNvmeLogPage   [error | smart | fwSlots | suppCmds | selfTest | #]
                 Use this option to get the NVMe log pages
                 Supported Modes:
-                        Error   - lists the valid entries found in the
-                                  Error Information Log.
-                        SMART   - lists information found in the
-                                  SMART/Health Information Log
-                        FWSlots - lists currently active Firmware slot
-                                  and Firmware Revision in each slot.
-                        SuppCmds - lists the commands that the controller
-                                  supports and the effects of those commands.
-                        SelfTest - lists the status of any device
-                                  self-test operation in progress
-                                  and the results of the last 20 device
-                                  self-test operations.
-                        #       - option to get the log page using
-                                  a number
+                        error    - lists the valid entries found in the
+                                   Error Information Log. Binary logs to the
+                                   current directory as
+                                   <serialnumber>_LOG_PAGE_1_<date and time>.bin
+                        smart    - lists information found in the SMART/Health
+                                   Information Log. Binary logs to the current
+                                   directory as <serialnumber>_LOG_PAGE_2_<date
+                                   and time>.bin
+                        fwSlots  - lists currently active Firmware slot and
+                                   Firmware Revision in each slot.  Binary logs
+                                   to the current directory as
+                                   <serialnumber>_LOG_PAGE_3_<date and time>.bin
+                        suppCmds - lists the commands that the controller
+                                   supports and the effects of those commands.
+                                   Binary logs to the current directory as
+                                   <serialnumber>_LOG_PAGE_5_<date and time>.bin
+                        selfTest - lists the status of any device self-test
+                                   operation in progress and the results of the
+                                   last 20 device self-test operations.Binary
+                                   logs to the current directory as
+                                   <serialnumber>_LOG_PAGE_6_<date and time>.bin
+                        #        -  option to get the log page using
+                                   a number
 
-        --getTelemetry [HOST | CTRL] --telemetryDataArea [1 | 2 | 3]
-                Use this option to get the NVMe Telemetry
+        --getTelemetry [host | ctrl]
+                Use this option to get the NVMe Telemetry data for a device.
+                Use the --telemetryDataArea option to control the amount of
+                data collected.
                 Supported Modes:
-                        HOST    - get Host Telemetry
-                        CTRL    - get Ctrl Telemetry
+                     host - get Host Telemetry
+                     ctrl - get Controller Telemetry
+
+        --telemetryDataArea [1 | 2 | 3]
+                This is a sub-command which defines the amount of data
+                collected by the --getTelemetry option. Data Area 3 is assumed
+                if this option is not used.
+                Supported Data Area.
+                     1 - get minimal telemetry data
+                     2 - get telemetry data additional to data area 1
+                     3 - get telemetry data additional to data area 2 (default
+                         data area)
 
         --clearPciErr
                 Use this option to clear correctable errors.
@@ -253,6 +272,8 @@ Utility Arguments
                         raw    - prints the raw buffer on stdout
                         binary - writes data to a file with device
                                  Serial Number & time stamp
+                Note: If --logMode is omitted then the --getNvmeLogPage
+                      output is in a human readable format.
 
         --tempStats
                 Use this option to get the NVMe Temperature Statistics
@@ -492,6 +513,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help

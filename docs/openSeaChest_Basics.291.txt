@@ -1,9 +1,7 @@
-openSeaChest_Basics.txt                                   Revision: 09-Mar-2020
+openSeaChest_Basics.txt                                   Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Basics for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Basics Version: 2.9.1
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -192,9 +190,13 @@ Utility Arguments
                       run on the drive.
 
         --progress DST
-                Get the progress for a test that was started quietly (default)
-                specify a test with: DST or sanitize to check progress. The
-                progress counts up from 0% to 100%.
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
 
         --abortDST
                 Abort a diagnostic Drive Self Test that is in progress.
@@ -203,36 +205,6 @@ Utility Arguments
                 Perform a SMART check on a device to see if any internal
                 thresholds have been tripped or if the drive is still operating
                 within specification.
-
-        --smartAttributes [raw | analyzed]      (SATA Only)
-                The drive will display its list of supported SMART attributes.
-                Some attributes names are commonly standard and most others are
-                vendor unique. In either case, the attribute thresholds are
-                always vendor unique. Most attributes are informational and not
-                used to determine a warranty return. Use the --smartCheck
-                command to determine if one of the warranty attributes has been
-                tripped. Seagate Support does not help to analyze SMART
-                attributes.
-
-        --idd [short | long]    (Seagate Only)
-                Start an In Drive Diagnostic (IDD) test on a Seagate SATA
-                drive. Not all tests are supported by all products. If a
-                selected test is not supported, the utility will return
-                an error code meaning "not supported".
-
-                short:   Reset and Recalibration test. Be careful running this
-                         test on the boot device.
-                long:   Test G list and P list for readability.
-
-                Add --poll to the command line to see periodic status during
-                the test.  Otherwise, use --progress DST after 60 seconds to
-                allow the drive time to spin back up after the recalibration
-                test.
-
-                Example: --idd short --poll
-
-        --abortIDD (Seagate Only)
-                Abort a Seagate In Drive Diagnostic (IDD) that is in progress.
 
         --downloadFW [fwfilename]
                 Download firmware to a Seagate storage product. Use only
@@ -306,6 +278,9 @@ Utility Arguments
                 operating system selects the drive. This means that an active
                 drive will not stay spun down.
 
+                In the case of SSD devices, the drive will flush the temporary
+                caches and prepare for shutdown.
+
         --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
                 Use this option to change the PHY speed to a new maximum value.
                 This change persists over power cycles and resets. On SAS, this
@@ -319,7 +294,40 @@ Utility Arguments
                 4 - allow negotiation up to 12.0Gb/s (SAS Only)
                 5 - allow negotiation up to 22.5Gb/s (SAS Only)
 
-        --sasPhy [identifier value]
+        --readLookAhead [info | enable | disable]
+                Use this option to enable or disable read look-ahead support on
+                a drive.  Use the "info" argument to get the current status of
+                the read look ahead feature.  This change is not preserved over
+                power cycles.
+
+        --writeCache [info | enable | disable]
+                Use this option to enable or disable write cache support on a
+                drive.  Use the "info" argument to get the current status of
+                the write cache feature.  This change is not preserved over
+                power cycles.
+
+                Note: Windows, Device Manager, Disk drives, <your model>,
+                Policies tab, Write-caching policy may override this
+                --writeCache setting if the policy is enabled in Device
+                Manager. You can change the Windows policy or you can try
+                SeaChest_Configure --sctWriteCache, if necessary, to control
+                the cache regardless of the policy.
+
+        SATA Only:
+        =========
+        --smartAttributes [raw | analyzed]      (SATA Only)
+                The drive will display its list of supported SMART attributes.
+                Some attributes names are commonly standard and most others are
+                vendor unique. In either case, the attribute thresholds are
+                always vendor unique. Most attributes are informational and not
+                used to determine a warranty return. Use the --smartCheck
+                command to determine if one of the warranty attributes has been
+                tripped. Seagate Support does not help to analyze SMART
+                attributes.
+
+        SAS Only:
+        =========
+        --sasPhy [identifier value]      (SAS Only)
                 Use this option to specify a specific phy to use with another
                 option that uses a phy identifier value. Some tool options will
                 assume all SAS Phys when this option is not present. Others
@@ -337,18 +345,6 @@ Utility Arguments
                     off - sets the ready LED to usually on unless
                           processing a command
                     default - sets the ready LED to the drive's default value
-
-        --readLookAhead [info | enable | disable]
-                Use this option to enable or disable read look-ahead support on
-                a drive.  Use the "info" argument to get the current status of
-                the read look ahead feature.  This change is not preserved over
-                power cycles.
-
-        --writeCache [info | enable | disable]
-                Use this option to enable or disable write cache support on a
-                drive.  Use the "info" argument to get the current status of
-                the write cache feature.  This change is not preserved over
-                power cycles.
 
 Utility Options
 ===============
@@ -401,7 +397,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -419,6 +415,12 @@ Utility Options
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
 
+         --noTimeLimit
+                Use with utility command arguments which have build in timeout
+                values. For example, --shortDST has a 10 minutes default
+                timeout.  In some cases a good drive may need more time to
+                complete the test due to other legitimate system activity.
+
         --hours [hours]
                 Use this option to specify a time in hours for a timed
                 operation to run.
@@ -430,12 +432,6 @@ Utility Options
         --seconds [seconds]
                 Use this option to specify a time in seconds for a timed
                 operation to run.
-
-         --noTimeLimit
-                Use with utility command arguments which have build in timeout
-                values. For example, --shortDST has a 10 minutes default
-                timeout.  In some cases a good drive may need more time to
-                complete the test due to other legitimate system activity.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -498,7 +494,7 @@ example: 'Long Drive Self Test Time:  1 hour 38 minutes'. You can use the
 reported time for your drive as being less than the time necessary to erase the
 entire drive.
 
-        --confirm I-understand-this-command-will-erase ... etc
+        --confirm this-will-erase-data ... etc
 
         --overwrite [starting LBA | maxLBA]
                 Use this option to start an overwrite erase at the specified
@@ -629,6 +625,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help

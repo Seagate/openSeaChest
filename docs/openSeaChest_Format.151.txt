@@ -1,9 +1,7 @@
-openSeaChest_Format.txt                                   Revision: 09-Mar-2020
+openSeaChest_Format.txt                                   Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Format for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Format Version: 1.5.1
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -199,12 +197,16 @@ Utility Arguments
                 command prompt and prints ongoing completion percentages (%)
                 and the final test result.  Full drive procedures will take a
                 very long time.  Used with --sanitize, --ATASecureErase (SATA),
-                --writeSame (SATA), or --formatUnit (SAS).
+                --writeSame (SATA), --formatUnit (SAS), --nvmFormat (NVMe).
 
         --progress format
-                Get the progress for a test that was started quietly (default)
-                specify a test to check progress. The progress counts up from
-                0% to 100%.
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
 
         --showSupportedFormats
                 This option will show the supported formats of a device. These
@@ -215,13 +217,16 @@ Utility Arguments
                 does not report supported sector sizes, please consult your
                 product manual.
 
+        SAS Only:
+        ========
         --showFormatStatusLog (SAS Only)
                 Use this option to view the SCSI format status log. Note: This
                 log is only valid after a successful format unit operation.
 
         --showSupportedProtectionTypes (SAS Only)
                 Use this option to view the supported protection types for a
-                device.
+                device. Run -i or --deviceInfo to see current protection type,
+                if any.
 
 Utility Options
 ===============
@@ -271,7 +276,6 @@ Utility Options
         --onlySeagate
                 Use this option to match only Seagate drives for the options
                 provided. May also be used with the --scan command.
-
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -435,7 +439,7 @@ entire drive.
                         very long time.
                     1 - This is a fast format unit command keeping existing
                         data in the physical sector. This option can be used to
-                        quickly change the the logical sector size between 5xx
+                        quickly change the logical sector size between 5xx
                         emulation and 4xxx native logical block sizes.
                         Resulting LBA (sector) count is either /8 or *8 the
                         current Read Capacity, depending on the direction of

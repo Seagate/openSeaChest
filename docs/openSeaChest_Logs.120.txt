@@ -1,9 +1,7 @@
-openSeaChest_Logs.txt                                     Revision: 09-Mar-2020
+openSeaChest_Logs.txt                                     Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Logs for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Logs Version: 1.2.0
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 

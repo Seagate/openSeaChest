@@ -1,9 +1,7 @@
-openSeaChest_Erase.txt                                    Revision: 09-Mar-2020
+openSeaChest_Erase.txt                                    Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Erase for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Erase Version: 2.1.1
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -42,6 +40,12 @@ efficiently erase data on Seagate disk drives (this includes Seagate, Maxtor,
 Samsung and LaCie).
 
 NOTE: openSeaChest_Erase may not be fully functional on non-Seagate drives.
+
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
+
+This User Guide file contains important information about openSeaChest_Erase.
+Please read this entire file before using this software.
 
 If this is your drive, you should always keep a current backup of your
 important data.
@@ -194,9 +198,13 @@ Utility Arguments
                 --writeSame (SATA), or --formatUnit (SAS).
 
         --progress [sanitize | format]
-                Get the progress for a test that was started quietly (default)
-                specify a test to check progress. The progress counts up from
-                0% to 100%.
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
 
         --showPhysicalElementStatus
                 Use this option to see the status/health of the storage
@@ -415,7 +423,14 @@ Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
 Seagate is not responsible for lost user data.
 
-        --confirm I-understand-this-command-will-erase ... etc
+Note: The time required to erase an entire drive may take several hours. The
+erase time length is slightly longer than the time it takes to read the entire
+drive. The openSeaChest --deviceInfo command output has a line similar to this
+example: 'Long Drive Self Test Time:  1 hour 38 minutes'. You can use the
+reported time for your drive as being less than the time necessary to erase the
+entire drive.
+
+        --confirm this-will-erase-data ... etc
 
         --performQuickestErase
                 This option checks the drive to determine which methods of data
@@ -448,9 +463,10 @@ Note: Windows 8 (and newer) native drivers block Sanitize commands.
                 making previous data irretrievable. Consider using the --poll
                 option to monitor % completion.
 
-                * cryptoerase is very fast at less than one (1) second. It
-                changes the internal encryption keys that are used for user
-                data causing all previous data to be useless.
+                * cryptoerase is usually very fast at less than one (1) second.
+                It changes the internal encryption keys that are used for user
+                data causing all previous data to be useless. Some products may
+                take a few minutes to fully finish this command option.
 
                 * overwrite physically overwrites all current, past and
                 potential user data. The ATA specification gives overwrite the
@@ -759,6 +775,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
+
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
@@ -771,6 +803,23 @@ Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
+
+Windows Only Usage
+==================
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
+PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
+SCSI (CSMI) handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  openSeaChest_Info -d SCSI?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.
 
 When drives are reported Security "Frozen" by openSeaChest
 ------------------------------------------------------
@@ -843,7 +892,29 @@ About FastFormat
 ================
 A FastFormat (quickly changing the logical sector size) may take a few minutes
 for the process to complete. The disk activity LED may show activity during the
-conversion.  The larger the drive, the longer it takes.
+conversion.  The larger the drive, the longer it takes.  This feature is found
+on SAS and SATA interface Seagate drive families designed and manufactured
+later than 2016.  SAS interface drives will report support for FastFormat if it
+is available in the drive. Just run the -i or --deviceInfo command and check
+under the Features Supported section.  Unfortunately, SATA interface drives do
+not report this capability.  Please refer to the SATA product manual for
+verification of this feature.
+
+SAS and SATA interface drives accomplish a FastFormat this with the
+--setSectorSize [new sector size] command found in SeaChest_Format or
+SeaChest_Lite.  In addition, for SAS interface drives, only, the same result is
+possible using the --formatUnit command with the --fastFormat [fast format
+mode] modifier equal to 1.  This command is found in SeaChest_Format and
+SeaChest_Erase.  For example:
+--formatUnit 4096 --fastFormat 1 --confirm this-will... etc
+
+SAS interface drives, only, can all do a long format unit.  This procedure
+takes a very long time, more than a day in some cases, but it does have the
+advantage of full defect management with all sectors being readable at the
+conclusion.  The fast format does not do this full drive read and
+verification.  If your drive is new, there is no real need to run a long format
+unit to change sector between 5xxE (512 bytes per logical sector emulation) and
+4kN (4096 native bytes per sector, logical and physical).
 
 NOTE: Operating systems do a device discovery during start up and set various
 parameters, like total sectors and sector size, into the storage device
@@ -855,23 +926,6 @@ operating systems will throw an error after accessing a drive that has just run
 a FastFormat but during its error recovery routines it may re-discover the
 device parameters and update the system logs.  A system restart, however, is
 the most reliable way to refresh the storage device descriptions.
-
-Windows Only Usage
-==================
-All Windows version tools support finding CSMI devices and talking to them like
-you would a normal device.  The scan output will show all drives it detects
-ONCE. CSMI device handles have a structure like SCSI0:1.  If a drive has both a
-PD? and SCSI?:? handle, then openSeaChest will show the PD handle instead of the
-SCSI (CSMI) handle.
-
-When drives are in a RAID, the PD device handle is usually not available and
-the CSMI handle may provide an alternate way to talk to the drive.  Just
-because a device has a CSMI handle doesn't mean it is part of a RAID.
-
-If you want to see both handles, add --scanFlags allowDuplicates to the command
-line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
-the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
-troubleshooting CSMI device handles questions.
 
 =========================
 Linux General Usage Hints

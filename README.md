@@ -2,7 +2,7 @@
 # openSeaChest
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices.
 
-#### Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#### Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 
@@ -24,10 +24,14 @@ www.seagate.com or https://github.com/Seagate/ToolBin/tree/master/SeaChest.
 Binary versions are available for Linux or Windows, with the Windows versions
 signed by Seagate Technology LLC.
 
-openSeaChest is a collection of programming libraries for storage devices and
-comprehensive, easy-to-use command line diagnostic tools that helps you quickly
-determine the health and status of your storage product. It includes several
-tests that will examine the physical media on your storage device.
+openSeaChest is a collection of comprehensive, easy-to-use command line
+diagnostic tools and programming libraries for storage devices that help you
+quickly determine the health and status of your storage product.  The collection
+includes several tests that show device information, properties and settings.
+It includes several tests which may modify the storage product such as power
+management features or firmware download.  It includes various commands to
+examine the physical media on your storage device.  Close to 200 commands and
+sub-commands are available in the various openSeaChest utilities.  These are decribed in more detail below.
 
 Here is an overview presentation we gave at the *Storage Networking Industry Association - Storage Developer Conference 2018* that describes the design architecture for the **_opensea API_** and **_openSeaChest_** storage resource management utilities:
 
@@ -67,6 +71,7 @@ Here is an overview presentation we gave at the *Storage Networking Industry Ass
 * *openSeaChest_Logs*
 * *openSeaChest_NVMe*
 * *openSeaChest_PowerControl*
+* *openSeaChest_Security*
 * *openSeaChest_SMART*
 
 ### Source
@@ -146,11 +151,11 @@ From a terminal, change directory to `openSeaChest/Make/gcc`
 Run the command `gmake release` to build the release version of the openSeaChest tools.
 After compilation is complete, the tools will be output into a subfolder named `openseachest_exes`
 
-#### Documentation
+### Documentation
 
 Header files & functions have doxygen documentation.
 
-#### Platforms
+### Platforms
 
 Under Linux this library can be built on the following platforms using
 a cross platform compiler:
@@ -216,9 +221,8 @@ size. See this FAQ for more information
 ### About openSeaChest Command Line Diagnostics
 
 Seagate offers both graphical user interface (GUI) and command line interface
-(CLI) diagnostic tools for our storage devices.  SeaTools for Windows and
-SeaTools Bootable for end users are the two most popular GUI tools.  These
-tools support 15 languages.
+(CLI) diagnostic tools for our storage devices.  SeaTools for end users is the
+most popular GUI tools  These tools support 15 languages.
 
 openSeaChest diagnostics are command line utilities which are available for
 expert users.  These command line tools assume the user is knowledgeable about
@@ -234,26 +238,27 @@ openSeaChest diagnostics are also available.
 Technical Support for openSeaChest drive utilities is not available.  If you
 have the time to send us some feedback about this software, especially if you
 notice something we should fix or improve, we would greatly appreciate hearing
-from you.  To report your comments and suggestions, please use this email
-seaboard@seagate.com.  Please let us know the name and version of the tool you
-are using.
+from you.  To report your comments and suggestions, please use the issue
+reporting feature available in this git repository.  Additionally, you can
+contact us through this email address seaboard @ seagate.com.  Please let us
+know the name and version of the tool you are using.
 
-openSeaChest drive utilities support SATA, SAS, NVMe and USB interface devices.
+openSeaChest drive utilities support SATA, SAS, NVMe and USB interface devices.  In some cases openSeaChest has successfully recognized PATA and SCSI legacy devices, although the software is not expected to do so.
 
-**openSeaChest_Basics** - Contains the most important tests and tools.
+**openSeaChest_Basics** - Contains the most important tests and tools.  These include Drive Self Test (DST), Device Information, simple firmware download, and a few of the simple data erasure commands.
 
 Other openSeaChest "break out" utilities are available and listed below which
 offer more in-depth functionality in specific areas. These are:
 
 **openSeaChest_Configure** - Tools to control various settings on the drives are
 brought together into this one tool.  Typical commands, for example, include
-Write Cache and Read Lookahead Cache enable or disable.
+Write Cache and Read Lookahead Cache enable or disable.  This is where you will find SCSI Mode Page and SCSI Log Page commands.
 
 **openSeaChest_Erase** - The focus is on data erasure.  There are many different
-choices for erasing data from simple boot track erase to full cryptographic
-erasure (when supported).  Be sure to back up important data before using this
-tool.  Seagate is not responsible for lost user data.  This tool only works on
-Seagate drives.
+choices for erasing data... from simple boot track erase to full cryptographic
+erasure (when supported).  Some commands can take many hours to complete while
+others may take less than a minute.  This tool is designed to erase data which will
+be lost forever so be sure to back up important data before using this tool.  Actually, you should **always** maintain ongoing backups of your important data even if you do not intend to erase your drive.  Seagate is not responsible for lost user data.
 
 **openSeaChest_Firmware** - Seagate products are run by firmware.  Having the
 latest firmware can improve performance and or reliability of your product.
@@ -276,20 +281,30 @@ possibly eliminating an unnecessary drive return.
 **openSeaChest_Info** - Historical generic activity logs (like total bytes written
 and power on hours) and performance logs (like temperature) are available for
 analytical review.  Identification and inquiry data stored on the drive is also
-provided.  A view of SMART and device statistics is available when supported by
+provided.  A view of SMART and Device Statistics is available when supported by
 the drive.
 
-**openSeaChest_Logs** -
+**openSeaChest_Logs** - Several binary logs are maintained on disk drives.  These logs are not stored in the user data area. Sometimes these logs are reviewed by
+support engineers to help analyze event history on the device.  These binary
+data logs are saved to filenames using the drive's serial number and date-time.
+Some logs are Seagate-specific while many others are common to the interface
+specifications.  Several of these binary logs may be parsed into human-readable form by using the openSeaChest_LogParser utility.
 
-**openSeaChest_NVMe** -
+**openSeaChest_NVMe** - NVMe interface devices tend to have unique commands and challenges.  Many of these commands are also unique to NVMe SSD products.  This tool gathers the most important commands under one title.  This tool is similar to openSeaChest_Basics but for NVMe.
 
-**openSeaChest_PowerControl** - Seagate disk drives offer a multitude of options to
-manage power.  This tool manipulates the various power modes.
+**openSeaChest_PassThroughTest** - A comprehensive command line tool that can be
+used to identify and analyze the unique quirks which may be present in a
+USB-to-SATA or USB-to-NVMe bridge adapter.  The findings from this tool are
+studied to help optimize openSeaChest libraries to send the best and safest
+device interface commands, which are passed through to the storage device.
+
+**openSeaChest_PowerControl** - Disk drives offer a multitude of options to
+manage power.  This tool manipulates the various power modes.  Some power commands are Seagate-specific while many others are common to the interface specifications.
 
 **openSeaChest_Security** - Various settings are available on modern Seagate disk
 drives which may be locked and unlocked.  These settings may interact with the
-operating systems and systems BIOS.  Options also include cryptographic erase
-for Self-Encrypting Drives (SED).
+operating systems and systems BIOS.  Options also include ATA Security Erase
+for SATA interface drives.
 
 **openSeaChest_SMART** - This tool provides a closer look at the collected SMART
 attributes data.  SMART stands for Self-Monitoring, Analysis and Reporting
@@ -330,7 +345,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: https://github.com/Seagate/openSeaChest.
 
-Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 -----------------------------------------
 

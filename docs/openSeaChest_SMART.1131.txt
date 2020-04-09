@@ -1,9 +1,7 @@
-openSeaChest_SMART.txt                                    Revision: 09-Mar-2020
+openSeaChest_SMART.txt                                    Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_SMART for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_SMART Version: 1.13.1
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -216,14 +214,6 @@ Utility Arguments
                 Note: Use --progress DST or --showDSTLog to see details about
                 the last DST run on the drive.
 
-        --conveyanceDST
-                Execute a conveyance diagnostic drive self test. A conveyance
-                test can be used to check if a drive has incurred handling
-                damage. This test can take up to 2 minutes to complete. Use the
-                --poll argument to make this operation poll for progress until
-                complete. Use the --progress dst command to check on the
-                completion percentage (%) and test result.
-
         --longDST
                 Execute a long diagnostic drive self test. This test takes
                 hours to finish. A 2TB drive may take six (6) hours to
@@ -243,6 +233,10 @@ Utility Arguments
                 argument is required as confirmation of your understanding that
                 the test will take a very long time to complete.
 
+                Note: The SeaChest --deviceInfo command output has a line
+                similar to this example: 'Long Drive Self Test Time:  1 hour 38
+                minutes'.
+
                 If the --longDST poll option is running and you want to abort
                 the test then you will need to open a second terminal window
                 and run the --abortDST command.  Otherwise, it is safe to
@@ -250,70 +244,21 @@ Utility Arguments
                 test.
 
         --progress DST
-                Get the progress for a test that was started quietly (default).
-                Specify a test with: DST to check progress. The progress counts
-                up from 0% to 100%.
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
 
         --abortDST
                 Abort a diagnostic Drive Self Test that is in progress.
-
-        --captive or --foreground
-                Use this option to run a DST operation in captive/foreground
-                mode. This mode may allow a device to test more of itself and
-                may be slightly faster than offline/background mode since it
-                does not need to service additional command during the test.
-                When using this mode, the utility must wait the entire time for
-                the DST to complete and progress cannot be indicated during
-                this time.
-
-        --showDSTLog
-                This option will show the entries in the DST log. Up to 21
-                entries may be shown (pending drive support) and will be shown
-                with the most recent entry first.
-
-        --smartInfo (SATA Only)
-                This option will show SMART information reported by a given
-                device.
-
-        --smartFeature [enable | disable]            (SATA Only)
-                Use this option to enable or disable the SMART feature on a
-                SATA drive.  When disabled, the entire SMART feature set, minus
-                the enable command, is turned off.  This includes all SMART
-                logging, attributes, SMART trip ability, and DST ability.
-                Note: This command is declared obsolete in ACS4.
 
         --smartCheck
                 Perform a SMART check on a device to see if any internal
                 thresholds have been tripped or if the drive is still operating
                 within specification.
-
-        --smartAttributes [raw | analyzed]           (SATA Only)
-                The drive will display its list of supported SMART attributes.
-                Some attributes names are commonly standard and most others are
-                vendor unique. In either case, the attribute thresholds are
-                always vendor unique. Most attributes are informational and not
-                used to determine a warranty return. Use the --smartCheck
-                command to determine if one of the warranty attributes has been
-                tripped. Seagate Support does not help to analyze SMART
-                attributes.
-
-        --smartAttributeAutosave [enable | disable]  (SATA Only)
-                Use this option to enable or disable SMART attribute auto-save
-                on an ATA drive.  This is the drive's ability to update the
-                attributes on it's own without the "update attributes" command.
-                By default, this is enabled and on new drives may just be a
-                no-op.
-                Note: This command is declared obsolete in ACS4.
-
-        --smartAutoOffline [enable | disable]  (SATA Only)
-                Use this option to enable or disable SMART auto-offline feature
-                on an ATA drive.  This command was never officially adopted by
-                ATA committee, but was in the original SMART spec from
-                Compaq/HP. This allows the drive to do an offline scan on it's
-                own. This is not quite a background media scan (BGMS described
-                above), nor is it the same as a DST. It's a drive scan that
-                will go check itself for issues and update attributes. Uncommon
-                and not supported on most drives.
 
         --idd [short | long]    (Seagate Only)
                 Start an In Drive Diagnostic (IDD) test on a Seagate SATA
@@ -354,6 +299,84 @@ Utility Arguments
                 defined with billions of physical sectors and if you are
                 capturing a log without an error limit, then it would quickly
                 grow to fill up all available capacity on the capture device.
+
+        SATA Only:
+        =========
+        --conveyanceDST (SATA Only)
+                Execute a conveyance diagnostic drive self test. A conveyance
+                test can be used to check if a drive has incurred handling
+                damage. This test can take up to 2 minutes to complete. Use the
+                --poll argument to make this operation poll for progress until
+                complete. Use the --progress dst command to check on the
+                completion percentage (%) and test result.
+
+        --captive or --foreground (SATA Only)
+                Use this option to run a DST operation in captive/foreground
+                mode. This mode may allow a device to test more of itself and
+                may be slightly faster than offline/background mode since it
+                does not need to service additional command during the test.
+                When using this mode, the utility must wait the entire time for
+                the DST or IDD to complete and progress cannot be indicated
+                during this time.
+
+        --showDSTLog (SATA Only)
+                This option will show the entries in the DST log. Up to 21
+                entries may be shown (pending drive support) and will be shown
+                with the most recent entry first.
+
+        --smartInfo (SATA Only)
+                This option will show SMART information reported by a given
+                device.
+
+        --smartFeature [enable | disable]            (SATA Only) (Seagate Only)
+                Use this option to enable or disable the SMART feature on a
+                SATA drive.  When disabled, the entire SMART feature set, minus
+                the enable command, is turned off.  This includes all SMART
+                logging, attributes, SMART trip ability, and DST ability.
+                Note: This command is declared obsolete in ACS4.
+
+        --smartAttributes [raw | analyzed]           (SATA Only)
+                The drive will display its list of supported SMART attributes.
+                Some attributes names are commonly standard and most others are
+                vendor unique. In either case, the attribute thresholds are
+                always vendor unique. Most attributes are informational and not
+                used to determine a warranty return. Use the --smartCheck
+                command to determine if one of the warranty attributes has been
+                tripped. Seagate Support does not help to analyze SMART
+                attributes.
+
+        --smartAttributeAutosave [enable | disable]  (SATA Only) (Seagate Only)
+                Use this option to enable or disable SMART attribute auto-save
+                on an ATA drive.  This is the drive's ability to update the
+                attributes on it's own without the "update attributes" command.
+                By default, this is enabled and on new drives may just be a
+                no-op.
+                Note: This command is declared obsolete in ACS4.
+
+        --smartAutoOffline [enable | disable]  (SATA Only) (Seagate Only)
+                Use this option to enable or disable SMART auto-offline feature
+                on an ATA drive.  This command was never officially adopted by
+                ATA committee, but was in the original SMART spec from
+                Compaq/HP. This allows the drive to do an offline scan on it's
+                own. This is not quite a background media scan (BGMS described
+                above), nor is it the same as a DST. It's a drive scan that
+                will go check itself for issues and update attributes. Uncommon
+                and not supported on most drives.
+
+        --showSMARTErrorLog [ summary | comprehensive ] (SATA Only)
+                This option will display the ATA SMART Error log on the screen.
+                Use "summary" to view the summary SMART error log (last 5
+                entries). Use "comprehensive" to view all the entires the drive
+                has available. Specifying "comprehensive" will automatically
+                pull the ext error log on drives that support 48bit LBAs.
+
+                Note: The summary error log will truncate 48bit commands, so
+                some information will be missing to describe the operation of
+                certain commands.
+
+        --smartErrorLogFormat [ raw | detailed ]        (SATA Only)
+                Use this option to change the format of the output from the
+                --showSMARTErrorLog option. The default mode is "detailed".
 
 SAS Only:
                 --setMRIE [ default | 0 - 6 ]  (SAS Only)
@@ -594,6 +617,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help

@@ -1,9 +1,7 @@
-openSeaChest_Info.txt                                     Revision: 09-Mar-2020
+openSeaChest_Info.txt                                     Revision: 09-Apr-2020
 ===============================================================================
  openSeaChest_Info for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
- openSeaChest_Info Version: 1.6.0
- Build Date: Feb 04 2020
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -177,6 +175,14 @@ Utility Arguments
                 Displays SATA device information on any interface using both
                 SCSI Inquiry/VPD/Log reported data (translated according to
                 SAT) and the ATA Identify/Log reported data.
+
+        --csmiInfo                       (Windows only)
+                Use this option to show some information reported by the CSMI
+                compliant driver. This includes driver information, controller
+                information, PHY information, SAS address, and SATA signature
+                as they were reported by the driver. This information can be
+                useful when troubleshooting CSMI system/driver compatibility
+                issues.
 
         --testUnitReady
                 A simple check to see if the device responds to commands from
@@ -407,6 +413,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 -d all.  Seagate is not responsible for lost user data.  Along with the
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
 
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
