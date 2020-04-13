@@ -196,9 +196,9 @@ export CXXFLAGS
 export PROJECT_DEFINES
 
 opensea-libs:
-	$(MAKE) -C ../../opensea-common/Make/gcc
-	$(MAKE) -C ../../opensea-transport/Make/gcc
-	$(MAKE) -C ../../opensea-operations/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../opensea-common/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../opensea-transport/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../opensea-operations/Make/gcc
 
 $(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir
 	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)

@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.9.1";
+const char *buildVersion = "2.9.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -451,22 +451,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(FW_STRING_FLAG, optarg, 8);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
@@ -1369,51 +1369,61 @@ int32_t main(int argc, char *argv[])
                             //*/
                         }
                     }
-                    fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr);
-
-                    dlOptions.dlMode = DOWNLOAD_FW_MODE;
-                    dlOptions.segmentSize = 0;
-                    dlOptions.firmwareFileMem = firmwareMem;
-                    dlOptions.firmwareMemoryLength = firmwareFileSize;
-                    switch (firmware_Download(&deviceList[deviceIter], &dlOptions) )
+                    if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
+
+                        dlOptions.dlMode = DOWNLOAD_FW_MODE;
+                        dlOptions.segmentSize = 0;
+                        dlOptions.firmwareFileMem = firmwareMem;
+                        dlOptions.firmwareMemoryLength = firmwareFileSize;
+                        switch (firmware_Download(&deviceList[deviceIter], &dlOptions) )
                         {
-                            printf("Firmware Download successful\n");
-                            if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                        case SUCCESS:
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                                printf("Firmware Download successful\n");
+                                if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                                {
+                                    printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                                }
+                                else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
+                                {
+                                    printf("This drive requires a full power cycle to activate the new code.\n");
+                                }
+                                else
+                                {
+                                    fill_Drive_Info_Data(&deviceList[deviceIter]);
+                                    printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                }
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
-                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
+                            break;
+                        case NOT_SUPPORTED:
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("This drive requires a full power cycle to activate the new code.\n");
+                                printf("Firmware Download not supported\n");
                             }
-                            else
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                            break;
+                        default:
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                fill_Drive_Info_Data(&deviceList[deviceIter]);
-                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                printf("Firmware Download failed\n");
                             }
-                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                            {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
-                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            break;
                         }
-                        break;
-                    case NOT_SUPPORTED:
+                    }
+                    else
+                    {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Firmware Download not supported\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Firmware Download failed\n");
+                            printf("Error reading contents of firmware file!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
                     }
                     safe_Free_aligned(firmwareMem);
                 }
