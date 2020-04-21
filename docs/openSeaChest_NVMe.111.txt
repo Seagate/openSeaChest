@@ -1,7 +1,8 @@
-openSeaChest_Firmware.txt                                 Revision: 09-Apr-2020
+openSeaChest_NVMe.txt                                     Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_Firmware for Linux and Windows - Seagate drive utilities
+ openSeaChest_NVMe for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -16,13 +17,6 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
-
-This User Guide file contains important information about openSeaChest Firmware.
-Please read this entire file before using this software.
-
-openSeaChest_Firmware is a comprehensive command line tool that can be used to
-update firmware, also known as microcode, on Seagate disk drives (this includes
-Seagate, Maxtor, Samsung and LaCie).
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -39,19 +33,39 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Seagate products are run by firmware.  Having the latest firmware can improve
-performance and or reliability of your product.  Seagate recommends applying
-new firmware to enhance the performance and or reliability of your drive.  Like
-any software, firmware is improved over time and problems are also fixed.
-Every drive family has a couple of firmware releases during the life of the
-product. Please check in regularly to determine if new firmware is available
-for your drive.
+openSeaChest_NVMe is a comprehensive command line tool that can be used to
+configure, change or set various properties on Seagate disk drives (this
+includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
+data on the drive to become inaccessible.  Some commands may affect the
+performance of the drive.
 
-openSeaChest_Firmware allows for both single drive and sequential batch mode
-firmware download.
+NOTE: openSeaChest_NVMe may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about
+openSeaChest_NVMe.  Please read this entire file before using this
+software.
 
 If this is your drive, you should always keep a current backup of your
 important data.
+
+Be very careful using openSeaChest_NVMe. Power failure during a
+configuration change may cause data loss. Seagate is not responsible for lost
+user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -62,59 +76,33 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-Be very careful using openSeaChest_Firmware. Power failure during a firmware
-download will cause data loss. Never apply firmware to a drive unless you are
-certain that the firmware data file is specifically prepared for your drive.
-Seagate is not responsible for lost user data.
-
-NOTE: openSeaChest_Firmware may not be fully functional on non-Seagate drives.
-
-NOTE: Windows severely restricts downloading firmware to SATA drives.  Please
-see the section below "Windows Restrictions Over SATA Firmware Downloads".
-openSeaChest_Firmware may not be fully functional on non-Seagate drives.
-
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_Firmware [-d <sg_device>] {arguments} {options}
+        openSeaChest_NVMe [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo openSeaChest_Firmware --scan
-        sudo openSeaChest_Firmware -d /dev/sg2 -i
-        sudo openSeaChest_Firmware -d /dev/sg2 --fwdlInfo
-        sudo openSeaChest_Firmware -d /dev/sg2 --downloadFW fwfilename
+        sudo openSeaChest_NVMe --scan
+        sudo openSeaChest_NVMe -d /dev/nvme0n1 --deviceInfo
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_Firmware [-d <device>] {arguments} {options}
+        openSeaChest_NVMe [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_Firmware --scan
-        openSeaChest_Firmware -d PD2 -i
-        openSeaChest_Firmware -d PD2 --fwdlInfo
+        openSeaChest_NVMe --scan
+        openSeaChest_NVMe -d PD0 --deviceInfo
 
 Utility Arguments
 =================
         -s, --scan
-                Scan the system and list all storage devices with logical
-                /dev/sg? assignments. Shows model, serial and firmware
-                numbers. If your device is not listed on a scan immediately
-                after booting, then wait 10 seconds and run it again.
+                Scan the system and list all storage devices with Physical
+                Device assignments. Shows model, serial and firmware numbers.
+                If your device is not listed on a scan immediately after
+                booting, then wait 10 seconds and run it again.
 
-        -S, --Scan   (note the capital letter S)
-                This option is the same as --scan or -s, however it will also
-                perform a low level rescan to pick up other devices. This
-                low-level rescan may wake devices from low power states and may
-                cause the OS to re-enumerate them. Use this diagnostic option
-                when a device is plugged in and not discovered in a normal scan.
-
-                NOTE: A low-level rescan may not be available on all interfaces
-                or all OSs.  The low-level rescan is not guaranteed to find
-                additional devices in the system when the device is unable to
-                come to a ready state.
-
-        -F, --scanFlags [option list]
+       -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
                      ata            - show only ATA (SATA) devices
@@ -154,21 +142,12 @@ Utility Arguments
                 as communicated by the USB-SATA bridge.  Add --usbChildInfo
                 to display details about the drive within the USB enclosure.
 
-        --SATInfo                       (SATA only)
-                Displays SATA device information on any interface using both
-                SCSI Inquiry/VPD/Log reported data (translated according to
-                SAT) and the ATA Identify/Log reported data.
-
         --testUnitReady
                 A simple check to see if the device responds to commands from
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --fwdlInfo
-                Use this option to show the firmware download support
-                information for a drive.
-
-        --downloadFW [fwfilename]
+        --downloadFW [firmware filename]
                 Download firmware to a Seagate storage product. Use only
                 Seagate authorized firmware data files which are designated for
                 the specific model drive. Improper use of this option may harm
@@ -177,32 +156,33 @@ Utility Arguments
                 use segmented download by default. Use the --downloadMode
                 option to specify a different download mode.
 
-        --downloadMode [full | segmented | deferred]
-                Use this command along with the --downloadFW option to set the
-                firmware download mode.
+                Please see the section below "Windows Restrictions Over SATA
+                Firmware Downloads".
+
+        --downloadMode [immediate | deferred | activate]
+                Use this option along with the --downloadFW option to set the
+                firmware download mode. The "activate" option can be run
+                without the --downloadFW option.
 
                 Supported Modes:
-                     full      - Performs a download in one large transfer to
-                                 the device.
-                     segmented - Downloads the firmware in multiple segments to
-                                 the device. (Most compatible)
+                     immediate - Performs the download command and sends the
+                                 activate/commit command.
                      deferred  - Performs a segmented download to the device,
                                  but does not activate the new firmware until a
-                                 power cycle or activate command is sent. Drives
-                                 with this feature are not common. See
-                                 --activateFW.
+                                 reset / activate command is sent.
+                     activate  - Only sends the activate/commit command to
+                                 activate previously downloaded firmware.
 
                 Note: See the --modelMatch and --onlyFW utility options which
                 may assist in creating commands to update multiple similar
                 drives.
 
-        --activateFW
-                Use this option to issue the command to activate code that was
-                sent to the drive using a deferred download command. This will
-                immediately activate the new code on the drive. You can use
-                this along with a --downloadFW and --downloadMode to
-                automatically issue the activate command after the deferred
-                download has completed.
+        --firmwareSlot/--fwBufferID slot#               (Seagate Only)
+                Use this option to specify a firmware slot (NVMe) or a buffer
+                ID (SCSI) along with the --downloadMode (SCSI) or --activateFW
+                (NVMe & SCSI) options. If this option is not used, a value of
+                zero will be used instead, which means the drive will
+                automatically select the slot number.
 
         --fwdlSegSize [segment size in 512B blocks]
                 Use this option to specify a segment size in 512B blocks to use
@@ -214,32 +194,119 @@ Utility Arguments
                 compatible, but also slower. Use this option if the default
                 used by the tool is not working correctly for firmware updates.
 
-        --firmwareSlot/--fwBufferID slot#
-                Use this option to specify a firmware slot (NVMe) or a buffer
-                ID (SCSI) along with the --downloadMode (SCSI) or --activateFW
-                (NVMe & SCSI) options.  If this option is not used, a value of
-                zero will be used instead, which means the drive will
-                automatically select the slot number.
+        --checkPowerMode
+                Get the current power mode of a drive. On SCSI devices, this
+                will only work if the drive has transitioned from active state
+                to another state.
 
-        --forceFWDLPassthrough
-                This option is used to control when to use the Windows 10+
-                Firmware Download API calls. This option will force using ATA
-                or SCSI passthrough to issue the FWDL commands instead of
-                automatically selecting passthrough or the Win10 API. It is
-                strongly recommended that this option only be used when
-                troubleshooting problems when updating firmware. The Win10 API
-                allows for tracking device firmware version changes in real
-                time. This is not possible with passthrough commands which may
-                require a system restart for Windows to detect the new version
-                of firmware.
+        --transitionPowerState [new power state]
+                Use this option to transition to a specific power state.
+                HINT:
+                  Use --deviceInfo to show number of supported states
 
-        NVMe Only
-        =========
-        --switchFW      (NVMe Only)
-                Use this option to switch to a different firmware slot on an
-                NVMe drive. You must specify a slot with the --firmwareSlot
-                option or this will fail. The specified slot must already have
-                a valid firmware image in it as well.
+        --getFeatures  [help | list | #]
+                Use this option to list the NVMe features
+                Supported Modes:
+                        help  - prints the descriptions of all
+                                the features
+                        list  - lists raw values of all mandatory
+                                features supported by device
+                        #     - feature number will print the
+                                humanized details
+
+        --getNvmeLogPage   [error | smart | fwSlots | suppCmds | selfTest | #]
+                Use this option to get the NVMe log pages
+                Supported Modes:
+                        error    - lists the valid entries found in the
+                                   Error Information Log. Binary logs to the
+                                   current directory as
+                                   <serialnumber>_LOG_PAGE_1_<date and time>.bin
+                        smart    - lists information found in the SMART/Health
+                                   Information Log. Binary logs to the current
+                                   directory as <serialnumber>_LOG_PAGE_2_<date
+                                   and time>.bin
+                        fwSlots  - lists currently active Firmware slot and
+                                   Firmware Revision in each slot.  Binary logs
+                                   to the current directory as
+                                   <serialnumber>_LOG_PAGE_3_<date and time>.bin
+                        suppCmds - lists the commands that the controller
+                                   supports and the effects of those commands.
+                                   Binary logs to the current directory as
+                                   <serialnumber>_LOG_PAGE_5_<date and time>.bin
+                        selfTest - lists the status of any device self-test
+                                   operation in progress and the results of the
+                                   last 20 device self-test operations.Binary
+                                   logs to the current directory as
+                                   <serialnumber>_LOG_PAGE_6_<date and time>.bin
+                        #        -  option to get the log page using
+                                   a number
+
+        --getTelemetry [host | ctrl]
+                Use this option to get the NVMe Telemetry data for a device.
+                Use the --telemetryDataArea option to control the amount of
+                data collected.
+                Supported Modes:
+                     host - get Host Telemetry
+                     ctrl - get Controller Telemetry
+
+        --telemetryDataArea [1 | 2 | 3]
+                This is a sub-command which defines the amount of data
+                collected by the --getTelemetry option. Data Area 3 is assumed
+                if this option is not used.
+                Supported Data Area.
+                     1 - get minimal telemetry data
+                     2 - get telemetry data additional to data area 1
+                     3 - get telemetry data additional to data area 2 (default
+                         data area)
+
+        --clearPciErr
+                Use this option to clear correctable errors.
+
+        --extSmartLog
+                Use this option to pull the Extended Smart Log Attributes.
+
+        --logMode   [raw | binary]
+                Use this option with others options such as --getNvmeLogPage and
+                --deviceInfo to show a buffer output or to create a binary file.
+
+                Supported Modes:
+                        raw    - prints the raw buffer on stdout
+                        binary - writes data to a file with device
+                                 Serial Number & time stamp
+                Note: If --logMode is omitted then the --getNvmeLogPage
+                      output is in a human readable format.
+
+        --tempStats
+                Use this option to get the NVMe Temperature Statistics
+
+        --pciStats
+                Use this option to get the NVMe PCIe Statistics
+
+        --poll
+                Use this option to cause another operation to poll for progress
+                until it has completed.  This argument does not return to the
+                command prompt and prints ongoing completion percentages (%)
+                and the final test result.  Full drive procedures will take a
+                very long time.  Used with --sanitize, --secureErase (SATA),
+                --writeSame (SATA), --formatUnit (SAS), --nvmFormat (NVMe).
+
+        --progress format
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
+
+        --showSupportedFormats
+                This option will show the supported formats of a device. These
+                can be used to change the sector size or used with a format
+                operation. On SAS, this is the supported block lengths and
+                protection types VPD page (SBC4 and later). On SATA, this is
+                the sector configuration log (ACS4 and later). If the device
+                does not report supported sector sizes, please consult your
+                product manual.
 
 Utility Options
 ===============
@@ -248,7 +315,7 @@ Utility Options
 
         -v [0-4], --verbose [0 | 1 | 2 | 3 | 4]
                 Show verbose information. Verbosity levels are
-                0 - quiet,
+                0 - quiet
                 1 - default
                 2 - command descriptions
                 3 - command descriptions and values
@@ -270,26 +337,6 @@ Utility Options
                 Shows the command line above the banner in the standard output.
                 Useful when saving output to logs.
 
-        --enableLegacyUSBPassthrough
-                Only use this option on old USB or IEEE1394 (Firewire) products
-                that do not otherwise work with the tool. This option will
-                enable a trial and error method that attempts sending various
-                ATA Identify commands through vendor specific means. Because of
-                this, certain products may respond in unintended ways since
-                they may interpret these commands differently than the bridge
-                chip the command was designed for.
-
-        --sat12byte
-                This forces the lower layer code to issue SAT spec ATA
-                Pass-through 12-byte commands when possible instead of 16-byte
-                commands.  By default, 16-byte commands are always used for ATA
-                Pass-through.  USB products may need this option as a
-                workaround if the default does not perform.
-
-        --onlySeagate
-                Use this option to match only Seagate drives for the options
-                provided. May also be used with the --scan command.
-
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
                 model number. This option will provide a closest match although
@@ -305,38 +352,6 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
-
-        --newFW [firmware revision]
-                Use this option to skip drives matching the provided firmware
-                revision. This option will only do an exact match. This option
-                should be used to skip performing an update if a drive already
-                has this firmware revision loaded. The option --childNewFW may
-                be used to match drives in USB enclosures.
-
-        --forceATA
-                Using this option will force the current drive to be treated as
-                a ATA drive. Only ATA commands will be used to talk to the
-                drive.
-
-        --forceATADMA   (SATA Only)
-                Using this option will force the tool to issue SAT commands to
-                ATA device using the protocol set to DMA whenever possible (on
-                DMA commands). This option can be combined with --forceATA.
-
-        --forceATAPIO   (SATA Only)
-                Using this option will force the tool to issue PIO commands to
-                ATA device when possible. This option can be combined with
-                --forceATA.
-
-        --forceATAUDMA  (SATA Only)
-                Using this option will force the tool to issue SAT commands to
-                ATA device using the protocol set to UDMA whenever possible (on
-                DMA commands). This option can be combined with --forceATA.
-
-        --forceSCSI
-                Using this option will force the current drive to be treated as
-                a SCSI drive. Only SCSI commands will be used to talk to the
-                drive.
 
         Windows only:
         --csmiIgnorePort
@@ -361,6 +376,85 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
+Data Destructive Commands
+========================================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+        --confirm this-will-erase-data ... etc
+
+        --nvmFormat [current | format # | sector size]  (NVMe Only)
+                This option is used to start an NVM format operation. Use
+                "current" to perform a format operation with the Sector size
+                currently being used. If a value between 0 and 15 is given,
+                then that will issue the NVM format with the specified sector
+                size/metadata size for that supported format on the drive.
+                Values 512 and higher will be treated as a new sector size to
+                switch to and will be matched to an appropriate LBA format
+                supported by the drive. This command will erase all data on the
+                drive. Combine this option with --poll to poll for progress
+                until the format is complete.
+
+                HINT: Use --showSupportedFormats to print supported LBA Formats
+
+        --nvmFmtSecErase [none | user | crypto]         (NVMe Only)
+                This option is used to specify the type of erase to perform
+                during an NVM format operation. All user data will be
+                inaccessible upon completing format, no matter the erase
+                requested.
+
+                Options:
+                     none   - no secure erase requested (previous data will not
+                              be accessible)
+                     user   - requests all user data is erased by the device.
+                     crypto - requests a cryptographic erase of all user data.
+                              Note: this mode is not supported on all devices.
+
+        --nvmFmtMetadataSet [xlba | separate]   (NVMe Only)
+                Use this option to specify how metadata is transmitted to
+                the host system.
+                Options:
+                     xlba - metadata is transferred as part of the logical
+                            block data
+                     separate - metadata is transferred as a separate buffer
+
+                Note: Not all devices support specifying this. If this option
+                      is not provided, the NVM format will reuse the current
+                      setting.
+
+        --nvmFmtMS [# of bytes for metadata]    (NVMe Only)
+                This option is used to specify the length of metadata with a
+                requested logical block size. The device must support the
+                combination of logical block size and metadata size or the
+                format will be rejected by the device.
+
+        --nvmFmtNSID [all | current]    (NVMe Only)
+                This option changes the namespace ID (NSID) used when issuing
+                the NVM format command. This can be used to control formatting
+                device or a specific namespace if the device supports
+                specifying specific namespaces for a format command. Not all
+                devices support this behaviors no effect on devices that do not
+                support targeting and will format the entire device.  If this
+                option is not given, the format will be issued to all
+                namespaces by default.
+
+        --nvmFmtPI [0 | 1 | 2 | 3]      (NVMe Only)
+                Use this option to specify the protection type to format the
+                medium with.
+
+                Note: Not all devices support protection types. If this option
+                      is not provided, the NVM format will reuse the current
+                      setting.
+
+        --nvmFmtPIL [beginning | end]   (NVMe Only)
+                Use this option to specify the location protection information
+                in an NVM device's metadata.
+
+                Note: Not all devices support specifying this. If this option
+                      is not provided, the NVM format will reuse the current
+                      setting.
+
 Return codes
 ============
         0       No Error Found
@@ -373,16 +467,6 @@ Return codes
         7       Cannot Open File
         8       File Already Exists
         9       Need Elevated Privileges (sudo, run as administrator)
-        ---openSeaChest_Firmware specific exit codes---
-        32 = Firmware Download Complete
-        33 = Deferred Firmware Download Complete
-        34 = Deferred Code Activated
-        35 = No Drive or Firmware match found
-        36 = Model number matched, but Firmware mismatched
-        37 = Firmware File Hash Error
-        38 = Firmware Already up to date
-        39 = Firmware Match Found for update
-        40 = Firmware Match Found for update - deferred update supported
         Anything else = unknown error
 
 ================
@@ -476,28 +560,6 @@ If you want to see both handles, add --scanFlags allowDuplicates to the command
 line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
 the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
 troubleshooting CSMI device handles questions.
-
-Windows Restrictions Over SATA Firmware Downloads
--------------------------------------------------
-You should not attempt downloading firmware to a SATA disk drive in the Windows
-operating system unless the drive supports the 'deferred' mode.  You define the
-mode with the openSeaChest command line option '--downloadMode deferred'.  If
-the drive does not support deferred mode then the command will be aborted.
-Windows may not be so restrictive on secondary, non-boot SATA drives or SATA
-drives attached to host bus adapters (HBAs, controllers, USB, etc).
-
-If you force a primary SATA boot drive to download firmware in Windows using a
-different --downloadMode setting, then the result will likely be a BSOD (blue
-screen of death) system crash.  This is because the legacy SATA firmware
-download modes require the drive to spin down and then back up and the
-momentary disappearance of the drive causes the operating system to crash.
-Windows is actually protecting the system when it thinks the drive has stopped
-responding (see wikis about Ring 0 Protection).
-
-The 'deferred' mode does not spin down the drive.  Instead, the drive waits for
-a future reboot of the system and self-activates the firmware at that time.
-Other operating systems may utilize the openSeaChest --activateFW command to
-trigger the switch to the new firmware version.
 
 =========================
 Linux General Usage Hints
@@ -909,156 +971,32 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-v0.0.1  22-Mar-2016  1_9_1 libraries.  SeaChest_Firmware Windows, initial beta
-                     test release.  Branched from SeaChest_Basics v1.1.0.  Adds
-                     firmware download batch modes by model number and various
-                     firmware revision checks.
-v0.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
-                     Fixed a bug where we could accidentally clear some stored
-                     identify data from the device structure. Fixed continuing
-                     on when there was a permission denied error opening a
-                     drive.
-v1.0.0  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
-                     commands. Fixed bugs with --modelMatch and --onlyFW
-                     filters.
-v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
-v1.1.0  14-Jul-2016  1_10_1 libraries adds SMART and power management
-                     functions, format polling, endianess detection, buffer
-                     size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher.
-v2.0.3  16-Aug-2016  Adds --fwdlInfo, --activateFW, --fwdlConfig and
-                     --fwdlSegSize.  Add user defined configuration
-                     files.
-v2.1.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
-                     minor bug fixes. Fixed --SATInfo command. After firmware
-                     download messages improved. Logic to exclude using both
-                     --fwdlConfig and --downloadFW at the same time.
-v2.1.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
-                     and --forceATAUDMA  (SATA Only).
-v2.2.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v2.2.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
-                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
-                     the -i --SATInfo output.
-v2.2.2  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
-                     --enableLegacyUSBPassthrough
-v2.2.2  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
-                     settings.
-v2.2.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
-                     the corresponding command range option, SAS power mode
-                     setting, and Sanitize erase patterns.
-v2.3.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
-                     22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --fwdlDryRun. New -F, --scanFlags
-                     [options: ignoreCSMI allowDuplicates] for Windows tools.
-                     Add CSMI support to all Windows version tools.
-v2.3.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features.
-v2.3.2  09-Mar-2017  Fixes to config file processing.
-v2.3.3  12-Apr-2017  1_13_4 libraries. Fixes issue where tool was not
-                     defaulting to segmented download if not specified.  Adds
-                     several new return exit codes to help manage scripts using
-                     configuration files.
-v2.3.4  10-May-2017  1_13_4 libraries. Fixes issue where where --fwdlInfo
-                     command was sometimes missing segmented on SAS products.
-v2.4.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
-                     should exit with code = 1; added detection of parallel ATA
-                     and SCSI speeds; temperature data on ATA now uses the
-                     values from the SCT status log or device statistics log.
-                     Bug fix where the "-d all" was not filtering out csmi
-                     drives like it is supposed to causing duplicate drives to
-                     show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.
-v2.5.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
-                     Sense Data Reporting feature enabled, changes to how we
-                     interpret the completion status from the drive, new Sense
-                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
-                     note the capital S) aggressive system scan.
-v2.5.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v2.5.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
-                     reading remanufacture time for SAS when the drive reports
-                     a time, fixed SAS --abortDST.
-v2.5.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
-                     SAS adapters, added NVMe read, write & Flush commands.
-v2.5.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
-                     device, SAT library strings, and fixes to Read-Buffer
-                     error history (ISL). Updated copyright notice, invalid
-                     command line options now only display an error instead of
-                     long help. Added option to specify a buffer ID or FW slot,
-                     file name added to the output of --showFileHash. Added
-                     --firmwareSlot and --fwBufferID.
-v2.5.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
-                     that don't show as SATA and don't support the SAT VPD
-                     page; added Automatic fallback to 12byte CDBs during
-                     initial device discovery;  integrated fixes for SAS
-                     firmware download and fixes for SAS LongDST time
-                     calculation; added detection of TCG Pyrite and Opalite
-                     drives.
-v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
-                     on some LSI adapters, corrects firmware download issue
-                     under Windows 10 API.
-v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v0.0.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
 
-The above history is provided as a courtesy to show the orginal SeaChest
+The above history is provided as a courtesy to show the original SeaChest
 development activity.
 
 ============================
 openSeaChest Version History
 ============================
-v2.5.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
-open source project for storage devices.
-v2.5.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
-                     that don't show as SATA and don't support the SAT VPD
-                     page; added Automatic fallback to 12byte CDBs during
-                     initial device discovery;  integrated fixes for SAS
-                     firmware download and fixes for SAS LongDST time
-                     calculation; added detection of TCG Pyrite and Opalite
-                     drives.
-v2.5.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
-                     on some LSI adapters, corrects firmware download issue
-                     under Windows 10 API.
-v2.5.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
-v2.5.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
-                     USB flash drives, support for early 90's PATA drives that
-                     don't support LBA mode, bug fix where the last digit of
-                     the SCSI Unit Serial Number was being dropped, additional
-                     logic for deferred download completion status. --scan
-                     --onlySeagate for just Seagate drives in a large system,
-                     Long Drive Self Test Time in the -i output, write protect
-                     status has been added for SCSI and NVMe in the -i output,
-                     IDD enhancements for SAS, IDD enhancements to allow
-                     captive mode on SATA, added USB Hacks to better support
-                     some odd-ball USB devices and prevent crashes and improve
-                     performance for some operations on them by issuing test
-                     unit ready commands when something fails during device
-                     discovery, automatic fall back to SAT 10 byte commands
-                     during device discovery to help work with some USB
-                     devices, some Legacy SCSI support enhancements (partially
-                     from USB hacks development), enhanced SD to SG mapping in
-                     Linux.
-v2.5.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
-                     field to get the OS name under linux; NVMe enabled;  fixed
-                     a bug in the ATA activate FW command; added in reading ID
-                     Data log and Device statistics logs page 0 to check the
-                     list of supported pages; fixed a bug in the loop used to
-                     read mode pages for -i information on SAS; IDD SAS
-                     improvements; fixed a bug in DST & Clean with ATA drives
-                     behind SCSI controllers. Fix for --modelMatch that have
-                     spaces in the name. Added additional information to the
-                     banner and -V data to show support levels. Add general
-                     support for NVMe and NVMe specific identify data to "-i"
-                     command. Add --allowFlexibleFWDLAPIUse.
-v2.5.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v2.7.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+v0.0.8  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
+v0.0.9  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
                      section,  --deviceInfo now gives Low Current Spinup
-                     status. Adds --forceFWDLPassthrough and --swtchFW.
-v2.7.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     status. Adds  --firmwareSlot/--fwBufferID, adds
+                     --fwdlSegSize, adds --getTelemetry,  adds
+                     --telemetryDataArea, adds showSupportedFormats, removes
+                     --formatUnit. Adds several new commands in support of NVMe
+                     format: --nvmFormat, --nvmFmtSecErase, --nvmFmtMS,
+                     --nvmFmtNSID, --nvmFmtPI, --nvmFmtPIL, --nvmFmtMetadataSet.
+v1.0.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
-v2.8.1  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+v1.1.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -1069,6 +1007,8 @@ v2.8.1  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
+v1.1.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

@@ -1,7 +1,8 @@
-openSeaChest_Configure.txt                                Revision: 09-Apr-2020
+openSeaChest_GenericTests.txt                             Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_Configure for Linux and Windows - Seagate drive utilities
+ openSeaChest_GenericTests for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -16,6 +17,11 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your storage product. It
+includes several tests that will examine the physical media on your storage
+device.
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -32,24 +38,40 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-openSeaChest_Configure is a comprehensive command line tool that can be used to
-configure, change or set various properties on Seagate disk drives (this
-includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
-data on the drive to become inaccessible.  Some commands may affect the
-performance of the drive.
+One of the fundamental units of data on a storage device like a disk drive is
+the sector.  In the case of a hard disk drive, a sector is a physical section
+of a circular magnetized track accessed by read write heads over the rotating
+media.  The original hard drive sectors are 512 bytes each.  If you take the
+number or logical sectors on a disk drive and multiply it by 512 you get the
+total capacity of the drive in bytes.  Since the mid-1990's the term sector has
+been replaced by an acronym synonym LBA, which stands for Logical Block
+Address.  All drives start with LBA 0 and count up to the full capacity of the
+drive.
 
-NOTE: openSeaChest_Configure may not be fully functional on non-Seagate drives.
+In the example above, the physical sector size is 512 bytes and logical sector
+size is also 512 bytes.  Beginning around the year 2010 disk drives have been
+manufactured with a physical sector size of 4096 bytes but the disk drive
+delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
+expects 512 and is not concerned about the actual physical size.  These drives
+are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
+are manufactured with 4096 byte for both physical and logical block sizes.
 
-This User Guide file contains important information about
-openSeaChest_Configure.  Please read this entire file before using this
-software.
+openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
+unreadable.
 
-If this is your drive, you should always keep a current backup of your
-important data.
+It may be possible to repair a problem when a generic read test fails due to
+failure to read a particular sector (LBA).  You might consider the
+--repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
+options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
+Found" for more information on this subject.
 
-Be very careful using openSeaChest_Configure. Power failure during a
-configuration change may cause data loss. Seagate is not responsible for lost
-user data.
+This User Guide file contains important information about openSeaChest
+GenericTests.  Please read this entire file before using this software.
+
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
 
 Important note: Many tests in this tool directly reference storage device data
 sectors, also known as Logical Block Addresses (LBA). Test arguments may
@@ -75,23 +97,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
+NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
+drives.
+
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_Configure [-d <sg_device>] {arguments} {options}
+        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo openSeaChest_Configure --scan
-        sudo openSeaChest_Configure -d /dev/sg2 --deviceInfo
+        sudo openSeaChest_GenericTests --scan
+        sudo openSeaChest_GenericTests -d /dev/sg2 -i
+        sudo openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_Configure [-d <device>] {arguments} {options}
+        openSeaChest_GenericTests [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_Configure --scan
-        openSeaChest_Configure -d PD0 --deviceInfo
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d PD0 -i
+        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
 
 Utility Arguments
 =================
@@ -150,8 +177,8 @@ Utility Arguments
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge.  Add --usbChildInfo
-                to display details about the drive within the USB enclosure.
+                as communicated by the USB-SATA bridge.  Add --usbChildInfo to
+                display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -163,334 +190,140 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --setMaxLBA [newMaxLBA | maxLBA]
-                Set the max accessible address of your drive to any value less
-                than the device's default native size. A power cycle is
-                required after this command before resetting or setting a new
-                max LBA. The final capacity will depend on the logical sector
-                size.  If the Logical Block Address (LBA) is set to 1953125 and
-                the sector size is 512, then the capacity is 1,000,000,000
-                bytes. If the logical sector size is 4096, then the capacity is
-                8,000,000,000 bytes.  If the logical sector size is 512 but the
-                physical sector size is 4096 (called Advanced Format), then
-                normal practice is to pick an LBA value which is divisible by
-                8. Use the -i, --deviceInfo to show logical and physical sector
-                sizes.  The predefined text string "maxLBA" (without quotes)
-                may be entered to indicate the last sector on the drive,
-                otherwise see --restoreMaxLBA.
+        --bufferTest
+                This option will perform a test using the device's echo buffer.
+                The write buffer and read buffer commands are used to send &
+                receive different data patterns.  The patterns are compared and
+                interface CRC errors are also checked (when available).  Test
+                patterns performed are all 0's, all F's, all 5's, all A's,
+                walking 1's, walking 0's, and random data patterns.  At
+                completion, a count of the number of errors will be displayed.
 
-        --restoreMaxLBA
-                Restore the max accessible address of your drive to its native
-                size. A power cycle is required after this command before
-                setting a new max LBA.
+        --genericMode [ read | write  | verify ]
+                This options allows selection of the type of commands to use
+                while performing a generic test.  If this option is omitted
+                then read is the default mode.
 
-        --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
-                Use this option to change the PHY speed to a new maximum value.
-                This change persists over power cycles and resets. On SAS, this
-                option will set all phys to the specified speed unless the
-                --sasPhy option is given to select a specific phy.
+                Supported modes are:
+                  read - performs a generic test using read commands, data safe
+                  write - performs a generic test using write commands, any
+                          data on sectors written during the test will be
+                          lost.  Seagate is not responsible for lost user
+                          data. --confirm acknowledgment command will be
+                          required.
+                  verify - performs a generic test using verify commands, data
+                           safe, sometimes faster than read commands.
 
-                0 - allow full negotiation (default drive behavior)
-                1 - allow negotiation up to 1.5Gb/s
-                2 - allow negotiation up to 3.0Gb/s
-                3 - allow negotiation up to 6.0Gb/s
-                4 - allow negotiation up to 12.0Gb/s (SAS Only)
-                5 - allow negotiation up to 22.5Gb/s (SAS Only)
+        --shortGeneric
+                This option will run a short generic read test on a specified
+                device. A short generic read test has 3 components. A
+                sequential read at the Outer Diameter (OD) of the drive for 1%
+                the LBAs (sectors), then a sequential read at the Inner
+                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
+                read of 5000 LBAs. This test will stop on the first read error
+                that occurs.
 
-        --nvCache [info | enable | disable]     (SAS Only)
-                Use this option to enable or disable the SCSI Non-Volatile
-                cache on a drive. Use the "info" argument to get the current
-                status of the Non-Volatile Cache setting.
-                WARNING: Changing NV Cache may affect all LUNs/namespaces for
-                devices with multiple logical units or namespaces.
+        --twoMinuteGeneric
+                This option will run a 2 minute generic read test on a
+                specified device. There are 3 components to this test. A read
+                at the Outer Diameter (OD) of the drive for 45 seconds, then a
+                read at the Inner Diameter of the drive for 45 seconds, and
+                lastly a random read test for 30 seconds. This test will stop
+                on the first read error that occurs.
 
-       --readLookAhead [info | enable | disable]
-                Use this option to enable or disable read look-ahead support on
-                a drive.  Use the "info" argument to get the current status of
-                the read look ahead feature.  This change is not preserved over
-                power cycles.
+        --longGeneric
+                This option will run a long generic read test on a specified
+                device. A long generic read test sequentially reads every LBA
+                on the device and gives a report of error LBAs at the end of
+                the test, or when the error limit has been reached. Using the
+                --stopOnError option will make this test stop on the first read
+                error that occurs. The default error limit is 50 x number of
+                logical sectors per physical sector.
 
-        --writeCache [info | enable | disable]
-                Use this option to enable or disable write cache support on a
-                drive.  Use the "info" argument to get the current status of
-                the write cache feature.  Changes may not be preserved over
-                power cycles.
+                Example error limits are as follows:
 
-                Note: Windows, Device Manager, Disk drives, <your model>,
-                Policies tab, Write-caching policy may override this
-                --writeCache setting if the policy is enabled in Device
-                Manager. You can change the Windows policy or you can try
-                --sctWriteCache, if necessary, to control the cache regardless
-                of the policy.
+                        512L/512P: error limit = 50
+                        4096L/4096P: error limit = 50
+                        512L/4096P: error limit = 400 (50 * 8)
 
-SATA Only
----------
-        --freeFall [info | enable | disable | sensitivity value]  (SATA only)
-                Use this option to configure the Free Fall control feature
-                found on some SATA drives. This feature allows the drive to
-                take action if it detects it is in free fall to protect the
-                data from harm due to a drop.
+        --userGenericStart [starting LBA | maxLBA]
+                Use this option to specify the starting LBA number for a
+                generic read test. The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The --userGenericRange or
+                timed (--hours, minutes, seconds) options must be used with
+                this one in order to start the test. Use the --stopOnError
+                repair flag and/or --errorLimit flags to further customize this
+                test.
 
-                info - use this to see the current sensitivity value
-                enable - this option will set the sensitivity to the vendor's
-                        recommended value.
-                disable - this will disable the free fall control feature.
-                sensitivity value - set a value between 1 and 255 to control
-                        how sensitive the detection is. A value of zero will
-                        set the vendor's recommended value.
+        --userGenericRange [LBA count]
+                Use this option to specify the range for a generic read test.
+                See the --userGenericStart help for additional information
+                about using the User Generic Read tests.
 
-        --lowCurrentSpinup [ low | ultra | disable ]  (SATA Only) (Seagate Only)
-                Use this option to set the state of the low current spinup
-                feature on Seagate SATA drives.  When this setting is enabled
-                for low or ultra low mode, the drive will take longer to spinup
-                and become ready.
-                Note: This feature is not available on every drive.
-                Note: Some products will support low, but not the ultra low
-                current spinup mode.
+        --diameterTest [O | M | I]
+                Use this option to perform a generic read/write/verify test at
+                the specified diameter of the drive. The different diameters
+                can be combined or run individually. Use the time options to
+                specify a time-based test or the --diameterTestRange option for
+                a range-based test. If --diameterTestRange is omitted the
+                default is a one minute test.
 
-        --puisFeature [enable | disable]  (SATA Only)
-                Use this option to enable or disable the Power Up In Standby
-                (PUIS) feature on SATA drives.
-                Note: If this is configured on the drive with a jumper, this
-                      command will fail.
-                Note2: Not all products support this feature.
+                    O - outer diameter
+                    M - middle diameter
+                    I - inner diameter
 
-        --sscFeature [info | default | enable | disable] (SATA Only)
-                Use this option to change or view the SSC (Spread Spectrum
-                Clocking) mode on a Seagate SATA drive. Only change this
-                setting if you are experiencing compatibility problems with the
-                drive in a system.
+                Ex1: --diameterTest OMI
+                Ex2: --diameterTest O
+                Ex3: --diameterTest MI
 
-                info - show current SSC state
-                default - set to drive default mode
-                enable - enable SSC
-                disable - disable SSC
+        --diameterTestRange [range]
+                Use this option with the --diameterTest option to perform a
+                range based test. If a range is specified without any units, it
+                is assumed to be an LBA count. Valid units are KB, KiB, MB,
+                MiB, GB, GiB, TB and TiB.
 
-        --sctReadTimer [info | value] (SATA Only)
-                Use this option to set the SMART command transport read command
-                timer value for synchronous commands and NCQ commands with
-                in-order data delivery enabled. Note: this timer starts at the
-                time that the drive processes the command, not the time it is
-                received. This timer value is volatile and is cleared at each
-                power cycle. Use the "info" argument to get the current status
-                of the read timer. A value of 0 means that all possible error
-                recovery will be performed before returning status (i.e. the
-                Read Command Timer is disabled). Other values should include a
-                unit to know the time to use. If no unit is provided, it is
-                assumed to be the value * 100 ms. The maximum time that can be
-                specified is 1 hour, 49 minutes, 13 seconds. Note: On some SAT
-                HBAs/bridges, status will not be able to be determined due to
-                HBA/bridge limitations.
+                Ex1: "--diameterTestRange 1234567" for an LBA count
+                Ex2: "--diameterTestRange 2GB" for a 2GB range.
 
-                Ex1: --sctReadTimer 7s for a 7 second timer.
-                Ex2: --sctReadTimer 7000ms for a 7 second timer expressed in
-                     milliseconds
-                Ex2: --sctReadTimer 70 for a 7 second timer with no units
-                     specified
+        --stopOnError
+                Use this option to make a generic read test stop on the first
+                error found. Please see the section below "Sector Repair
+                Commands".
 
-                Note: this command is part of SMART Command Transport Error
-                Recovery Control (SCTERC). These commands may also be known as
-                TLER or CCTL.  For additional information see
-                https://en.wikipedia.org/wiki/Error_recovery_control .  Consult
-                your RAID controller documentation to learn its timeout for
-                determining drive failure and subsequent RAID rebuilding of a
-                spare drive. These SCTERC commands, if supported by the drive
-                firmware, allow setting a drive level timeout which is less
-                than the RAID controller rebuild timeout.  For example, 7
-                seconds on the drive and 8 seconds on the controller.  This
-                time difference may allow the RAID to perform error recovery at
-                the file level instead of replacing the device since the
-                timeout may be caused by a sector that is just difficult to
-                read, not an entire failure of the drive.
+        --errorLimit [limit in number of physical LBAs | none]
+                Use this option to specify a different error limit for a user
+                generic or long generic read test. This must be a number of
+                logical LBAs to have errors. If a drive has multiple logical
+                sectors per physical sector, this number will be adjusted for
+                you to reflect the drive architecture. (The default error limit
+                is 50 x number of logical sectors per physical sector.) The
+                predefined text string "none" (without quotes) may be entered
+                to indicate that there is no error limit.
 
-        --sctWriteCache [info | enable | disable | default]
-                (SATA Only)
-                Use this option to enable or disable write cache support on a
-                drive using SMART command transport. When using this option,
-                the setting is non-volatile. Use this with the --volatile flag
-                to make the setting volatile. When using this option, the
-                --writeCache will always return success, but no write cache
-                changes will occur. This follows ATA spec. Using the "default"
-                argument returns the drive to default settings and allowing the
-                --writeCache option to work again. Use the "info" argument to
-                get the current status of the write cache feature. Note: On
-                some SAT HBAs/bridges, status will not be able to be determined
-                due to HBA/bridge limitations.
+                Caution: You should closely monitor your system if using the
+                "none" argument because some failure modes, like a bad cable,
+                might see every sector as defective. Storage devices are
+                defined with billions of physical sectors and if you are
+                capturing a log without an error limit, then it would quickly
+                grow to fill up all available capacity on the capture device.
 
-        --sctWriteCacheReordering [info | enable | disable | default]
-                (SATA Only)
-                Use this option to enable or disable write cache reordering
-                support on a drive using SMART command transport. Write cache
-                reordering allows the drive to reorder moving data out of cache
-                to media for better performance on synchronous commands.
-                Asynchronous commands are only affected when in-order data
-                delivery is enabled. When using this option, the setting is
-                non-volatile. Use this with the --volatile flag to make the
-                setting volatile. Use the "info" argument to get the current
-                status of the write cache reordering feature. Note: On some SAT
-                HBAs/bridges, status will not be able to be determined due to
-                HBA/bridge limitations.
+        --randomTest
+                Use this option to start a random read test. This is a timed
+                operation. Use the time options to control how long to run this
+                test. The default time for this test is 1 minute.  This test
+                should be limited to 1 minute or less.
 
-        --sctWriteTimer [info | value] (SATA Only)
-                Use this option to set the SMART command transport write
-                command timer value for synchronous commands and NCQ commands
-                with in-order data delivery enabled. Note: this timer starts at
-                the time that the drive processes the command, not the time it
-                is received. This timer value is volatile and is cleared at
-                each power cycle. Use the "info" argument to get the current
-                status of the write timer. A value of 0 means that all possible
-                error recovery will be performed before returning status (i.e.
-                the Write Command Timer is disabled). Other values should
-                include a unit to know the time to use. If no unit is provided,
-                it is assumed to be the value * 100 ms. The maximum time that
-                can be specified is 1 hour, 49 minutes, 13 seconds. Note: On
-                some SAT HBAs/bridges, status will not be able to be determined
-                due to HBA/bridge limitations.
+                Example: --randomTest --seconds 10
 
-                Ex1: --sctWriteTimer 7s for a 7 second timer.
-                Ex2: --sctWriteTimer 7000ms for a 7 second timer expressed in
-                     milliseconds
-                Ex2: --sctWriteTimer 70 for a 7 second timer with no units
-                     specified
-
-                Note: see additional information above for --sctReadTimer.
-
-SAS Only
---------
-        --readyLED [info | on | off | default] (SAS Only)
-                Use this option to change the behavior of pin 11, the ready
-                LED. See the SPL spec for full details on how this changes LED
-                behavior.
-                    info - gets the current state of the ready LED.
-                    on - sets the ready LED to usually off unless
-                         processing a command.
-                    off - sets the ready LED to usually on unless
-                          processing a command
-                    default - sets the ready LED to the drive's default value
-
-        --sasPhy [identifier value]
-                Use this option to specify a specific phy to use with another
-                option that uses a phy identifier value. Some tool options will
-                assume all SAS Phys when this option is not present. Others
-                will produce an error when a specific phy is needed for an
-                operation. Use the -i option to learn more about the supported
-                phys.
-
-        --scsiLPReset [cumulative | threshold | defCumulative | defThreshold | all]   (SAS only)
-                Use this option to reset all SCSI Log Pages. If the device is
-                compliant with SPC4 or later, the --scsiLPResetPage option may
-                be used to specify a specific page to reset. The --volatile
-                option may also be passed to prevent saving changes.
-                            cumulative - reset the cumulative values
-                            threshold  - reset the threshold values
-                            defCumulative - reset the cumulative values to
-                               default without saving.
-                            defThreshold  - reset the threshold values to
-                               default without saving.
-                            all - sends the log page reset command to all of
-                               the above control values
-
-        --scsiLPResetPage [page# | page-subpage#]               (SAS only)
-                This option is used to specify a specific page, and/or subpage
-                to be used with the --scsiLPReset option.
-                NOTE: This option will only work on newer drives compliant with
-                the SPC4 specification.
-
-        --scsiMPReset [page# | page-subpage#]           (SAS only)
-                This option will reset the specified mode page(s) to their
-                default settings. Valid page numbers range from 0 to 3Fh. Valid
-                subpage numbers range from 0 to FFh.
-
-                (MP) Mode page 3Fh specifies all mode pages and can be used to
-                reset all mode pages. (SP) Subpage FFh specifies all subpages
-                of a given page and will reset all those subpages. Using both
-                MP 3Fh and SP FFh will reset all pages and subpages on a device.
-
-        --scsiMPRestore [page# | page-subpage#]         (SAS only)
-                This option will restore the specified mode page(s) to their
-                saved settings. Valid page numbers range from 0 to 3Fh. Valid
-                subpage numbers range from 0 to FFh.
-
-                (MP) Mode page 3Fh specifies all mode pages and can be used to
-                restore all mode pages. (SP) Subpage FFh specifies all subpages
-                of a given page and will restore all those subpages. Using both
-                MP 3Fh and SP FFh will restore all pages and subpages on a
-                device.
-
-        --scsiMPSave [page# | page-subpage#]            (SAS only)
-                This option will save the current specified mode page(s) to the
-                saved settings. Valid page numbers range from 0 to 3Fh. Valid
-                subpage numbers range from 0 to FFh.
-
-                (MP) Mode page 3Fh specifies all mode pages and can be used to
-                save all mode pages. (SP) Subpage FFh specifies all subpages of
-                a given page and will save all those subpages. Using both MP
-                3Fh and SP FFh will save all pages and subpages on a device.
-
-         --setSCSIMP [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]  (SAS only) (Seagate Only)
-                Use this option to set a specific field in a mode page to a
-                value. There are two argument formats to this option:
-                1. The first format expects a mode page (in hex), optionally a
-                   subpage code (in hex), the byte offset that the field starts
-                   at (in decimal), the highest bit the field starts at (0-7),
-                   the width of the field in as a number of bits (decimal), and
-                   the value to set (hex or decimal).  A maximum of 64bits can
-                   be set at a time with this option.
-                2. The second format is a text file that contains all bytes of
-                   the mode page in hex. Each byte must be separated by a
-                   space, new line, or underscore. It is recommended that this
-                   file is created by copy-pasting the output of the
-                   --showSCSIMP option's default classic view, then modifying
-                   after that.
-
-                Example use of the arguments:
-                1. Setting WCE to zero on Caching MP 8 from command line:
-                   command line: 08:2:2:1=0
-                2. Setting DLC to one on Control Extension MP from command line:
-                   command line: 0A-01:4:3:1=1
-                3. Setting WCE to zero on Caching MP 8 from a text file:
-                   command line: file=cachingModePage.txt
-                   File contents: 88 12 10 00 FF FF 00 00 FF FF FF FF 90 20 00 00 00 00 00 00
-
-        --showSCSIMP [page# | page-subpage#]            (SAS only)
-                This option will display the specified mode page on the screen
-                as raw hexadecimal data bytes. Use --showSCSIMPControl to
-                control the output.  If --showSCSIMPControl is not provided,
-                the current values will be shown.
-
-                (MP) Mode page 3Fh specifies all mode pages and can be used to
-                show all mode pages. (SP) Subpage FFh specifies all subpages of
-                a given page and will show all those subpages. Using both MP
-                3Fh and SP FFh will show all pages and subpages on a device.
-
-                Note: page# is a decimal value unless it has the characters A
-                through F, then it is hexadecimal. Page 18, for example,  would
-                be 12h so be sure to say 18h if that is the page you want.
-
-                Example: --showSCSIMP 3F-FF
-                         --showSCSIMP 18h
-                         --showSCSIMP 24    (shows page 18h)
-
-        --showSCSIMPControl [current | default | saved | changeable | all]  (SAS only)
-                Use this option to control the output of the --showSCSIMP
-                option.
-                        current - show the current values of the mode page.
-                        default - show the default values of the mode page.
-                        saved   - show the saved values of the mode page.
-                        changeable - show the changeable fields in a mode page.
-                        all - show all of the above formats for a given mode
-                              page.
-                Example: --showSCSIMP 8 --showSCSIMPControl all
-
-        --showMPOutputMode [classic | buffer]   (SAS Only)
-                Use this option to control the format of the output when
-                displaying a SCSI mode page. Modes:
-                   classic - This output is a classic output from old SCSI
-                      manuals where the bytes of the page are output in a
-                      series of rows across the screen in hexadecimal format.
-                   buffer  - This output is a formatted buffer showing offsets
-                      on the top and side in hex. This will output each row
-                      with up to 16 bytes of data before moving to the next row.
+        --butterflyTest
+                Use this option to start a butterfly read test.  A butterfly
+                read test is a read test that moves back and forth between the
+                OD and ID of the drive over and over again until the time has
+                expired.  This is a timed operation. Use the time options to
+                control how long to run this test. The default time for this
+                test is 1 minute.  This test should be limited to 1 minute
+                or less.
 
 Utility Options
 ===============
@@ -508,11 +341,11 @@ Utility Options
                 Example: -v 3 or --verbose 3
 
         -q, --quiet
-                Run openSeaChest in quiet mode. This is the same as -v0
+                Run SeaChest in quiet mode. This is the same as -v0
                 or --verbose 0
 
         -V, --version
-                Show openSeaChest version and copyright information & exit
+                Show SeaChest version and copyright information & exit
 
         --license
                 Display the Seagate End User License Agreement (EULA).
@@ -530,6 +363,10 @@ Utility Options
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
 
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
                 Pass-through 12-byte commands when possible instead of 16-byte
@@ -539,7 +376,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided.
+                provided. May also be used with the --scan command.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -556,6 +393,18 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
+
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -605,26 +454,24 @@ Utility Options
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
 
-Data Destructive Commands
-========================================
+Sector Repair Commands
+======================
 Data destructive commands will require additional command line arguments as
 confirmation of your understanding that data will be lost on the drive.
 Seagate is not responsible for lost user data.
 
-        --confirm I-understand-this-command-will-erase ... etc
+        --confirm this-will-erase-data ... etc
 
-        --provision [newMaxLBA | maxLBA]
-                Provision your drive to a new max LBA to any value less than
-                the device's current max LBA. The predefined text string
-                "maxLBA" (without quotes) may be entered to indicate the last
-                sector on the drive instead of the specific LBA number.  A
-                power cycle is required after this command before resetting the
-                max LBA or changing the provisioning again. This command erases
-                all data between the new maxLBA specified and the current
-                maxLBA of the device. TRIM (SATA) or UNMAP (SAS) will be used
-                when supported by the device, including SSDs.  For most HDDs
-                this test will write 0's to the device and possibly take a very
-                long time to complete.
+        --repairOnFly
+                Use this option to repair any bad sectors found during a long
+                or user generic read test as they are found.
+
+        --repairAtEnd
+                Use this option to repair any bad sectors found during a long
+                or user generic read test at the end of the test.
+
+See the section below "Bad LBA (Sector) Found" for more information on this
+subject.
 
 Return codes
 ============
@@ -714,6 +561,55 @@ Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
+
+======================
+Bad LBA (Sector) Found
+======================
+IMPORTANT: Please read and carefully consider all of the following information
+about your "Bad LBA (Logical Block Address, or Sector) Found" options.
+
+A bad sector is a small 512-byte area on the disk drive that is reporting
+errors and cannot be accessed properly. New bad sectors, sometimes called grown
+defects, are often caused by some kind of physical damage. If a file or folder
+uses this sector, then the file is already incomplete or corrupt because the
+bytes are not readable.
+
+**** NOTE **** The following information applies only to Seagate Technology,
+Maxtor, Samsung and LaCie brand disk drives:
+
+When SeaChest discovers a bad LBA (sector) through reading, it displays a count
+of the bad sectors.
+
+Sectors are often not in use. If a sector is in use, then that file is
+incomplete or corrupt. When a bad sector happens to align with a folder or
+directory listing structure, then the links to files and sub-folders it manages
+may be broken.
+
+You should carefully consider the importance of your data. While the sector is
+currently unreadable, if the file or folder is important to you then you may
+need professional recovery services to possibly reclaim the data. In this case,
+select to scan without trying to repair sectors on the drive.
+
+If you have decided that the file or folder is replaceable, already backed up
+or just not important to you, then you can tell SeaChest to attempt to attempt
+to repair the sector.  See the Sector Repair Commands section above.
+
+By design, modern disk drives maintain spare sectors for reallocation purposes.
+Usually, sectors become difficult to read long before they become impossible to
+read. In this situation the actual data bytes in the sector are preserved and
+transferred to the new spare during a sector reallocation. Similarly, when a
+disk drive writes data and encounters a problem, the drive firmware retires the
+problem sector and activates a replacement before giving successful write
+status.
+
+If you give permission to attempt to repair a bad sector, then SeaChest will
+attempt to write a 512-byte pattern of zeros to that single error sector.
+Usually, this action will assist the disk drive firmware in managing the
+problem by retiring the problem sector and activating a spare in its place. If
+the attempted repair fails to reallocate the LBA to an available spare, then
+the test is a FAIL and the drive is bad.
+
+Note: Seagate Technology is not responsible for lost user data.
 
 Windows Only Usage
 ==================
@@ -1142,85 +1038,99 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-v1.0.0  02-May-2016  1_9_1 libraries.  SeaChest_Configure Linux, initial beta
-                     test release.  Branched from SeaChest_Basics v2.0.0.
-                     Added --lowCurrentSpinup
-v1.1.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
+
+v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
+                     sequential read tests. Added Random and Butterfly read
+                     tests.  Added sector repair on Long and user defined
+                     generic read tests.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
+                     Corrections to verbose output.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+                     Added -sat12byte to increase compatibility.  Added
+                     --SATInfo to compare ATA vs SCSI identification
+                     differences.
+v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
+                     --onlySeagate restriction.  Added --modelMatch and
+                     --onlyFW filters. Added --genericMode.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
                      Fixed a bug where we could accidentally clear some stored
                      identify data from the device structure. Fixed continuing
                      on when there was a permission denied error opening a
-                     drive. Adjustments to --setSectorSize. Added
-                     --sctWriteCache, --sctWriteCacheReordering.
-v1.1.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     drive.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
                      commands. Fixed bugs with --modelMatch and --onlyFW
-                     filters.  Support SATA non-volatile WCE.
-v1.3.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
-                     --puisFeature.
-v1.3.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     filters.
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
                      pass-through fix on Win8 and higher. Added support for
                      maxLBA keyword.
-v1.4.0  01-Sep-2016  1_11_1 libraries add updates to various printed message,
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
                      minor bug fixes. Fixed --SATInfo command.
-v1.4.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v1.5.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.5.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v1.5.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v1.5.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v1.5.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
-v1.7.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --sasPhy, --sscFeature. New -F,
-                     --scanFlags [options: ignoreCSMI allowDuplicates] for
-                     Windows tools. Add CSMI support to all Windows version
-                     tools.
-v1.7.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features.
-v1.8.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
+                     --diameterTestRange. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools. Random Range scaling
+                     has less biasing.
+v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features. --userGenericStart now able to use timed
+                     options.
+v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
+v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
                      values from the SCT status log or device statistics log.
                      Bug fix where the "-d all" was not filtering out csmi
                      drives like it is supposed to causing duplicate drives to
                      show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.
-v1.9.0  06-Jul-2017  Added --sctReadTimer, --sctWriteTimer.
-v1.10.0 14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix user generic test start LBA gets reset when a defect
+                     is encountered.
+v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
                      Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
                      note the capital S) aggressive system scan.
-v1.10.0 27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.10.0 19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.10.0 25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-v1.11.0 10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Removed --setSectorSize now in SeaChest_Format.
-v1.11.0 12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.11.0 26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help.
+v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v1.11.0 31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v1.11.0 02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -1228,9 +1138,8 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v1.11.0  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
-open source project for storage devices.
-v1.12.0 19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      USB flash drives, support for early 90's PATA drives that
                      don't support LBA mode, bug fix where the last digit of
                      the SCSI Unit Serial Number was being dropped, additional
@@ -1247,8 +1156,8 @@ v1.12.0 19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
                      during device discovery to help work with some USB
                      devices, some Legacy SCSI support enhancements (partially
                      from USB hacks development), enhanced SD to SG mapping in
-                     Linux.
-v1.12.2 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     Linux.  Added --bufferTest.
+v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      field to get the OS name under linux; NVMe enabled;  fixed
                      a bug in the ATA activate FW command; added in reading ID
                      Data log and Device statistics logs page 0 to check the
@@ -1259,26 +1168,18 @@ v1.12.2 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      spaces in the name. Added additional information to the
                      banner and -V data to show support levels. Add general
                      support for NVMe and NVMe specific identify data to "-i"
-                     command. Add --freeFall
-v1.12.2 18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.13.0 07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     command.
+v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.8.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
-                     section.
-v1.14.0 24-Jan-2019  Add Log and Mode Page commands --scsiLPReset,
-                     --scsiLPResetPage, --scsiMPReset, --scsiMPRestore,
-                     --scsiMPSave, --setSCSIMP, --showMPOutputMode,
-                     --showSCSIMP, --showSCSIMPControl
-v1.15.0 10-Feb-2019  Device information now shows "Low Current Spinup" status
-v1.16.0 28-Feb-2019  Add ultra to --lowCurrentSpinup
-v1.17.0 03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
-                     adds SAS (not SATA) FastFormat for Features Supported
-                     section.
-v1.17.0 10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     section,  --deviceInfo now gives Low Current Spinup
+                     status.
+v1.8.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
-v1.18.1 04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+v1.9.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -1289,6 +1190,8 @@ v1.18.1 04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
+v1.9.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

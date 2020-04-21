@@ -1,7 +1,8 @@
-openSeaChest_GenericTests.txt                             Revision: 09-Apr-2020
+openSeaChest_Logs.txt                                     Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_GenericTests for Linux and Windows - Seagate drive utilities
+ openSeaChest_Logs for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -37,40 +38,24 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-One of the fundamental units of data on a storage device like a disk drive is
-the sector.  In the case of a hard disk drive, a sector is a physical section
-of a circular magnetized track accessed by read write heads over the rotating
-media.  The original hard drive sectors are 512 bytes each.  If you take the
-number or logical sectors on a disk drive and multiply it by 512 you get the
-total capacity of the drive in bytes.  Since the mid-1990's the term sector has
-been replaced by an acronym synonym LBA, which stands for Logical Block
-Address.  All drives start with LBA 0 and count up to the full capacity of the
-drive.
+Several binary logs are maintained on Seagate disk drives.  These logs are not
+stored in the user data area. Sometimes these logs are reviewed by Seagate
+engineers to help analyze event history on the device.  These binary data logs
+are saved to filenames using the drive's serial number and date-time.
 
-In the example above, the physical sector size is 512 bytes and logical sector
-size is also 512 bytes.  Beginning around the year 2010 disk drives have been
-manufactured with a physical sector size of 4096 bytes but the disk drive
-delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
-expects 512 and is not concerned about the actual physical size.  These drives
-are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
-are manufactured with 4096 byte for both physical and logical block sizes.
+        Log Name:                                      Command Line Option:
+        Device Statistics Log                          --deviceStatisticsLog
+        Drive Self Test DST Log                        --selfTestLog
+        Field Accessible Reliability Metrics Log       --farm
+        Generic Standard (Host Specific) Logs          --pullLog [Log Number]
+        Identify Device Data Log                       --identifyDataLog
+        SATA Phy Event Counters Log                    --SATAPhyCntLog
+        SCSI Informational Exceptions Log              --infoExceptionsLog
 
-openSeaChest_GenericTests reads LBAs and reports errors when an LBA is
-unreadable.
-
-It may be possible to repair a problem when a generic read test fails due to
-failure to read a particular sector (LBA).  You might consider the
---repairOnFly, --repairAtEnd or (openSeaChest_SMART) -dstAndClean command line
-options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
-Found" for more information on this subject.
+Seagate does not support unsolicited log retrieval review requests.
 
 This User Guide file contains important information about openSeaChest
-GenericTests.  Please read this entire file before using this software.
-
-Inner and outer diameter tests refer to the physical beginning and ending
-sections of a hard disk drive with rotating magnetic media.  In the case of SSD
-devices, these tests refer to the logical beginning and ending sections of the
-solid state drive.
+Logs.  Please read this entire file before using this software.
 
 Important note: Many tests in this tool directly reference storage device data
 sectors, also known as Logical Block Addresses (LBA). Test arguments may
@@ -96,28 +81,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate
+NOTE: openSeaChest_Logs may not be fully functional on non-Seagate
 drives.
 
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
+        openSeaChest_Logs [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo openSeaChest_GenericTests --scan
-        sudo openSeaChest_GenericTests -d /dev/sg2 -i
-        sudo openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
+        sudo openSeaChest_Logs --scan
+        sudo openSeaChest_Logs -d /dev/sg2 --deviceInfo
+        sudo openSeaChest_Logs -d /dev/sg1 --farm --outputPath logs
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_GenericTests [-d <device>] {arguments} {options}
+        openSeaChest_Logs [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_GenericTests --scan
-        openSeaChest_GenericTests -d PD0 -i
-        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
+        openSeaChest_Logs --scan
+        openSeaChest_Logs -d PD0 --deviceInfo
+        openSeaChest_Logs -d PD1 --farm --outputPath logsl
 
 Utility Arguments
 =================
@@ -189,140 +174,118 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --bufferTest
-                This option will perform a test using the device's echo buffer.
-                The write buffer and read buffer commands are used to send &
-                receive different data patterns.  The patterns are compared and
-                interface CRC errors are also checked (when available).  Test
-                patterns performed are all 0's, all F's, all 5's, all A's,
-                walking 1's, walking 0's, and random data patterns.  At
-                completion, a count of the number of errors will be displayed.
+        --deviceStatisticsLog
+                This option will pull the Device Statistics Log from a device.
+                Saves the binary logs to the current directory as
+                <serialnumber>_Device_Statistics_<date and time>.bin
 
-        --genericMode [ read | write  | verify ]
-                This options allows selection of the type of commands to use
-                while performing a generic test.  If this option is omitted
-                then read is the default mode.
+        --farm
+                Pull the Seagate Field Accessible Reliability Metrics (FARM)
+                Log from the specified drive.  Saves the binary logs to the
+                current directory as <serialnumber>_FARM_<date and time>.bin
 
-                Supported modes are:
-                  read - performs a generic test using read commands, data safe
-                  write - performs a generic test using write commands, any
-                          data on sectors written during the test will be
-                          lost.  Seagate is not responsible for lost user
-                          data. --confirm acknowledgment command will be
-                          required.
-                  verify - performs a generic test using verify commands, data
-                           safe, sometimes faster than read commands.
+        --listErrorHistoryIDs
+                Displays a list of all supported error history buffer IDs
+                supported by the device.
 
-        --shortGeneric
-                This option will run a short generic read test on a specified
-                device. A short generic read test has 3 components. A
-                sequential read at the Outer Diameter (OD) of the drive for 1%
-                the LBAs (sectors), then a sequential read at the Inner
-                Diameter (ID) of the drive for 1% the LBAs, and lastly a random
-                read of 5000 LBAs. This test will stop on the first read error
-                that occurs.
+        --listSupportedLogs
+                Displays a list of all supported generic logs by this device
+                type.
 
-        --twoMinuteGeneric
-                This option will run a 2 minute generic read test on a
-                specified device. There are 3 components to this test. A read
-                at the Outer Diameter (OD) of the drive for 45 seconds, then a
-                read at the Inner Diameter of the drive for 45 seconds, and
-                lastly a random read test for 30 seconds. This test will stop
-                on the first read error that occurs.
+        --logMode [raw | bin]
+                Sets the mode to pull the log. Use this option with --pullLog
+                to set the desired mode.
 
-        --longGeneric
-                This option will run a long generic read test on a specified
-                device. A long generic read test sequentially reads every LBA
-                on the device and gives a report of error LBAs at the end of
-                the test, or when the error limit has been reached. Using the
-                --stopOnError option will make this test stop on the first read
-                error that occurs. The default error limit is 50 x number of
-                logical sectors per physical sector.
+                raw - Pulls log & prints it to the screen as stdout. (default)
+                bin - Pulls log & saves it to a timestamped binary file.  Saves
+                the binary logs to the current directory as
+                <serialnumber>_GENERIC_LOG-<decimal log number>_<date and
+                time>.bin
 
-                Example error limits are as follows:
+        --logTransferLength [lengthunits (no space)]
+                Use this option to specify the data transfer length for a log
+                transfer. Larger transfer sizes may speed up log retrieval at
+                the loss of compatibility. The following units are allowed for
+                specifying a transfer length:
 
-                        512L/512P: error limit = 50
-                        4096L/4096P: error limit = 50
-                        512L/4096P: error limit = 400 (50 * 8)
+                        KiB - length in kibibytes (val * 1024)
+                        MiB - length in mebibytes (val * 1048576)
+                        KB  - length in kilobytes (val * 1000)      (SAS only)
+                        MB  - length in megabytes (val * 1000000)   (SAS only)
+                        BLOCKS or SECTORS - used to specify a transfer length
+                                in device in 512Byte blocks/sectors
 
-        --userGenericStart [starting LBA | maxLBA]
-                Use this option to specify the starting LBA number for a
-                generic read test. The predefined text string "maxLBA" (without
-                quotes) may be entered to indicate the last sector on the drive
-                instead of the specific LBA number.  The --userGenericRange or
-                timed (--hours, minutes, seconds) options must be used with
-                this one in order to start the test. Use the --stopOnError
-                repair flag and/or --errorLimit flags to further customize this
-                test.
+                Warning: Specifying a large size may result in failures due to
+                OS, driver, or HBA/bridge specific limitations.
 
-        --userGenericRange [LBA count]
-                Use this option to specify the range for a generic read test.
-                See the --userGenericStart help for additional information
-                about using the User Generic Read tests.
+                Examples: --logTransferLength 4KiB
+                          --logTransferLength 1MiB
+                          --logTransferLength 1BLOCKS
+                          --logTransferLength 12288SECTORS
 
-        --diameterTest [O | M | I]
-                Use this option to perform a generic read/write/verify test at
-                the specified diameter of the drive. The different diameters
-                can be combined or run individually. Use the time options to
-                specify a time-based test or the --diameterTestRange option for
-                a range-based test. If --diameterTestRange is omitted the
-                default is a one minute test.
+                Notes: ATA drives must be given a value in 512B increments. If
+                --logTransferLength is omitted then various default lengths are
+                automatically set by the program depending on the type of log.
 
-                    O - outer diameter
-                    M - middle diameter
-                    I - inner diameter
+        --pullErrorHistoryID [Buffer ID]
+                Pulls specific error history buffer ID from the device [Buffer
+                ID] is required argument & can be passed as an decimal or hex
+                value.
 
-                Ex1: --diameterTest OMI
-                Ex2: --diameterTest O
-                Ex3: --diameterTest MI
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
-        --diameterTestRange [range]
-                Use this option with the --diameterTest option to perform a
-                range based test. If a range is specified without any units, it
-                is assumed to be an LBA count. Valid units are KB, KiB, MB,
-                MiB, GB, GiB, TB and TiB.
+        --pullLog [Log Number]
+                Pulls the Host Specific generic log number from the device. [Log
+                Number] is a required argument and can be a decimal or hex
+                value.  For example, --pullLog FE, --pullLog FEh, --pullLog
+                0xFE, --pullLog 254, or --pullLog 0254.  Possible Log Numbers
+                are returned by the --listSupportedLogs command.  Also see
+                --logMode below.
 
-                Ex1: "--diameterTestRange 1234567" for an LBA count
-                Ex2: "--diameterTestRange 2GB" for a 2GB range.
+                Example: --pullLog 0x02 --logMode bin
+                gives the file  <serialnumber>_GENERIC_LOG-2_<date and time>.bin
 
-        --stopOnError
-                Use this option to make a generic read test stop on the first
-                error found. Please see the section below "Sector Repair
-                Commands".
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
-        --errorLimit [limit in number of physical LBAs | none]
-                Use this option to specify a different error limit for a user
-                generic or long generic read test. This must be a number of
-                logical LBAs to have errors. If a drive has multiple logical
-                sectors per physical sector, this number will be adjusted for
-                you to reflect the drive architecture. (The default error limit
-                is 50 x number of logical sectors per physical sector.) The
-                predefined text string "none" (without quotes) may be entered
-                to indicate that there is no error limit.
+        --selfTestLog
+                This option will pull the Self Test Results Log (DST) from a
+                device. On ATA drives, this will pull the extended SMART self
+                tests result log when it is supported by the device.  Saves the
+                binary logs to the current directory as
+                <serialnumber>_Ext_SMART_Self_Test_Results_<date and time>.bin
 
-                Caution: You should closely monitor your system if using the
-                "none" argument because some failure modes, like a bad cable,
-                might see every sector as defective. Storage devices are
-                defined with billions of physical sectors and if you are
-                capturing a log without an error limit, then it would quickly
-                grow to fill up all available capacity on the capture device.
+SATA Only
+---------
+        --identifyDataLog  (SATA only)
+                This option will pull the Identify Device Data Log from an ATA
+                drive.  Saves the binary logs to the current directory as
+                <serialnumber>_Identify_Device_Data_Log_<date and time>.bin
 
-        --randomTest
-                Use this option to start a random read test. This is a timed
-                operation. Use the time options to control how long to run this
-                test. The default time for this test is 1 minute.  This test
-                should be limited to 1 minute or less.
+        --SATAPhyCntLog  (SATA only)
+                This option will pull the SATA Phy Event Counters Log from a
+                SATA drive.  Saves the binary logs to the current directory as
+                <serialnumber>_SATA_Phy_Event_Counters_<date and time>.bin
 
-                Example: --randomTest --seconds 10
+SAS Only
+--------
+        --infoExceptionsLog  (SAS only)
+                This option will pull the SCSI Informational Exceptions log
+                page from a SCSI device.  Saves the binary logs to the current
+                directory as <serialnumber>_Informational_Exceptions_<date and
+                time>.bin
 
-        --butterflyTest
-                Use this option to start a butterfly read test.  A butterfly
-                read test is a read test that moves back and forth between the
-                OD and ID of the drive over and over again until the time has
-                expired.  This is a timed operation. Use the time options to
-                control how long to run this test. The default time for this
-                test is 1 minute.  This test should be limited to 1 minute
-                or less.
+        --pullSubpage [Subpage Number]   (SAS Only)
+                Use this option with the --pullLog option to specify a log
+                subpage to pull. Use this for SCSI Logs. [Subpage Number] can
+                be passed as an decimal or hex value.
+
+                WARNING:  Vendor Unique Logs pulled using this option may not
+                be valid due to unknown vendor unique bits in ATA/SCSI/NVMe
+                etc. command fields.
 
 Utility Options
 ===============
@@ -393,17 +356,12 @@ Utility Options
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
 
-        --hours [hours]
-                Use this option to specify a time in hours for a timed
-                operation to run.
-
-        --minutes [minutes]
-                Use this option to specify a time in minutes for a timed
-                operation to run.
-
-        --seconds [seconds]
-                Use this option to specify a time in seconds for a timed
-                operation to run.
+        --outputPath [folder]
+                Set a user defined path location for saving the log files.  The
+                folder/directory must exist with writable permissions.  The
+                utility will exit early if it cannot find the folder.  If this
+                option is not used then the default is the current working
+                directory.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -452,25 +410,6 @@ Utility Options
                 tool on a CSMI handle. The debugging information shown will be
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
-
-Sector Repair Commands
-======================
-Data destructive commands will require additional command line arguments as
-confirmation of your understanding that data will be lost on the drive.
-Seagate is not responsible for lost user data.
-
-        --confirm this-will-erase-data ... etc
-
-        --repairOnFly
-                Use this option to repair any bad sectors found during a long
-                or user generic read test as they are found.
-
-        --repairAtEnd
-                Use this option to repair any bad sectors found during a long
-                or user generic read test at the end of the test.
-
-See the section below "Bad LBA (Sector) Found" for more information on this
-subject.
 
 Return codes
 ============
@@ -532,22 +471,6 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
-If the task is an OFFLINE command like format unit or short DST, meaning that
-the drive works on the task in the background and the tool quickly returns to
-the command prompt (there is little or no I/O to the system), then you can
-expect the system to run normally. If the task has high I/O to the system like
-a sequential read of all sectors on the drive, then you can expect the system
-to slow down with each additional device.
-
-The discussion above is about starting SEQUENTIAL tests, or one after the
-other.  When the task does not return to the command prompt for a very long
-time, then you have a few options to run tests in PARALLEL, also called
-simultaneous, in other words all at the same time.  One way is to start
-different drives in different Terminal windows, if available.  There are other
-more sophisticated methods using parallel processing, for information about
-these methods please see the information at this link:
-https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
-
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
@@ -560,55 +483,6 @@ Port 1 on the device information report. When both ports are active, each one
 may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
-
-======================
-Bad LBA (Sector) Found
-======================
-IMPORTANT: Please read and carefully consider all of the following information
-about your "Bad LBA (Logical Block Address, or Sector) Found" options.
-
-A bad sector is a small 512-byte area on the disk drive that is reporting
-errors and cannot be accessed properly. New bad sectors, sometimes called grown
-defects, are often caused by some kind of physical damage. If a file or folder
-uses this sector, then the file is already incomplete or corrupt because the
-bytes are not readable.
-
-**** NOTE **** The following information applies only to Seagate Technology,
-Maxtor, Samsung and LaCie brand disk drives:
-
-When SeaChest discovers a bad LBA (sector) through reading, it displays a count
-of the bad sectors.
-
-Sectors are often not in use. If a sector is in use, then that file is
-incomplete or corrupt. When a bad sector happens to align with a folder or
-directory listing structure, then the links to files and sub-folders it manages
-may be broken.
-
-You should carefully consider the importance of your data. While the sector is
-currently unreadable, if the file or folder is important to you then you may
-need professional recovery services to possibly reclaim the data. In this case,
-select to scan without trying to repair sectors on the drive.
-
-If you have decided that the file or folder is replaceable, already backed up
-or just not important to you, then you can tell SeaChest to attempt to attempt
-to repair the sector.  See the Sector Repair Commands section above.
-
-By design, modern disk drives maintain spare sectors for reallocation purposes.
-Usually, sectors become difficult to read long before they become impossible to
-read. In this situation the actual data bytes in the sector are preserved and
-transferred to the new spare during a sector reallocation. Similarly, when a
-disk drive writes data and encounters a problem, the drive firmware retires the
-problem sector and activates a replacement before giving successful write
-status.
-
-If you give permission to attempt to repair a bad sector, then SeaChest will
-attempt to write a 512-byte pattern of zeros to that single error sector.
-Usually, this action will assist the disk drive firmware in managing the
-problem by retiring the problem sector and activating a spare in its place. If
-the attempted repair fails to reallocate the LBA to an available spare, then
-the test is a FAIL and the drive is bad.
-
-Note: Seagate Technology is not responsible for lost user data.
 
 Windows Only Usage
 ==================
@@ -1034,151 +908,23 @@ Win: openSeaChest_Basics -i -d PD1
                 Format Unit
                 Sanitize
 
-===============
-Version History
-===============
-SeaChest_GenericTests is branched off from SeaChest Basics v1.0.4.
-
-v0.0.1  06-May-2015  Initial ReadTests release.  Added Short and Long Generic
-                     sequential read tests. Added Random and Butterfly read
-                     tests.  Added sector repair on Long and user defined
-                     generic read tests.
-v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
-v0.0.3  12-Aug-2015  Added --twoMinuteGeneric test.  Improved device discovery.
-                     Corrections to verbose output.
-v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
-                     Added -sat12byte to increase compatibility.  Added
-                     --SATInfo to compare ATA vs SCSI identification
-                     differences.
-v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
-                     --onlySeagate restriction.  Added --modelMatch and
-                     --onlyFW filters. Added --genericMode.
-v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
-                     Fixed a bug where we could accidentally clear some stored
-                     identify data from the device structure. Fixed continuing
-                     on when there was a permission denied error opening a
-                     drive.
-v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
-                     commands. Fixed bugs with --modelMatch and --onlyFW
-                     filters.
-v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.
-v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
-                     functions, format polling, endianess detection, buffer
-                     size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added support for
-                     maxLBA keyword.
-v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
-                     minor bug fixes. Fixed --SATInfo command.
-v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
-                     and --forceATAUDMA  (SATA Only).
-v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
-                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
-                     the -i --SATInfo output.
-v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
-                     --enableLegacyUSBPassthrough
-v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
-                     settings.
-v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
-                     the corresponding command range option, SAS power mode
-                     setting, and Sanitize erase patterns.
-v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
-                     22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. Add --hideLBACounter, --diameterTest,
-                     --diameterTestRange. New -F, --scanFlags [options:
-                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
-                     support to all Windows version tools. Random Range scaling
-                     has less biasing.
-v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
-                     for SAS features. --userGenericStart now able to use timed
-                     options.
-v1.5.1  15-May-2017  1_14_3 libraries.  Fixed issue with --userGenericRange.
-v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
-                     should exit with code = 1; added detection of parallel ATA
-                     and SCSI speeds; temperature data on ATA now uses the
-                     values from the SCT status log or device statistics log.
-                     Bug fix where the "-d all" was not filtering out csmi
-                     drives like it is supposed to causing duplicate drives to
-                     show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
-                     fix user generic test start LBA gets reset when a defect
-                     is encountered.
-v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
-                     Sense Data Reporting feature enabled, changes to how we
-                     interpret the completion status from the drive, new Sense
-                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
-                     note the capital S) aggressive system scan.
-v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
-v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
-                     reading remanufacture time for SAS when the drive reports
-                     a time, fixed SAS --abortDST.
-v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
-                     SAS adapters, added NVMe read, write & Flush commands.
-v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
-                     device, SAT library strings, and fixes to Read-Buffer
-                     error history (ISL). Updated copyright notice, invalid
-                     command line options now only display an error instead of
-                     long help.
-v1.7.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.7.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
-                     that don't show as SATA and don't support the SAT VPD
-                     page; added Automatic fallback to 12byte CDBs during
-                     initial device discovery;  integrated fixes for SAS
-                     firmware download and fixes for SAS LongDST time
-                     calculation; added detection of TCG Pyrite and Opalite
-                     drives.
-v1.7.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
-                     on some LSI adapters, corrects firmware download issue
-                     under Windows 10 API.
-
-The above history is provided as a courtesy to show the original SeaChest
-development activity.
-
 ============================
 openSeaChest Version History
 ============================
-v1.7.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
-v1.7.2  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
-                     USB flash drives, support for early 90's PATA drives that
-                     don't support LBA mode, bug fix where the last digit of
-                     the SCSI Unit Serial Number was being dropped, additional
-                     logic for deferred download completion status. --scan
-                     --onlySeagate for just Seagate drives in a large system,
-                     Long Drive Self Test Time in the -i output, write protect
-                     status has been added for SCSI and NVMe in the -i output,
-                     IDD enhancements for SAS, IDD enhancements to allow
-                     captive mode on SATA, added USB Hacks to better support
-                     some odd-ball USB devices and prevent crashes and improve
-                     performance for some operations on them by issuing test
-                     unit ready commands when something fails during device
-                     discovery, automatic fall back to SAT 10 byte commands
-                     during device discovery to help work with some USB
-                     devices, some Legacy SCSI support enhancements (partially
-                     from USB hacks development), enhanced SD to SG mapping in
-                     Linux.  Added --bufferTest.
-v1.7.3  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
-                     field to get the OS name under linux; NVMe enabled;  fixed
-                     a bug in the ATA activate FW command; added in reading ID
-                     Data log and Device statistics logs page 0 to check the
-                     list of supported pages; fixed a bug in the loop used to
-                     read mode pages for -i information on SAS; IDD SAS
-                     improvements; fixed a bug in DST & Clean with ATA drives
-                     behind SCSI controllers. Fix for --modelMatch that have
-                     spaces in the name. Added additional information to the
-                     banner and -V data to show support levels. Add general
-                     support for NVMe and NVMe specific identify data to "-i"
-                     command.
-v1.7.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.8.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+v1.0.0  03-Aug-2018  1_18_0 libraries.  Initial release.
+v1.0.0  18-Oct-2018  1_18_3 libraries. Added NVMe generic read command support.
+v1.1.0  07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
-                     section,  --deviceInfo now gives Low Current Spinup
-                     status.
-v1.8.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     section.
+v1.0.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
+v1.0.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
-v1.9.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+v1.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -1189,6 +935,8 @@ v1.9.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
+v1.2.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

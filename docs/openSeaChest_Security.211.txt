@@ -1,7 +1,8 @@
-openSeaChest_PassthroughTest.txt                          Revision: 09-Apr-2020
+openSeaChest_Security.txt                                 Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_PassthroughTest for Linux and Windows - Seagate drive utilities
+ openSeaChest_Security for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -40,15 +41,6 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-openSeaChest_PassThroughTest is a comprehensive command line tool that can be
-used to identify and analyze the unique quirks which may be present in a
-USB-to-SATA or USB-to-NVMe bridge adapter.  The findings from this tool are
-studied to help optimize openSeaChest libraries to send the best and safest
-device interface commands, which are passed through to the storage device.
-
-NOTE: openSeaChest_PassThroughTest may not be fully functional on non-Seagate
-drives.
-
 If this is your drive, you should always keep a current backup of your
 important data.
 
@@ -63,23 +55,21 @@ size. See this FAQ for more information
 
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_PassthroughTest [-d <sg_device>] {arguments} {options}
+        openSeaChest_Security [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo ./openSeaChest_PassthroughTest --scan
-        sudo ./openSeaChest_PassthroughTest -d /dev/sg2 -i
-        sudo ./openSeaChest_PassthroughTest -d /dev/sg3 --runPTTest --ptTypeHint sat --ptDriveHint ata --enableHangCmdsTest all
+        sudo openSeaChest_Security --scan
+        sudo openSeaChest_Security -d /dev/sg2 -i
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_PassthroughTest [-d <device>] {arguments} {options}
+        openSeaChest_Security [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_PassthroughTest --scan
-        openSeaChest_PassthroughTest -d PD0 -i
-        openSeaChest_PassthroughTest -d PD3 --runPTTest --ptTypeHint sat --ptDriveHint ata --enableHangCmdsTest all
+        openSeaChest_Security --scan
+        openSeaChest_Security -d PD0 -i
 
 Utility Arguments
 =================
@@ -151,83 +141,116 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --ptDriveHint [ata | nvme]
-                This option passes a hint to the software that the device being
-                tested is an ATA or NVMe drive so it can appropriately test it.
-                This option is most useful when also using --ptTypeHint
+        SATA Only
+        =========
+        --ataSATsecurityProtocol [enable | disable]         (SATA only)
+                This option can be used to force enable or disable using the
+                ATA security protocol as specified in the SAT specification. By
+                default, the tool will use this method when it is supported to
+                allow the SATL to understand and manage the security commands
+                being performed and prevent other issues.
 
-        --ptTypeHint [sat | legacyATA]
-                Add this option if the device being tested is likely to support
-                one of the supported passthrough types. This hints to the
-                software to perform additional testing for these passthroughs
-                if no other support is apparent.
+                Use this option to disable an ATA security password. If a drive
+                lost power during an ATA Security Erase in SeaChest, then using
+                the password SeaChest with type 'user' will remove the temporary
+                password set by the utility.
 
-                sat - device supports SAT ATA-passthrough commands (12 or 16
-                      byte)
-                legacyATA - device supports a legacy vendor unique method to
-                      passthrough ATA commands. You must also specify
-                      --enableLegacyATAPTTest in order for these commands to be
-                      tested.
+                Example:
+                --ataSATsecurityProtocol disable --ataSecPassword SeaChest --ataSecPassType user
 
-        --disablePassthroughTesting
-                Disables all ATA passthrough testing. Device will only be
-                tested with SCSI commands from SPC and SBC specifications.
+                Some commands like --scan and --deviceInfo will still run on a
+                locked drive. To disable a password set by a BIOS, the BIOS
+                must have set the password in ASCII. A BIOS may choose to hash
+                the password typed in the configuration however it chooses and
+                this utility has no idea how to match what the BIOS has done so
+                it may not always work to remove a password set by something
+                other than this utility. See the --ataSecPWMod command below
+                for additional alternatives.
 
-        --enableLegacyATAPTTest
-                Add this option to the command line to allow sending legacy
-                passthrough CDBs from old USB adapters or drivers. By default
-                these are off since these operation codes may perform
-                unintended actions on devices that don't actually support
-                passthrough. For example: There is a USB thumbdrive that
-                receives one of these and bricks immediately. Only add this to
-                the command line if you understand and have high confidence
-                that the device you are testing is likely to support one of
-                these passthroughs. Most of these devices will have been
-                created prior to 2006 when the SAT spec was added for a
-                standardized passthrough.
+        --ataSecPassword ["ASCII password" | SeaChest | empty]      (SATA only)
+                Use this option to specify a password to use with an ATA
+                security operation. If specifying a password with spaces,
+                quotes must be used. If SeaChest is given, the default SeaChest
+                password will be used. If empty is given, an empty password
+                will be used.
 
-        --enableHangCmdsTest [all | zlr | sctgpl | rrTdir]
-                There are some commands that are known to cause some
-                translators to hang when they are received. This option covers
-                some known commands for some devices This must be enabled
-                manually for a more complete test, but if it hangs the device
-                could cause problems. Each of these tests has a specific
-                hack/quirk related to it, so if the device hangs, then it must
-                be added to the list for higher compatibility. Not all hangs
-                will be able to be detected by the software! Put this option on
-                the command line multiple times to add different combinations
-                of tests.
-                    all    - run all known commands that may cause hangs
-                    zlr    - do SCSI read commands with zero transfer length
-                    sctgpl - try reading the SCT status log with a GPL read log
-                       ext command
-                    rrTdir - in the SAT return response information protocol,
-                       run it without setting the tdir bit as the spec allows
+                Examples:
+                  "This is a valid password"
+                  ThisIsAlsoValid
+                  "This password uses \"quotes\"
+                  "This password is \/\/eird"
 
-        --forceRetest
-                Use this option to force this utility to retest this device if
-                it reports that it is already known. This may be useful when
-                testing multiple devices that use the same chip and are
-                identified, or when trying to troubleshoot compatibility on
-                another OS.
+                Note: Windows PE offers an ATA Security Erase feature. If the
+                erase is interrupted then a temporary password
+                AutoATAWindowsString12345678901 is still set.
 
-        --runPTTest
-                This option is used to perform the passthrough test. The
-                passthrough test is an attempt to figure out quirks or hacks
-                with different translators in order to make the device more
-                compatible with the rest of the openSeaChest software. The
-                default test is done using only what can be determined about
-                the device from the SCSI reported data. Attempting to
-                passthrough ATA or NVMe commands may not be done depending on
-                how the device reports. Using the other options can help tell
-                this software to test for other behavior. The other options to
-                control the test are as follows:
-                    --ptDriveHint
-                    --ptTypeHint
-                    --disablePassthroughTesting
-                    --enableLegacyATAPTTest
-                    --enableHangCmdsTest
-                    --forceRetest
+                Note: See the section below "When drives are reported Security
+                "Frozen" by SeaChest".
+
+        --ataSecPassType [user | master]                (SATA only)
+                Use this option to specify if the password being given with the
+                --ataSecPassword option is a user or a master password. If this
+                option is not provided, user is assumed.
+
+        --ataSecPWMod [byteswapped | zeropad | spacepad | fpad | leftAlign |
+          rightAlign | uppercase | lowercase | invertcase] (SATA Only)
+                Use this option to have the utility make modifications to the
+                ATA security password to attempt other various ways it may be
+                sent by a system bios. These are not guaranteed to work, but
+                may help unlock a drive that was locked by a BIOS that encoded
+                the password in a unique way. This option can be presented
+                multiple times to select multiple modifications.
+
+                EX: --ataSecPWMod byteswapped --ataSecPWMod invertcase
+                  byteswapped - byteswaps the password. EX: blah -> lbha
+                  zeropad - zero pads the password if less than 32 characters
+                  spacepad - space pads the password if less than 32 characters
+                  fpad - pads the passwords with Fh (all 1's) if less than
+                     32characters
+                  leftAlign - left aligns the password in the buffer
+                  rightAlign - right aligns the password in the buffer
+                  uppercase - sends the password as all uppercase
+                  lowercase - sends the password as all lowercase
+                  invertcase - switches uppercase for lower, and lowercase for
+                  upper
+
+        --ataSecFreeze          (SATA only)
+                This option will send the ATA security freezelock command to a
+                device. This command prevents all other ATA security commands
+                from being processed until the next reset or power cycle.
+
+        --ataSecurityInfo               (SATA only)
+                This option shows information about the ATA security feature on
+                ATA devices. It will show the security state and flags related
+                to the state, Master password capability & ID, time to perform
+                a secure erase, whether user data is encrypted, and whether
+                sanitize can override ATA security to repurpose a drive.
+
+        --disableATASecPW               (SATA Only)
+                Use this option to disable an ATA security password. If the
+                drive is in high security mode, either user or master password
+                may be provided. In maximum security mode only the user
+                password can be provided to unlock and disable the ATA security
+                password. The master may only be used to erase the drive in
+                maximum security mode. Use the --ataSecPassword option to
+                provide the password to use and --ataSecPassType to specify
+                whether it is the user or master password.
+
+                If a drive lost power during an ATA Security Erase in
+                SeaChest_Security, then providing --ataSecPassword SeaChest
+                will use the default SeaChest password used during the erase.
+                To disable a password set by a BIOS, the BIOS must have set the
+                password in ASCII. A BIOS may choose to hash or modify the
+                password typed in the configuration however it chooses and this
+                utility has no idea how to match what the BIOS has done so it
+                may not always work to remove a password set by something other
+                than this utility.
+
+        --unlockATASec          (SATA only)
+                Use this option along with the --ataSecPassword option and
+                --ataSecPassType option to unlock a drive with the provided
+                password.  If the drive is in maximum security mode, only the
+                user password may be used to unlock the device.
 
 Utility Options
 ===============
@@ -402,6 +425,22 @@ be catastrophic or exactly what you want. The shortcut to select all devices is
 designation for all devices, you can narrow the tasks to specific types of
 drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
 
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
+
 Tests which take a very long time to complete or erase all user data on the
 drive will require a longer command line argument than indicated in the --help
 output to the screen.  This approach is taken to eliminate the possibility of
@@ -429,8 +468,30 @@ because a device has a CSMI handle doesn't mean it is part of a RAID.
 
 If you want to see both handles, add --scanFlags allowDuplicates to the command
 line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
-the command line.  SeaChest_PassthroughTest -d SCSI?:? --csmiInfo is useful when
+the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
 troubleshooting CSMI device handles questions.
+
+When drives are reported Security "Frozen" by openSeaChest
+------------------------------------------------------
+Note:  Your system or the openSeaChest software may report that a SATA password
+cannot be changed because it is "frozen". Many systems BIOS will automatically
+set the ATA SECURITY FREEZE LOCK command on all SATA drives at start up. The
+SECURITY FREEZE LOCK command prevents changes to all Security states until a
+following power-on reset or hardware reset. The purpose of the SECURITY FREEZE
+LOCK command is to prevent password setting attacks on the security system.
+
+The openSeaChest --deviceInfo command will display something similar to this: "ATA
+Security Information: Supported, Frozen". To disable Freeze Lock, first check
+your BIOS SATA disk options to control the setting at start up. Otherwise, you
+might pause the boot up shortly after powering on the system and then
+temporarily remove the power to the security frozen drive (let it completely
+spin down). When the power is back on the drive it will start without being
+frozen.
+
+Windows systems may also decide not to recognize the drive if it is ATA
+Security Locked and it will not be listed by the openSeaChest --scan command.  If
+the drive remains undetected in Windows, your alternative is to make a bootable
+USB flash drive and run SeaChest_Erase from the Linux operating system.
 
 =========================
 Linux General Usage Hints
@@ -839,12 +900,17 @@ Win: openSeaChest_Basics -i -d PD1
                 Format Unit
                 Sanitize
 
+===============
+Version History
+===============
+
+The above history is provided as a courtesy to show the original SeaChest
+development activity.
+
 ============================
 openSeaChest Version History
 ============================
-v0.0.1  07-Nov-2019  1_20_6 libraries.
-v0.1.0  26-Nov-2019  1_20_8 libraries
-v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+v2.1.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -855,6 +921,8 @@ v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
+v2.1.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

@@ -1,7 +1,8 @@
-openSeaChest_PowerControl.txt                             Revision: 09-Apr-2020
+openSeaChest_Erase.txt                                    Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_PowerControl for Linux and Windows - Seagate drive utilities
+ openSeaChest_Erase for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -17,10 +18,8 @@ been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
 
-openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
-helps you quickly determine the health and status of your storage product. It
-includes several tests that will examine the physical media on your storage
-device.
+This User Guide file contains important information about openSeaChest Erase.
+Please read this entire file before using this software.
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -37,42 +36,44 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
-Optimization within the framework of a complex company data center requires
-dynamic technology. As storage capacity demands increase due to virtualization
-and growing volumes of data, managing power usage in an intelligent way is
-critical for reducing Total Cost of Ownership (TCO).
+openSeaChest_Erase is a comprehensive command line tool that can be used to
+efficiently erase data on Seagate disk drives (this includes Seagate, Maxtor,
+Samsung and LaCie).
 
-There are, roughly, three general frameworks for disk drive power management.
-The earlier specification is part of Advanced Power Management (APM) which
-provided controls over many devices in a system, including disk drives.  APM
-has since been replaced by a new framework called Extended Power Controls
-(EPC).  Seagate's implementation of EPC began to phase in starting in 2010 and
-is named by the marketing term "PowerChoice".  Seagate PowerChoice
-technology'specifically developed for enterprise environments'offers more
-energy efficiency and control over the amount of power hard drives consume.
+NOTE: openSeaChest_Erase may not be fully functional on non-Seagate drives.
 
-You may need to learn what capabilities for power management your drive offers,
-such as supporting APM or EPC, and maybe both.  See the commands
---showEPCSettings or --showAPMLevel(SATA Only) or --deviceInfo for various
-reports containing power settings and features supported.  Most enterprise
-drives after 2016 only support EPC (PowerChoice).
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
 
-PowerChoice technology improves on earlier technology and allows for
-energy-saving during periods of command inactivity, allowing for greater power
-reductions. As idle time increases, the power-saving benefits also increase,
-and the drives will still quickly respond to commands even after long idling
-periods. In addition, PowerChoice technology supports four customizable modes
-to give businesses significantly more control of power usage by allowing for up
-to a 54% reduction in the amount of energy used.
+This User Guide file contains important information about openSeaChest_Erase.
+Please read this entire file before using this software.
 
-See the section below "How PowerChoice Technology Works"
+If this is your drive, you should always keep a current backup of your
+important data.
 
-The third and newest drive power management framework exists for SATA drives
-and is named PowerBalance.  Seagate's PowerBalance feature will adjust drive
-performance during random operations to reduce power consumption of the drive.
+If this is not your drive and the original owner has no claim of ownership to
+it or the data stored on it, then you may still be responsible for the data in
+your possession.   To protect yourself from potential liability and to protect
+the previous owner's privacy, you should remove all data by performing a data
+erasure on this drive.
 
-This User Guide file contains important information about openSeaChest
-PowerControl.  Please read this entire file before using this software.
+Be very careful because using openSeaChest_Erase will cause data loss. Seagate
+is not responsible for lost user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -83,38 +84,28 @@ decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
 size. See this FAQ for more information
 <http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
 
-If this is your drive, you should always keep a current backup of your
-important data.
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
 
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_PowerControl [-d <sg_device>] {arguments} {options}
+        openSeaChest_Erase [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo openSeaChest_PowerControl --scan
-        sudo openSeaChest_PowerControl -d /dev/sg2 -i
-        sudo openSeaChest_PowerControl -d /dev/sg1 --deviceInfo
-        sudo openSeaChest_PowerControl -d /dev/sg3 --showEPCSettings
-        sudo openSeaChest_PowerControl -d /dev/sg2 --idle_a 5000
-        sudo openSeaChest_PowerControl -d /dev/sg1 --idle_b disable
-        sudo openSeaChest_PowerControl -d /dev/sg3 --transitionPower standby_z
-        sudo openSeaChest_PowerControl -d /dev/sg45 --idle_a 5000 --standby_z 30000 --idle_b enable --idle_c disable
+        sudo openSeaChest_Erase --scan
+        sudo openSeaChest_Erase -d /dev/sg2 -i
+        sudo openSeaChest_Erase --device /dev/sg1 --sanitize info
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_PowerControl [-d <device>] {arguments} {options}
+        openSeaChest_Erase [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_PowerControl --scan
-        openSeaChest_PowerControl -d PD0 -i
-        openSeaChest_PowerControl -d PD1 --deviceInfo
-        openSeaChest_PowerControl -d PD3 --showEPCSettings
-        openSeaChest_PowerControl -d PD2 --idle_a 5000
-        openSeaChest_PowerControl -d PD1 --idle_b disable
-        openSeaChest_PowerControl -d PD3 --transitionPower standby_z
-        openSeaChest_PowerControl -d PD45 --idle_a 5000 --standby_z 30000 --idle_b enable --idle_c disable
+        openSeaChest_Erase --scan
+        openSeaChest_Erase -d PD2 -i
+        openSeaChest_Erase --device PD1 --sanitize info
 
 Utility Arguments
 =================
@@ -173,8 +164,8 @@ Utility Arguments
         -i, --deviceInfo
                 Show information and features for the storage device. USB
                 devices will show the product name, serial and firmware numbers
-                as communicated by the USB-SATA bridge. To see the child drive
-                details add --usbChildInfo to the command line options.
+                as communicated by the USB-SATA bridge.  Add--usbChildInfo to
+                display details about the drive within the USB enclosure.
 
         --SATInfo                       (SATA only)
                 Displays SATA device information on any interface using both
@@ -186,325 +177,117 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        --checkPowerMode
-                Get the current power mode of a drive. On SCSI devices, this
-                will only work if the drive has transitioned from active state
-                to another state.  In Windows, the --checkPowerMode command
-                will always wake up SATA drives which are controlled by the
-                default Microsoft drivers.  This means you cannot check the
-                power mode and determine that it is in Idle or Standby. Drives
-                on secondary controllers or non-Microsoft device drivers may
-                accept the --checkPowerMode command without waking up the drive.
+        --displayLBA [LBA | maxLBA]
+                This option will read and display the contents of the specified
+                LBA to the screen. The display format is hexadecimal with an
+                ASCII translation on the side (when available).  The predefined
+                text string "maxLBA" (without quotes) may be entered to
+                indicate the last sector on the drive instead of the specific
+                LBA number.
 
-        --EPCfeature [enable | disable]
-                Enables or disables Extended Power Conditions (EPC) support for
-                devices.  To disable EPC use --EPCfeature disable. Note that the
-                EPC Feature Set is not supported on all devices. Use
-                --deviceInfo option to see if EPC is supported.
+        --showEraseSupport
+                This option checks the drive to determine which methods of data
+                erasure are supported and lists them, from fastest to slowest.
+                Gives overwrite erase time estimate.
 
-        --showEPCSettings
-                Use this option to show the current Extended Power Conditions
-                (EPC) settings on the screen. Only drives supporting the EPC
-                feature will show this data and only supported power conditions
-                will be shown.
+        --poll
+                Use this option to cause another operation to poll for progress
+                until it has completed.  This argument does not return to the
+                command prompt and prints ongoing completion percentages (%)
+                and the final test result.  Full drive procedures will take a
+                very long time.  Used with --sanitize, --ataSecureErase (SATA),
+                --writeSame (SATA), or --formatUnit (SAS).
 
-        --idle_a [ enable | disable | default | timerValueMilliseconds ]
-                Use this setting to change the EPC Idle_A power mode settings.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. EPC spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
+        --progress [sanitize | format]
+                Get the periodic ongoing progress for certain types of tests
+                which were started quietly (default) and running in the
+                background until completion and the tool has already returned
+                to the command prompt.  This type of progress checking is used
+                when not using the --poll argument which does not return to the
+                command prompt.  The progress counts up from 0% to 100%.
+                Specify the type of test to check progress.
 
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
+        --showPhysicalElementStatus
+                Use this option to see the status/health of the storage
+                elements inside a drive. Use the element # shown with the
+                --removePhysicalElement option to remove that storage element
+                from use. This option can also be used to see if a depopulation
+                is still in progress or if it has completed.  See the section
+                below 'Interpreting Head Health and Status' for more
+                information.
 
-        --idle_b [ enable | disable | default | timerValueMilliseconds ]
-                Use this setting to change the EPC Idle_B power mode settings.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. EPC spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
+SATA Only
+---------
+        --ataSATsecurityProtocol [enable | disable]         (SATA only)
+                This option can be used to force enable or disable using the
+                ATA security protocol as specified in the SAT specification. By
+                default, the tool will use this method when it is supported to
+                allow the SATL to understand and manage the security commands
+                being performed and prevent other issues.
 
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
+                Use this option to disable an ATA security password. If a drive
+                lost power during an ATA Security Erase in SeaChest, then using
+                the password SeaChest with type 'user' will remove the temporary
+                password set by the utility.
 
-        --idle_c [ enable | disable | default | timerValueMilliseconds ]
-                Use this setting to change the EPC Idle_C power mode settings.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. EPC spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
+                Example:
+                --ataSATsecurityProtocol disable --ataSecPassword SeaChest --ataSecPassType user
 
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
+                Some commands like --scan and --deviceInfo will still run on a
+                locked drive. To disable a password set by a BIOS, the BIOS
+                must have set the password in ASCII. A BIOS may choose to hash
+                the password typed in the configuration however it chooses and
+                this utility has no idea how to match what the BIOS has done so
+                it may not always work to remove a password set by something
+                other than this utility. See the --ataSecPWMod command below
+                for additional alternatives.
 
-        --powerMeasurementMode [all | 5 | 12]   (Seagate Only)
-                Use this option along with --requestPowerMeasurement to specify
-                which sources to measure power on for the requested time.
-                 all - measure all power sources
-                 5   - measure only the 5v power
-                 12  - measure only the 12v power
+        --ataSecPassword ["ASCII password" | SeaChest | empty]      (SATA only)
+                Use this option to specify a password to use with an ATA
+                security operation. If specifying a password with spaces,
+                quotes must be used. If SeaChest is given, the default SeaChest
+                password will be used. If empty is given, an empty password
+                will be used.
 
-        --requestPowerMeasurement [seconds to perform measurement]      (Seagate Only)
-                This option is used to specify a time to perform a power
-                measurement for. The minimum measurement time is 22 seconds and
-                the maximum is 65535 seconds. If a time less than 22 seconds is
-                provided, 22 seconds will be used by the drive. A value greater
-                than 65535 will result in error. Use the --powerMeasurementMode
-                option to specify which mode to measure.
+                Examples:
+                  "This is a valid password"
+                  ThisIsAlsoValid
+                  "This password uses \"quotes\"
+                  "This password is \/\/eird"
 
-        --showPowerTelemetry    (Seagate Only)
-                Use this option to show the power telemetry data from a Seagate
-                drive that supports the power telemetry feature If a
-                measurement was not previously requested, this will show
-                free-running mode data from the last 10 minutes. If this option
-                is provided while a measurement is still in progress, this will
-                show all data that is currently available Use the
-                --requestPowerMeasurement option to request a power measurement
-                with a set time window.
+                Note: Windows PE offers an ATA Security Erase feature. If the
+                erase is interrupted then a temporary password
+                AutoATAWindowsString12345678901 is still set.
 
-                NOTE: Power measurements are for the full device, not individual
-                      logical units. All logical units will be measured for
-                      this data.
+                Note: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
 
-        --spinDown
-                Removes power to the disk drive motor with the Standby
-                Immediate for SATA, or standby_z for SAS. Use this before
-                moving a hard disk drive. The drive will spin back up if the
-                operating system selects the drive. This means that an active
-                drive will not stay spun down.
+        --ataSecPassType [user | master]                (SATA only)
+                Use this option to specify if the password being given with the
+                --ataSecPassword option is a user or a master password. If this
+                option is not provided, user is assumed.
 
-                In the case of SSD devices, the drive will flush the temporary
-                caches and prepare for shutdown.
+        --ataSecPWMod [byteswapped | zeropad | spacepad | fpad | leftAlign |
+          rightAlign | uppercase | lowercase | invertcase] (SATA Only)
+                Use this option to have the utility make modifications to the
+                ATA security password to attempt other various ways it may be
+                sent by a system bios. These are not guaranteed to work, but
+                may help unlock a drive that was locked by a BIOS that encoded
+                the password in a unique way. This option can be presented
+                multiple times to select multiple modifications.
 
-        --standby [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)
-                Use this setting to change the standby power mode settings.
-                NOTE: This is the legacy standby timer before EPC drives.
-                      If this is used on an EPC drive, this will modify
-                      the standby_z power state and timer values.
-                    enable  - enable the power state    (SAS Only)
-                    disable - disable the power state   (SAS Only)
-                    default - restore default settings for this power state     (SAS Only)
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. Spec timers are set in 100 millisecond
-                                increments. Timers will be truncated to fit 100
-                                millisecond increments.
-
-                ATA drives can only change the standby timer, not disable it.
-                On ATA drives, the standby timer set by this command is volatile
-                and drive defaults are restored on next power cycle.
-
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
-
-        --standby_y [ enable | disable | default | timerValueMilliseconds ]
-                Use this setting to change the EPC Standby_Y power mode settings.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. EPC spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
-
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
-
-        --standby_z [ enable | disable | default | timerValueMilliseconds ]
-                Use this setting to change the EPC Standby_Z power mode settings.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if not
-                                already. EPC spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
-
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
-
-        --transitionPower [active | idle | idleUnload | standby | idle_a | idle_b | idle_c | standby_y | standby_z | sleep]
-                Use this option to transition the drive to a specific power
-                state. EPC and legacy power states are supported. EPC states
-                are only available  on devices supporting the EPC feature.
-                Supported power states:
-                  active
-                  idle - idle mode (legacy mode equivalent to idle_a on EPC)
-                  idleUnload - same as above, but heads are unloaded. This may
-                        not be supported on all devices.
-                  standby - standby mode (legacy mode equivalent to standby_z on EPC)
-                  idle_a - EPC idle mode
-                  idle_b - EPC lower power idle mode
-                  idle_c - EPC lowest power idle mode
-                  standby_y - EPC low power standby mode
-                  standby_z - EPC lowest power standby mode
-                  sleep - Sleep state. WARNING: This requires a reset to wake
-                        from. Once in this state, this tool cannot wake the
-                        drive on its own. The OS or adapter will need to issue
-                        a reset, which may or may not happen.
-
-                WARNING: Transitioning power modes may affect all
-                LUNs/namespaces for devices with multiple logical units or
-                namespaces.
-
-        SATA Only
-        =========
-        --showAPMLevel   (SATA Only)
-                Use this option to show the current Advanced Power Management
-                (APM) level of a device
-
-        --setAPMLevel [1 - 254]   (SATA Only)
-                Use this option to set the APM level of a device. Valid values
-                are between 1 and 254.  This setting is non-volatile so it
-                holds across power cycles.
-                      1 = Minimum power consumption with standby mode
-                  2-127 = Intermediate power management with standby mode
-                    128 = Minimum power consumption without standby mode
-                129-253 = Intermediate power management without standby mode
-                    254 = Maximum Performance
-
-        --disableAPM   (SATA Only)
-                Use this option to disable the current Advanced Power
-                Management (APM) level of a device
-
-        --powerBalanceFeature [info | enable | disable]   (SATA Only)(Seagate Only)
-                Use this option to see the state of the Seagate PowerBalance
-                feature or to change its state. Seagate's PowerBalance feature
-                will adjust drive performance during random operations to
-                reduce power consumption of the drive.
-                    info - will display the state of the PowerBalance feature
-                           on the screen
-                    enable - use this to enable PowerBalance
-                    disable - use this to disable PowerBalance
-                Note: SAS products should use the --setPowerConsumption option
-                instead.
-
-        --sataDAPSfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Automatic
-                Partial To Slumber Transitions (DAPS) feature. Use the "info"
-                option to see the current state of the DIPM feature on the
-                device. The use of this feature requires that the DIPM feature
-                is enabled.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
-
-        --sataDIPMfeature [info | enable | disable ]    (SATA Only)
-                Use this option to enable or disable the SATA Device Initiated
-                Power Management (DIPM) feature. Use the "info" option to see
-                the current state of the DIPM feature on the device.
-
-                NOTE: Please ensure that the host adapter/controller/driver can
-                handle this before enabling it, otherwise the drive link may go
-                down and the device will not be able to communicate.
-
-        SAS Only
-        ========
-        --idle [ enable | disable | default | timerValueMilliseconds ]  (SAS Only)
-                Use this setting to change the idle power mode settings.
-                NOTE: This is the legacy idle timer before EPC drives. If this
-                is used on an EPC drive, this will modify the idle_a power
-                state and timer values.
-                    enable  - enable the power state
-                    disable - disable the power state
-                    default - restore default settings for this power state
-                    timerValue - number of milliseconds to set for the timer
-                                used in this power state. If a timer is
-                                provided the state will also be enabled, if
-                                not already. Spec timers are set in 100
-                                millisecond increments. Timers will be
-                                truncated to fit 100 millisecond increments.
-
-                This is only available on SAS/SCSI drives as ATA drives did not
-                have a separate configurable idle timer.
-
-                WARNING: EPC Settings may affect all LUNs/namespaces for devices
-                         with multiple logical units or namespaces.
-
-        --sasPhy [phy number] (SAS Only)
-                Use this option to specify a specific phy to use with another
-                option that uses a phy identifier value. Some tool options will
-                assume all SAS Phys when this option is not present. Others
-                will produce an error when a specific phy is needed for an
-                operation. Use the -i option to learn more about the supported
-                phys.
-
-        --sasPhyPartial [info | enable | disable] (SAS Only)
-                Use this option to enable or disable the partial phy power
-                condition. This is from the enhanced phy control mode page.
-                Use the --sasPhy option to specify an individual phy,
-                otherwise this will be changed on all phys.
-                WARNING: Configuring this setting may cause the drive to be
-                undetectable by other hardware if this power condition is not
-                supported by a controller or expander.
-
-                WARNING: Changing SAS Phy partial may affect all
-                LUNs/namespaces for devices with multiple logical units or
-                namespaces.
-
-        --sasPhySlumber [info | enable | disable] (SAS Only)
-                Use this option to enable or disable the slumber phy power
-                condition. This is from the enhanced phy control mode page.
-                Use the --sasPhy option to specify an individual phy,
-                otherwise this will be changed on all phys.
-                WARNING: Configuring this setting may cause the drive to be
-                undetectable by other hardware if this power condition is not
-                supported by a controller or expander.
-
-                WARNING: Changing SAS Phy slumber may affect all
-                LUNs/namespaces for devices with multiple logical units, or
-                namespaces.
-
-        --showPowerConsumption  (SAS Only)
-                This option will show the power consumption rates supported by
-                the device and the current power consumption rate of the
-                device. Use a supported watt value with the
-                --setPowerConsumption option to set the power consumption to
-                that value.
-
-        --setPowerConsumption [default | highest | intermediate | lowest |
-          watt value]   (SAS Only) (Seagate Only)
-                This option will set the power consumption rate of the device
-                to the value input.
-                Options:
-                        default - sets the device back to default settings
-                        highest - sets the active level to "highest"
-                        intermediate - sets the active level to "intermediate"
-                        lowest - sets the active level to "lowest"
-                        watt value - sets the device to a nearest watt value
-                           less than or equal to the value entered.
-
-                Power consumption watt values are listed with the
-                --showPowerConsumption command line option.
-
-        NVMe Only
-        =========
-        --transitionPowerState [new power state]        (NVMe Only)
-                Use this option to transition to a specific power state.
-                HINT:
-                  Use --deviceInfo to show number of supported states
+                EX: --ataSecPWMod byteswapped --ataSecPWMod invertcase
+                  byteswapped - byteswaps the password. EX: blah -> lbha
+                  zeropad - zero pads the password if less than 32 characters
+                  spacepad - space pads the password if less than 32 characters
+                  fpad - pads the passwords with Fh (all 1's) if less than
+                     32characters
+                  leftAlign - left aligns the password in the buffer
+                  rightAlign - right aligns the password in the buffer
+                  uppercase - sends the password as all uppercase
+                  lowercase - sends the password as all lowercase
+                  invertcase - switches uppercase for lower, and lowercase for
+                  upper
 
 Utility Options
 ===============
@@ -544,6 +327,10 @@ Utility Options
                 they may interpret these commands differently than the bridge
                 chip the command was designed for.
 
+        --hideLBACounter
+                Use this option to supress the output from options that show
+                LBA counters without turning off all output to the screen.
+
         --sat12byte
                 This forces the lower layer code to issue SAT spec ATA
                 Pass-through 12-byte commands when possible instead of 16-byte
@@ -570,6 +357,18 @@ Utility Options
                 firmware revision. This option will only do an exact match.
                 The option --childOnlyFW may be used to match drives in USB
                 enclosures.
+
+        --hours [hours]
+                Use this option to specify a time in hours for a timed
+                operation to run.
+
+        --minutes [minutes]
+                Use this option to specify a time in minutes for a timed
+                operation to run.
+
+        --seconds [seconds]
+                Use this option to specify a time in seconds for a timed
+                operation to run.
 
         --forceATA
                 Using this option will force the current drive to be treated as
@@ -618,6 +417,304 @@ Utility Options
                 tool on a CSMI handle. The debugging information shown will be
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
+
+Data Destructive Commands
+========================================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+Note: The time required to erase an entire drive may take several hours. The
+erase time length is slightly longer than the time it takes to read the entire
+drive. The openSeaChest --deviceInfo command output has a line similar to this
+example: 'Long Drive Self Test Time:  1 hour 38 minutes'. You can use the
+reported time for your drive as being less than the time necessary to erase the
+entire drive.
+
+        --confirm this-will-erase-data ... etc
+
+        --performQuickestErase
+                This option checks the drive to determine which methods of data
+                erasure are supported and determines which is the quickest to
+                erase ALL data on the drive. It then starts the quickest erase.
+                Combine this option with the --poll option to enable polling
+                for progress on the fastest erase.  See also --showEraseSupport.
+
+                Note 1: Some erase methods require polling and will have polling
+                enabled by default.
+
+                Note 3: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
+
+Note: Windows 8 (and newer) native drivers block Sanitize commands.
+
+        --sanitize [info | blockerase | cryptoerase | overwrite | freezelock |
+                    antifreezelock]
+                Use the info argument to show supported sanitize operations.
+                Optionally, use blockerase, cryptoerase, or overwrite to start
+                a sanitize operation.
+
+                Example:--sanitize info
+                Example:--sanitize blockerase
+
+                * blockerase on some solid state drives (SSD) is very fast at
+                less than one (1) second, while on other SSDs it can take
+                longer than 30 seconds. It performs a physical low level block
+                erase operation on all current, past and potential user data
+                making previous data irretrievable. Consider using the --poll
+                option to monitor % completion.
+
+                * cryptoerase is usually very fast at less than one (1) second.
+                It changes the internal encryption keys that are used for user
+                data causing all previous data to be useless. Some products may
+                take a few minutes to fully finish this command option.
+
+                * overwrite physically overwrites all current, past and
+                potential user data. The ATA specification gives overwrite the
+                option to set a user defined pattern and multiple passes.
+                openSeaChest_Erase will use zeros (0) and one pass.
+
+                Overwrite on hard disk drives (HDD) takes a very long time to
+                complete at approximately three (3) hours per terabyte. Once
+                this command starts it must finish the overwrite erase before
+                normal use of the drive is returned. Even if a power reset is
+                performed during overwrite erase the drive will continue from
+                where it was stopped until it reaches the end of the of
+                erasure. Automatic sector reallocation (repair) is permitted
+                during the operation of this function.
+
+                The optional --poll argument does not return to the command
+                prompt and prints ongoing completion percentages (%) and the
+                final test result. Otherwise, the Sanitize command begins and
+                immediately returns to the command prompt.  Use the --progress
+                sanitize command to check on the completion percentage (%) and
+                test result.
+
+                * freezelock is a command to block processing of sanitize
+                operations until a power cycle is performed on a device. It is
+                only available on ATA drives. Once this command has been sent,
+                the freezelock status becomes immediate and cannot be cleared
+                until the drive has been powered off. All sanitize commands,
+                except a sanitize status will be aborted.
+
+                * antifreezelock is a command which is designed to block a
+                freezelock command from locking out the sanitize feature set.
+                It is only available on ATA drives that support the ACS3, or
+                higher specification.
+
+        --overwrite [starting LBA | maxLBA]
+                Use this option to start an overwrite erase at the specified
+                starting LBA.  Use 0 for the starting LBA to mean the beginning
+                of the drive.  The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The overwrite data pattern
+                will be all zeros (0000... etc) for the specified range.  You
+                must combine this option with either the --overwriteRange to
+                set the range count of the erasure, or the time settings
+                (--minutes, etc. see above).
+
+                Example: --overwrite 0 --overwriteRange 1000000
+                         --overwrite 0 --hours 1 --minutes 30
+
+                Important: If the end of the drive is reached before the time
+                is up, the operation will continue at the beginning of the
+                drive until the specified time is finished.  This means your
+                starting LBA may not be the lowest LBA erased.  Use --overwrite
+                and --overwriteRange together instead for more control of the
+                starting and ending LBAs.  This test always issues write
+                commands to the drive. No TRIM or UNMAP commands are used
+                during this operation.
+
+                Note: This erase may be used on HDD (hard disk drive) or SSD
+                (solid state disk) devices, although not advised for SSD
+                because it impacts endurance life due to abnormal write
+                activity.
+
+        --overwriteRange [LBA count]
+                Use with the --overwrite option to specify a range of LBAs to
+                erase on the selected drive.  If the starting LBA and the range
+                count together exceed the MaxLBA (last sector of the drive)
+                then the test will end at the MaxLBA.  Also, if this command is
+                omitted then the end of the drive is assumed and the test will
+                end at the MaxLBA.
+
+        --trim [starting LBA | maxLBA]         (SATA and NVMe)
+        --unmap [starting LBA | maxLBA]        (SAS only)
+                Use this option to start a TRIM (SATA) or UNMAP (SAS) operation
+                at the specified starting LBA.  Use 0 for the starting LBA to
+                mean the beginning of the drive.  The predefined text string
+                "maxLBA" (without quotes) may be entered to indicate the last
+                sector on the drive instead of the specific LBA number.  These
+                commands are common on SSD devices and less common on HDDs.
+                You must combine this option with the corresponding --trimRange
+                or --unmapRange to set the range of the operation.
+
+        --trimRange [LBA count]         (SATA and NVMe)
+        --unmapRange [LBA count]        (SAS only)
+                Use one of these options to specify a range of LBAs to TRIM or
+                UNMAP on a drive. A starting point must be specified with the
+                corresponding --trim or --unmap option.  If the starting LBA
+                and the range count together exceed the MaxLBA (last sector of
+                the drive) then the test will end at the MaxLBA.  Also, if this
+                command is omitted then the end of the drive is assumed and the
+                test will end at the MaxLBA.
+
+        --writeSame [starting LBA | maxLBA]
+                Use this option to start a WRITE SAME erase at the specified
+                starting LBA.  Use 0 for the starting LBA to mean the beginning
+                of the drive.  The predefined text string "maxLBA" (without
+                quotes) may be entered to indicate the last sector on the drive
+                instead of the specific LBA number.  The Write Same data
+                pattern will be all zeros (0000... etc) for the specified
+                range.  You must combine this option with the --writeSameRange
+                to set the range of the erasure.
+
+                On SCSI devices, this uses the writesame16 command. On ATA
+                devices, this uses the SCT writesame feature.
+
+                Note: For SATA drives, adding the --poll option will cause this
+                operation to poll for progress until complete. This is not
+                available on SAS and SCSI drives because SCSI drives do not
+                report the progress on a Write Same operation.
+
+        --writeSameRange [LBA count]
+                Use with the --writeSame option to specify a range of LBAs to
+                erase on the selected drive.  If the starting LBA and the range
+                count together exceed the MaxLBA (last sector of the drive)
+                then the test will end at the MaxLBA.  Also, if this command is
+                omitted then the end of the drive is assumed and the test will
+                end at the MaxLBA.
+
+        --pattern [repeat:asciinospaces | random | increment:startValue |
+             file:filename]
+                Use this option with overwrite, sanitize, and format unit
+                operations to write a specific pattern to a range of LBAs or
+                the whole drive.
+
+                * repeat - without spaces, enter an ASCII text string or a
+                hexadecimal string terminated by a lower case "h". This pattern
+                will be repeated until it fills the logical size of the LBA.
+                i.e. helloword or FFFFFFFFh
+                Note: A hexadecimal pattern will be interpreted as a 32bit
+                      unsigned integer. 4 hex bytes (8 characters) must be
+                      given for a hex value to be used. Ex: 1F037AC8h or
+                      0000FFFFh
+
+                * random - the entire logical sector size will be filled with
+                random bytes. This pattern will be written to all LBAs in the
+                desired range.
+
+                * increment - enter the starting numerical value. Starting with
+                this value, each byte will be written with 1 + previous value.
+
+                * file - user supplied file name to use for a pattern. The file
+                will be truncated or padded with zeros to the logical sector
+                size.
+                Note 1: Each file will be interpreted as a binary file.
+                Note 2: A path must also be provided if the file is not in the
+                        local directory.
+                Note 3: Sanitize Overwrite on SATA only supports a 32bit
+                        pattern. The file option will get truncated to a 32bit
+                        pattern for SATA products.
+
+        --removePhysicalElement [element #]
+                Use this option to remove a storage element from use on a
+                drive. When this is done, the drive will erase all user data
+                and lower the capacity to a new point where the drive is still
+                usable without the provided element #. Use the
+                --showPhysicalElementStatus option to see the status of the
+                depopulation operation.
+
+SATA Only
+---------
+        --ataSecureErase [normal | enhanced]          (SATA only)
+                Use the normal or enhanced argument to start an ATA security
+                erase on a device.
+
+                * normal writes binary zeros (0) to all user data areas.
+
+                * enhanced writes binary zeros (0) to all user data areas,
+                including sectors that are no longer in use due to
+                reallocation. Not all drives support the enhanced mode. For
+                some models (ISE enabled), enhanced mode erase can take seconds
+                because it uses crypto erase internally.
+
+                ATA Security Erase on standard drives (non-SED) takes a very
+                long time to complete at approximately three (3) hours per
+                terabyte. Self Encrypting Drives (SED) may run an quick
+                cryptographic erase by changing the drive's encryption keys.
+                The industry standard command ATA Security Erase begins by
+                locking the drive with a temporary password which is cleared at
+                the end of the erasure. Do not run this command unless you have
+                ample time to allow it to run through to the end. If the
+                procedure is interrupted prior to completion, then the drive
+                will remain in a locked state and you must manually restart it
+                from the beginning. The temporary password to unlock the drive
+                is "SeaChest", plain ASCII letters without the quotes.  See the
+                various ATA password options in the Utility Arguments section
+                above.
+
+                If the drive reports that it is freezelocked, then this is
+                usually put on by a BIOS command at startup.  After the
+                operating system is finished booting you can try removing the
+                power to just the hard drive.  This should allow it to restart
+                without the freezelock command.
+
+                Note: See the section below "When drives are reported Security
+                "Frozen" by openSeaChest".
+
+SAS Only
+--------
+        --formatUnit [current | new sector size]    (SAS Only)
+                This option will start a format unit operation on a SAS drive
+                Use "current" to perform a format unit operation with the
+                Sector size currently being used, otherwise enter a new sector
+                size to use upon format completion.
+
+                Valid sector sizes are given by the --showSupportedSectorSizes
+                command (see above) or  listed in the device Product Manual.
+                This command will erase all data on the drive. The security
+                initialize feature is not used and protection information will
+                not be set. Combine this option with --poll or --progress to
+                check for completion status until the format is complete.
+
+                Warning: Once a Format Unit command is started it must be
+                allowed to finish in order to calculate the total number of
+                logical blocks (LBAs) at the finish.  If the sector size has
+                changed then there will be a corresponding change to the total
+                number of LBAs. If a device stops a Format Unit before it
+                completes then the device will report a "Corrupted Format"
+                sense code, "03-31".  Restart the format and allow it to finish
+                to correct this error.
+
+        --fastFormat [fast format mode] (SAS Only) (SBC4 required)
+                You must use this option with the --formatUnit option to run a
+                fast format. Available fast format modes:
+                    0 - This is a standard format unit command. All logical
+                        blocks will be overwritten. This command will take a
+                        very long time.
+                    1 - This is a fast format unit command keeping existing
+                        data in the physical sector. This option can be used to
+                        quickly change the the logical sector size between 5xx
+                        emulation and 4xxx native logical block sizes.
+                        Resulting LBA (sector) count is either /8 or *8 the
+                        current Read Capacity, depending on the direction of
+                        the conversion.  The media may be readable, but data
+                        may be unspecified or may return errors on read access
+                        according to it's error processing algorithms.
+                    2 - This is a fast format unit command that can change the
+                        logical sector size quickly. Media may or may not be
+                        read accessible until a write has been performed to
+                        the media.
+
+                Example: --formatUnit 512 --fastFormat 1 --confirm I-... etc
+                Example: --formatUnit 4096 --fastFormat 1 --confirm I-... etc
+
+                Note: There is no electronic method to test if a SAS drive
+                      supports Fast Format. Refer to the drive product manual
+                      to determine if it supports the sub-command.  (See the
+                      help topic below: About FastFormat)
+
 
 Return codes
 ============
@@ -708,50 +805,6 @@ may have a unique /dev/sg designation.  The scan option may indicate that there
 are two drives in the system with the same serial number.  Dual port
 installations will also report two different Worldwide Numbers (WWN).
 
-================================
-How PowerChoice Technology Works
-================================
-See the Seagate technology paper "Seagate PowerChoice Technology Provides
-Unprecedented Hard Drive Power Savings and Flexibility"
-http://www.seagate.com/files/docs/pdf/en-GB/whitepaper/tp608-powerchoice-tech-provides-gb.pdf
-
-Each individual power condition builds on the capabilities of the previous
-higher power condition in order to save incrementally more power. The specific
-energy-saving steps implemented for each power condition are as follows:
-
-Idle_A
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Discs rotating at full speed (7,200 RPM)
-Idle_B
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Discs rotating at full speed (7,200 RPM)
-Idle_C/Standby_Y (SAS Only)
-        - Disables most of the servo system, reduces processor and channel
-        power consumption
-        - Heads are unloaded to drive ramp.
-        - Drive speed reduced to a lower RPM (reduced RPM)
-Standby_Z
-        - Heads are unloaded to drive ramp.
-        - Drive motor is spun down.
-        - Drive still responds to non-media access host commands.
-
-Flexibility is a key feature of PowerChoice technology, enabling commands from
-the host side to customize power condition settings and direct a drive into or
-out of power conditions as required. Two different options are available for
-the user to modify PowerChoice technology settings, depending on the interface
-used:
-
-SAS
-        Host-definable timers via mode pages
-        Immediate host-commanded power transitions via Start/Stop Unit (SSU)
-        command
-SATA
-        Host-definable timers via Set Features commands
-        Immediate host-commanded power transitions via Set Features commands
-
 Windows Only Usage
 ==================
 All Windows version tools support finding CSMI devices and talking to them like
@@ -766,8 +819,114 @@ because a device has a CSMI handle doesn't mean it is part of a RAID.
 
 If you want to see both handles, add --scanFlags allowDuplicates to the command
 line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
-the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
+the command line.  openSeaChest_Info -d SCSI?:? --csmiInfo is useful when
 troubleshooting CSMI device handles questions.
+
+When drives are reported Security "Frozen" by openSeaChest
+------------------------------------------------------
+Note:  Your system or the openSeaChest software may report that a SATA password
+cannot be changed because it is "frozen". Many systems BIOS will automatically
+set the ATA SECURITY FREEZE LOCK command on all SATA drives at start up. The
+SECURITY FREEZE LOCK command prevents changes to all Security states until a
+following power-on reset or hardware reset. The purpose of the SECURITY FREEZE
+LOCK command is to prevent password setting attacks on the security system.
+
+The openSeaChest --deviceInfo command will display something similar to this:
+"ATA Security Information: Supported, Frozen". To disable Freeze Lock, first
+check your BIOS SATA disk options to control the setting at start up.
+Otherwise, you might pause the boot up shortly after powering on the system and
+then temporarily remove the power to the security frozen drive (let it
+completely spin down). When the power is back on the drive it will start
+without being frozen.
+
+Windows systems may also decide not to recognize the drive if it is ATA
+Security Locked and it will not be listed by the openSeaChest --scan command.
+If the drive remains undetected in Windows, your alternative is to make a
+bootable USB flash drive and run openSeaChest_Erase from the Linux operating
+system.
+
+Interpreting Head Health and Status
+-----------------------------------
+Beginning in 2016, some Seagate nearline drives started to support the
+Remanufacture command set which allows a disk drive with a manageable
+read/write head problem to remain in service at a reduced capacity by
+"depopulating" the head element.  You can check if a drive supports the
+Remanufacture command set by running --deviceInfo and looking for 'Storage
+Element Depopulation' in the list of supported features.  (Not to be confused
+with 'SATA Rebuild Assist' which is a feature used to rebuild RAID systems.)
+
+A drive failure (due to a head problem) that is easily removed from the system
+is replaced with a spare drive.  A drive that is nearly inaccessible may make
+sense to remain in the system at a reliable lesser capacity by depopulating the
+problem head.
+
+If supported by the drive, the --showPhysicalElementStatus command will display
+a simple table showing head number, type, health, and status.
+
+The Health level is represented like a percentage, 0-100.  0 is perfectly
+healthy, 100 = at manufacturer's limit, above this to 207 is above the
+manufacturer's limit. A report of 254 means a depopulate is in progress.
+
+The Status levels are active, in limit, degraded, truncated, truncate failed.
+
+If a drive head has developed isolated, degraded performance, and does not
+affect any other reliability in the system, then the head can be removed from
+service. A drive with seven platters and fourteen heads would lose 1/14th of
+its storage capacity, or ~7%.  Likewise, a four head drive would lose 25%.
+
+If a drive is reported as "degraded" by --showPhysicalElementStatus then it can
+be depopulated using the --removePhysicalElement command.  When a head is
+depopulated the drive must perform a complete full pack write; this is
+obviously data destructive and takes a very long time to complete.
+
+When disk drives are built the post assembly factory process includes media
+scanning, any defects mapping, defining sector sizes, and establishing system,
+cache and data zones.  This activity is generically known as a low-level
+format.  During head depopulation (i.e. removing a physical element) the drive
+performs a kind of 'mid-level format' using Sanitize Overwrite which has the
+unique behavior that once started it must finish.  If power is interrupted
+during a Sanitize Overwrite it will pick up again where it left off when power
+returns.
+
+================
+About FastFormat
+================
+A FastFormat (quickly changing the logical sector size) may take a few minutes
+for the process to complete. The disk activity LED may show activity during the
+conversion.  The larger the drive, the longer it takes.  This feature is found
+on SAS and SATA interface Seagate drive families designed and manufactured
+later than 2016.  SAS interface drives will report support for FastFormat if it
+is available in the drive. Just run the -i or --deviceInfo command and check
+under the Features Supported section.  Unfortunately, SATA interface drives do
+not report this capability.  Please refer to the SATA product manual for
+verification of this feature.
+
+SAS and SATA interface drives accomplish a FastFormat this with the
+--setSectorSize [new sector size] command found in SeaChest_Format or
+SeaChest_Lite.  In addition, for SAS interface drives, only, the same result is
+possible using the --formatUnit command with the --fastFormat [fast format
+mode] modifier equal to 1.  This command is found in SeaChest_Format and
+SeaChest_Erase.  For example:
+--formatUnit 4096 --fastFormat 1 --confirm this-will... etc
+
+SAS interface drives, only, can all do a long format unit.  This procedure
+takes a very long time, more than a day in some cases, but it does have the
+advantage of full defect management with all sectors being readable at the
+conclusion.  The fast format does not do this full drive read and
+verification.  If your drive is new, there is no real need to run a long format
+unit to change sector between 5xxE (512 bytes per logical sector emulation) and
+4kN (4096 native bytes per sector, logical and physical).
+
+NOTE: Operating systems do a device discovery during start up and set various
+parameters, like total sectors and sector size, into the storage device
+descriptions. The logical sector size times the number or logical sectors
+defines the drive capacity.  You should expect to see OS I/O errors if you
+change the logical sector size on a drive and then perform read or write
+operations before the OS has updated its storage device descriptions.  Some
+operating systems will throw an error after accessing a drive that has just run
+a FastFormat but during its error recovery routines it may re-discover the
+device parameters and update the system logs.  A system restart, however, is
+the most reliable way to refresh the storage device descriptions.
 
 =========================
 Linux General Usage Hints
@@ -1179,60 +1338,70 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
-SeaChest_PowerChoice is branched off from SeaChest Basics v1.0.3.
+SeaChest_Erase is branched off from SeaChest Basics v1.0.3.
 
-v0.0.1  14-Apr-2015  Intitial PowerChoice release.
-v0.0.2  12-Aug-2015  Added --testUnitReady. Improved device discovery.
+v0.0.1  14-Mar-2015  Added --writeSame, --revertSP and TCG --revert.
+v0.0.2  21-May-2015  Added --testUnitReady. Improved device discovery.
+v0.0.3  12-Aug-2015  Modified some commands to consist of two parts - starting
+                     LBA and LBA range count.  Improved device discovery.
                      Corrections to verbose output.
-v0.0.4  22-Sep-2015  Added --showPowerConsumption and --setPowerConsumption,
-                     both are SAS only.
-v0.0.4  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
+v0.0.3  16-Oct-2015  1_7_0 libraries.  Added enhanced version information.
                      Added -sat12byte to increase compatibility.  Added
                      --SATInfo to compare ATA vs SCSI identification
                      differences.
-v0.0.6  26-Jan-2016  1_8_1 libraries.  Added --EPCfeature for SATA.
 v1.0.0  02-May-2016  1_9_1 libraries.  Added new verbosity level. Added
                      --onlySeagate restriction.  Added --modelMatch and
-                     --onlyFW filters.
-v1.0.2  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     --onlyFW filters. Added logic change for --overwrite and
+                     --trim commands to assume Max LBA (end of the drive) as
+                     the range when the erase range is not specified.  Added
+                     --performQuickestErase, --formatUnit, --fastFormat,
+                     --showEraseSupport.
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
                      Fixed a bug where we could accidentally clear some stored
                      identify data from the device structure. Fixed continuing
                      on when there was a permission denied error opening a
-                     drive. Fixed --checkPowerMode always returning "active" on
-                     SAT interfaces (SATA over SAS). Fixed --transitionPower
-                     always failing (It was  trying an incompatible value).
-v1.0.3  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     drive. Adjustments to --fastFormat.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
                      commands. Fixed bugs with --modelMatch and --onlyFW
                      filters.
-v1.2.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
-                     --showEPCSettings, --showAPMLevel, and --setAPMLevel.
-v1.2.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --displayLBA and --pattern.
+v1.1.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
                      functions, format polling, endianess detection, buffer
                      size fixes, SAS device statistics, Win32 IOCTL
-                     pass-through fix on Win8 and higher. Added --disableAPM.
-v1.3.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
                      minor bug fixes. Fixed --SATInfo command.
-v1.3.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
                      and --forceATAUDMA  (SATA Only).
-v1.4.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
-v1.4.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
                      SAT Vendor ID, SAT Product ID, and SAT Product Revision to
                      the -i --SATInfo output.
-v1.4.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
                      --enableLegacyUSBPassthrough
-v1.4.2  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
                      settings.
-v1.4.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+v1.3.2  10-Nov-2016  1_11_8 libraries fixed issue with Sanitize Overwrite
+                     patterns. Also improved logic when using the various Range
+                     commands.
+v1.3.2  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
                      the corresponding command range option, SAS power mode
                      setting, and Sanitize erase patterns.
-v1.5.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+v1.4.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
                      22.5Gb/s physical bus speeds, support for double buffered
-                     passthrough IOCTLs. EPCfeature now supports SAS. New -F,
-                     --scanFlags [options: ignoreCSMI allowDuplicates] for
-                     Windows tools. Add CSMI support to all Windows version
-                     tools.
-v1.5.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     passthrough IOCTLs. --showEraseSupport now gives overwrite
+                     erase time estimate.  --progress support for writesame
+                     removed (caused test to abort), use --poll instead. Add
+                     --hideLBACounter. New -F, --scanFlags [options: ignoreCSMI
+                     allowDuplicates] for Windows tools. Add CSMI support to
+                     all Windows version tools.
+v1.4.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
                      for SAS features.
+v1.5.0  24-May-2017  1_14_3 libraries. Added "Storage Element Depopulation" if
+                     a supported feature.  Adds --showPhysicalElementStatus,
+                     --forceSeagateDepop, --removePhysicalElement.
 v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      should exit with code = 1; added detection of parallel ATA
                      and SCSI speeds; temperature data on ATA now uses the
@@ -1240,7 +1409,10 @@ v1.6.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
                      Bug fix where the "-d all" was not filtering out csmi
                      drives like it is supposed to causing duplicate drives to
                      show up.  Adds the child drive matching options
-                     --childModelMatch, --childOnlyFW, and --childNewFW.
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Bug
+                     fix with --showEraseSupport showing non-ascii characters.
+                     Added --showPhysicalElementStatus and
+                     --removePhysicalElement.
 v1.7.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
                      Sense Data Reporting feature enabled, changes to how we
                      interpret the completion status from the drive, new Sense
@@ -1250,28 +1422,26 @@ v1.7.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
 v1.7.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
                      reading remanufacture time for SAS when the drive reports
                      a time, fixed SAS --abortDST.
-v1.8.1  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+v1.7.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
                      SAS adapters, added NVMe read, write & Flush commands.
-                     Added --powerBalanceFeature, --sataDAPSfeature and
-                     --sataDIPMfeature, all of which are SATA only.
-v1.8.2  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+v1.7.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
                      device, SAT library strings, and fixes to Read-Buffer
                      error history (ISL). Updated copyright notice, invalid
                      command line options now only display an error instead of
-                     long help. Name change from SeaChest_PowerChoice to
-                     SeaChest_PowerControl.
-v1.8.2  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
-v1.8.2  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     long help. Added remanufacturing time for SCSI.
+v1.7.3  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+                     Added detection of current SAS format protection mode.
+v1.7.3  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
                      that don't show as SATA and don't support the SAT VPD
                      page; added Automatic fallback to 12byte CDBs during
                      initial device discovery;  integrated fixes for SAS
                      firmware download and fixes for SAS LongDST time
                      calculation; added detection of TCG Pyrite and Opalite
                      drives.
-v1.8.2  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+v1.7.3  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
                      on some LSI adapters, corrects firmware download issue
                      under Windows 10 API.
-v1.8.2  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.7.3  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -1279,28 +1449,9 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v1.8.2  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+v1.7.1  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
 open source project for storage devices.
-v1.9.0  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
-                     USB flash drives, support for early 90's PATA drives that
-                     don't support LBA mode, bug fix where the last digit of
-                     the SCSI Unit Serial Number was being dropped, additional
-                     logic for deferred download completion status. --scan
-                     --onlySeagate for just Seagate drives in a large system,
-                     Long Drive Self Test Time in the -i output, write protect
-                     status has been added for SCSI and NVMe in the -i output,
-                     IDD enhancements for SAS, IDD enhancements to allow
-                     captive mode on SATA, added USB Hacks to better support
-                     some odd-ball USB devices and prevent crashes and improve
-                     performance for some operations on them by issuing test
-                     unit ready commands when something fails during device
-                     discovery, automatic fall back to SAT 10 byte commands
-                     during device discovery to help work with some USB
-                     devices, some Legacy SCSI support enhancements (partially
-                     from USB hacks development), enhanced SD to SG mapping in
-                     Linux.  Added --idle (Immediate), --idleUnload, --standby
-                     (Immediate), --active.
-v1.9.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+v1.7.4  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      field to get the OS name under linux; NVMe enabled;  fixed
                      a bug in the ATA activate FW command; added in reading ID
                      Data log and Device statistics logs page 0 to check the
@@ -1312,17 +1463,24 @@ v1.9.1  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
                      banner and -V data to show support levels. Add general
                      support for NVMe and NVMe specific identify data to "-i"
                      command.
-v1.9.1  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
-v1.10.0  03-May-2019 1_19_18 libraries added per device verbosity, --deviceInfo
+v1.7.4  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.9.0  28-Feb-2019  1_19_2 libraries.  ATA Security password options sometimes
+                     needed for ATA Security Erase controls.  Added
+                     --ataSATsecurityProtocol, --ataSecPassword,
+                     --ataSecPassType, --ataSecPWMod. Removed
+                     --disableATASecurityPW. Rename --secureErase to
+                     --ataSecureErase.
+v2.0.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
                      adds SAS (not SATA) FastFormat for Features Supported
                      section,  --deviceInfo now gives Low Current Spinup
-                     status.
-v1.10.0  10-Jun-2019 1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     status. Adds --psid (removes that argument from
+                     --revertSP), adds --sid.
+v2.0.1 10-Jun-2019   1_19_23 libraries added SNTL (SCSI to NVMe translator),
                      updated software SAT translator to use dataset management
                      XL command, fixes for issuing vendor unique commands under
                      Windows, improved fast format support detection, and
                      refactored verbose output for NVMe commands.
-v2.0.0   04-Feb-2020 1_21_30 libraries add in check for Elevated Privileges
+v2.1.1  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -1333,33 +1491,8 @@ v2.0.0   04-Feb-2020 1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
-
-                     v2 is a significant overhaul of the tool:
-                     These old v1 commands are retired:
-                     --active,--changePower, --defaultMode, --disableMode,
-                     --enableMode, --idle, --idleUnload, --powerMode
-                     [powermode], --sleep, --standby, --modeTimer [timer value
-                     in milliseconds], --transitionPower.
-
-                     And transitioned to these new v2 commands: --idle [ enable
-                     | disable | default | timerValueMilliseconds ], --idle_a [
-                     enable | disable | default | timerValueMilliseconds ],
-                     --idle_b [ enable | disable | default |
-                     timerValueMilliseconds ], --idle_c [ enable | disable |
-                     default | timerValueMilliseconds ], --standby_y [ enable |
-                     disable | default | timerValueMilliseconds ], --standby_z
-                     [ enable | disable | default | timerValueMilliseconds ],
-                     --standby [ enable | disable | default |
-                     timerValueMilliseconds ] (Some settings are SAS only),
-                     --transitionPower [active | idle | idleUnload | standby |
-                     idle_a | idle_b | idle_c | standby_y | standby_z | sleep]
-
-                     These v2 commands are new: --powerMeasurementMode [all | 5
-                     | 12], --requestPowerMeasurement [seconds to perform
-                     measurement], --showPowerTelemetry, --sasPhy [phy number]
-                     (SAS Only), --sasPhyPartial [info | enable | disable] (SAS
-                     Only), --sasPhySlumber [info | enable | disable] (SAS
-                     Only), --transitionPowerState [new power state]
+v2.1.2  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics

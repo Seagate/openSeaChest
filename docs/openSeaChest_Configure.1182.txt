@@ -1,7 +1,8 @@
-openSeaChest_Security.txt                                 Revision: 09-Apr-2020
+openSeaChest_Configure.txt                                Revision: 21-Apr-2020
 ===============================================================================
- openSeaChest_Security for Linux and Windows - Seagate drive utilities
+ openSeaChest_Configure for Linux and Windows - Seagate drive utilities
  Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates
+ See Version History below.
 ===============================================================================
 Welcome to the openSeaChest open source project!
 
@@ -16,14 +17,6 @@ BINARIES and SOURCE CODE files of the openSeaChest open source project have
 been made available to you under the Mozilla Public License 2.0 (MPL).  The
 openSeaChest project repository is maintained at
 https://github.com/Seagate/openSeaChest.
-
-This User Guide file contains important information about openSeaChest Info.
-Please read this entire file before using this software.
-
-openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
-helps you quickly determine the health and status of your storage product. It
-includes several tests that will examine the physical media on your storage
-device.
 
 Many tests and commands are completely data safe, while others will change the
 drive (like firmware download or data erasure or setting the maximum capacity,
@@ -40,8 +33,39 @@ English language only and use "command line arguments" to define the various
 tasks and specific devices.  openSeaChest diagnostics are available for both
 Linux and Windows environments.
 
+openSeaChest_Configure is a comprehensive command line tool that can be used to
+configure, change or set various properties on Seagate disk drives (this
+includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
+data on the drive to become inaccessible.  Some commands may affect the
+performance of the drive.
+
+NOTE: openSeaChest_Configure may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about
+openSeaChest_Configure.  Please read this entire file before using this
+software.
+
 If this is your drive, you should always keep a current backup of your
 important data.
+
+Be very careful using openSeaChest_Configure. Power failure during a
+configuration change may cause data loss. Seagate is not responsible for lost
+user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
 
 Note: One gigabyte, or GB, equals one billion bytes when referring to hard
 drive capacity. This software may use information provided by the operating
@@ -54,21 +78,21 @@ size. See this FAQ for more information
 
 Usage - Linux (run with sudo)
 =============================
-        openSeaChest_Security [-d <sg_device>] {arguments} {options}
+        openSeaChest_Configure [-d <sg_device>] {arguments} {options}
 
 Examples - Linux
 ================
-        sudo openSeaChest_Security --scan
-        sudo openSeaChest_Security -d /dev/sg2 -i
+        sudo openSeaChest_Configure --scan
+        sudo openSeaChest_Configure -d /dev/sg2 --deviceInfo
 
 Usage - Windows (run as administrator)
 ======================================
-        openSeaChest_Security [-d <device>] {arguments} {options}
+        openSeaChest_Configure [-d <device>] {arguments} {options}
 
 Examples - Windows
 ==================
-        openSeaChest_Security --scan
-        openSeaChest_Security -d PD0 -i
+        openSeaChest_Configure --scan
+        openSeaChest_Configure -d PD0 --deviceInfo
 
 Utility Arguments
 =================
@@ -90,7 +114,7 @@ Utility Arguments
                 additional devices in the system when the device is unable to
                 come to a ready state.
 
-       -F, --scanFlags [option list]
+        -F, --scanFlags [option list]
                 Use this option with -s to control the output from scan with the
                 options listed below. Multiple options can be combined.
                      ata            - show only ATA (SATA) devices
@@ -140,116 +164,334 @@ Utility Arguments
                 interface.  Ready or Not Ready are the outputs.  Not Ready
                 results will also include the full SCSI Sense Code.
 
-        SATA Only
-        =========
-        --ataSATsecurityProtocol [enable | disable]         (SATA only)
-                This option can be used to force enable or disable using the
-                ATA security protocol as specified in the SAT specification. By
-                default, the tool will use this method when it is supported to
-                allow the SATL to understand and manage the security commands
-                being performed and prevent other issues.
+        --setMaxLBA [newMaxLBA | maxLBA]
+                Set the max accessible address of your drive to any value less
+                than the device's default native size. A power cycle is
+                required after this command before resetting or setting a new
+                max LBA. The final capacity will depend on the logical sector
+                size.  If the Logical Block Address (LBA) is set to 1953125 and
+                the sector size is 512, then the capacity is 1,000,000,000
+                bytes. If the logical sector size is 4096, then the capacity is
+                8,000,000,000 bytes.  If the logical sector size is 512 but the
+                physical sector size is 4096 (called Advanced Format), then
+                normal practice is to pick an LBA value which is divisible by
+                8. Use the -i, --deviceInfo to show logical and physical sector
+                sizes.  The predefined text string "maxLBA" (without quotes)
+                may be entered to indicate the last sector on the drive,
+                otherwise see --restoreMaxLBA.
 
-                Use this option to disable an ATA security password. If a drive
-                lost power during an ATA Security Erase in SeaChest, then using
-                the password SeaChest with type 'user' will remove the temporary
-                password set by the utility.
+        --restoreMaxLBA
+                Restore the max accessible address of your drive to its native
+                size. A power cycle is required after this command before
+                setting a new max LBA.
 
-                Example:
-                --ataSATsecurityProtocol disable --ataSecPassword SeaChest --ataSecPassType user
+        --phySpeed [0 | 1 | 2 | 3 | 4 | 5]
+                Use this option to change the PHY speed to a new maximum value.
+                This change persists over power cycles and resets. On SAS, this
+                option will set all phys to the specified speed unless the
+                --sasPhy option is given to select a specific phy.
 
-                Some commands like --scan and --deviceInfo will still run on a
-                locked drive. To disable a password set by a BIOS, the BIOS
-                must have set the password in ASCII. A BIOS may choose to hash
-                the password typed in the configuration however it chooses and
-                this utility has no idea how to match what the BIOS has done so
-                it may not always work to remove a password set by something
-                other than this utility. See the --ataSecPWMod command below
-                for additional alternatives.
+                0 - allow full negotiation (default drive behavior)
+                1 - allow negotiation up to 1.5Gb/s
+                2 - allow negotiation up to 3.0Gb/s
+                3 - allow negotiation up to 6.0Gb/s
+                4 - allow negotiation up to 12.0Gb/s (SAS Only)
+                5 - allow negotiation up to 22.5Gb/s (SAS Only)
 
-        --ataSecPassword ["ASCII password" | SeaChest | empty]      (SATA only)
-                Use this option to specify a password to use with an ATA
-                security operation. If specifying a password with spaces,
-                quotes must be used. If SeaChest is given, the default SeaChest
-                password will be used. If empty is given, an empty password
-                will be used.
+        --nvCache [info | enable | disable]     (SAS Only)
+                Use this option to enable or disable the SCSI Non-Volatile
+                cache on a drive. Use the "info" argument to get the current
+                status of the Non-Volatile Cache setting.
+                WARNING: Changing NV Cache may affect all LUNs/namespaces for
+                devices with multiple logical units or namespaces.
 
-                Examples:
-                  "This is a valid password"
-                  ThisIsAlsoValid
-                  "This password uses \"quotes\"
-                  "This password is \/\/eird"
+       --readLookAhead [info | enable | disable]
+                Use this option to enable or disable read look-ahead support on
+                a drive.  Use the "info" argument to get the current status of
+                the read look ahead feature.  This change is not preserved over
+                power cycles.
 
-                Note: Windows PE offers an ATA Security Erase feature. If the
-                erase is interrupted then a temporary password
-                AutoATAWindowsString12345678901 is still set.
+        --writeCache [info | enable | disable]
+                Use this option to enable or disable write cache support on a
+                drive.  Use the "info" argument to get the current status of
+                the write cache feature.  Changes may not be preserved over
+                power cycles.
 
-                Note: See the section below "When drives are reported Security
-                "Frozen" by SeaChest".
+                Note: Windows, Device Manager, Disk drives, <your model>,
+                Policies tab, Write-caching policy may override this
+                --writeCache setting if the policy is enabled in Device
+                Manager. You can change the Windows policy or you can try
+                --sctWriteCache, if necessary, to control the cache regardless
+                of the policy.
 
-        --ataSecPassType [user | master]                (SATA only)
-                Use this option to specify if the password being given with the
-                --ataSecPassword option is a user or a master password. If this
-                option is not provided, user is assumed.
+SATA Only
+---------
+        --freeFall [info | enable | disable | sensitivity value]  (SATA only)
+                Use this option to configure the Free Fall control feature
+                found on some SATA drives. This feature allows the drive to
+                take action if it detects it is in free fall to protect the
+                data from harm due to a drop.
 
-        --ataSecPWMod [byteswapped | zeropad | spacepad | fpad | leftAlign |
-          rightAlign | uppercase | lowercase | invertcase] (SATA Only)
-                Use this option to have the utility make modifications to the
-                ATA security password to attempt other various ways it may be
-                sent by a system bios. These are not guaranteed to work, but
-                may help unlock a drive that was locked by a BIOS that encoded
-                the password in a unique way. This option can be presented
-                multiple times to select multiple modifications.
+                info - use this to see the current sensitivity value
+                enable - this option will set the sensitivity to the vendor's
+                        recommended value.
+                disable - this will disable the free fall control feature.
+                sensitivity value - set a value between 1 and 255 to control
+                        how sensitive the detection is. A value of zero will
+                        set the vendor's recommended value.
 
-                EX: --ataSecPWMod byteswapped --ataSecPWMod invertcase
-                  byteswapped - byteswaps the password. EX: blah -> lbha
-                  zeropad - zero pads the password if less than 32 characters
-                  spacepad - space pads the password if less than 32 characters
-                  fpad - pads the passwords with Fh (all 1's) if less than
-                     32characters
-                  leftAlign - left aligns the password in the buffer
-                  rightAlign - right aligns the password in the buffer
-                  uppercase - sends the password as all uppercase
-                  lowercase - sends the password as all lowercase
-                  invertcase - switches uppercase for lower, and lowercase for
-                  upper
+        --lowCurrentSpinup [ low | ultra | disable ]  (SATA Only) (Seagate Only)
+                Use this option to set the state of the low current spinup
+                feature on Seagate SATA drives.  When this setting is enabled
+                for low or ultra low mode, the drive will take longer to spinup
+                and become ready.
+                Note: This feature is not available on every drive.
+                Note: Some products will support low, but not the ultra low
+                current spinup mode.
 
-        --ataSecFreeze          (SATA only)
-                This option will send the ATA security freezelock command to a
-                device. This command prevents all other ATA security commands
-                from being processed until the next reset or power cycle.
+        --puisFeature [enable | disable]  (SATA Only)
+                Use this option to enable or disable the Power Up In Standby
+                (PUIS) feature on SATA drives.
+                Note: If this is configured on the drive with a jumper, this
+                      command will fail.
+                Note2: Not all products support this feature.
 
-        --ataSecurityInfo               (SATA only)
-                This option shows information about the ATA security feature on
-                ATA devices. It will show the security state and flags related
-                to the state, Master password capability & ID, time to perform
-                a secure erase, whether user data is encrypted, and whether
-                sanitize can override ATA security to repurpose a drive.
+        --sscFeature [info | default | enable | disable] (SATA Only)
+                Use this option to change or view the SSC (Spread Spectrum
+                Clocking) mode on a Seagate SATA drive. Only change this
+                setting if you are experiencing compatibility problems with the
+                drive in a system.
 
-        --disableATASecPW               (SATA Only)
-                Use this option to disable an ATA security password. If the
-                drive is in high security mode, either user or master password
-                may be provided. In maximum security mode only the user
-                password can be provided to unlock and disable the ATA security
-                password. The master may only be used to erase the drive in
-                maximum security mode. Use the --ataSecPassword option to
-                provide the password to use and --ataSecPassType to specify
-                whether it is the user or master password.
+                info - show current SSC state
+                default - set to drive default mode
+                enable - enable SSC
+                disable - disable SSC
 
-                If a drive lost power during an ATA Security Erase in
-                SeaChest_Security, then providing --ataSecPassword SeaChest
-                will use the default SeaChest password used during the erase.
-                To disable a password set by a BIOS, the BIOS must have set the
-                password in ASCII. A BIOS may choose to hash or modify the
-                password typed in the configuration however it chooses and this
-                utility has no idea how to match what the BIOS has done so it
-                may not always work to remove a password set by something other
-                than this utility.
+        --sctReadTimer [info | value] (SATA Only)
+                Use this option to set the SMART command transport read command
+                timer value for synchronous commands and NCQ commands with
+                in-order data delivery enabled. Note: this timer starts at the
+                time that the drive processes the command, not the time it is
+                received. This timer value is volatile and is cleared at each
+                power cycle. Use the "info" argument to get the current status
+                of the read timer. A value of 0 means that all possible error
+                recovery will be performed before returning status (i.e. the
+                Read Command Timer is disabled). Other values should include a
+                unit to know the time to use. If no unit is provided, it is
+                assumed to be the value * 100 ms. The maximum time that can be
+                specified is 1 hour, 49 minutes, 13 seconds. Note: On some SAT
+                HBAs/bridges, status will not be able to be determined due to
+                HBA/bridge limitations.
 
-        --unlockATASec          (SATA only)
-                Use this option along with the --ataSecPassword option and
-                --ataSecPassType option to unlock a drive with the provided
-                password.  If the drive is in maximum security mode, only the
-                user password may be used to unlock the device.
+                Ex1: --sctReadTimer 7s for a 7 second timer.
+                Ex2: --sctReadTimer 7000ms for a 7 second timer expressed in
+                     milliseconds
+                Ex2: --sctReadTimer 70 for a 7 second timer with no units
+                     specified
+
+                Note: this command is part of SMART Command Transport Error
+                Recovery Control (SCTERC). These commands may also be known as
+                TLER or CCTL.  For additional information see
+                https://en.wikipedia.org/wiki/Error_recovery_control .  Consult
+                your RAID controller documentation to learn its timeout for
+                determining drive failure and subsequent RAID rebuilding of a
+                spare drive. These SCTERC commands, if supported by the drive
+                firmware, allow setting a drive level timeout which is less
+                than the RAID controller rebuild timeout.  For example, 7
+                seconds on the drive and 8 seconds on the controller.  This
+                time difference may allow the RAID to perform error recovery at
+                the file level instead of replacing the device since the
+                timeout may be caused by a sector that is just difficult to
+                read, not an entire failure of the drive.
+
+        --sctWriteCache [info | enable | disable | default]
+                (SATA Only)
+                Use this option to enable or disable write cache support on a
+                drive using SMART command transport. When using this option,
+                the setting is non-volatile. Use this with the --volatile flag
+                to make the setting volatile. When using this option, the
+                --writeCache will always return success, but no write cache
+                changes will occur. This follows ATA spec. Using the "default"
+                argument returns the drive to default settings and allowing the
+                --writeCache option to work again. Use the "info" argument to
+                get the current status of the write cache feature. Note: On
+                some SAT HBAs/bridges, status will not be able to be determined
+                due to HBA/bridge limitations.
+
+        --sctWriteCacheReordering [info | enable | disable | default]
+                (SATA Only)
+                Use this option to enable or disable write cache reordering
+                support on a drive using SMART command transport. Write cache
+                reordering allows the drive to reorder moving data out of cache
+                to media for better performance on synchronous commands.
+                Asynchronous commands are only affected when in-order data
+                delivery is enabled. When using this option, the setting is
+                non-volatile. Use this with the --volatile flag to make the
+                setting volatile. Use the "info" argument to get the current
+                status of the write cache reordering feature. Note: On some SAT
+                HBAs/bridges, status will not be able to be determined due to
+                HBA/bridge limitations.
+
+        --sctWriteTimer [info | value] (SATA Only)
+                Use this option to set the SMART command transport write
+                command timer value for synchronous commands and NCQ commands
+                with in-order data delivery enabled. Note: this timer starts at
+                the time that the drive processes the command, not the time it
+                is received. This timer value is volatile and is cleared at
+                each power cycle. Use the "info" argument to get the current
+                status of the write timer. A value of 0 means that all possible
+                error recovery will be performed before returning status (i.e.
+                the Write Command Timer is disabled). Other values should
+                include a unit to know the time to use. If no unit is provided,
+                it is assumed to be the value * 100 ms. The maximum time that
+                can be specified is 1 hour, 49 minutes, 13 seconds. Note: On
+                some SAT HBAs/bridges, status will not be able to be determined
+                due to HBA/bridge limitations.
+
+                Ex1: --sctWriteTimer 7s for a 7 second timer.
+                Ex2: --sctWriteTimer 7000ms for a 7 second timer expressed in
+                     milliseconds
+                Ex2: --sctWriteTimer 70 for a 7 second timer with no units
+                     specified
+
+                Note: see additional information above for --sctReadTimer.
+
+SAS Only
+--------
+        --readyLED [info | on | off | default] (SAS Only)
+                Use this option to change the behavior of pin 11, the ready
+                LED. See the SPL spec for full details on how this changes LED
+                behavior.
+                    info - gets the current state of the ready LED.
+                    on - sets the ready LED to usually off unless
+                         processing a command.
+                    off - sets the ready LED to usually on unless
+                          processing a command
+                    default - sets the ready LED to the drive's default value
+
+        --sasPhy [identifier value]
+                Use this option to specify a specific phy to use with another
+                option that uses a phy identifier value. Some tool options will
+                assume all SAS Phys when this option is not present. Others
+                will produce an error when a specific phy is needed for an
+                operation. Use the -i option to learn more about the supported
+                phys.
+
+        --scsiLPReset [cumulative | threshold | defCumulative | defThreshold | all]   (SAS only)
+                Use this option to reset all SCSI Log Pages. If the device is
+                compliant with SPC4 or later, the --scsiLPResetPage option may
+                be used to specify a specific page to reset. The --volatile
+                option may also be passed to prevent saving changes.
+                            cumulative - reset the cumulative values
+                            threshold  - reset the threshold values
+                            defCumulative - reset the cumulative values to
+                               default without saving.
+                            defThreshold  - reset the threshold values to
+                               default without saving.
+                            all - sends the log page reset command to all of
+                               the above control values
+
+        --scsiLPResetPage [page# | page-subpage#]               (SAS only)
+                This option is used to specify a specific page, and/or subpage
+                to be used with the --scsiLPReset option.
+                NOTE: This option will only work on newer drives compliant with
+                the SPC4 specification.
+
+        --scsiMPReset [page# | page-subpage#]           (SAS only)
+                This option will reset the specified mode page(s) to their
+                default settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                reset all mode pages. (SP) Subpage FFh specifies all subpages
+                of a given page and will reset all those subpages. Using both
+                MP 3Fh and SP FFh will reset all pages and subpages on a device.
+
+        --scsiMPRestore [page# | page-subpage#]         (SAS only)
+                This option will restore the specified mode page(s) to their
+                saved settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                restore all mode pages. (SP) Subpage FFh specifies all subpages
+                of a given page and will restore all those subpages. Using both
+                MP 3Fh and SP FFh will restore all pages and subpages on a
+                device.
+
+        --scsiMPSave [page# | page-subpage#]            (SAS only)
+                This option will save the current specified mode page(s) to the
+                saved settings. Valid page numbers range from 0 to 3Fh. Valid
+                subpage numbers range from 0 to FFh.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                save all mode pages. (SP) Subpage FFh specifies all subpages of
+                a given page and will save all those subpages. Using both MP
+                3Fh and SP FFh will save all pages and subpages on a device.
+
+         --setSCSIMP [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]  (SAS only) (Seagate Only)
+                Use this option to set a specific field in a mode page to a
+                value. There are two argument formats to this option:
+                1. The first format expects a mode page (in hex), optionally a
+                   subpage code (in hex), the byte offset that the field starts
+                   at (in decimal), the highest bit the field starts at (0-7),
+                   the width of the field in as a number of bits (decimal), and
+                   the value to set (hex or decimal).  A maximum of 64bits can
+                   be set at a time with this option.
+                2. The second format is a text file that contains all bytes of
+                   the mode page in hex. Each byte must be separated by a
+                   space, new line, or underscore. It is recommended that this
+                   file is created by copy-pasting the output of the
+                   --showSCSIMP option's default classic view, then modifying
+                   after that.
+
+                Example use of the arguments:
+                1. Setting WCE to zero on Caching MP 8 from command line:
+                   command line: 08:2:2:1=0
+                2. Setting DLC to one on Control Extension MP from command line:
+                   command line: 0A-01:4:3:1=1
+                3. Setting WCE to zero on Caching MP 8 from a text file:
+                   command line: file=cachingModePage.txt
+                   File contents: 88 12 10 00 FF FF 00 00 FF FF FF FF 90 20 00 00 00 00 00 00
+
+        --showSCSIMP [page# | page-subpage#]            (SAS only)
+                This option will display the specified mode page on the screen
+                as raw hexadecimal data bytes. Use --showSCSIMPControl to
+                control the output.  If --showSCSIMPControl is not provided,
+                the current values will be shown.
+
+                (MP) Mode page 3Fh specifies all mode pages and can be used to
+                show all mode pages. (SP) Subpage FFh specifies all subpages of
+                a given page and will show all those subpages. Using both MP
+                3Fh and SP FFh will show all pages and subpages on a device.
+
+                Note: page# is a decimal value unless it has the characters A
+                through F, then it is hexadecimal. Page 18, for example,  would
+                be 12h so be sure to say 18h if that is the page you want.
+
+                Example: --showSCSIMP 3F-FF
+                         --showSCSIMP 18h
+                         --showSCSIMP 24    (shows page 18h)
+
+        --showSCSIMPControl [current | default | saved | changeable | all]  (SAS only)
+                Use this option to control the output of the --showSCSIMP
+                option.
+                        current - show the current values of the mode page.
+                        default - show the default values of the mode page.
+                        saved   - show the saved values of the mode page.
+                        changeable - show the changeable fields in a mode page.
+                        all - show all of the above formats for a given mode
+                              page.
+                Example: --showSCSIMP 8 --showSCSIMPControl all
+
+        --showMPOutputMode [classic | buffer]   (SAS Only)
+                Use this option to control the format of the output when
+                displaying a SCSI mode page. Modes:
+                   classic - This output is a classic output from old SCSI
+                      manuals where the bytes of the page are output in a
+                      series of rows across the screen in hexadecimal format.
+                   buffer  - This output is a formatted buffer showing offsets
+                      on the top and side in hex. This will output each row
+                      with up to 16 bytes of data before moving to the next row.
 
 Utility Options
 ===============
@@ -298,7 +540,7 @@ Utility Options
 
         --onlySeagate
                 Use this option to match only Seagate drives for the options
-                provided. May also be used with the --scan command.
+                provided.
 
         --modelMatch [model Number]
                 Use this option to run on all drives matching the provided
@@ -363,6 +605,27 @@ Utility Options
                 tool on a CSMI handle. The debugging information shown will be
                 specific to the CSMI passthrough mechanism and may be useful
                 when troubleshooting system/driver compatibility issues.
+
+Data Destructive Commands
+========================================
+Data destructive commands will require additional command line arguments as
+confirmation of your understanding that data will be lost on the drive.
+Seagate is not responsible for lost user data.
+
+        --confirm I-understand-this-command-will-erase ... etc
+
+        --provision [newMaxLBA | maxLBA]
+                Provision your drive to a new max LBA to any value less than
+                the device's current max LBA. The predefined text string
+                "maxLBA" (without quotes) may be entered to indicate the last
+                sector on the drive instead of the specific LBA number.  A
+                power cycle is required after this command before resetting the
+                max LBA or changing the provisioning again. This command erases
+                all data between the new maxLBA specified and the current
+                maxLBA of the device. TRIM (SATA) or UNMAP (SAS) will be used
+                when supported by the device, including SSDs.  For most HDDs
+                this test will write 0's to the device and possibly take a very
+                long time to complete.
 
 Return codes
 ============
@@ -469,28 +732,6 @@ If you want to see both handles, add --scanFlags allowDuplicates to the command
 line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
 the command line.  SeaChest_Info -d SCSI?:? --csmiInfo is useful when
 troubleshooting CSMI device handles questions.
-
-When drives are reported Security "Frozen" by openSeaChest
-------------------------------------------------------
-Note:  Your system or the openSeaChest software may report that a SATA password
-cannot be changed because it is "frozen". Many systems BIOS will automatically
-set the ATA SECURITY FREEZE LOCK command on all SATA drives at start up. The
-SECURITY FREEZE LOCK command prevents changes to all Security states until a
-following power-on reset or hardware reset. The purpose of the SECURITY FREEZE
-LOCK command is to prevent password setting attacks on the security system.
-
-The openSeaChest --deviceInfo command will display something similar to this: "ATA
-Security Information: Supported, Frozen". To disable Freeze Lock, first check
-your BIOS SATA disk options to control the setting at start up. Otherwise, you
-might pause the boot up shortly after powering on the system and then
-temporarily remove the power to the security frozen drive (let it completely
-spin down). When the power is back on the drive it will start without being
-frozen.
-
-Windows systems may also decide not to recognize the drive if it is ATA
-Security Locked and it will not be listed by the openSeaChest --scan command.  If
-the drive remains undetected in Windows, your alternative is to make a bootable
-USB flash drive and run SeaChest_Erase from the Linux operating system.
 
 =========================
 Linux General Usage Hints
@@ -902,6 +1143,85 @@ Win: openSeaChest_Basics -i -d PD1
 ===============
 Version History
 ===============
+v1.0.0  02-May-2016  1_9_1 libraries.  SeaChest_Configure Linux, initial beta
+                     test release.  Branched from SeaChest_Basics v2.0.0.
+                     Added --lowCurrentSpinup
+v1.1.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     Fixed a bug where we could accidentally clear some stored
+                     identify data from the device structure. Fixed continuing
+                     on when there was a permission denied error opening a
+                     drive. Adjustments to --setSectorSize. Added
+                     --sctWriteCache, --sctWriteCacheReordering.
+v1.1.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     commands. Fixed bugs with --modelMatch and --onlyFW
+                     filters.  Support SATA non-volatile WCE.
+v1.3.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --puisFeature.
+v1.3.1  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     functions, format polling, endianess detection, buffer
+                     size fixes, SAS device statistics, Win32 IOCTL
+                     pass-through fix on Win8 and higher. Added support for
+                     maxLBA keyword.
+v1.4.0  01-Sep-2016  1_11_1 libraries add updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.4.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     and --forceATAUDMA  (SATA Only).
+v1.5.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.5.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
+                     the -i --SATInfo output.
+v1.5.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+                     --enableLegacyUSBPassthrough
+v1.5.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+                     settings.
+v1.5.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+                     the corresponding command range option, SAS power mode
+                     setting, and Sanitize erase patterns.
+v1.7.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+                     22.5Gb/s physical bus speeds, support for double buffered
+                     passthrough IOCTLs. Add --sasPhy, --sscFeature. New -F,
+                     --scanFlags [options: ignoreCSMI allowDuplicates] for
+                     Windows tools. Add CSMI support to all Windows version
+                     tools.
+v1.7.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features.
+v1.8.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     should exit with code = 1; added detection of parallel ATA
+                     and SCSI speeds; temperature data on ATA now uses the
+                     values from the SCT status log or device statistics log.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.
+v1.9.0  06-Jul-2017  Added --sctReadTimer, --sctWriteTimer.
+v1.10.0 14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Sense Data Reporting feature enabled, changes to how we
+                     interpret the completion status from the drive, new Sense
+                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
+                     note the capital S) aggressive system scan.
+v1.10.0 27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.10.0 19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+                     reading remanufacture time for SAS when the drive reports
+                     a time, fixed SAS --abortDST.
+v1.10.0 25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+                     SAS adapters, added NVMe read, write & Flush commands.
+v1.11.0 10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+                     device, SAT library strings, and fixes to Read-Buffer
+                     error history (ISL). Updated copyright notice, invalid
+                     command line options now only display an error instead of
+                     long help. Removed --setSectorSize now in SeaChest_Format.
+v1.11.0 12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.11.0 26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v1.11.0 31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+v1.11.0 02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
 
 The above history is provided as a courtesy to show the original SeaChest
 development activity.
@@ -909,7 +1229,57 @@ development activity.
 ============================
 openSeaChest Version History
 ============================
-v2.1.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+v1.11.0  12-Nov-2017  1_17_x libraries.  Launch date of the Seagate openSeaChest
+open source project for storage devices.
+v1.12.0 19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v1.12.2 21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command. Add --freeFall
+v1.12.2 18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.13.0 07-Jan-2019  1_19_0 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
+v1.14.0 24-Jan-2019  Add Log and Mode Page commands --scsiLPReset,
+                     --scsiLPResetPage, --scsiMPReset, --scsiMPRestore,
+                     --scsiMPSave, --setSCSIMP, --showMPOutputMode,
+                     --showSCSIMP, --showSCSIMPControl
+v1.15.0 10-Feb-2019  Device information now shows "Low Current Spinup" status
+v1.16.0 28-Feb-2019  Add ultra to --lowCurrentSpinup
+v1.17.0 03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section.
+v1.17.0 10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     updated software SAT translator to use dataset management
+                     XL command, fixes for issuing vendor unique commands under
+                     Windows, improved fast format support detection, and
+                     refactored verbose output for NVMe commands.
+v1.18.1 04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      (sudo, run as administrator) before trying to talk to
                      devices, new exit code 9 if privileges are missing;
                      printing the USB VID/PID in the device info; fix to sg
@@ -920,6 +1290,8 @@ v2.1.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      approach which uses a lookup table listing various USB
                      bridge VIDs/PIDs and their specific issues; separate
                      Seagate SAS SN and PCBA SN.
+v1.18.2 13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
 
 ===========================================
 About openSeaChest Command Line Diagnostics
