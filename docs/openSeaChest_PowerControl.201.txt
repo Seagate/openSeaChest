@@ -377,8 +377,8 @@ Utility Arguments
 
         --setAPMLevel [1 - 254]   (SATA Only)
                 Use this option to set the APM level of a device. Valid values
-                are between 1 and 254.  This setting is non-volatile so it
-                holds across power cycles.
+                are between 1 and 254.  This setting is volatile so it does not
+                hold across power cycles.
                       1 = Minimum power consumption with standby mode
                   2-127 = Intermediate power management with standby mode
                     128 = Minimum power consumption without standby mode
