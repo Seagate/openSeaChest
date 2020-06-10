@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "2.9.2";
+const char *buildVersion = "2.10.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -622,7 +622,6 @@ int32_t main(int argc, char *argv[])
         if (!is_Running_Elevated())
         {
             print_Elevated_Privileges_Text();
-            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
         }
         unsigned int scanControl = DEFAULT_SCAN;
         if(AGRESSIVE_SCAN_FLAG)
@@ -714,7 +713,6 @@ int32_t main(int argc, char *argv[])
     if (!is_Running_Elevated())
     {
         print_Elevated_Privileges_Text();
-        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
     }
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
@@ -729,7 +727,14 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Unable to get number of devices\n");
             }
-            exit(UTIL_EXIT_OPERATION_FAILURE);
+            if (!is_Running_Elevated())
+            {
+                exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+            }
+            else
+            {
+                exit(UTIL_EXIT_OPERATION_FAILURE);
+            }
         }
     }
     else if (DEVICE_LIST_COUNT == 0)
@@ -864,13 +869,27 @@ int32_t main(int argc, char *argv[])
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
+            else if (ret == PERMISSION_DENIED)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                }
+            }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
-                exit(UTIL_EXIT_OPERATION_FAILURE);
+                if (!is_Running_Elevated())
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -923,7 +942,14 @@ int32_t main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }

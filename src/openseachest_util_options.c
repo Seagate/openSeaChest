@@ -61,13 +61,19 @@ void print_Bug_Report_Email(bool shortHelp)
 
 void print_Elevated_Privileges_Text()
 {
-    printf("You must run with elevated privileges to communicate with devices in the system.");
+    printf("WARNING: You must run with elevated privileges to communicate with devices in the system.");
 #if defined (_WIN32)
     printf("(admin)");
 #elif defined (__unix__) || defined(__APPLE__)
     printf("(root, sudo)");
 #else
     printf("(admin, root, sudo, etc)");
+    printf("\nor be part of a privileged group with disk access.");
+#if defined (__linux__)
+	printf("(disk)");
+//TODO: If other systems have groups which get disk access, list them here. Currently only know about the disk group in Linux
+#endif
+
 #endif
     printf("\nExamples of elevated privileges: \n");
 #if defined (_WIN32)
@@ -111,11 +117,24 @@ char* get_current_year(char *temp_year)
     return temp_year;
 }
 
+#include "common.h"
+#include "common_platform.h"
+
 void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     time_t g_curTime = time(NULL);
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
+    char *userName = NULL;
+    char currentTime[30] = { 0 };
+    if (SUCCESS != get_Current_User_Name(&userName))
+    {
+        userName = (char*)calloc(36, sizeof(char));
+        if(userName)
+        {
+            sprintf(userName, "Unable to retrieve current username");
+        }
+    }
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
@@ -127,10 +146,14 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    printf(" Today: %s", ctime(&g_curTime));
+    if (0 == strftime(currentTime, 30, "%c", localtime(&g_curTime)))
+    {
+        sprintf(currentTime, "Unable to get local time");
+    }
+    printf(" Today: %s\tUser: %s\n", currentTime, userName);
     printf("==========================================================================================\n");
-    free(year);
-    year = NULL;
+    safe_Free(userName);
+    safe_Free(year);
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
