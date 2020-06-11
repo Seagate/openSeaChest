@@ -1054,21 +1054,6 @@ int32_t main(int argc, char *argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
-#if defined (ENABLE_CSMI)
-    if (CSMI_VERBOSE_FLAG)
-    {
-        flags |= CSMI_FLAG_VERBOSE;//This may be temporary....or it may last longer, but for now this highest bit is what we'll set for this option...
-    }
-    if (CSMI_FORCE_USE_PORT_FLAG)
-    {
-        flags |= CSMI_FLAG_USE_PORT;
-    }
-    if (CSMI_FORCE_IGNORE_PORT_FLAG)
-    {
-        flags |= CSMI_FLAG_IGNORE_PORT;
-    }
-#endif
-
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
