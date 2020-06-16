@@ -2756,9 +2756,9 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
                 sprintf(deviceHandle, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
             }
 #if defined(ENABLE_CSMI)
-            else if (strncmp((char *)optarg, "SCSI", 4) == 0)
+            else if (strncmp((char *)optarg, "csmi", 4) == 0)
             {
-                sprintf(deviceHandle, "\\\\.\\%s", optarg);
+                sprintf(deviceHandle, "%s", optarg);
             }
 #endif
             else if (strncmp((char *)optarg, "\\\\.\\", 4) == 0)
