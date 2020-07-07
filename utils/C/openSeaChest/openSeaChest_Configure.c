@@ -1171,9 +1171,6 @@ int32_t main(int argc, char *argv[])
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
-#if defined (ENABLE_CSMI)
-        flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;
-#endif
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1301,9 +1298,6 @@ int32_t main(int argc, char *argv[])
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
-#if defined (ENABLE_CSMI)
-        flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;//TODO: Remove this flag so that CSMI devices can be part of running on all drives. This is not allowed now because of issues with running the same operation on the same drive with both PD? and SCSI?:? handles.
-#endif
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
