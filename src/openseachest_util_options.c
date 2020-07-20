@@ -43,7 +43,7 @@ const char *commandWindowType = "shell";
 #if defined (ENABLE_CSMI)
 const char *csmiDeviceHandleName = "<csmi_device>";
 #if defined (_WIN32)
-const char *csmiDeviceHandleExample = "SCSI\?:\?";
+const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
 #else
 const char *csmiDeviceHandleExample = "<error\?\?\?>";
 #endif
