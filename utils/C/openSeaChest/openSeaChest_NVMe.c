@@ -40,7 +40,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "1.2.0";
+const char *buildVersion = "1.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -76,6 +76,7 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
+    AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
@@ -126,6 +127,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         //USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
@@ -539,6 +541,9 @@ int32_t main(int argc, char *argv[])
         case SCAN_SHORT_OPT: //scan
             SCAN_FLAG = true;
             break;
+        case AGRESSIVE_SCAN_SHORT_OPT:
+            AGRESSIVE_SCAN_FLAG = true;
+            break;
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
@@ -609,13 +614,17 @@ int32_t main(int argc, char *argv[])
         print_EULA_To_Screen(false, false);
     }
 
-    if (SCAN_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
         if (!is_Running_Elevated())
         {
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
+        if (AGRESSIVE_SCAN_FLAG)
+        {
+            scanControl |= AGRESSIVE_SCAN;
+        }
         #if defined (__linux__)
         if (scanSD)
         {
@@ -669,7 +678,7 @@ int32_t main(int argc, char *argv[])
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
     // SIMPLE IS BEAUTIFUL
-    if (SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
+    if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG || SHOW_BANNER_FLAG || LICENSE_FLAG || SHOW_HELP_FLAG)
     {
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_NO_ERROR);
@@ -700,13 +709,21 @@ int32_t main(int argc, char *argv[])
     }
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        if (SUCCESS != get_Device_Count(&numberOfDevices, 0))
+        uint64_t flags = 0;
+        if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
-            exit(UTIL_EXIT_OPERATION_FAILURE);
+            if (!is_Running_Elevated())
+            {
+                exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+            }
+            else
+            {
+                exit(UTIL_EXIT_OPERATION_FAILURE);
+            }
         }
     }
     else if (DEVICE_LIST_COUNT == 0)
@@ -1588,7 +1605,32 @@ int32_t main(int argc, char *argv[])
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
                         {
+                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
+                            //They said 6 months to a year from 8/30/16 - TJE
+                            /*
                             DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            /*/
+                            if (!supportedFWDLModes.deferred)
+                            {
+                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            }
+                            else
+                            {
+                                if (supportedFWDLModes.segmented)
+                                {
+                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                                }
+                                else
+                                {
+                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                                }
+                            }
+                            //For now, setting deferred download as default for NVMe drives. 
+                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
+                            {
+                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
+                            }
+                            //*/
                         }
                     }
                     if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
