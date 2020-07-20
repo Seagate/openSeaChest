@@ -54,6 +54,7 @@ extern "C"
         UTIL_EXIT_NEED_ELEVATED_PRIVILEGES,
 		UTIL_EXIT_NOT_ENOUGH_RESOURCES,
         //TODO: More generic exit codes go here
+        UTIL_EXIT_ERROR_WRITING_FILE, //added 5/19/20
         //Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE = 32,//Use this value in a tool to start the tool's specific error code enumeration
     }eUtilExitCodes;
