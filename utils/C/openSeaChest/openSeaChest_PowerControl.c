@@ -1588,7 +1588,7 @@ int32_t main(int argc, char *argv[])
                 }
             }
             //At this point, all power timers should be configured, so we can issue the command to the drive
-            switch (scsi_Set_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers))
+            switch (set_EPC_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
