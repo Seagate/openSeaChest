@@ -1407,11 +1407,6 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
 #endif
-                case ERASE_TRIM_UNMAP:
-                    RUN_TRIM_UNMAP_FLAG = true;
-                    TRIM_UNMAP_START_FLAG = 0;
-                    TRIM_UNMAP_RANGE_FLAG = deviceList[deviceIter].drive_info.deviceMaxLba;
-                    break;
                 case ERASE_SANITIZE_OVERWRITE:
                     sanitize = true;
                     sanoverwrite = true;
