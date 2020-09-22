@@ -116,9 +116,9 @@ int32_t main(int argc, char *argv[])
     SCSI_RESET_LP_VARS
     SCSI_SET_MP_VARS
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -1043,7 +1043,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -2680,10 +2680,10 @@ int32_t main(int argc, char *argv[])
                 //requesting to reset all
                 for (SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES; SCSI_RESET_LP_LPC <= LPC_DEFAULT_CUMULATIVE_VALUES; ++SCSI_RESET_LP_LPC)
                 {
-                    int ret = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
-                    if (SUCCESS != ret)//this is to catch if any LPC reset value creates an error
+                    int resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                    if (SUCCESS != resetLPCommandRet)//this is to catch if any LPC reset value creates an error
                     {
-                        resetLPResult = ret;
+                        resetLPResult = resetLPCommandRet;
                     }
                 }
             }
@@ -2738,7 +2738,7 @@ int32_t main(int argc, char *argv[])
                 if (modePageFile)
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
-                    long fileLength = get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
+                    size_t fileLength = (size_t)get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
                     uint8_t *modePageBuffer = (uint8_t*)calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
                     char *fileBuf = (char*)calloc(fileLength, sizeof(char));
                     if (modePageBuffer && fileBuf)
@@ -2752,7 +2752,7 @@ int32_t main(int argc, char *argv[])
                             if (token)
                             {
                                 bool invalidCharacterOrMissingSeparator = false;
-                                uint32_t modeBufferElementCount = 0;
+                                uint16_t modeBufferElementCount = 0;
                                 do
                                 {
                                     if (strlen(token) > 2)
@@ -2938,7 +2938,7 @@ int32_t main(int argc, char *argv[])
                             }
                         }
                         //buffer is ready to send to the drive!
-                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modePageSize, !VOLATILE_FLAG))
+                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, C_CAST(uint16_t, modePageSize), !VOLATILE_FLAG))
                         {
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)

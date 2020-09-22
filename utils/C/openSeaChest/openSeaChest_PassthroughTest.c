@@ -290,9 +290,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -1500,11 +1500,11 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
     return;
 }
 
-void sat_DMA_UDMA_Protocol_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
+void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported)
 {
     //Attempt UDMA mode first
     uint64_t lba = 0;
-    uint32_t sectors = 1;
+    uint16_t sectors = 1;
     uint32_t dataSize = device->drive_info.bridge_info.childDeviceBlockSize * sectors;
     uint8_t *ptrData = (uint8_t *)calloc_aligned(dataSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     if (ptrData)
@@ -1644,7 +1644,7 @@ void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLo
 }
 
 #include "sat_helper_func.h"
-void return_Response_Info_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported, bool testWithoutTDirAllowed)
+void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported, bool testWithoutTDirAllowed)
 {
     printf("Testing for support of Return Response Info protocol\n");
     //Test return response information - TODO: May need to try issuing some command before we do this test.
@@ -4049,7 +4049,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
     memset(*dataBuffer, 0, *dataBufferLength);
     if (sixByte)
     {
-        ret = scsi_Mode_Sense_6(device, pageCode, *dataBufferLength, subPageCode, false, MPC_CURRENT_VALUES, *dataBuffer);
+        ret = scsi_Mode_Sense_6(device, pageCode, C_CAST(uint8_t, M_Min(*dataBufferLength, UINT8_MAX)), subPageCode, false, MPC_CURRENT_VALUES, *dataBuffer);
         if (ret == SUCCESS)
         {
             //uint8_t modeDataLength = (*dataBuffer)[0];
@@ -4280,8 +4280,8 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         if (SUCCESS == get_SCSI_Mode_Page_Data(device, MP_CONTROL, 0x01, use6Byte, &modeData, &modeDataLength))
         {
-            uint16_t blockDescriptorLength = modeData[3];
-            uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
+            blockDescriptorLength = modeData[3];
+            offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
             //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
             //uint16_t pageLength = modeData[offset + 1];
             if (!use6Byte)
@@ -4855,7 +4855,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 
             if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES,pageCode,subPageCode, 0, pageToRead, logPageLength))
             {
-                uint16_t logPageLength = M_BytesTo2ByteValue(pageToRead[2], pageToRead[3]);
+                logPageLength = M_BytesTo2ByteValue(pageToRead[2], pageToRead[3]);
                 uint8_t* temp = realloc_aligned(pageToRead, logPageLength, logPageLength + 4, device->os_info.minimumAlignment);
                 if (temp)
                 {
@@ -6007,7 +6007,7 @@ int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport 
             return MEMORY_FAILURE;
         }
         //read 6 - requires data transfer, so always do this one with a data transfer
-        if (SUCCESS == scsi_Read_6(device, 0, transferLength, ptrData, transferLengthBytes))
+        if (SUCCESS == scsi_Read_6(device, 0, C_CAST(uint8_t, transferLength), ptrData, transferLengthBytes))
         {
             rwSupport->sixBytes = true;
             set_Console_Colors(true, HACK_COLOR);

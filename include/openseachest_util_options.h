@@ -442,7 +442,7 @@ extern "C"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define GET_NVME_LOG_IDENTIFIER nvmeGetLogPage
-    #define GET_NVME_LOG_VAR int32_t GET_NVME_LOG_IDENTIFIER = -1;
+    #define GET_NVME_LOG_VAR uint8_t GET_NVME_LOG_IDENTIFIER = 0;
     #define GET_NVME_LOG_LONG_OPT_STRING "getNvmeLogPage"
     #define GET_NVME_LOG_LONG_OPT { GET_NVME_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -452,7 +452,7 @@ extern "C"
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, goTrue }
 
     #define GET_FEATURES getFeatures
-    #define GET_FEATURES_VAR int32_t GET_FEATURES_IDENTIFIER = -1;
+    #define GET_FEATURES_VAR uint8_t GET_FEATURES = UINT8_MAX;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -470,13 +470,13 @@ extern "C"
 
     //Telemetry
     #define GET_TELEMETRY_IDENTIFIER getTelemetryData
-    #define GET_TELEMETRY_VAR int32_t GET_TELEMETRY_IDENTIFIER = -1;
+    #define GET_TELEMETRY_VAR uint8_t GET_TELEMETRY_IDENTIFIER = 0;
     #define GET_TELEMETRY_LONG_OPT_STRING "getTelemetry" /* host | cntl | current | saved */
     #define GET_TELEMETRY_LONG_OPT { GET_TELEMETRY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Telemetry Data Area
     #define TELEMETRY_DATA_AREA telemetryDataArea
-    #define TELEMETRY_DATA_AREA_VAR int32_t TELEMETRY_DATA_AREA = 3;
+    #define TELEMETRY_DATA_AREA_VAR uint8_t TELEMETRY_DATA_AREA = 3;
     #define TELEMETRY_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
     #define TELEMETRY_DATA_AREA_LONG_OPT { TELEMETRY_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1010,7 +1010,7 @@ extern "C"
     #define FORMAT_SECTOR_SIZE formatLogicalSectorSize
     #define FORMAT_UNIT_VARS \
     bool FORMAT_UNIT_FLAG = false; \
-    uint32_t FORMAT_SECTOR_SIZE = 0;
+    uint16_t FORMAT_SECTOR_SIZE = 0;
     #define FORMAT_UNIT_LONG_OPT_STRING "formatUnit"
     #define FORMAT_UNIT_LONG_OPT { FORMAT_UNIT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1159,7 +1159,7 @@ extern "C"
     #define LOW_CURRENT_SPINUP_STATE lowCurrentSpinupState
     #define LOW_CURRENT_SPINUP_VARS \
     bool LOW_CURRENT_SPINUP_FLAG = false;\
-    int LOW_CURRENT_SPINUP_STATE = 0;
+    uint8_t LOW_CURRENT_SPINUP_STATE = 0;
     #define LOW_CURRENT_SPINUP_LONG_OPT_STRING "lowCurrentSpinup"
     #define LOW_CURRENT_SPINUP_LONG_OPT { LOW_CURRENT_SPINUP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1268,13 +1268,13 @@ extern "C"
     #define GENERIC_LOG_DATA_SET genericLogDataSet
     #define GENERIC_LOG_VAR \
         bool GENERIC_LOG_PULL_FLAG = false; \
-        uint64_t GENERIC_LOG_DATA_SET = 0;
+        uint8_t GENERIC_LOG_DATA_SET = 0;
     #define GENERIC_LOG_LONG_OPT_STRING "pullLog"
     #define GENERIC_LOG_LONG_OPT { GENERIC_LOG_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define GENERIC_LOG_SUBPAGE_DATA_SET genericLogDataSetSubpage
     #define GENERIC_LOG_SUBPAGE_VAR \
-        uint64_t GENERIC_LOG_SUBPAGE_DATA_SET = 0;
+        uint8_t GENERIC_LOG_SUBPAGE_DATA_SET = 0;
     #define GENERIC_LOG_SUBPAGE_LONG_OPT_STRING "pullSubpage"
     #define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1605,7 +1605,7 @@ extern "C"
         //TODO: add other modifications as we find or hear other that work with some odd BIOS chips.
     }ataSecPWModifications;
     #define ATA_SECURITY_PASSWORD_MODIFICATIONS passwordModificationType
-    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR ataSecPWModifications ATA_SECURITY_PASSWORD_MODIFICATIONS = { false, false, false, false, false, false, false };
+    #define ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR ataSecPWModifications ATA_SECURITY_PASSWORD_MODIFICATIONS = { false, false, false, false, false, false, false, false, false, false };
     #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING "ataSecPWMod"
     #define ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT { ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1668,7 +1668,7 @@ extern "C"
     #define ATA_SECURITY_FREEZELOCK_OP_LONG_OPT { ATA_SECURITY_FREEZELOCK_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_FREEZELOCK_OP, goTrue }
 
     //ata security info
-    #define ATA_SECURITY_INFO_OP ataSecurityInfo
+    #define ATA_SECURITY_INFO_OP ataSecurityInfoOP
     #define ATA_SECURITY_INFO_OP_VAR getOptBool ATA_SECURITY_INFO_OP = goFalse;
     #define ATA_SECURITY_INFO_OP_LONG_OPT_STRING "ataSecurityInfo"
     #define ATA_SECURITY_INFO_OP_LONG_OPT { ATA_SECURITY_INFO_OP_LONG_OPT_STRING, no_argument, &ATA_SECURITY_INFO_OP, goTrue }
@@ -1848,7 +1848,7 @@ extern "C"
     //!   \return VOID
     //
     //-----------------------------------------------------------------------------
-    void print_Scan_Help(bool shortHelp, const char *deviceHandleExample);
+    void print_Scan_Help(bool shortHelp, const char *helpdeviceHandleExample);
 
     void print_Agressive_Scan_Help(bool shortHelp);
 
@@ -1881,7 +1881,7 @@ extern "C"
     //!   \return VOID
     //
     //-----------------------------------------------------------------------------
-    void print_Device_Help(bool shortHelp, const char *deviceHandleExample);
+    void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample);
 
     //-----------------------------------------------------------------------------
     //
@@ -2258,7 +2258,7 @@ extern "C"
     //!   \return VOID
     //
     //-----------------------------------------------------------------------------
-    void print_Long_DST_Help(bool shortHelp, const char *commandWindowType);
+    void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType);
 
     void print_Captive_Foreground_Help(bool shortHelp);
 

@@ -116,9 +116,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -583,7 +583,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -1674,7 +1674,7 @@ int32_t main(int argc, char *argv[])
                 }
                 if(ERROR_LIMIT_LOGICAL_COUNT)
                 {
-                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                    ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
                 switch (run_DST_And_Clean(&deviceList[deviceIter], ERROR_LIMIT_FLAG, NULL, NULL, NULL, NULL))
                 {

@@ -115,9 +115,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
     firmwareUpdateData dlOptions;
     seatimer_t commandTimer;
 
@@ -373,7 +373,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -889,12 +889,14 @@ int32_t main(int argc, char *argv[])
                     printf("Getting supported download modes not supported on this drive\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to get supported download modes from the drive\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
 
@@ -917,7 +919,7 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                long firmwareFileSize = get_File_Size(firmwareFilePtr);
+                size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
                 uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
                 if (firmwareMem)
                 {
@@ -927,7 +929,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
                         {
-                            //This line is commented out...wait a little longer before letting deferred be a default when supported.
+                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
                             /*
                             DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
                             /*/

@@ -113,9 +113,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -519,7 +519,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -971,7 +971,7 @@ int32_t main(int argc, char *argv[])
         }
 
         //multiple the error limit by the number of logical sectors per physical sector
-        ERROR_LIMIT_FLAG *= (deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
+        ERROR_LIMIT_FLAG *= C_CAST(uint16_t, (deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize));
 
         //make sure a time was entered, otherwise, set to 1 minute
         if (SECONDS_TIME_FLAG == 0 && MINUTES_TIME_FLAG == 0 && HOURS_TIME_FLAG == 0)
@@ -1168,7 +1168,7 @@ int32_t main(int argc, char *argv[])
             }
             if(ERROR_LIMIT_LOGICAL_COUNT)
             {
-                ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
             }
             switch (long_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
             {
@@ -1236,7 +1236,7 @@ int32_t main(int argc, char *argv[])
                     }
                     if(ERROR_LIMIT_LOGICAL_COUNT)
                     {
-                        ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                        ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                     }
                     switch (user_Sequential_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                     {
@@ -1297,7 +1297,7 @@ int32_t main(int argc, char *argv[])
                 }
                 if(ERROR_LIMIT_LOGICAL_COUNT)
                 {
-                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                    ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
                 switch (user_Timed_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
@@ -1403,7 +1403,7 @@ int32_t main(int argc, char *argv[])
                 }
                 if(ERROR_LIMIT_LOGICAL_COUNT)
                 {
-                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                    ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
                 switch (diameter_Test_Range(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
@@ -1434,7 +1434,7 @@ int32_t main(int argc, char *argv[])
                 //run a timed OD MD ID test
                 if(ERROR_LIMIT_LOGICAL_COUNT)
                 {
-                    ERROR_LIMIT_FLAG *= deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize;
+                    ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
                 switch (diameter_Test_Time(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
                 {

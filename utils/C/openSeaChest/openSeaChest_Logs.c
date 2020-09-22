@@ -107,9 +107,9 @@ int32_t main(int argc, char *argv[])
 #endif
     LOG_TRANSFER_LENGTH_BYTES_VAR
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -191,9 +191,11 @@ int32_t main(int argc, char *argv[])
         case 0:
             if (strncmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING, strlen(GENERIC_LOG_LONG_OPT_STRING)) == 0)
             {
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &GENERIC_LOG_DATA_SET) )
+                uint64_t temp = 0;
+                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
                 {
                     GENERIC_LOG_PULL_FLAG = true;
+                    GENERIC_LOG_DATA_SET = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -203,9 +205,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, strlen(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING)) == 0)
             {
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &GENERIC_LOG_SUBPAGE_DATA_SET) )
+                uint64_t temp = 0;
+                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
                 {
                     //no need to do anything...this option requires that the page is also given
+                    GENERIC_LOG_SUBPAGE_DATA_SET = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -225,10 +229,10 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(LOG_TRANSFER_LENGTH_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, strlen(LOG_TRANSFER_LENGTH_LONG_OPT_STRING)) == 0)
             {
                 //set the raw data length - but check the units first!
-                uint32_t multiplier = 1;
+                uint64_t multiplier = 1;
                 uint32_t optargInt = (uint32_t)atoi(optarg);
                 if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
                 {
@@ -261,13 +265,13 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strstr(optarg, "TB"))
                 {
-                    multiplier = (uint32_t)1000000000000;
+                    multiplier = 1000000000000;
                 }
                 else if (strstr(optarg, "TiB"))
                 {
-                    multiplier = (uint32_t)1099511627776;
+                    multiplier = 1099511627776;
                 }
-                LOG_TRANSFER_LENGTH_BYTES = optargInt * multiplier;
+                LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
             else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), 9)) == 0)
             {
@@ -279,27 +283,27 @@ int32_t main(int argc, char *argv[])
                 }
 
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, strlen(MODEL_MATCH_LONG_OPT_STRING)) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, strlen(FW_MATCH_LONG_OPT_STRING)) == 0)
             {
                 FW_MATCH_FLAG = true;
                 strncpy(FW_STRING_FLAG, optarg, 8);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING)) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, strlen(CHILD_FW_MATCH_LONG_OPT_STRING)) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
             }
-            else if (strncmp(longopts[optionIndex].name, PULL_LOG_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PULL_LOG_MODE_LONG_OPT_STRING))) == 0)
+            else if (strncmp(longopts[optionIndex].name, PULL_LOG_MODE_LONG_OPT_STRING, strlen(PULL_LOG_MODE_LONG_OPT_STRING)) == 0)
             {
                 if (strcmp(optarg, "raw") == 0)
                 {
@@ -378,7 +382,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -895,18 +899,18 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_LOG_PULL_FLAG)
         {
-            switch (pull_Generic_Log(&deviceList[deviceIter], (uint32_t)GENERIC_LOG_DATA_SET, (uint32_t)GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
-                        printf("\nSuccessfully pulled Log %" PRIu64 ", subpage %" PRIu64 " from %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
+                        printf("\nSuccessfully pulled Log %" PRIu8 ", subpage %" PRIu8 " from %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                     else
                     {
-                        printf("\nSuccessfully pulled Log %" PRIu64 " from %s\n", GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
+                        printf("\nSuccessfully pulled Log %" PRIu8 " from %s\n", GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                 }
                 break;
@@ -915,11 +919,11 @@ int32_t main(int argc, char *argv[])
                 {
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
-                        printf("\nLog %" PRIu64 ", subpage %" PRIu64 " not supported by %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
+                        printf("\nLog %" PRIu8 ", subpage %" PRIu8 " not supported by %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                     else
                     {
-                        printf("\nLog %" PRIu64 " not supported by %s\n",\
+                        printf("\nLog %" PRIu8 " not supported by %s\n",\
                             GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                 }
@@ -930,11 +934,11 @@ int32_t main(int argc, char *argv[])
                 {
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
-                        printf("\nFailed to allocate memory for log %" PRIu64 ", subpage %" PRIu64 "\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET);
+                        printf("\nFailed to allocate memory for log %" PRIu8 ", subpage %" PRIu8 "\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET);
                     }
                     else
                     {
-                        printf("\nFailed to allocate memory for log %"PRIu64"\n", GENERIC_LOG_DATA_SET);
+                        printf("\nFailed to allocate memory for log %" PRIu8 "\n", GENERIC_LOG_DATA_SET);
                     }
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -944,11 +948,11 @@ int32_t main(int argc, char *argv[])
                 {
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && GENERIC_LOG_SUBPAGE_DATA_SET != 0)
                     {
-                        printf("\nFailed to pull log %" PRIu64 ", subpage %" PRIu64 " from %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
+                        printf("\nFailed to pull log %" PRIu8 ", subpage %" PRIu8 " from %s\n", GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                     else
                     {
-                        printf("\nFailed to pull log %" PRIu64 " from %s\n", GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
+                        printf("\nFailed to pull log %" PRIu8 " from %s\n", GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1011,7 +1015,7 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES,0))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)

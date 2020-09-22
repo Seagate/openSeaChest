@@ -219,13 +219,13 @@ void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSp
     printf("\tAnything else = unknown error\n\n");
 }
 
-void print_Scan_Help(bool shortHelp, const char *deviceHandleExample)
+void print_Scan_Help(bool shortHelp, const char *helpdeviceHandleExample)
 {
     printf("\t-%c, --%s\n", SCAN_SHORT_OPT, SCAN_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tScan the system and list all storage devices with logical\n");
-        printf("\t\t%s assignments. Shows model, serial and firmware\n", deviceHandleExample);
+        printf("\t\t%s assignments. Shows model, serial and firmware\n", helpdeviceHandleExample);
         printf("\t\tnumbers.  If your device is not listed on a scan  immediately\n");
         printf("\t\tafter booting, then wait 10 seconds and run it again.\n\n");
     }
@@ -281,13 +281,13 @@ void print_Scan_Flags_Help(bool shortHelp)
     }
 }
 
-void print_Device_Help(bool shortHelp, const char *deviceHandleExample)
+void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 {
     printf("\t-%c, --%s deviceHandle\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with most commands to specify the device\n");
-        printf("\t\thandle on which to perform an operation. Example: %s\n", deviceHandleExample);
+        printf("\t\thandle on which to perform an operation. Example: %s\n", helpdeviceHandleExample);
 #if defined(_WIN32)
         printf("\t\tA handle can also be specified as \\\\.\\PhysicalDrive?\n");
 #endif
@@ -614,7 +614,7 @@ void print_Conveyance_DST_Help(bool shortHelp)
     }
 }
 
-void print_Long_DST_Help(bool shortHelp, const char *commandWindowType)
+void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType)
 {
     printf("\t--%s\n", LONG_DST_LONG_OPT_STRING);
     if (!shortHelp)
@@ -631,7 +631,7 @@ void print_Long_DST_Help(bool shortHelp, const char *commandWindowType)
         printf("\t\tmeans more than an hour may elapse between updates on a SATA\n");
         printf("\t\tdrive > 2TB.\n\n");
         printf("\t\tIf the --longDST poll option is running and you want to abort\n");
-        printf("\t\tthe test then you will need to open a second %s window\n", commandWindowType);
+        printf("\t\tthe test then you will need to open a second %s window\n", helpcommandWindowType);
         printf("\t\tand run the --abortDST command. Otherwise, it is safe to\n");
         printf("\t\trestart the system while long DST is running which also ends the\n");
         printf("\t\ttest.\n");
@@ -2763,7 +2763,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
 #endif
             else if (strncmp((char *)optarg, "\\\\.\\", 4) == 0)
             {
-                sprintf(deviceHandle, optarg);
+                sprintf(deviceHandle, "%s", optarg);
             }
             /*If we want to add another format for accepting a handle, then add an else-if here*/
             else /*we have an invalid handle*/

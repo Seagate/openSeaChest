@@ -118,9 +118,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -750,7 +750,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -1744,22 +1744,22 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            int ret = SUCCESS;
+                            int idleRet = SUCCESS;
                             switch (LEGACY_IDLE_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
-                                ret = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
+                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
                                 break;
                             case POWER_MODE_STATE_DISABLE:
-                                ret = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
+                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
-                                ret = set_Idle_Timer(&deviceList[deviceIter], 0, true);
+                                idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
                                 break;
                             default:
                                 break;
                             }
-                            switch (ret)
+                            switch (idleRet)
                             {
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1834,22 +1834,22 @@ int32_t main(int argc, char *argv[])
                     {
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
-                            int ret = SUCCESS;
+                            int standbyRet = SUCCESS;
                             switch (LEGACY_STANDBY_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
-                                ret = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
+                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
                                 break;
                             case POWER_MODE_STATE_DISABLE:
-                                ret = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
+                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
-                                ret = set_Standby_Timer(&deviceList[deviceIter], 0, true);
+                                standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
                                 break;
                             default:
                                 break;
                             }
-                            switch (ret)
+                            switch (standbyRet)
                             {
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)

@@ -46,7 +46,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "2.2.0";
+const char *buildVersion = "2.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -128,9 +128,9 @@ int32_t main(int argc, char *argv[])
     ATA_SECURITY_DISABLE_OP_VAR
     ATA_SECURITY_FREEZELOCK_OP_VAR
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -624,7 +624,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)

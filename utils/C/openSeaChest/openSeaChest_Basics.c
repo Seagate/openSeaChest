@@ -125,11 +125,9 @@ int32_t main(int argc, char *argv[])
 #endif
     HIDE_LBA_COUNTER_VAR
 
-    firmwareUpdateData dlOptions;
-
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -590,7 +588,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -1342,7 +1340,7 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                long firmwareFileSize = get_File_Size(firmwareFilePtr);
+                size_t firmwareFileSize = (size_t)get_File_Size(firmwareFilePtr);
                 uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
                 if (firmwareMem)
                 {
@@ -1380,7 +1378,7 @@ int32_t main(int argc, char *argv[])
                         dlOptions.dlMode = DOWNLOAD_FW_MODE;
                         dlOptions.segmentSize = 0;
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = firmwareFileSize;
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should never be larger than a few MBs for a LONG time...
                         switch (firmware_Download(&deviceList[deviceIter], &dlOptions) )
                         {
                         case SUCCESS:
@@ -1452,6 +1450,8 @@ int32_t main(int argc, char *argv[])
         if (ACTIVATE_DEFERRED_FW_FLAG)
         {
             supportedDLModes supportedFWDLModes;
+            firmwareUpdateData dlOptions;
+            memset(&dlOptions, 0, sizeof(firmwareUpdateData));
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)

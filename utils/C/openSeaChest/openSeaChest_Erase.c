@@ -144,9 +144,9 @@ int32_t main(int argc, char *argv[])
 #endif
     HIDE_LBA_COUNTER_VAR
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -367,7 +367,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     //set the sector size
-                    FORMAT_SECTOR_SIZE = (uint32_t)atoi(optarg);
+                    FORMAT_SECTOR_SIZE = C_CAST(uint16_t, atoi(optarg));
                 }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
@@ -724,7 +724,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)

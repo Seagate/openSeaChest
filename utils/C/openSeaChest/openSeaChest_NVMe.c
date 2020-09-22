@@ -111,9 +111,9 @@ int32_t main(int argc, char *argv[])
     PROGRESS_VAR
     SHOW_SUPPORTED_FORMATS_VAR
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     firmwareUpdateData dlOptions;
     seatimer_t commandTimer;
@@ -231,15 +231,15 @@ int32_t main(int argc, char *argv[])
             {
                 if (isdigit(optarg[0]))
                 {
-                    GET_FEATURES_IDENTIFIER = atoi(optarg);
+                    GET_FEATURES = C_CAST(uint8_t, atoi(optarg));
                 }
                 else if (strncmp(optarg, "help", strlen(optarg)) == 0)
                 {
-                    GET_FEATURES_IDENTIFIER = 0;
+                    GET_FEATURES = 0;
                 }
                 else if (strncmp(optarg, "list", strlen(optarg)) == 0)
                 {
-                    GET_FEATURES_IDENTIFIER = 0x0E;//Using a reserved value - Revisit later
+                    GET_FEATURES = 0x0E;//Using a reserved value - Revisit later 
                 }
                 else
                 {
@@ -311,7 +311,7 @@ int32_t main(int argc, char *argv[])
                 //set the power mode
                 if (isdigit(optarg[0]))//this will get the valid NVMe power levels
                 {
-                    GET_NVME_LOG_IDENTIFIER = atoi(optarg);
+                    GET_NVME_LOG_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
                 }
                 else
                 {
@@ -365,7 +365,7 @@ int32_t main(int argc, char *argv[])
                 //set the telemetry data area
                 if (isdigit(optarg[0]))//this will get the valid NVMe telemetry data area
                 {
-                    TELEMETRY_DATA_AREA = atoi(optarg);
+                    TELEMETRY_DATA_AREA = C_CAST(uint8_t, atoi(optarg));
                 }
                 else
                 {
@@ -587,7 +587,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -747,7 +747,7 @@ int32_t main(int argc, char *argv[])
           || (TRANSITION_POWER_STATE_TO >= 0)
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
           || (GET_TELEMETRY_IDENTIFIER > 0)
-          || (GET_FEATURES_IDENTIFIER >= 0)
+          || (GET_FEATURES < UINT8_MAX)
           || EXT_SMART_LOG_FLAG1
           || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
           || NVME_TEMP_STATS_FLAG
@@ -1044,24 +1044,24 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (GET_FEATURES_IDENTIFIER >= 0)
+        if (GET_FEATURES < UINT8_MAX)
         {
-            if (GET_FEATURES_IDENTIFIER == 0) //help
+            if (GET_FEATURES == 0) //help
             {
                 nvme_Print_Feature_Identifiers_Help();
             }
-            else if (GET_FEATURES_IDENTIFIER == 0x0E) //List them all
+            else if (GET_FEATURES == 0x0E) //List them all
             {
                 nvme_Print_All_Feature_Identifiers(&deviceList[deviceIter], NVME_CURRENT_FEAT_SEL, false);
             }
             else
             {
                 //Get the feature
-                if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES_IDENTIFIER, NVME_CURRENT_FEAT_SEL) != SUCCESS)
+                if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES, NVME_CURRENT_FEAT_SEL) != SUCCESS)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: failed to get details for feature id %d\n", GET_FEATURES_IDENTIFIER);
+                        printf("ERROR: failed to get details for feature id %d\n", GET_FEATURES);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1113,7 +1113,7 @@ int32_t main(int argc, char *argv[])
                                     fclose(pLogFile);
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Created %s with Log Page %" PRId32 " Information\n", fileNameUsed, GET_NVME_LOG_IDENTIFIER);
+                                        printf("Created %s with Log Page %" PRIu8" Information\n", fileNameUsed, GET_NVME_LOG_IDENTIFIER);
                                     }
                                 }
                                 else
@@ -1129,7 +1129,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Error: Unknown/Unsupported output mode %" PRId32 "\n", OUTPUT_MODE_IDENTIFIER);
+                                    printf("Error: Unknown/Unsupported output mode %" PRIu8 "\n", OUTPUT_MODE_IDENTIFIER);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
@@ -1138,7 +1138,7 @@ int32_t main(int argc, char *argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Error: Could not retrieve Log Page %" PRId32 "\n", GET_NVME_LOG_IDENTIFIER);
+                                printf("Error: Could not retrieve Log Page %" PRIu8 "\n", GET_NVME_LOG_IDENTIFIER);
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -1148,7 +1148,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Couldn't allocate %" PRIu64 " bytes buffer needed for Log Page %" PRId32 "\n", size, GET_NVME_LOG_IDENTIFIER);
+                            printf("Couldn't allocate %" PRIu64 " bytes buffer needed for Log Page %" PRIu8 "\n", size, GET_NVME_LOG_IDENTIFIER);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1157,7 +1157,7 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Log Page %d not available at this time. \n", GET_NVME_LOG_IDENTIFIER);
+                        printf("Log Page %" PRIu8 " not available at this time. \n", GET_NVME_LOG_IDENTIFIER);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
@@ -1341,7 +1341,7 @@ int32_t main(int argc, char *argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
+                                        printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     break;
@@ -1379,7 +1379,7 @@ int32_t main(int argc, char *argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Error: Could not retrieve Log Page %" PRId32 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
+                                            printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
@@ -1420,7 +1420,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Error: Could not retrieve Log Page %d\n", GET_TELEMETRY_IDENTIFIER);
+                            printf("Error: Could not retrieve Log Page %" PRIu8 "\n", GET_TELEMETRY_IDENTIFIER);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1595,7 +1595,7 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                long firmwareFileSize = get_File_Size(firmwareFilePtr);
+                size_t firmwareFileSize = (size_t)get_File_Size(firmwareFilePtr);
                 uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize, sizeof(uint8_t));
                 if (firmwareMem)
                 {
@@ -1648,7 +1648,7 @@ int32_t main(int argc, char *argv[])
                             dlOptions.segmentSize = 0;
                         }
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = firmwareFileSize;
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
@@ -1844,10 +1844,10 @@ int32_t main(int argc, char *argv[])
                     nvmformatParameters.formatNumberProvided = false;
                     nvmformatParameters.newSize.currentBlockSize = true;
                 }
-                else if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 0 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM < 16)
+                else if (/* NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 0 && */ NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM < 16)
                 {
                     nvmformatParameters.formatNumberProvided = true;
-                    nvmformatParameters.formatNumber = NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM;
+                    nvmformatParameters.formatNumber = C_CAST(uint8_t, NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM);
                 }
                 else
                 {
