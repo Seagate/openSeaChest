@@ -547,7 +547,7 @@ int32_t main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -1322,7 +1322,7 @@ void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddre
     }
 }
 
-void multi_Sector_PIO_Test_With_Read_Write(tDevice *device)
+void multi_Sector_PIO_Test_With_Read_Write(M_ATTR_UNUSED tDevice *device)
 {
     return;
 }
@@ -1347,7 +1347,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
             for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
-                logAddress = iter / 2;
+                logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
                     uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
@@ -1359,7 +1359,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                             if (is_Empty(log, logSize * 512))
                             {
                                 safe_Free_aligned(log);
-                                multi_Sector_PIO_Test_With_Logs(device, true, iter / 2, logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2), logSize * 512);
                                 break;
                             }
                             safe_Free_aligned(log);
@@ -1426,7 +1426,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
             for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
-                logAddress = iter / 2;
+                logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
                     uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
@@ -1438,7 +1438,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                             if (is_Empty(log, logSize * 512))
                             {
                                 safe_Free_aligned(log);
-                                multi_Sector_PIO_Test_With_Logs(device, false, iter / 2, logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / 2), logSize * 512);
                                 break;
                             }
                             safe_Free_aligned(log);
@@ -6025,7 +6025,7 @@ int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport 
     }
 
     //read 10
-    if (SUCCESS == scsi_Read_10(device, 0, false, false, false, 0, 0, transferLength, ptrData,transferLengthBytes))
+    if (SUCCESS == scsi_Read_10(device, 0, false, false, false, 0, 0, C_CAST(uint16_t, transferLength), ptrData,transferLengthBytes))
     {
         rwSupport->tenBytes = true;
         set_Console_Colors(true, HACK_COLOR);
@@ -7411,13 +7411,13 @@ int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_
 int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uint32_t dataSize)
 {
     int ret = SUCCESS;//assume success
-    uint32_t sectors = 0;
+    uint16_t sectors = 0;
     //make sure that the data size is at least logical sector in size
     if (dataSize < device->drive_info.bridge_info.childDeviceBlockSize)
     {
         return BAD_PARAMETER;
     }
-    sectors = dataSize / device->drive_info.bridge_info.childDeviceBlockSize;
+    sectors = C_CAST(uint16_t, dataSize / device->drive_info.bridge_info.childDeviceBlockSize);
     if (async)
     {
         //asynchronous not supported yet

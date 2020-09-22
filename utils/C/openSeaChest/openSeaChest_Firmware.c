@@ -971,7 +971,7 @@ int32_t main(int argc, char *argv[])
                             dlOptions.segmentSize = 0;
                         }
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = firmwareFileSize;
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should only be a few MB today...long ways to go before we overflow uint32_t
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
