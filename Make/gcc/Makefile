@@ -17,8 +17,8 @@ CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
 STRIP ?= strip
 STRIPOPTS ?=
-CFLAGS ?= -Wall -c -std=gnu99
-CFLAGS_I686 ?= -Wall -c -m32
+CFLAGS ?= -Wall -Wextra -c -std=gnu99
+CFLAGS_I686 ?= -Wall -Wextra -c -m32
 LFLAGS ?= \
 	-Wall \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \

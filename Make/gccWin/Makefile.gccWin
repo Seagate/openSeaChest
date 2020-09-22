@@ -41,13 +41,13 @@ endif
 
 LIB_FILE_OUTPUT_DIR = lib
 
-CFLAGS ?= -Wall
+CFLAGS ?= -Wall -Wextra
 #BR note: If you want to hide all of the informational compiler messages, uncomment the line below
 CFLAGS += -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
 CFLAGS += -isystem
-CFLAGS_I686 = -Wall -c -m32
+CFLAGS_I686 = -Wall -Wextra -c -m32
 
 LDFLAGS = -Wall
 LDLIBS = \
