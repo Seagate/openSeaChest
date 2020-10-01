@@ -41,9 +41,10 @@ endif
 
 LIB_FILE_OUTPUT_DIR = lib
 
-CFLAGS ?= -Wall -Wextra
-#BR note: If you want to hide all of the informational compiler messages, uncomment the line below
-CFLAGS += -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable
+#turning off format warnings because they are EVERYWHERE but only in minGW which is due to backwards compatibility warnings.
+#I tried using __USE_MINGW_ANSI_STDIO, but this didn't solve the problem either. - TJE
+#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
+CFLAGS ?= -Wall -Wextra  -Wno-format
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
 CFLAGS += -isystem
@@ -185,7 +186,7 @@ PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
 
 PROJECT_DEFINES += -DENABLE_CSMI
 PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100162990L
-PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT #-D_DEBUG
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT 
 ifneq (,$(findstring Linux,$(MYUNAME)))
 	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
 else
