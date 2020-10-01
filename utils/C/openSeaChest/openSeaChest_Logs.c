@@ -420,11 +420,11 @@ int32_t main(int argc, char *argv[])
             scanControl |= AGRESSIVE_SCAN;
         }
 #if defined (__linux__)
-        if (scanSD)
+        if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
         }
-        if (scanSDandSG)
+        if (SCAN_FLAGS.scanSDandSG)
         {
             scanControl |= SG_TO_SD;
         }
