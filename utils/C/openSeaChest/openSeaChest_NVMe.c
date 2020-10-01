@@ -672,6 +672,20 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
+#if defined (ENABLE_CSMI)
+        if (SCAN_FLAGS.scanIgnoreCSMI)
+        {
+            scanControl |= IGNORE_CSMI;
+        }
+        if (SCAN_FLAGS.scanAllowDuplicateDevices)
+        {
+            scanControl |= ALLOW_DUPLICATE_DEVICE;
+        }
+#endif
+        if (ONLY_SEAGATE_FLAG)
+        {
+            scanControl |= SCAN_SEAGATE_ONLY;
+        }
         scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
@@ -681,10 +695,6 @@ int32_t main(int argc, char *argv[])
     {
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_NO_ERROR);
-    }
-    else if (exitCode == UTIL_EXIT_ERROR_IN_COMMAND_LINE)
-    {
-        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
     //print out errors for unknown arguments for remaining args that haven't been processed yet
@@ -884,10 +894,10 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
-                }
+                }*/
                 continue;
             }
         }

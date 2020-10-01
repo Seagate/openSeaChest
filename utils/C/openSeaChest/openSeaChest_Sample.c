@@ -252,7 +252,7 @@ int32_t main(int argc, char *argv[])
             toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
-            SCAN_FLAGS_SUBOPT_PARSING;
+            get_Scan_Flags(&SCAN_FLAGS, optarg);
             break;
         case '?': //unknown option
             printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
@@ -318,59 +318,59 @@ int32_t main(int argc, char *argv[])
             scanControl |= AGRESSIVE_SCAN;
         }
 #if defined (__linux__)
-        if (scanSD)
+        if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
         }
-        if (scanSDandSG)
+        if (SCAN_FLAGS.scanSDandSG)
         {
             scanControl |= SG_TO_SD;
         }
 #endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
-        if (scanATA)
+        if (SCAN_FLAGS.scanATA)
         {
             scanControl |= ATA_DRIVES;
         }
-        if (scanUSB)
+        if (SCAN_FLAGS.scanUSB)
         {
             scanControl |= USB_DRIVES;
         }
-        if (scanSCSI)
+        if (SCAN_FLAGS.scanSCSI)
         {
             scanControl |= SCSI_DRIVES;
         }
-        if (scanNVMe)
+        if (SCAN_FLAGS.scanNVMe)
         {
             scanControl |= NVME_DRIVES;
         }
-        if (scanRAID)
+        if (SCAN_FLAGS.scanRAID)
         {
             scanControl |= RAID_DRIVES;
         }
         //set the interface types to show (if none are set, the lower level code assumes we need to show everything)
-        if (scanInterfaceATA)
+        if (SCAN_FLAGS.scanInterfaceATA)
         {
             scanControl |= IDE_INTERFACE_DRIVES;
         }
-        if (scanInterfaceUSB)
+        if (SCAN_FLAGS.scanInterfaceUSB)
         {
             scanControl |= USB_INTERFACE_DRIVES;
         }
-        if (scanInterfaceSCSI)
+        if (SCAN_FLAGS.scanInterfaceSCSI)
         {
             scanControl |= SCSI_INTERFACE_DRIVES;
         }
-        if (scanInterfaceNVMe)
+        if (SCAN_FLAGS.scanInterfaceNVMe)
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
 #if defined (ENABLE_CSMI)
-        if (scanIgnoreCSMI)
+        if (SCAN_FLAGS.scanIgnoreCSMI)
         {
             scanControl |= IGNORE_CSMI;
         }
-        if (scanAllowDuplicateDevices)
+        if (SCAN_FLAGS.scanAllowDuplicateDevices)
         {
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }

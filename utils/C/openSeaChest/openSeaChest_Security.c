@@ -1410,7 +1410,15 @@ int32_t main(int argc, char *argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                if (strlen(TCG_PSID_FLAG) < 32)
+                if (strlen(TCG_PSID_FLAG) == 0)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("\tPSID missing. Please use --%s to provide it. PSID must be 32 characters long.\n", TCG_PSID_LONG_OPT_STRING);
+                    }
+                    return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                }
+                else if (strlen(TCG_PSID_FLAG) < 32)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
