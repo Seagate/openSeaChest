@@ -14,7 +14,7 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include <stdio.h>
+#include "common.h"
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
@@ -24,7 +24,6 @@
 #else
 #error "OS Not Defined or known"
 #endif
-#include "common.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -33,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Sample";
-const char *buildVersion = "0.4.0";
+const char *buildVersion = "1.0.0";
 
 ////////////////////////////
 //  functions to declare  //

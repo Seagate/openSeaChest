@@ -3124,171 +3124,27 @@ extern "C"
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
-#if defined (ENABLE_CSMI) //Since we are using macros to insert the following code, we get warnings in Linux...so I'm ifdefing it but there is no good way to do this so it's a lot of almost duplicated code - TJE
-    #define SCAN_FLAGS_UTIL_VARS \
-        bool                scanSD = false;\
-        bool                scanSDandSG = false;\
-        bool                scanATA = false;\
-        bool                scanUSB = false;\
-        bool                scanSCSI = false;\
-        bool                scanNVMe = false;\
-        bool                scanRAID = false;\
-        bool                scanInterfaceATA = false;\
-        bool                scanInterfaceUSB = false;\
-        bool                scanInterfaceSCSI = false;\
-        bool                scanInterfaceNVMe = false;\
-        bool                scanIgnoreCSMI = false;\
-        bool                scanAllowDuplicateDevices = false;
+    typedef struct _deviceScanFlags
+    {
+        bool    scanSD;
+        bool    scanSDandSG;
+        bool    scanATA;
+        bool    scanUSB;
+        bool    scanSCSI;
+        bool    scanNVMe;
+        bool    scanRAID;
+        bool    scanInterfaceATA;
+        bool    scanInterfaceUSB;
+        bool    scanInterfaceSCSI;
+        bool    scanInterfaceNVMe;
+        bool    scanIgnoreCSMI;
+        bool    scanAllowDuplicateDevices;
+    }deviceScanFlags;
 
-    #define SCAN_FLAGS_SUBOPT_PARSING                                                                               \
-    if (optarg != NULL)                                                                                             \
-    {                                                                                                               \
-        int  index = optind - 1;                                                                                    \
-        char *nextSubOpt = NULL;                                                                                    \
-        while (index < argc)                                                                                        \
-        {                                                                                                           \
-            nextSubOpt = strdup(argv[index]);                                                                       \
-            if (strncmp("-", nextSubOpt, 1) != 0)                                                                   \
-            {                                                                                                       \
-                if (strlen(nextSubOpt) == 3 && strncmp("ata", nextSubOpt, strlen(nextSubOpt)) == 0)                 \
-                {                                                                                                   \
-                    scanATA = true;                                                                                 \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 3 && strncmp("usb", nextSubOpt, strlen(nextSubOpt)) == 0)            \
-                {                                                                                                   \
-                    scanUSB = true;                                                                                 \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("scsi", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanSCSI = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("nvme", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanNVMe = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("raid", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanRAID = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 12 && strncmp("interfaceATA", nextSubOpt, strlen(nextSubOpt)) == 0)  \
-                {                                                                                                   \
-                    scanInterfaceATA = true;                                                                        \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 12 && strncmp("interfaceUSB", nextSubOpt, strlen(nextSubOpt)) == 0)  \
-                {                                                                                                   \
-                    scanInterfaceUSB = true;                                                                        \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 13 && strncmp("interfaceSCSI", nextSubOpt, strlen(nextSubOpt)) == 0) \
-                {                                                                                                   \
-                    scanInterfaceSCSI = true;                                                                       \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 13 && strncmp("interfaceNVME", nextSubOpt, strlen(nextSubOpt)) == 0) \
-                {                                                                                                   \
-                    scanInterfaceNVMe = true;                                                                       \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 2 && strncmp("sd", nextSubOpt, strlen(nextSubOpt)) == 0)             \
-                {                                                                                                   \
-                    scanSD = true;                                                                                  \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 6 && strncmp("sgtosd", nextSubOpt, strlen(nextSubOpt)) == 0)         \
-                {                                                                                                   \
-                    scanSDandSG = true;                                                                             \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 10 && strncmp("ignoreCSMI", nextSubOpt, strlen(nextSubOpt)) == 0)    \
-                {                                                                                                   \
-                    scanIgnoreCSMI = true;                                                                          \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 15 && strncmp("allowDuplicates", nextSubOpt, strlen(nextSubOpt)) == 0) \
-                {                                                                                                   \
-                    scanAllowDuplicateDevices = true;                                                               \
-                }                                                                                                   \
-            }                                                                                                       \
-            else                                                                                                    \
-            {                                                                                                       \
-                break;                                                                                              \
-            }                                                                                                       \
-            index++;                                                                                                \
-        }                                                                                                           \
-        optind = index;                                                                                             \
-    }
-#else
-    #define SCAN_FLAGS_UTIL_VARS \
-    bool                scanSD = false;\
-    bool                scanSDandSG = false;\
-    bool                scanATA = false;\
-    bool                scanUSB = false;\
-    bool                scanSCSI = false;\
-    bool                scanNVMe = false;\
-    bool                scanRAID = false;\
-    bool                scanInterfaceATA = false;\
-    bool                scanInterfaceUSB = false;\
-    bool                scanInterfaceSCSI = false;\
-    bool                scanInterfaceNVMe = false;
+#define SCAN_FLAGS scanFlagsStructure
+#define SCAN_FLAGS_UTIL_VARS deviceScanFlags SCAN_FLAGS = { false, false, false, false, false, false, false, false, false, false, false, false, false };
 
-    #define SCAN_FLAGS_SUBOPT_PARSING                                                                               \
-    if (optarg != NULL)                                                                                             \
-    {                                                                                                               \
-        int  index = optind - 1;                                                                                    \
-        char *nextSubOpt = NULL;                                                                                    \
-        while (index < argc)                                                                                        \
-        {                                                                                                           \
-            nextSubOpt = strdup(argv[index]);                                                                       \
-            if (strncmp("-", nextSubOpt, 1) != 0)                                                                   \
-            {                                                                                                       \
-                if (strlen(nextSubOpt) == 3 && strncmp("ata", nextSubOpt, strlen(nextSubOpt)) == 0)                 \
-                {                                                                                                   \
-                    scanATA = true;                                                                                 \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 3 && strncmp("usb", nextSubOpt, strlen(nextSubOpt)) == 0)            \
-                {                                                                                                   \
-                    scanUSB = true;                                                                                 \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("scsi", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanSCSI = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("nvme", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanNVMe = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 4 && strncmp("raid", nextSubOpt, strlen(nextSubOpt)) == 0)           \
-                {                                                                                                   \
-                    scanRAID = true;                                                                                \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 12 && strncmp("interfaceATA", nextSubOpt, strlen(nextSubOpt)) == 0)  \
-                {                                                                                                   \
-                    scanInterfaceATA = true;                                                                        \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 12 && strncmp("interfaceUSB", nextSubOpt, strlen(nextSubOpt)) == 0)  \
-                {                                                                                                   \
-                    scanInterfaceUSB = true;                                                                        \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 13 && strncmp("interfaceSCSI", nextSubOpt, strlen(nextSubOpt)) == 0) \
-                {                                                                                                   \
-                    scanInterfaceSCSI = true;                                                                       \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 13 && strncmp("interfaceNVME", nextSubOpt, strlen(nextSubOpt)) == 0) \
-                {                                                                                                   \
-                    scanInterfaceNVMe = true;                                                                       \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 2 && strncmp("sd", nextSubOpt, strlen(nextSubOpt)) == 0)             \
-                {                                                                                                   \
-                    scanSD = true;                                                                                  \
-                }                                                                                                   \
-                else if (strlen(nextSubOpt) == 6 && strncmp("sgtosd", nextSubOpt, strlen(nextSubOpt)) == 0)         \
-                {                                                                                                   \
-                    scanSDandSG = true;                                                                             \
-                }                                                                                                   \
-            }                                                                                                       \
-            else                                                                                                    \
-            {                                                                                                       \
-                break;                                                                                              \
-            }                                                                                                       \
-            index++;                                                                                                \
-        }                                                                                                           \
-        optind = index;                                                                                             \
-    }
-#endif //if defined (ENABLE_CSMI)
+    void get_Scan_Flags(deviceScanFlags *scanFlags, char *optarg);
 
 #define ERASE_RANGE_UTIL_VARS \
     bool                eraseRange                  = false; \

@@ -219,6 +219,63 @@ void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSp
     printf("\tAnything else = unknown error\n\n");
 }
 
+void get_Scan_Flags(deviceScanFlags *scanFlags, char *optarg)
+{
+    if(strncmp("ata", optarg, strlen(optarg)) == 0)                 
+    {                                                                                                   
+        scanFlags->scanATA = true;                                                                      
+    }                                                                                                   
+    else if (strlen(optarg) == 3 && strncmp("usb", optarg, strlen(optarg)) == 0)            
+    {                                                                                                   
+        scanFlags->scanUSB = true;                                                                      
+    }                                                                                                   
+    else if (strlen(optarg) == 4 && strncmp("scsi", optarg, strlen(optarg)) == 0)           
+    {                                                                                                   
+        scanFlags->scanSCSI = true;                                                                     
+    }                                                                                                   
+    else if (strlen(optarg) == 4 && strncmp("nvme", optarg, strlen(optarg)) == 0)           
+    {                                                                                                   
+        scanFlags->scanNVMe = true;                                                                     
+    }                                                                                                   
+    else if (strlen(optarg) == 4 && strncmp("raid", optarg, strlen(optarg)) == 0)           
+    {                                                                                                   
+        scanFlags->scanRAID = true;                                                                     
+    }                                                                                                   
+    else if (strlen(optarg) == 12 && strncmp("interfaceATA", optarg, strlen(optarg)) == 0)  
+    {                                                                                                   
+        scanFlags->scanInterfaceATA = true;                                                             
+    }                                                                                                   
+    else if (strlen(optarg) == 12 && strncmp("interfaceUSB", optarg, strlen(optarg)) == 0)  
+    {                                                                                                   
+        scanFlags->scanInterfaceUSB = true;                                                             
+    }                                                                                                   
+    else if (strlen(optarg) == 13 && strncmp("interfaceSCSI", optarg, strlen(optarg)) == 0) 
+    {                                                                                                   
+        scanFlags->scanInterfaceSCSI = true;                                                            
+    }                                                                                                   
+    else if (strlen(optarg) == 13 && strncmp("interfaceNVME", optarg, strlen(optarg)) == 0) 
+    {                                                                                                   
+        scanFlags->scanInterfaceNVMe = true;                                                            
+    }                                                                                                   
+    else if (strlen(optarg) == 2 && strncmp("sd", optarg, strlen(optarg)) == 0)             
+    {                                                                                                   
+        scanFlags->scanSD = true;                                                                       
+    }                                                                                                   
+    else if (strlen(optarg) == 6 && strncmp("sgtosd", optarg, strlen(optarg)) == 0)         
+    {                                                                                                   
+        scanFlags->scanSDandSG = true;                                                                  
+    }                                                                                                   
+    else if (strlen(optarg) == 10 && strncmp("ignoreCSMI", optarg, strlen(optarg)) == 0)    
+    {                                                                                                   
+        scanFlags->scanIgnoreCSMI = true;                                                                          
+    }                                                                                                   
+    else if (strlen(optarg) == 15 && strncmp("allowDuplicates", optarg, strlen(optarg)) == 0) 
+    {                                                                                                   
+        scanFlags->scanAllowDuplicateDevices = true;                                                               
+    }              
+    return;
+}
+
 void print_Scan_Help(bool shortHelp, const char *helpdeviceHandleExample)
 {
     printf("\t-%c, --%s\n", SCAN_SHORT_OPT, SCAN_LONG_OPT_STRING);
