@@ -1248,8 +1248,12 @@ int32_t main(int argc, char *argv[])
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a set sector size operation.\n\n");
                     printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                    printf("\tWARNING: It is not recommended to do this on USB as not\n");
-                    printf("\t         all USB adapters can handle a 4k sector size.\n\n");
+                    printf("WARNING: It is not recommended to do this on USB as not\n");
+                    printf("         all USB adapters can handle a 4k sector size.\n\n");
+                    printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
+                    printf("         it may cause the drive to become unusable. Stop all possible background\n");
+                    printf("         activity that would attempt to communicate with the device while this\n");
+                    printf("         operation is in progress\n\n");
                 }
             }
         }

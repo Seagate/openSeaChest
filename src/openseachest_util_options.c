@@ -2265,6 +2265,10 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\tor similar is not recommended at this time due to limited drive\n\t\tsupport\n\n");
         printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n");
+        printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+        printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+        printf("\t\t         activity that would attempt to communicate with the device while this\n");
+        printf("\t\t         operation is in progress\n");
         printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
         printf("\t\t         all USB adapters can handle a 4k sector size.\n\n");
     }
