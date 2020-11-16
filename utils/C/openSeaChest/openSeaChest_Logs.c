@@ -232,7 +232,7 @@ int32_t main(int argc, char *argv[])
             {
                 //set the raw data length - but check the units first!
                 uint64_t multiplier = 1;
-                uint32_t optargInt = (uint32_t)atoi(optarg);
+                uint64_t optargInt = (uint64_t)atoll(optarg);
                 if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
                 {
                     //they specified blocks. For log transfers this means a number of 512B sectors
@@ -240,35 +240,35 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strstr(optarg, "KB"))
                 {
-                    multiplier = 1000;
+                    multiplier = UINT64_C(1000);
                 }
                 else if (strstr(optarg, "KiB"))
                 {
-                    multiplier = 1024;
+                    multiplier = UINT64_C(1024);
                 }
                 else if (strstr(optarg, "MB"))
                 {
-                    multiplier = 1000000;
+                    multiplier = UINT64_C(1000000);
                 }
                 else if (strstr(optarg, "MiB"))
                 {
-                    multiplier = 1048576;
+                    multiplier = UINT64_C(1048576);
                 }
                 else if (strstr(optarg, "GB"))
                 {
-                    multiplier = 1000000000;
+                    multiplier = UINT64_C(1000000000);
                 }
                 else if (strstr(optarg, "GiB"))
                 {
-                    multiplier = 1073741824;
+                    multiplier = UINT64_C(1073741824);
                 }
                 else if (strstr(optarg, "TB"))
                 {
-                    multiplier = 1000000000000;
+                    multiplier = UINT64_C(1000000000000);
                 }
                 else if (strstr(optarg, "TiB"))
                 {
-                    multiplier = 1099511627776;
+                    multiplier = UINT64_C(1099511627776);
                 }
                 LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
@@ -1201,12 +1201,36 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
     printf("\t%s -d %s --farm --outputPath logs\n", util_name, deviceHandleExample);
     //return codes
-    printf("Return codes\n");
+    printf("\nReturn codes\n");
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
 
+    //utility options - alphabetized
+    printf("\nUtility Options\n");
+    printf("===============\n");
+#if defined (ENABLE_CSMI)
+    print_CSMI_Force_Flags_Help(shortUsage);
+    print_CSMI_Verbose_Help(shortUsage);
+#endif
+    print_Echo_Command_Line_Help(shortUsage);
+    print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
+    print_Force_ATA_Help(shortUsage);
+    print_Force_ATA_DMA_Help(shortUsage);
+    print_Force_ATA_PIO_Help(shortUsage);
+    print_Force_ATA_UDMA_Help(shortUsage);
+    print_Force_SCSI_Help(shortUsage);
+    print_Help_Help(shortUsage);
+    print_License_Help(shortUsage);
+    print_Model_Match_Help(shortUsage);
+    print_Firmware_Revision_Match_Help(shortUsage);
+    print_Only_Seagate_Help(shortUsage);
+    print_OutputPath_Help(shortUsage);
+    print_Quiet_Help(shortUsage, util_name);
+    print_Verbose_Help(shortUsage);
+    print_Version_Help(shortUsage, util_name);
+
     //the test options
-    printf("Utility arguments\n");
+    printf("\nUtility Arguments\n");
     printf("=================\n");
     //Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -1238,27 +1262,5 @@ void utility_Usage(bool shortUsage)
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);
     print_Pull_Generic_Logs_Subpage_Help(shortUsage);
 
-    //utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
-#if defined (ENABLE_CSMI)
-    print_CSMI_Force_Flags_Help(shortUsage);
-    print_CSMI_Verbose_Help(shortUsage);
-#endif
-    print_Echo_Command_Line_Help(shortUsage);
-    print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
-    print_Force_ATA_Help(shortUsage);
-    print_Force_ATA_DMA_Help(shortUsage);
-    print_Force_ATA_PIO_Help(shortUsage);
-    print_Force_ATA_UDMA_Help(shortUsage);
-    print_Force_SCSI_Help(shortUsage);
-    print_Help_Help(shortUsage);
-    print_License_Help(shortUsage);
-    print_Model_Match_Help(shortUsage);
-    print_Firmware_Revision_Match_Help(shortUsage);
-    print_Only_Seagate_Help(shortUsage);
-    print_OutputPath_Help(shortUsage);
-    print_Quiet_Help(shortUsage, util_name);
-    print_Verbose_Help(shortUsage);
-    print_Version_Help(shortUsage, util_name);
+    
 }
