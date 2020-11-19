@@ -1424,6 +1424,11 @@ extern "C"
     #define REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING "removePhysicalElement"
     #define REMOVE_PHYSICAL_ELEMENT_LONG_OPT { REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    #define REPOPULATE_ELEMENTS_FLAG repopulateElements
+    #define REPOPULATE_ELEMENTS_VAR getOptBool REPOPULATE_ELEMENTS_FLAG = goFalse;
+    #define REPOPULATE_ELEMENTS_LONG_OPT_STRING "repopulateElements"
+    #define REPOPULATE_ELEMENTS_LONG_OPT { REPOPULATE_ELEMENTS_LONG_OPT_STRING, no_argument, &REPOPULATE_ELEMENTS_FLAG, goTrue }
+
     //This is a force flag to use Seagate commands instead of the STD spec...really just for debugging.
     #define FORCE_SEAGATE_DEPOPULATE_COMMANDS forceSeagateDepopCommands
     #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_VAR getOptBool FORCE_SEAGATE_DEPOPULATE_COMMANDS = goFalse;
@@ -2931,6 +2936,8 @@ extern "C"
     void print_Show_Physical_Element_Status_Help(bool shortHelp);
 
     void print_Remove_Physical_Element_Status_Help(bool shortHelp);
+
+    void print_Repopulate_Elements_Help(bool shortHelp);
 
     void print_Force_Seagate_Depop_Help(bool shortHelp);
 

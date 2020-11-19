@@ -29,11 +29,12 @@
 #include "operations.h"
 #include "drive_info.h"
 #include "format.h"
+#include "depopulate.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -93,6 +94,9 @@ int32_t main(int argc, char *argv[])
     SHOW_FORMAT_STATUS_LOG_VAR
     SHOW_SUPPORTED_FORMATS_VAR
     SET_SECTOR_SIZE_VARS
+    SHOW_PHYSICAL_ELEMENT_STATUS_VAR
+    REMOVE_PHYSICAL_ELEMENT_VAR
+    REPOPULATE_ELEMENTS_VAR
 
 #if !defined (DISABLE_NVME_PASSTHROUGH)
     NVM_FORMAT_VARS
@@ -148,6 +152,9 @@ int32_t main(int argc, char *argv[])
         SHOW_FORMAT_STATUS_LOG_LONG_OPT,
         SET_SECTOR_SIZE_LONG_OPT,
         SHOW_SUPPORTED_FORMATS_LONG_OPT,
+        SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
+        REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
+        REPOPULATE_ELEMENTS_LONG_OPT,
 #if !defined (DISABLE_NVME_PASSTHROUGH)
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
@@ -271,6 +278,10 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
                 sscanf(optarg, "%" SCNu64 "", &FORMAT_UNIT_NEW_MAX_LBA);
+            }
+            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
+            {
+                REMOVE_PHYSICAL_ELEMENT_FLAG = (uint32_t)atoi(optarg);
             }
 #if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
@@ -707,6 +718,9 @@ int32_t main(int argc, char *argv[])
         || SHOW_FORMAT_STATUS_LOG_FLAG
         || SET_SECTOR_SIZE_FLAG
         || SHOW_SUPPORTED_FORMATS_FLAG
+        || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG
+        || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
+        || REPOPULATE_ELEMENTS_FLAG
 #if !defined (DISABLE_NVME_PASSTHROUGH)
         || NVM_FORMAT_FLAG
 #endif
@@ -1091,6 +1105,50 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SHOW_PHYSICAL_ELEMENT_STATUS_FLAG)
+        {
+            uint64_t depopTime = 0;
+            bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], &depopTime);
+            if (depopSupport)
+            {
+                uint32_t numberOfDescriptors = 0;
+                get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
+                if (numberOfDescriptors > 0)
+                {
+                    ptrPhysicalElement elementList = (ptrPhysicalElement)malloc(numberOfDescriptors * sizeof(physicalElement));
+                    memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
+                    if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
+                    {
+                        show_Physical_Element_Descriptors(numberOfDescriptors, elementList, depopTime);
+                    }
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to get physical element status.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("No physical elements were found on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
         if (FORMAT_UNIT_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1254,6 +1312,111 @@ int32_t main(int argc, char *argv[])
                     printf("         it may cause the drive to become unusable. Stop all possible background\n");
                     printf("         activity that would attempt to communicate with the device while this\n");
                     printf("         operation is in progress\n\n");
+                }
+            }
+        }
+
+        if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
+        {
+            if (DATA_ERASE_FLAG)
+            {
+                bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
+                if (depopSupport)
+                {
+                    //TODO: add an option to allow setting a requested MaxLBA? Lets wait to see if a customer wants that option before we add it - TJE
+                    switch (depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, 0))
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Successfully sent the remove physical element command!\n");
+                            printf("The device may take a long time before it is ready to accept all commands again.\n");
+                            printf("Use the --%s option to check if the depopulate is still in progress or complete.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("This operation is not supported on this drive or a bad element ID was given.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to depopulate element %" PRIu32".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a remove physical element command.\n\n");
+                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
+            }
+        }
+
+        if (REPOPULATE_ELEMENTS_FLAG)
+        {
+            if (DATA_ERASE_FLAG)
+            {
+                bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], NULL);
+                if (repopSupport)
+                {
+                    switch (repopulate_Elements(&deviceList[deviceIter]))
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Successfully repopulated all physical elements!\n");
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("This operation is not supported on this drive.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to repopulate physical elements!\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    printf("Neither the standard or the Seagate remanufacture feature is supported on this device.\n");
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a repopulate elements operation.\n\n");
+                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
@@ -1515,6 +1678,7 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
+    print_Show_Physical_Element_Status_Help(shortUsage);
     print_Show_Supported_Formats_Help(shortUsage);
     //SATA Only Options
     //printf("\n\tSATA Only:\n\n");
@@ -1528,6 +1692,8 @@ void utility_Usage(bool shortUsage)
     printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
+    print_Remove_Physical_Element_Status_Help(shortUsage);
+    print_Repopulate_Elements_Help(shortUsage);
     print_Set_Sector_Size_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
     //print_Format_Default_Format_Help(shortUsage);

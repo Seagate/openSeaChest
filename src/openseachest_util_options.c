@@ -3023,6 +3023,18 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
     }
 }
 
+void print_Repopulate_Elements_Help(bool shortHelp)
+{
+    printf("\t--%s \n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to repopulate any physical storage\n");
+        printf("\t\telements that have been removed from use.\n");
+        printf("\t\tA full disk overwrite is necessary before\n");
+        printf("\t\tthe drive is usable.\n\n");
+    }
+}
+
 void print_Force_Seagate_Depop_Help(bool shortHelp)
 {
     printf("\t--%s \n", FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING);
