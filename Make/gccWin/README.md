@@ -108,11 +108,11 @@ A short list of branches similar to this is returned:
 **Examples:**
 1. Clone the develop branch:  
 
-       git clone --recurse-submodules --branch develop --single-branch https://github.com/Seagate/openSeaChest.git openSeaChest-develop
+       git clone --recurse-submodules --branch develop https://github.com/Seagate/openSeaChest.git openSeaChest-develop
 
 2. Clone a feature branch:  
 
-       git clone --recurse-submodules --branch feature/minGW_Support --single-branch https://github.com/Seagate/openSeaChest.git openSeaChest-MinGW
+       git clone --recurse-submodules --branch feature/minGW_Support https://github.com/Seagate/openSeaChest.git openSeaChest-MinGW
 
 3. Make sure the recursive sub-module projects (opensea-common etc) are completely cloned from the specific branch.  `cd` into the new branch folder (openSeaChest-develop or openSeaChest-MinGW from the examples above)
 Run:  
@@ -132,6 +132,19 @@ Then get the latest openSeaChest files
 
        git pull
        git pull --recurse-submodules
+
+**Note about single-branch option**
+
+If the `--single-branch` option is used during the initial clone, fetching submodules to the head of a specific branch as in step 3 (above) may fail until this has been "undone".
+To undo a `--single-branch` pull for the submodules, perform the following:
+
+    git submodule foreach 'git config remote.origin.fetch refs/heads/*:refs/remotes/origin/*'
+    git submodule foreach 'git fetch'
+
+At this point, `git branch -a` should show all available branches that can be pulled for a given repository, or in this case submodule. From here, you can now recursively pull the branch of interest like this:
+
+    git submodule foreach --recursive 'git checkout branch-of-interest'
+
 
 ## Building openSeaChest with MinGW
 Assuming you are in the `~` home directory, `cd` to `./openSeaChest-develop/Make/gccWin`
