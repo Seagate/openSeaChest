@@ -744,7 +744,9 @@ void print_Abort_IDD_Help(bool shortHelp)
     printf("\t--%s (Seagate Only)\n", ABORT_IDD_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tAbort a Seagate In Drive Diagnostic (IDD) that is in progress.\n\n");
+        printf("\t\tAbort a Seagate In Drive Diagnostic (IDD) that is in progress.\n");
+        printf("\t\tThis may return failure if IDD is not running or has already\n");
+        printf("\t\tcompleted running.\n\n");
     }
 }
 
@@ -764,7 +766,12 @@ void print_IDD_Help(bool shortHelp)
         printf("\t\tNote: the --%s option can be added to run the long test in\n", CAPTIVE_LONG_OPT_STRING);
         printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
         printf("\t\t      and some additional checks to be performed. This may not\n");
-        printf("\t\t      work on some products.\n\n");
+        printf("\t\t      work on some products.\n");
+        printf("\t\tNote: Progress cannot be checked for the first 2 minutes of IDD.\n");
+        printf("\t\t      The drive is busy with the test and is not able to respond.\n");
+        printf("\t\t      Attempting to retrieve progress during this time will hang and\n");
+        printf("\t\t      may cause the IDD to abort due to the host issuing resets to\n");
+        printf("\t\t      recover access to the drive.\n\n");
     }
 }
 

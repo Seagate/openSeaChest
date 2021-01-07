@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2002,18 +2002,6 @@ int32_t main(int argc, char *argv[])
                     printf("Getting DST progress.\n");
                 }
                 result = print_DST_Progress(&deviceList[deviceIter]);
-            }
-            else if (strcmp(progressTest, "IDD") == 0)
-            {
-                uint8_t iddStatus = 0;
-                char iddStatusString[MAX_DST_STATUS_STRING_LENGTH + 1] = { 0 };
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Getting IDD progress.\n");
-                }
-                result = get_IDD_Status(&deviceList[deviceIter], &iddStatus);
-                translate_DST_Status_To_String(iddStatus, iddStatusString, false, false);
-                printf("%s\n", iddStatusString);
             }
             else
             {

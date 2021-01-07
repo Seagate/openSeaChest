@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1314,7 +1314,7 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Abort IDD Failed!\n");
+                    printf("Abort IDD Failed! NOTE: IDD may not currently be running when the abort was sent.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1614,6 +1614,11 @@ int32_t main(int argc, char *argv[])
                             printf(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
                             printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
+                            printf("NOTE: Checking progress or aborting IDD within the first 120 seconds is not possible.\n");
+                            printf("      In this time, the drive is performing a unique test which prevents it from responding\n");
+                            printf("      to other requests. Attempting to get progress or abort during this time will fail and\n");
+                            printf("      may cause the IDD to stop running in some cases. The software may also hang until the\n");
+                            printf("      drive is able to respond to commands again.\n\n");
                         }
                     }
                     break;
@@ -1920,7 +1925,7 @@ int32_t main(int argc, char *argv[])
                     printf("Getting IDD progress.\n");
                 }
                 result = get_IDD_Status(&deviceList[deviceIter], &iddStatus);
-                translate_DST_Status_To_String(iddStatus, iddStatusString, false, false);
+                translate_IDD_Status_To_String(iddStatus, iddStatusString, false);
                 printf("%s\n", iddStatusString);
             }
             else
