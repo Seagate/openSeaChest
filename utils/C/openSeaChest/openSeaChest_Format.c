@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.1.0";
+const char *buildVersion = "2.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -97,6 +97,7 @@ int32_t main(int argc, char *argv[])
     SHOW_PHYSICAL_ELEMENT_STATUS_VAR
     REMOVE_PHYSICAL_ELEMENT_VAR
     REPOPULATE_ELEMENTS_VAR
+    DEPOP_MAX_LBA_VAR
 
 #if !defined (DISABLE_NVME_PASSTHROUGH)
     NVM_FORMAT_VARS
@@ -155,6 +156,7 @@ int32_t main(int argc, char *argv[])
         SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         REPOPULATE_ELEMENTS_LONG_OPT,
+        DEPOP_MAX_LBA_LONG_OPT,
 #if !defined (DISABLE_NVME_PASSTHROUGH)
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
@@ -232,27 +234,50 @@ int32_t main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    //set the sector size
-                    FORMAT_SECTOR_SIZE = C_CAST(uint16_t, atoi(optarg));
+                    uint64_t tempSectorSize = 0;
+                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    {
+                        //set the sector size
+                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
             {
-                SET_SECTOR_SIZE_FLAG = true;
-                SET_SECTOR_SIZE_SIZE = (uint32_t)atoi(optarg);
+                uint64_t tempSectorSize = 0;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                {
+                    SET_SECTOR_SIZE_FLAG = true;
+                    SET_SECTOR_SIZE_SIZE = C_CAST(uint32_t, tempSectorSize);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_SECTOR_SIZE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
@@ -277,11 +302,32 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%" SCNu64 "", &FORMAT_UNIT_NEW_MAX_LBA);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &FORMAT_UNIT_NEW_MAX_LBA))
+                {
+                    print_Error_In_Cmd_Line_Args(FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, DEPOP_MAX_LBA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &DEPOP_MAX_LBA_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(DEPOP_MAX_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
-                REMOVE_PHYSICAL_ELEMENT_FLAG = (uint32_t)atoi(optarg);
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                {
+                    REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
 #if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
@@ -289,8 +335,16 @@ int32_t main(int argc, char *argv[])
                 NVM_FORMAT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    //set the sector size
-                    NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = (uint32_t)atoi(optarg);
+                    uint64_t temp = 0;
+                    if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                    {
+                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_NSID_LONG_OPT_STRING) == 0)
@@ -1324,14 +1378,21 @@ int32_t main(int argc, char *argv[])
                 if (depopSupport)
                 {
                     //TODO: add an option to allow setting a requested MaxLBA? Lets wait to see if a customer wants that option before we add it - TJE
-                    switch (depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, 0))
+                    switch (perform_Depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, DEPOP_MAX_LBA_FLAG, POLL_FLAG))
                     {
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully sent the remove physical element command!\n");
-                            printf("The device may take a long time before it is ready to accept all commands again.\n");
-                            printf("Use the --%s option to check if the depopulate is still in progress or complete.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                            if (POLL_FLAG)
+                            {
+                                printf("Successfully depopulated physical element %" PRIu32 "!\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
+                            }
+                            else
+                            {
+                                printf("Successfully started depopulation for physical element %" PRIu32 "!\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
+                                printf("The device may take a long time before it is ready to accept all commands again.\n");
+                                printf("Use \"--%s depop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                            }
                             if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                             {
                                 printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1341,7 +1402,7 @@ int32_t main(int argc, char *argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("This operation is not supported on this drive or a bad element ID was given.\n");
+                            printf("This operation is not supported on this drive.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1379,12 +1440,25 @@ int32_t main(int argc, char *argv[])
                 bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], NULL);
                 if (repopSupport)
                 {
-                    switch (repopulate_Elements(&deviceList[deviceIter]))
+                    switch (perform_Repopulate_Physical_Element(&deviceList[deviceIter], POLL_FLAG))
                     {
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully repopulated all physical elements!\n");
+                            if (POLL_FLAG)
+                            {
+                                printf("Successfully repopulated all physical elements!\n");
+                            }
+                            else
+                            {
+                                printf("Successfully started repopulation.\n"); 
+                                printf("The device may take a long time before it is ready to accept all commands again.\n");
+                                printf("Use \"--%s repop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                            }
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1576,6 +1650,14 @@ int32_t main(int argc, char *argv[])
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
 #endif
+            else if (strcmp(progressTest, "DEPOP") == 0 || strcmp(progressTest, "REPOP") == 0)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Getting depop/repop Progress.\n");
+                }
+                result = show_Depop_Repop_Progress(&deviceList[deviceIter]);
+            }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1671,13 +1753,18 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Poll_Help(shortUsage);
-    print_Progress_Help(shortUsage, "format");
+#if !defined (DISABLE_NVME_PASSTHROUGH)
+    print_Progress_Help(shortUsage, "format | nvmformat | depop | repop");
+#else
+    print_Progress_Help(shortUsage, "format | depop | repop");
+#endif
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
+    print_Depop_MaxLBA_Help(shortUsage);
     print_Show_Physical_Element_Status_Help(shortUsage);
     print_Show_Supported_Formats_Help(shortUsage);
     //SATA Only Options

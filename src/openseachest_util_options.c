@@ -3030,6 +3030,21 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
     }
 }
 
+void print_Depop_MaxLBA_Help(bool shortHelp)
+{
+    printf("\t--%s [requested MaxLBA]\n", DEPOP_MAX_LBA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify a new maximum LBA when\n");
+        printf("\t\tremoving (depopulating) a physical storage element.\n");
+        printf("\t\tThis is optional. If this is not specified, the device\n");
+        printf("\t\twill determine the new maximum LBA.\n");
+        printf("\t\tNOTE: If you specify a maximum LBA the device does not\n");
+        printf("\t\tsupport, it will not start the depopulation.\n\n");
+    }
+}
+
+
 void print_Repopulate_Elements_Help(bool shortHelp)
 {
     printf("\t--%s \n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
