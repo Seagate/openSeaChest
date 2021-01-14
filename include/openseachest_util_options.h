@@ -1434,12 +1434,6 @@ extern "C"
     #define DEPOP_MAX_LBA_LONG_OPT_STRING "depopulateMaxLBA"
     #define DEPOP_MAX_LBA_LONG_OPT { DEPOP_MAX_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //This is a force flag to use Seagate commands instead of the STD spec...really just for debugging.
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS forceSeagateDepopCommands
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_VAR getOptBool FORCE_SEAGATE_DEPOPULATE_COMMANDS = goFalse;
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING "forceSeagateDepop"
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT { FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING, no_argument, &FORCE_SEAGATE_DEPOPULATE_COMMANDS, goTrue }
-
     //TCG Band/Range info
     #define SHOW_LOCKED_REGIONS showLockedRegions
     #define SHOW_LOCKED_REGIONS_VAR getOptBool SHOW_LOCKED_REGIONS = goFalse;
