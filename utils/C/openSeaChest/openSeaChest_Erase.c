@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1338,6 +1338,10 @@ int32_t main(int argc, char *argv[])
         {
             uint64_t depopTime = 0;
             bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], &depopTime);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING, util_name);
+            }
             if (depopSupport)
             {
                 uint32_t numberOfDescriptors = 0;
@@ -1461,6 +1465,10 @@ int32_t main(int argc, char *argv[])
 
         if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
         {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, util_name);
+            }
             if (DATA_ERASE_FLAG)
             {
                 bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
