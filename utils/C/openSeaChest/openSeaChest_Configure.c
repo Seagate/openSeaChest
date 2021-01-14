@@ -351,7 +351,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    print_Error_In_Cmd_Line_Args(SET_MAX_LBA_LONG_OPT_STRING, optarg);
+                    print_Error_In_Cmd_Line_Args(PROVISION_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
