@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -285,8 +285,16 @@ int32_t main(int argc, char *argv[])
 #if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
             {
-                //set the timer value
-                TRANSITION_POWER_STATE_TO = atoi(optarg);
+                uint64_t temp = UINT64_MAX;
+                if (get_And_Validate_Integer_Input((const char*)optarg, &temp) && temp < INT32_MAX)
+                {
+                    TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
 #endif
             else if (strncmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_POWER_CONSUMPTION_LONG_OPT_STRING))) == 0)
@@ -598,15 +606,23 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING)) == 0)
             {
-                REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
-                uint32_t measurementTime = (uint32_t)atoi(optarg);
-                if (measurementTime > 65535)
+                uint64_t measurementTime = 0;
+                if (get_And_Validate_Integer_Input((const char*)optarg, &measurementTime))
                 {
-                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
+                    REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
+                    if (measurementTime > 65535)
+                    {
+                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
+                    }
+                    else
+                    {
+                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = C_CAST(uint16_t, measurementTime);
+                    }
                 }
                 else
                 {
-                    REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = (uint16_t)measurementTime;
+                    print_Error_In_Cmd_Line_Args(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
             else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING)) == 0)

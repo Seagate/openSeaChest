@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -175,12 +175,25 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    ZONE_ID_FLAG = (uint64_t)atoll(optarg);
+                    if (!get_And_Validate_Integer_Input((const char *)optarg, &ZONE_ID_FLAG))
+                    {
+                        print_Error_In_Cmd_Line_Args(ZONE_ID_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MAX_ZONES_LONG_OPT_STRING))) == 0)
             {
-                MAX_ZONES_FLAG = (uint32_t)atoi(optarg);
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                {
+                    MAX_ZONES_FLAG = C_CAST(uint32_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(MAX_ZONES_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, REPORT_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(REPORT_ZONES_LONG_OPT_STRING))) == 0)
             {

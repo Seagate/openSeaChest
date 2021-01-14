@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -222,8 +222,15 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
-                SET_MAX_LBA_FLAG = true;
-                sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
+                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                {
+                    SET_MAX_LBA_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_MAX_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
             {
@@ -336,10 +343,17 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
-                SET_MAX_LBA_FLAG = true;
-                sscanf(optarg, "%" SCNu64 "", &SET_MAX_LBA_VALUE);
-                //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
-                TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                {
+                    SET_MAX_LBA_FLAG = true;
+                    //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
+                    TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_MAX_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, LOW_CURRENT_SPINUP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(LOW_CURRENT_SPINUP_LONG_OPT_STRING))) == 0)
             {

@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.0.1";
+const char *buildVersion = "3.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -259,21 +259,36 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                {
+                    if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
+                    {
+                        print_Error_In_Cmd_Line_Args(TRIM_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(UNMAP_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                RUN_TRIM_UNMAP_FLAG = true;
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG);
-                if (0 == sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                {
+                    RUN_TRIM_UNMAP_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else
                     {
@@ -291,20 +306,29 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &OVERWRITE_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                RUN_OVERWRITE_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                {
+                    RUN_OVERWRITE_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else
                     {
@@ -331,17 +355,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
-                RUN_WRITE_SAME_FLAG = true;
-                sscanf(optarg, "%"SCNu64, &WRITE_SAME_START_FLAG);
-                if (0 == sscanf(optarg, "%"SCNu64, &WRITE_SAME_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_START_FLAG))
+                {
+                    RUN_WRITE_SAME_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_WRITE_SAME_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_WRITE_SAME_FLAG = true;
                     }
                     else
                     {
@@ -365,22 +393,36 @@ int32_t main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    //set the sector size
-                    FORMAT_SECTOR_SIZE = C_CAST(uint16_t, atoi(optarg));
+                    uint64_t tempSectorSize = 0;
+                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    {
+                        //set the sector size
+                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
