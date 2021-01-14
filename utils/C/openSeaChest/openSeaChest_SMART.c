@@ -1307,7 +1307,7 @@ int32_t main(int argc, char *argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Aborting IDD is not supported on this device.\n");
+                    printf("Aborting IDD is not supported on this device or IDD is not currently in progress.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
