@@ -3057,19 +3057,6 @@ void print_Repopulate_Elements_Help(bool shortHelp)
     }
 }
 
-void print_Force_Seagate_Depop_Help(bool shortHelp)
-{
-    printf("\t--%s \n", FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tUse this option to force using Seagate's\n");
-        printf("\t\tvendor unique method of seeing and removing\n");
-        printf("\t\tstorage elements from use. This is a legacy\n");
-        printf("\t\tmethod and the default mode is to use the\n");
-        printf("\t\tACS4 or SBC4 methods when available.\n\n");
-    }
-}
-
 void print_Show_Locked_Regions_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_LOCKED_REGIONS_LONG_OPT_STRING);

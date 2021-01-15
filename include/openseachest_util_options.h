@@ -2940,8 +2940,6 @@ extern "C"
 
     void print_Repopulate_Elements_Help(bool shortHelp);
 
-    void print_Force_Seagate_Depop_Help(bool shortHelp);
-
     void print_Show_Locked_Regions_Help(bool shortHelp);
 
     void print_SCT_Error_Recovery_Read_Help(bool shortHelp);
