@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.0.2";
+const char *buildVersion = "3.0.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1988,6 +1988,10 @@ int32_t main(int argc, char *argv[])
                     currentBlockSize = false;
                 }
                 formatUnitParameters.formatType = FAST_FORMAT_FLAG;
+                if (FAST_FORMAT_FLAG > 0)
+                {
+                    formatUnitParameters.disableImmediate = true;//for fast format, we want to hold the bus busy until it is done.
+                }
                 formatUnitParameters.currentBlockSize = currentBlockSize;
                 formatUnitParameters.newBlockSize = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList = NULL;
