@@ -8,7 +8,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
+//
 
 // \file EULA.c
 // \brief This file defines the a function to print the EULA for the license option in a tool
@@ -410,10 +410,17 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
 #if defined(_WIN32)
     //show this license for the getopt parser in windows
     print_Win_Getopt_Licenses();
-#else
+#elif defined (__FreeBSD__)
+    print_FreeBSD_License();
+#elif defined (__linux__)
     //in other 'nix systems, we need to show this since we are using gnu libc
     print_GNU_LGPL_License();
+#elif defined (__sun)
+    //TODO: Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
+#else
+	#error Please update #if for system library licenses!
 #endif
+    printf("===========================================================================\n\n");
     if (showApacheLicense)
     {
         printf("===========================================================================\n\n");
@@ -583,6 +590,35 @@ void print_GNU_LGPL_License()
     printf("proxy's public statement of acceptance of any version is permanent\n");
     printf("authorization for you to choose that version for the Library.\n\n");
     return;
+}
+
+void print_FreeBSD_License()
+{
+    printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions are met :\n");
+    printf("\n");
+    printf("1. Redistributions of source code must retain the above copyright notice,\n");
+    printf("this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright notice,\n");
+    printf("this list of conditions and the following disclaimer in the documentation\n");
+    printf("and/or other materials provided with the distribution.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY\n");
+    printf("EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n");
+    printf("WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n");
+    printf("IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n");
+    printf("INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT\n");
+    printf("LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,\n");
+    printf("OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF\n");
+    printf("LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE\n");
+    printf("OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED\n");
+    printf("OF THE POSSIBILITY OF SUCH DAMAGE.\n");
+    printf("\n");
+    printf("The views and conclusions contained in the software and documentation are those of\n");
+    printf("the authors and should not be interpreted as representing official policies, either\n");
+    printf("expressed or implied, of the FreeBSD Project.\n");
+    printf("\n\n");
 }
 
 void print_Apache_2_0_License()

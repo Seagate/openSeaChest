@@ -13,11 +13,12 @@
 # 
 
 UTIL_SRC_DIR=../../utils/C/openSeaChest
-CC = gcc
+CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
-STRIP = strip
-CFLAGS = -Wall -c -std=gnu99
-CFLAGS_I686 = -Wall -c -m32
+STRIP ?= strip
+STRIPOPTS ?= 
+CFLAGS = -Wall -Wextra -c -std=gnu99
+CFLAGS_I686 = -Wall -Wextra -c -m32
 	
 FWDLLFLAGS = \
 	-Wall \
@@ -28,19 +29,23 @@ FWDLLFLAGS = \
 INC_DIR= \
 	-I../../opensea-common/include \
 	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
 	-I../../include \
 	-I../../opensea-operations/include
 
 UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
-    FWDLLFLAGS += -lm -lrt
+	FWDLLFLAGS += -lm -lrt
+	STRIPOPTS = -s
 endif
 ifeq ($(UNAME),SunOS)
-    FWDLLFLAGS += 
-    export AR=gar
+	FWDLLFLAGS += -lm
+	export AR=gar
+	STRIPOPTS=
 endif
 ifeq ($(UNAME),FreeBSD)
-    FWDLLFLAGS += -lcam
+	FWDLLFLAGS += -lm -lcam
+	STRIPOPTS = -s
 endif
 
 MACHINE := $(shell uname -m)
@@ -102,7 +107,7 @@ opensea-libs:
 
 $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir 
 	$(CC) $(FIRMWAREOBJS) $(FWDLLFLAGS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
-	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@

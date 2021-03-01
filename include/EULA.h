@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -64,7 +64,25 @@ extern "C"
     //!   \return VOID
     //
     //-----------------------------------------------------------------------------
+    #if defined (__linux__)
     void print_GNU_LGPL_License();
+    #endif
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_FreeBSD_License()
+    //
+    //! \brief   Description:  Print the FreeBSD 2 clause BSD license to the screen
+    //
+    //  Entry:
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    #if defined (__FreeBSD__)
+    void print_FreeBSD_License();
+    #endif
 
     //-----------------------------------------------------------------------------
     //

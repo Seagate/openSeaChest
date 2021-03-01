@@ -1,20 +1,20 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // ******************************************************************************************
-// 
-// \file openSeaChest_ZBD.c Binary command line that performs various ZAC/ZBC based commands. 
+//
+// \file openSeaChest_ZBD.c Binary command line that performs various ZAC/ZBC based commands.
 
 //////////////////////
 //  Included files  //
 //////////////////////
-#include <stdio.h>
+#include "common.h"
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
@@ -24,7 +24,6 @@
 #else
 #error "OS Not Defined or known"
 #endif
-#include "common.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -34,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "1.3.2";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -65,16 +64,13 @@ int32_t main(int argc, char *argv[])
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
-    DATA_ERASE_VAR
-    PARTIAL_DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	AGRESSIVE_SCAN_FLAG_VAR
+    AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-    SAT_12_BYTE_CDBS_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -95,9 +91,9 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int8_t  args = 0;
-    uint8_t argIndex = 0;
-    int32_t optionIndex = 0;
+    int  args = 0;
+    int argIndex = 0;
+    int optionIndex = 0;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -108,7 +104,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		AGRESSIVE_SCAN_LONG_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
@@ -116,7 +112,6 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-        SAT_12_BYTE_CDBS_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -139,9 +134,15 @@ int32_t main(int argc, char *argv[])
         LONG_OPT_TERMINATOR
     };
 
-    g_verbosity = VERBOSITY_DEFAULT;
+    eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
-    atexit(print_Final_newline);
+#if defined (UEFI_C_SOURCE)
+    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //      This is not necessary on most modern systems other than UEFI. 
+    //      This is not used in linux so that we don't depend on libbsd
+    //      Update the above #define check if we port to another OS that needs this to be done.
+    setprogname(util_name);
+#endif
 
     ////////////////////////
     //  Argument Parsing  //
@@ -150,6 +151,7 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
+        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     //get options we know we need
@@ -173,12 +175,25 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    ZONE_ID_FLAG = (uint64_t)atoll(optarg);
+                    if (!get_And_Validate_Integer_Input((const char *)optarg, &ZONE_ID_FLAG))
+                    {
+                        print_Error_In_Cmd_Line_Args(ZONE_ID_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MAX_ZONES_LONG_OPT_STRING))) == 0)
             {
-                MAX_ZONES_FLAG = (uint32_t)atoi(optarg);
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                {
+                    MAX_ZONES_FLAG = C_CAST(uint32_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(MAX_ZONES_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, REPORT_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(REPORT_ZONES_LONG_OPT_STRING))) == 0)
             {
@@ -236,22 +251,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(FW_STRING_FLAG, optarg, 8);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, M_Min(40, strlen(optarg)));
+                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, M_Min(9, strlen(optarg)));
+                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
             }
             break;
         case ':'://missing required argument
@@ -262,30 +277,34 @@ int32_t main(int argc, char *argv[])
                 //check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Option %c requires an argument\n", optopt);
                 }
                 utility_Usage(true);
-                return exitCode;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
+                exit(exitCode);
             }
             break;
         case DEVICE_SHORT_OPT: //device
@@ -293,6 +312,10 @@ int32_t main(int argc, char *argv[])
             {
                 //Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                }
                 exit(255);
             }
             break;
@@ -311,32 +334,41 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                g_verbosity = atoi(optarg);
+                toolVerbosity = atoi(optarg);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
-            g_verbosity = VERBOSITY_QUIET;
+            toolVerbosity = VERBOSITY_QUIET;
             break;
         case SCAN_FLAGS_SHORT_OPT://scan flags
-            SCAN_FLAGS_SUBOPT_PARSING;
+            get_Scan_Flags(&SCAN_FLAGS, optarg);
             break;
         case '?': //unknown option
             printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': //help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\n");
+            }
             exit(UTIL_EXIT_NO_ERROR);
         default:
             break;
         }
     }
 
+    atexit(print_Final_newline);
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        uint64_t commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
@@ -348,7 +380,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < g_verbosity)
+    if (VERBOSITY_QUIET < toolVerbosity)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -365,69 +397,69 @@ int32_t main(int argc, char *argv[])
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
     {
+        if (!is_Running_Elevated())
+        {
+            print_Elevated_Privileges_Text();
+        }
         unsigned int scanControl = DEFAULT_SCAN;
         if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
 #if defined (__linux__)
-        if (scanSD)
+        if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
         }
-        if (scanSDandSG)
+        if (SCAN_FLAGS.scanSDandSG)
         {
             scanControl |= SG_TO_SD;
         }
 #endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
-        if (scanATA)
+        if (SCAN_FLAGS.scanATA)
         {
             scanControl |= ATA_DRIVES;
         }
-        if (scanUSB)
+        if (SCAN_FLAGS.scanUSB)
         {
             scanControl |= USB_DRIVES;
         }
-        if (scanSCSI)
+        if (SCAN_FLAGS.scanSCSI)
         {
             scanControl |= SCSI_DRIVES;
         }
-        if (scanNVMe)
+        if (SCAN_FLAGS.scanNVMe)
         {
             scanControl |= NVME_DRIVES;
         }
-        if (scanRAID)
+        if (SCAN_FLAGS.scanRAID)
         {
             scanControl |= RAID_DRIVES;
         }
         //set the interface types to show (if none are set, the lower level code assumes we need to show everything)
-        if (scanInterfaceATA)
+        if (SCAN_FLAGS.scanInterfaceATA)
         {
             scanControl |= IDE_INTERFACE_DRIVES;
         }
-        if (scanInterfaceUSB)
+        if (SCAN_FLAGS.scanInterfaceUSB)
         {
             scanControl |= USB_INTERFACE_DRIVES;
         }
-        if (scanInterfaceSCSI)
+        if (SCAN_FLAGS.scanInterfaceSCSI)
         {
             scanControl |= SCSI_INTERFACE_DRIVES;
         }
-        if (scanInterfaceNVMe)
+        if (SCAN_FLAGS.scanInterfaceNVMe)
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            scanControl |= SAT_12_BYTE;
-        }
 #if defined (ENABLE_CSMI)
-        if (scanIgnoreCSMI)
+        if (SCAN_FLAGS.scanIgnoreCSMI)
         {
             scanControl |= IGNORE_CSMI;
         }
-        if (scanAllowDuplicateDevices)
+        if (SCAN_FLAGS.scanAllowDuplicateDevices)
         {
             scanControl |= ALLOW_DUPLICATE_DEVICE;
         }
@@ -436,7 +468,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL);
+        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -450,29 +482,39 @@ int32_t main(int argc, char *argv[])
     //print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Invalid argument: %s\n", argv[argIndex]);
         }
     }
+
+    if (!is_Running_Elevated())
+    {
+        print_Elevated_Privileges_Text();
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         uint64_t flags = 0;
-#if defined (ENABLE_CSMI)
-        flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;
-#endif
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Unable to get number of devices\n");
             }
-            exit(UTIL_EXIT_OPERATION_FAILURE);
+            if (!is_Running_Elevated())
+            {
+                exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+            }
+            else
+            {
+                exit(UTIL_EXIT_OPERATION_FAILURE);
+            }
         }
     }
     else if (DEVICE_LIST_COUNT == 0)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
@@ -480,7 +522,7 @@ int32_t main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-    
+
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
@@ -515,10 +557,10 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT * sizeof(tDevice), sizeof(tDevice));
+    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
     if (!DEVICE_LIST)
     {
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("Unable to allocate memory\n");
         }
@@ -551,44 +593,44 @@ int32_t main(int argc, char *argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
-#if defined (ENABLE_CSMI)
-    if (CSMI_VERBOSE_FLAG)
-    {
-        flags |= CSMI_FLAG_VERBOSE;//This may be temporary....or it may last longer, but for now this highest bit is what we'll set for this option...
-    }
-    if (CSMI_FORCE_USE_PORT_FLAG)
-    {
-        flags |= CSMI_FLAG_USE_PORT;
-    }
-    if (CSMI_FORCE_IGNORE_PORT_FLAG)
-    {
-        flags |= CSMI_FLAG_IGNORE_PORT;
-    }
-#endif
-
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
-#if defined (ENABLE_CSMI)
-        flags |= GET_DEVICE_FUNCS_IGNORE_CSMI;//TODO: Remove this flag so that CSMI devices can be part of running on all drives. This is not allowed now because of issues with running the same operation on the same drive with both PD? and SCSI?:? handles.
-#endif
+        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+        {
+            DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
+        }
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("WARN: Not all devices enumerated correctly\n");
                 }
             }
+            else if (ret == PERMISSION_DENIED)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                }
+            }
             else
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Unable to get device list\n");
                 }
-                exit(UTIL_EXIT_OPERATION_FAILURE);
+                if (!is_Running_Elevated())
+		        {
+		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+		        }
+		        else
+		        {
+		            exit(UTIL_EXIT_OPERATION_FAILURE);
+		        }
             }
         }
     }
@@ -600,7 +642,9 @@ int32_t main(int argc, char *argv[])
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if !defined(_WIN32)
+#if defined (UEFI_C_SOURCE)
+            deviceList[handleIter].os_info.fd = NULL;
+#elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = NULL;
@@ -609,6 +653,8 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
             deviceList[handleIter].dFlags = flags;
+
+            deviceList[handleIter].deviceVerbosity = toolVerbosity;
 
             if (ENABLE_LEGACY_PASSTHROUGH_FLAG)
             {
@@ -622,9 +668,9 @@ int32_t main(int argc, char *argv[])
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) || 
+            if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) && 
+            if (((deviceList[handleIter].os_info.fd < 0) &&
                  (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
@@ -632,23 +678,31 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
-            }
+                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+		        {
+		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+		        }
+		        else
+		        {
+		            exit(UTIL_EXIT_OPERATION_FAILURE);
+		        }
+		    }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < g_verbosity)
+                /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
                 }*/
@@ -656,30 +710,24 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (SAT_12_BYTE_CDBS_FLAG)
-        {
-            //set SAT12 for this device if requested
-            deviceList[deviceIter].drive_info.ata_Options.use12ByteSATCDBs = true;
-        }
-
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-			if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < g_verbosity)
-				{
-					printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for fw match
         if (FW_MATCH_FLAG)
         {
             if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
                 }
@@ -690,40 +738,40 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-			if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
-			{
-				if (VERBOSITY_QUIET < g_verbosity)
-				{
-					printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
-				}
-				continue;
-			}
+            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                }
+                continue;
+            }
         }
         //check for child fw match
         if (CHILD_FW_MATCH_FLAG)
         {
             if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
                 continue;
             }
         }
-        
+
         if (FORCE_SCSI_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
-        
+
         if (FORCE_ATA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tForcing ATA Drive\n");
             }
@@ -732,7 +780,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_PIO_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
@@ -746,7 +794,7 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_DMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
@@ -755,14 +803,14 @@ int32_t main(int argc, char *argv[])
 
         if (FORCE_ATA_UDMA_FLAG)
         {
-            if (VERBOSITY_QUIET < g_verbosity)
+            if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
 
-        if (VERBOSITY_QUIET < g_verbosity)
+        if (VERBOSITY_QUIET < toolVerbosity)
         {
             printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
         }
@@ -772,7 +820,7 @@ int32_t main(int argc, char *argv[])
         {
             if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
             {
-                if (VERBOSITY_QUIET < g_verbosity)
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: failed to get device information\n");
                 }
@@ -787,7 +835,7 @@ int32_t main(int argc, char *argv[])
 
         if (deviceList[deviceIter].drive_info.zonedType == ZONED_TYPE_NOT_ZONED)
         {
-            if (g_verbosity > VERBOSITY_QUIET)
+            if (toolVerbosity > VERBOSITY_QUIET)
             {
                 printf("This tool can only be run on Zoned (SMR) devices.\n");
             }
@@ -800,7 +848,7 @@ int32_t main(int argc, char *argv[])
             if (ZONE_ID_FLAG == UINT64_MAX && !ZONE_ID_ALL_FLAG)
             {
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                if (g_verbosity > VERBOSITY_QUIET)
+                if (toolVerbosity > VERBOSITY_QUIET)
                 {
                     printf("You must use the --%s option to specify a zone ID.\n", ZONE_ID_LONG_OPT_STRING);
                 }
@@ -814,7 +862,7 @@ int32_t main(int argc, char *argv[])
                 switch (close_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
                 {
                 case SUCCESS:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         if (ZONE_ID_ALL_FLAG)
                         {
@@ -827,14 +875,14 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
                 case NOT_SUPPORTED:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Closing zone(s) not supportd\n");
+                        printf("Closing zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         printf("Closing zone(s) failed\n");
                     }
@@ -848,7 +896,7 @@ int32_t main(int argc, char *argv[])
             if (ZONE_ID_FLAG == UINT64_MAX && !ZONE_ID_ALL_FLAG)
             {
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                if (g_verbosity > VERBOSITY_QUIET)
+                if (toolVerbosity > VERBOSITY_QUIET)
                 {
                     printf("You must use the --%s option to specify a zone ID.\n", ZONE_ID_LONG_OPT_STRING);
                 }
@@ -862,7 +910,7 @@ int32_t main(int argc, char *argv[])
                 switch (finish_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
                 {
                 case SUCCESS:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         if (ZONE_ID_ALL_FLAG)
                         {
@@ -875,14 +923,14 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
                 case NOT_SUPPORTED:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Finishing zone(s) not supportd\n");
+                        printf("Finishing zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         printf("Finishing zone(s) failed\n");
                     }
@@ -896,7 +944,7 @@ int32_t main(int argc, char *argv[])
             if (ZONE_ID_FLAG == UINT64_MAX && !ZONE_ID_ALL_FLAG)
             {
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                if (g_verbosity > VERBOSITY_QUIET)
+                if (toolVerbosity > VERBOSITY_QUIET)
                 {
                     printf("You must use the --%s option to specify a zone ID.\n", ZONE_ID_LONG_OPT_STRING);
                 }
@@ -910,7 +958,7 @@ int32_t main(int argc, char *argv[])
                 switch (open_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
                 {
                 case SUCCESS:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         if (ZONE_ID_ALL_FLAG)
                         {
@@ -923,14 +971,14 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
                 case NOT_SUPPORTED:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Opening zone(s) not supportd\n");
+                        printf("Opening zone(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         printf("Opening zone(s) failed\n");
                     }
@@ -944,7 +992,7 @@ int32_t main(int argc, char *argv[])
             if (ZONE_ID_FLAG == UINT64_MAX && !ZONE_ID_ALL_FLAG)
             {
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                if (g_verbosity > VERBOSITY_QUIET)
+                if (toolVerbosity > VERBOSITY_QUIET)
                 {
                     printf("You must use the --%s option to specify a zone ID.\n", ZONE_ID_LONG_OPT_STRING);
                 }
@@ -958,7 +1006,7 @@ int32_t main(int argc, char *argv[])
                 switch (reset_Write_Pointer(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
                 {
                 case SUCCESS:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
                         if (ZONE_ID_ALL_FLAG)
                         {
@@ -971,16 +1019,16 @@ int32_t main(int argc, char *argv[])
                     }
                     break;
                 case NOT_SUPPORTED:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Reseting write pointer(s) not supportd\n");
+                        printf("Resetting write pointer(s) not supported\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
-                    if (g_verbosity > VERBOSITY_QUIET)
+                    if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("Reseting write pointer(s) failed\n");
+                        printf("Resetting write pointer(s) failed\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -997,7 +1045,7 @@ int32_t main(int argc, char *argv[])
             if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
-                ptrZoneDescriptor zoneDescriptors = (ptrZoneDescriptor)calloc(numberOfZones * sizeof(zoneDescriptor), sizeof(uint8_t));
+                ptrZoneDescriptor zoneDescriptors = (ptrZoneDescriptor)calloc(numberOfZones, sizeof(zoneDescriptor));
                 if (!zoneDescriptors)
                 {
                     perror("cannot allocate memory for zone descriptors");
@@ -1026,7 +1074,10 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
         }
+        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        close_Device(&deviceList[deviceIter]);
     }
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -1080,7 +1131,6 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
-    print_SAT_12_Byte_CDB_Help(shortUsage);
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 

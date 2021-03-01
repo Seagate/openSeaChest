@@ -1,0 +1,440 @@
+#
+# Do NOT modify or remove this copyright and license
+#
+# Copyright (c) 2012 - 2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+#
+# This software is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# ******************************************************************************************
+
+# Hand Written Makefile (Edit with caution) -Muhammad
+# Windows, MSYS2 64-bit, MinGW 64-bit, gcc environment version - Billy
+
+MYUNAME := $(shell uname -s)
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	UNAME = MINGW64
+else ifneq (,$(findstring MINGW64,$(MYUNAME)))
+	UNAME = MINGW64
+endif
+
+# BUILD_ALL string below is a list of the openSeaChest tools you want to build
+# choose from BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
+# example: BUILD_ALL = firmware   for just firmware
+# BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd passthrough 
+else
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd passthrough 
+endif
+
+UTIL_SRC_DIR = ../../utils/C/openSeaChest
+
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	CC = x86_64-w64-mingw32-gcc
+	STRIP = x86_64-w64-mingw32-strip
+else
+	CC = gcc
+	STRIP = strip
+endif
+
+LIB_FILE_OUTPUT_DIR = lib
+
+#turning off format warnings because they are EVERYWHERE but only in minGW which is due to backwards compatibility warnings.
+#I tried using __USE_MINGW_ANSI_STDIO, but this didn't solve the problem either. - TJE
+#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
+CFLAGS ?= -Wall -Wextra  -Wno-format
+CFLAGS += -c -std=gnu99
+#BR note: is this necessary?
+CFLAGS += -isystem
+CFLAGS_I686 = -Wall -Wextra -c -m32
+
+LDFLAGS = -Wall
+LDLIBS = \
+	../../opensea-operations/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../opensea-transport/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../opensea-common/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+
+INC_DIR= \
+	-I../../opensea-common/include \
+	-I../../opensea-transport/include \
+	-I../../opensea-transport/include/vendor \
+	-I../../opensea-operations/include \
+	-I../../include
+
+ifneq (,$(findstring MINGW64,$(UNAME)))
+	#CFLAGS += -mno-ms-bitfields
+	#BR note: pragma comment(lib,"Version.lib") is not supported by gcc, use the below supply the version.lib functions
+	LDFLAGS += -L/msys64/mingw64/x86_64-w64-mingw32/lib
+	LDLIBS += -lversion
+	LDLIBS += -lcfgmgr32
+	LDLIBS += -ladvapi32
+	LDLIBS += -lsetupapi
+endif
+
+MACHINE := $(shell uname -m)
+ifeq ($(MACHINE), x86_64)
+endif
+
+FILE_OUTPUT_DIR=openseachest_exes
+
+#Files for the final binary
+EULA_UTIL = ../../src/EULA.c ../../src/openseachest_util_options.c
+
+#basics
+ifneq (,$(findstring basics,$(BUILD_ALL)))
+    BASICSOUTFILE = openSeaChest_Basics
+    BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c $(EULA_UTIL)
+    BASICSOBJS = $(BASICSSOURCES:.c=.o)
+endif
+
+#security
+ifneq (,$(findstring security,$(BUILD_ALL)))
+	SECURITYOUTFILE = openSeaChest_Security
+	SECURITYSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Security.c $(EULA_UTIL)
+	SECURITYOBJS = $(SECURITYSOURCES:.c=.o)
+endif
+
+#configure
+ifneq (,$(findstring configure,$(BUILD_ALL)))
+    CONFIGUREOUTFILE = openSeaChest_Configure
+    CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c $(EULA_UTIL)
+    CONFIGUREOBJS = $(CONFIGURESOURCES:.c=.o)
+endif
+
+#erase
+ifneq (,$(findstring erase,$(BUILD_ALL)))
+    ERASEOUTFILE = openSeaChest_Erase
+    ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c $(EULA_UTIL)
+    ERASEOBJS = $(ERASESOURCES:.c=.o)
+endif
+
+#firmware
+ifneq (,$(findstring firmware,$(BUILD_ALL)))
+    FIRMWAREOUTFILE = openSeaChest_Firmware
+    FIRMWARESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Firmware.c $(EULA_UTIL)
+    FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
+endif
+
+#format
+ifneq (,$(findstring format,$(BUILD_ALL)))
+    FORMATOUTFILE = openSeaChest_Format
+    FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c $(EULA_UTIL)
+    FORMATOBJS = $(FORMATSOURCES:.c=.o)
+endif
+
+#generictests
+ifneq (,$(findstring generictests,$(BUILD_ALL)))
+    GENERICTESTSOUTFILE = openSeaChest_GenericTests
+    GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c $(EULA_UTIL)
+    GENERICTESTSOBJS = $(GENERICTESTSSOURCES:.c=.o)
+endif
+
+#info
+ifneq (,$(findstring info,$(BUILD_ALL)))
+    INFOOUTFILE = openSeaChest_Info
+    INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c $(EULA_UTIL)
+    INFOOBJS = $(INFOSOURCES:.c=.o)
+endif
+
+#logs
+ifneq (,$(findstring logs,$(BUILD_ALL)))
+    LOGSOUTFILE = openSeaChest_Logs
+    LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c $(EULA_UTIL)
+    LOGSOBJS = $(LOGSSOURCES:.c=.o)
+endif
+
+#nvme
+ifneq (,$(findstring nvme,$(BUILD_ALL)))
+    NVMEOUTFILE = openSeaChest_NVMe
+    NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c $(EULA_UTIL)
+    NVMEOBJS = $(NVMESOURCES:.c=.o)
+endif
+
+#powercontrol
+ifneq (,$(findstring powercontrol,$(BUILD_ALL)))
+    POWERCONTROLOUTFILE = openSeaChest_PowerControl
+    POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c $(EULA_UTIL)
+    POWERCONTROLOBJS = $(POWERCONTROLSOURCES:.c=.o)
+endif
+
+#smart
+ifneq (,$(findstring smart,$(BUILD_ALL)))
+    SMARTOUTFILE = openSeaChest_SMART
+    SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c $(EULA_UTIL)
+    SMARTOBJS = $(SMARTSOURCES:.c=.o)
+endif
+
+#zbd
+ifneq (,$(findstring zbd,$(BUILD_ALL)))
+    ZBDOUTFILE = openSeaChest_ZBD
+    ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c $(EULA_UTIL)
+    ZBDOBJS = $(ZBDSOURCES:.c=.o)
+endif
+
+#passthrough test
+ifneq (,$(findstring passthrough,$(BUILD_ALL)))
+    PASSTHROUGHTESTOUTFILE = openSeaChest_PassthroughTest
+    PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c $(EULA_UTIL)
+    PASSTHROUGHTESTOBJS = $(PASSTHROUGHTESTSOURCES:.c=.o)
+endif
+
+
+PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS
+PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
+
+PROJECT_DEFINES += -DENABLE_CSMI
+PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100162990L
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT 
+ifneq (,$(findstring Linux,$(MYUNAME)))
+	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+else
+	PROJECT_DEFINES += #-DDISABLE_NVME_PASSTHROUGH
+endif
+
+ifneq (,$(findstring MINGW64,$(UNAME)))
+	#PROJECT_DEFINES += -D__MINGW64__
+	# PROJECT_DEFINES += -D__MINGW32__
+	#BR note: trying different stuff during debugging
+	#BR note: -D_WIN32_WINNT=0x0601 fixes unknown Windows version in winioctl.h
+	# PROJECT_DEFINES += -D_WIN32_WINNT=0x0601
+	# PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100150630L
+	# PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=81000000L
+	# PROJECT_DEFINES += -DWINVER=SEA_WIN32_WINNT_WIN10
+endif
+
+.PHONY: clean clean_all all
+all: clean_all release
+
+print-%:
+	@echo '$*=$($*)'
+	@echo '  origin = $(origin $*)'
+	@echo '  flavor = $(flavor $*)'
+	@echo '   value = $(value  $*)'
+# example: make -f Makefile.gccWin print-BASICSOBJS
+# for the above see Makefile hacks: print the value of any variable
+# https://blog.melski.net/2010/11/30/makefile-hacks-print-the-value-of-any-variable/
+
+debug: CXXFLAGS += -g
+debug: CFLAGS += -g
+debug: PROJECT_DEFINES += -D_DEBUG
+debug: BASICSOUTFILE := $(BASICSOUTFILE)_dbg.exe
+debug: SECURITYOUTFILE := $(SECURITYOUTFILE)_dbg.exe
+debug: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_dbg.exe
+debug: ERASEOUTFILE := $(ERASEOUTFILE)_dbg.exe
+debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_dbg.exe
+debug: FORMATOUTFILE := $(FORMATOUTFILE)_dbg.exe
+debug: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_dbg.exe
+debug: INFOOUTFILE := $(INFOOUTFILE)_dbg.exe
+debug: LOGSOUTFILE := $(LOGSOUTFILE)_dbg.exe
+debug: NVMEOUTFILE := $(NVMEOUTFILE)_dbg.exe
+debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_dbg.exe
+debug: SMARTOUTFILE := $(SMARTOUTFILE)_dbg.exe
+debug: ZBDOUTFILE := $(ZBDOUTFILE)_dbg.exe
+debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_dbg.exe
+debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+
+static-debug: CXXFLAGS += -g
+static-debug: CFLAGS += -g
+static-debug: LDFLAGS += -static
+static-debug: PROJECT_DEFINES += -D_DEBUG
+static-debug: BASICSOUTFILE := $(BASICSOUTFILE)_static_dbg.exe
+static-debug: SECURITYOUTFILE := $(SECURITYOUTFILE)_static_dbg.exe
+static-debug: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_static_dbg.exe
+static-debug: ERASEOUTFILE := $(ERASEOUTFILE)_static_dbg.exe
+static-debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static_dbg.exe
+static-debug: FORMATOUTFILE := $(FORMATOUTFILE)_static_dbg.exe
+static-debug: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_static_dbg.exe
+static-debug: INFOOUTFILE := $(INFOOUTFILE)_static_dbg.exe
+static-debug: LOGSOUTFILE := $(LOGSOUTFILE)_static_dbg.exe
+static-debug: NVMEOUTFILE := $(NVMEOUTFILE)_static_dbg.exe
+static-debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static_dbg.exe
+static-debug: SMARTOUTFILE := $(SMARTOUTFILE)_static_dbg.exe
+static-debug: ZBDOUTFILE := $(ZBDOUTFILE)_static_dbg.exe
+static-debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static_dbg.exe
+static-debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+
+release: CXXFLAGS += -O3
+release: CFLAGS += -O3
+release: BASICSOUTFILE := $(BASICSOUTFILE).exe
+release: SECURITYOUTFILE := $(SECURITYOUTFILE).exe
+release: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE).exe
+release: ERASEOUTFILE := $(ERASEOUTFILE).exe
+release: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE).exe
+release: FORMATOUTFILE := $(FORMATOUTFILE).exe
+release: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE).exe
+release: INFOOUTFILE := $(INFOOUTFILE).exe
+release: LOGSOUTFILE := $(LOGSOUTFILE).exe
+release: NVMEOUTFILE := $(NVMEOUTFILE).exe
+release: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE).exe
+release: SMARTOUTFILE := $(SMARTOUTFILE).exe
+release: ZBDOUTFILE := $(ZBDOUTFILE).exe
+release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE).exe
+release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+
+static-release: CXXFLAGS += -O3
+static-release: CFLAGS += -O3
+#BR note: try for debugging
+#static-release: LDLAGS += --unresolved-symbols=ignore-in-shared-libs #fixed by getting link order right
+static-release: LDFLAGS += -static
+static-release: BASICSOUTFILE := $(BASICSOUTFILE)_static.exe
+static-release: SECURITYOUTFILE := $(SECURITYOUTFILE)_static.exe
+static-release: CONFIGUREOUTFILE := $(CONFIGUREOUTFILE)_static.exe
+static-release: ERASEOUTFILE := $(ERASEOUTFILE)_static.exe
+static-release: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static.exe
+static-release: FORMATOUTFILE := $(FORMATOUTFILE)_static.exe
+static-release: GENERICTESTSOUTFILE := $(GENERICTESTSOUTFILE)_static.exe
+static-release: INFOOUTFILE := $(INFOOUTFILE)_static.exe
+static-release: LOGSOUTFILE := $(LOGSOUTFILE)_static.exe
+static-release: NVMEOUTFILE := $(NVMEOUTFILE)_static.exe
+static-release: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static.exe
+static-release: SMARTOUTFILE := $(SMARTOUTFILE)_static.exe
+static-release: ZBDOUTFILE := $(ZBDOUTFILE)_static.exe
+static-release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static.exe
+static-release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+
+export CFLAGS
+export CXXFLAGS
+export PROJECT_DEFINES
+
+opensea-libs:
+	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin
+	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin
+	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin
+
+#basics
+ifneq (,$(findstring basics,$(BUILD_ALL)))
+    $(BASICSOUTFILE): $(BASICSOBJS) opensea-libs mkoutputdir
+	$(CC) $(BASICSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+endif
+
+#security
+ifneq (,$(findstring security,$(BUILD_ALL)))
+    $(SECURITYOUTFILE): $(SECURITYOBJS) opensea-libs mkoutputdir
+	$(CC) $(SECURITYOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+endif
+
+
+#configure
+ifneq (,$(findstring configure,$(BUILD_ALL)))
+    $(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir
+	$(CC) $(CONFIGUREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+endif
+
+#erase
+ifneq (,$(findstring erase,$(BUILD_ALL)))
+    $(ERASEOUTFILE): $(ERASEOBJS) opensea-libs mkoutputdir
+    ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
+		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+		./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+    else
+#		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+#		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+    endif
+endif
+
+#firmware
+ifneq (,$(findstring firmware,$(BUILD_ALL)))
+    $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir
+	$(CC) $(FIRMWAREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+endif
+
+#format
+ifneq (,$(findstring format,$(BUILD_ALL)))
+    $(FORMATOUTFILE): $(FORMATOBJS) opensea-libs mkoutputdir
+	$(CC) $(FORMATOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+endif
+
+#generictests
+ifneq (,$(findstring generictests,$(BUILD_ALL)))
+    $(GENERICTESTSOUTFILE) : $(GENERICTESTSOBJS) opensea-libs mkoutputdir
+	$(CC) $(GENERICTESTSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+endif
+
+#info
+ifneq (,$(findstring info,$(BUILD_ALL)))
+    $(INFOOUTFILE): $(INFOOBJS) opensea-libs mkoutputdir
+	$(CC) $(INFOOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+endif
+
+#logs
+ifneq (,$(findstring logs,$(BUILD_ALL)))
+    $(LOGSOUTFILE): $(LOGSOBJS) opensea-libs mkoutputdir
+	$(CC) $(LOGSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
+endif
+
+#nvme
+ifneq (,$(findstring nvme,$(BUILD_ALL)))
+    $(NVMEOUTFILE): $(NVMEOBJS) opensea-libs mkoutputdir
+	$(CC) $(NVMEOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
+endif
+
+#powercontrol
+ifneq (,$(findstring powercontrol,$(BUILD_ALL)))
+    $(POWERCONTROLOUTFILE) : $(POWERCONTROLOBJS) opensea-libs mkoutputdir
+	$(CC) $(POWERCONTROLOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
+endif
+
+#smart
+ifneq (,$(findstring smart,$(BUILD_ALL)))
+    $(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir
+	$(CC) $(SMARTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+endif
+
+#zbd
+ifneq (,$(findstring zbd,$(BUILD_ALL)))
+    $(ZBDOUTFILE): $(ZBDOBJS) opensea-libs mkoutputdir
+	$(CC) $(ZBDOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+endif
+
+#passthrough
+ifneq (,$(findstring passthrough,$(BUILD_ALL)))
+    $(PASSTHROUGHTESTOUTFILE): $(PASSTHROUGHTESTOBJS) opensea-libs mkoutputdir
+	$(CC) $(PASSTHROUGHTESTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+endif
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@
+
+clean:
+	rm -f *.o *.a $(FILE_OUTPUT_DIR)/openSeaChest_*
+	rm -f ../../src/*.o
+	rm -f $(UTIL_SRC_DIR)/*.o
+	rm -rf $(FILE_OUTPUT_DIR)
+
+clean_all: clean
+	rm -f *.o *.a
+	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin clean
+	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin clean
+	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin clean
+
+mkoutputdir:
+	mkdir -p $(FILE_OUTPUT_DIR)
