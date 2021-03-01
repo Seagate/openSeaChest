@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -236,21 +236,36 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                {
+                    if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
+                    {
+                        print_Error_In_Cmd_Line_Args(TRIM_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(UNMAP_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                RUN_TRIM_UNMAP_FLAG = true;
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG);
-                if (0 == sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                {
+                    RUN_TRIM_UNMAP_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else
                     {
@@ -268,20 +283,29 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &OVERWRITE_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                RUN_OVERWRITE_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                {
+                    RUN_OVERWRITE_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else
                     {
@@ -423,10 +447,17 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
-                SET_MAX_LBA_FLAG = true;
-                sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
-                //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
-                TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
+                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                {
+                    SET_MAX_LBA_FLAG = true;
+                    //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
+                    TRIM_UNMAP_START_FLAG = SET_MAX_LBA_VALUE + 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(PROVISION_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
             {
@@ -467,16 +498,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
@@ -2002,18 +2038,6 @@ int32_t main(int argc, char *argv[])
                     printf("Getting DST progress.\n");
                 }
                 result = print_DST_Progress(&deviceList[deviceIter]);
-            }
-            else if (strcmp(progressTest, "IDD") == 0)
-            {
-                uint8_t iddStatus = 0;
-                char iddStatusString[MAX_DST_STATUS_STRING_LENGTH + 1] = { 0 };
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Getting IDD progress.\n");
-                }
-                result = get_IDD_Status(&deviceList[deviceIter], &iddStatus);
-                translate_DST_Status_To_String(iddStatus, iddStatusString, false, false);
-                printf("%s\n", iddStatusString);
             }
             else
             {

@@ -1424,11 +1424,15 @@ extern "C"
     #define REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING "removePhysicalElement"
     #define REMOVE_PHYSICAL_ELEMENT_LONG_OPT { REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //This is a force flag to use Seagate commands instead of the STD spec...really just for debugging.
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS forceSeagateDepopCommands
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_VAR getOptBool FORCE_SEAGATE_DEPOPULATE_COMMANDS = goFalse;
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING "forceSeagateDepop"
-    #define FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT { FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING, no_argument, &FORCE_SEAGATE_DEPOPULATE_COMMANDS, goTrue }
+    #define REPOPULATE_ELEMENTS_FLAG repopulateElements
+    #define REPOPULATE_ELEMENTS_VAR getOptBool REPOPULATE_ELEMENTS_FLAG = goFalse;
+    #define REPOPULATE_ELEMENTS_LONG_OPT_STRING "repopulateElements"
+    #define REPOPULATE_ELEMENTS_LONG_OPT { REPOPULATE_ELEMENTS_LONG_OPT_STRING, no_argument, &REPOPULATE_ELEMENTS_FLAG, goTrue }
+
+    #define DEPOP_MAX_LBA_FLAG depopulateMaximumLBA
+    #define DEPOP_MAX_LBA_VAR uint64_t DEPOP_MAX_LBA_FLAG = 0;
+    #define DEPOP_MAX_LBA_LONG_OPT_STRING "depopulateMaxLBA"
+    #define DEPOP_MAX_LBA_LONG_OPT { DEPOP_MAX_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //TCG Band/Range info
     #define SHOW_LOCKED_REGIONS showLockedRegions
@@ -2932,7 +2936,9 @@ extern "C"
 
     void print_Remove_Physical_Element_Status_Help(bool shortHelp);
 
-    void print_Force_Seagate_Depop_Help(bool shortHelp);
+    void print_Depop_MaxLBA_Help(bool shortHelp);
+
+    void print_Repopulate_Elements_Help(bool shortHelp);
 
     void print_Show_Locked_Regions_Help(bool shortHelp);
 

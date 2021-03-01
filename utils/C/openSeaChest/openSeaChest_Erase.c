@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -130,7 +130,6 @@ int32_t main(int argc, char *argv[])
     PERFORM_FASTEST_ERASE_VAR
     SHOW_PHYSICAL_ELEMENT_STATUS_VAR
     REMOVE_PHYSICAL_ELEMENT_VAR
-    FORCE_SEAGATE_DEPOPULATE_COMMANDS_VAR
 
     //time flags
     HOURS_TIME_VAR
@@ -203,7 +202,6 @@ int32_t main(int argc, char *argv[])
         HIDE_LBA_COUNTER_LONG_OPT,
         SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
-        FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT,
         ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT,
         ATA_SECURITY_PASSWORD_LONG_OPT,
         ATA_SECURITY_USING_MASTER_PW_LONG_OPT,
@@ -259,21 +257,36 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                {
+                    if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
+                    {
+                        print_Error_In_Cmd_Line_Args(TRIM_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(UNMAP_RANGE_LONG_OPT_STRING, optarg);
+                    }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                RUN_TRIM_UNMAP_FLAG = true;
-                sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG);
-                if (0 == sscanf(optarg, "%"SCNu64, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                {
+                    RUN_TRIM_UNMAP_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_TRIM_UNMAP_FLAG = true;
                     }
                     else
                     {
@@ -291,20 +304,29 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &OVERWRITE_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                RUN_OVERWRITE_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                {
+                    RUN_OVERWRITE_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_OVERWRITE_FLAG = true;
                     }
                     else
                     {
@@ -331,17 +353,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
-                RUN_WRITE_SAME_FLAG = true;
-                sscanf(optarg, "%"SCNu64, &WRITE_SAME_START_FLAG);
-                if (0 == sscanf(optarg, "%"SCNu64, &WRITE_SAME_START_FLAG))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_START_FLAG))
+                {
+                    RUN_WRITE_SAME_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        RUN_WRITE_SAME_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        RUN_WRITE_SAME_FLAG = true;
                     }
                     else
                     {
@@ -365,22 +391,36 @@ int32_t main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    //set the sector size
-                    FORMAT_SECTOR_SIZE = C_CAST(uint16_t, atoi(optarg));
+                    uint64_t tempSectorSize = 0;
+                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    {
+                        //set the sector size
+                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
@@ -1338,6 +1378,10 @@ int32_t main(int argc, char *argv[])
         {
             uint64_t depopTime = 0;
             bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], &depopTime);
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING, util_name);
+            }
             if (depopSupport)
             {
                 uint32_t numberOfDescriptors = 0;
@@ -1461,6 +1505,10 @@ int32_t main(int argc, char *argv[])
 
         if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
         {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, util_name);
+            }
             if (DATA_ERASE_FLAG)
             {
                 bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
@@ -1940,6 +1988,10 @@ int32_t main(int argc, char *argv[])
                     currentBlockSize = false;
                 }
                 formatUnitParameters.formatType = FAST_FORMAT_FLAG;
+                if (FAST_FORMAT_FLAG > 0)
+                {
+                    formatUnitParameters.disableImmediate = true;//for fast format, we want to hold the bus busy until it is done.
+                }
                 formatUnitParameters.currentBlockSize = currentBlockSize;
                 formatUnitParameters.newBlockSize = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList = NULL;

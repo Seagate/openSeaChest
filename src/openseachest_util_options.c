@@ -744,7 +744,9 @@ void print_Abort_IDD_Help(bool shortHelp)
     printf("\t--%s (Seagate Only)\n", ABORT_IDD_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tAbort a Seagate In Drive Diagnostic (IDD) that is in progress.\n\n");
+        printf("\t\tAbort a Seagate In Drive Diagnostic (IDD) that is in progress.\n");
+        printf("\t\tThis may return failure if IDD is not running or has already\n");
+        printf("\t\tcompleted running.\n\n");
     }
 }
 
@@ -764,7 +766,12 @@ void print_IDD_Help(bool shortHelp)
         printf("\t\tNote: the --%s option can be added to run the long test in\n", CAPTIVE_LONG_OPT_STRING);
         printf("\t\t      foreground/captive mode. This allows for G-list healing\n");
         printf("\t\t      and some additional checks to be performed. This may not\n");
-        printf("\t\t      work on some products.\n\n");
+        printf("\t\t      work on some products.\n");
+        printf("\t\tNote: Progress cannot be checked for the first 2 minutes of IDD.\n");
+        printf("\t\t      The drive is busy with the test and is not able to respond.\n");
+        printf("\t\t      Attempting to retrieve progress during this time will hang and\n");
+        printf("\t\t      may cause the IDD to abort due to the host issuing resets to\n");
+        printf("\t\t      recover access to the drive.\n\n");
     }
 }
 
@@ -3023,16 +3030,30 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
     }
 }
 
-void print_Force_Seagate_Depop_Help(bool shortHelp)
+void print_Depop_MaxLBA_Help(bool shortHelp)
 {
-    printf("\t--%s \n", FORCE_SEAGATE_DEPOPULATE_COMMANDS_LONG_OPT_STRING);
+    printf("\t--%s [requested MaxLBA]\n", DEPOP_MAX_LBA_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to force using Seagate's\n");
-        printf("\t\tvendor unique method of seeing and removing\n");
-        printf("\t\tstorage elements from use. This is a legacy\n");
-        printf("\t\tmethod and the default mode is to use the\n");
-        printf("\t\tACS4 or SBC4 methods when available.\n\n");
+        printf("\t\tUse this option to specify a new maximum LBA when\n");
+        printf("\t\tremoving (depopulating) a physical storage element.\n");
+        printf("\t\tThis is optional. If this is not specified, the device\n");
+        printf("\t\twill determine the new maximum LBA.\n");
+        printf("\t\tNOTE: If you specify a maximum LBA the device does not\n");
+        printf("\t\tsupport, it will not start the depopulation.\n\n");
+    }
+}
+
+
+void print_Repopulate_Elements_Help(bool shortHelp)
+{
+    printf("\t--%s \n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to repopulate any physical storage\n");
+        printf("\t\telements that have been removed from use.\n");
+        printf("\t\tA full disk overwrite is necessary before\n");
+        printf("\t\tthe drive is usable.\n\n");
     }
 }
 
