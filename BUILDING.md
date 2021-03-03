@@ -69,7 +69,7 @@ This is a brief list of the known features used from C99 that a compiler should 
       uint8_t, uint16_t, uint32_t, uint64_t
       int8_t, int16_t, int32_t, int64_t
 
-*C99 boolean types
+* C99 boolean types
       #include <stdbool.h>
 
 * C99 printf & scanf format macros
