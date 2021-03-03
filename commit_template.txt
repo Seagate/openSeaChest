@@ -1,0 +1,7 @@
+category: short description < 72 characters
+
+Long description of commit goes here.
+
+[ issue # if any ]
+
+Signed-off-by: Your Name <Your Email Address>
