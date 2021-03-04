@@ -9,6 +9,8 @@ In here, you will find information on the ways contributions can be made to the 
 
 [Asking Questions](#asking-questions)
 
+[Security Policy](#security-policy)
+
 [Getting Started](#getting-started)
 
 [Ways to Contribute](#ways-to-contribute)
