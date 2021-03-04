@@ -9,10 +9,12 @@
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
+[![FreeBSD build status](https://api.cirrus-ci.com/github/Seagate/openSeaChest.svg)](https://cirrus-ci.com/github/Seagate/openSeaChest)
 [![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 ![OS](https://img.shields.io/badge/OS-Windows-blue)
 ![OS](https://img.shields.io/badge/OS-Linux-blue)
 ![OS](https://img.shields.io/badge/OS-FreeBSD-blue)
+
 
 Welcome to the `openSeaChest` open source project!
 
