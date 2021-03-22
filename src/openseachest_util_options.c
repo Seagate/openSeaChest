@@ -127,6 +127,8 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char *userName = NULL;
     char currentTime[30] = { 0 };
+    struct tm utilTime;
+    memset(&utilTime, 0, sizeof(struct tm));
     if (SUCCESS != get_Current_User_Name(&userName))
     {
         userName = (char*)calloc(36, sizeof(char));
@@ -146,7 +148,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (0 == strftime(currentTime, 30, "%c", localtime(&g_curTime)))
+    if (0 == strftime(currentTime, 30, "%c", get_Localtime(&g_curTime, &utilTime)))
     {
         sprintf(currentTime, "Unable to get local time");
     }

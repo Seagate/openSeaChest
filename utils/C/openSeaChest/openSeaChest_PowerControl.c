@@ -2459,8 +2459,10 @@ int32_t main(int argc, char *argv[])
                         printf("Successfully requested a power measurement.\n");
                         time_t currentTime = time(NULL);
                         time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
-                        printf("\n\tCurrent Time: %s\n", ctime((const time_t*)&currentTime));
-                        printf("\tEstimated completion Time : %s", ctime((const time_t *)&futureTime));
+                        char timeFormat[TIME_STRING_LENGTH] = { 0 };
+                        printf("\n\tCurrent Time: %s\n", get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat, TIME_STRING_LENGTH));
+                        memset(timeFormat, 0, TIME_STRING_LENGTH);
+                        printf("\tEstimated completion Time : %s", get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat, TIME_STRING_LENGTH));
                     }
                     break;
                 case NOT_SUPPORTED: //unlikely since we checked for support first
