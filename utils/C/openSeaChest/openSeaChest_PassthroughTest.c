@@ -2346,7 +2346,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             }
                             printf("\n");
                             printf("\t\t\t    Directory ID: ");
-                            for (uint16_t dIDOffset = designatorOffset + 8; dIDOffset < (designatorOffset + 12); ++dIDOffset)
+                            for (uint32_t dIDOffset = designatorOffset + 8; dIDOffset < C_CAST(uint32_t, (designatorOffset + 12)); ++dIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[dIDOffset]);
                             }
@@ -7362,7 +7362,8 @@ int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_
             maxTestSizeBlocks = reportedMax;
         }
     }
-    uint8_t *data = (uint8_t*)calloc_aligned(maxTestSizeBlocks * device->drive_info.deviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.deviceBlockSize);
+    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==================================\n");
     printf("Testing SCSI Maximum Transfer Size\n");
@@ -7675,7 +7676,8 @@ int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiRepor
             maxTestSizeBlocks = scsiReportedMax;
         }
     }
-    uint8_t *data = (uint8_t*)calloc_aligned(maxTestSizeBlocks * device->drive_info.bridge_info.childDeviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.bridge_info.childDeviceBlockSize);
+    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n=============================================\n");
     printf("Testing ATA Pass-through Maximum transfer size\n");
