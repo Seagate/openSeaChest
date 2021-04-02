@@ -2283,6 +2283,50 @@ void print_Set_Sector_Size_Help(bool shortHelp)
     }
 }
 
+void print_Seagate_Quick_Format_Help(bool shortHelp)
+{
+    printf("\t--%s (SATA Only) (Seagate Only)\n", SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option performs a quick format of a Seagate SATA drive.\n");
+        printf("\t\tThe purpose of this is to help bring a drive out of a bad state\n");
+        printf("\t\twhen an operation such as Fast Format (--%s) or\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
+        printf("\t\tdepopulation/repopulation is interrupted by the host when the drive\n");
+        printf("\t\twas still processing the command. Once this command completes, these\n");
+        printf("\t\toperations can be retried if the quick format completes successfully.\n");
+        printf("\t\tBe aware that this option may erase data and the drive may not be\n");
+        printf("\t\tcompletely readable until is has been written again. It is strongly\n");
+        printf("\t\trecommended that a full overwrite is performed after this is complete\n");
+        printf("\t\tto ensure the drive operates without and further errors during reads.\n");
+        printf("\t\tThis operation may succeed or it may fail depending on the state of the\n");
+        printf("\t\tdrive when this is run.\n");
+        printf("\t\tNOTE: You can use the --%s option to attempt to force this command if\n", FORCE_LONG_OPT_STRING);
+        printf("\t\t      the tool returns \"Not supported\" errors, but it may still fail\n");
+        printf("\t\t      to issue the command.\n");
+        printf("\t\tNOTE: For SAS products, retrying a fast format is the best thing to try,\n");
+        printf("\t\t      but if that does not work, a full format may be required.\n\n");
+    }
+}
+
+void print_Force_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FORCE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse the --%s option to attempt to override and force a specific\n", FORCE_LONG_OPT_STRING);
+        printf("\t\toperation on a drive in case it is returning \"Not supported\"\n");
+        printf("\t\tmessages. This can be used to override some checks for command or\n");
+        printf("\t\tfeature support. Be aware that sending unsupported commands may\n");
+        printf("\t\tresult in command failures, and in some circumstances, it may also\n");
+        printf("\t\tcause indeterminate behavior of a device.\n");
+        printf("\t\tDo not use this command unless you are certain that a device supports\n");
+        printf("\t\tthe command or feature you are attempting to use.\n");
+        printf("\t\tThis option is not guaranteed to make things work or fix issues. This\n");
+        printf("\t\toption is not available to override every support check or other\n");
+        printf("\t\tincompatibility check in the software.\n\n");
+    }
+}
+
 void print_Show_Supported_Formats_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);

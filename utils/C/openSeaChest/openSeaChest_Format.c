@@ -30,6 +30,7 @@
 #include "drive_info.h"
 #include "format.h"
 #include "depopulate.h"
+#include "seagate_operations.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -80,6 +81,7 @@ int32_t main(int argc, char *argv[])
     ONLY_SEAGATE_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
+    FORCE_VAR
     //scan output flags
     SCAN_FLAGS_UTIL_VARS
 
@@ -98,6 +100,7 @@ int32_t main(int argc, char *argv[])
     REMOVE_PHYSICAL_ELEMENT_VAR
     REPOPULATE_ELEMENTS_VAR
     DEPOP_MAX_LBA_VAR
+    SEAGATE_SATA_QUICK_FORMAT_VARS
 
 #if !defined (DISABLE_NVME_PASSTHROUGH)
     NVM_FORMAT_VARS
@@ -137,6 +140,7 @@ int32_t main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        FORCE_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -161,6 +165,7 @@ int32_t main(int argc, char *argv[])
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
 #endif
+        SEAGATE_SATA_QUICK_FORMAT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -778,6 +783,7 @@ int32_t main(int argc, char *argv[])
 #if !defined (DISABLE_NVME_PASSTHROUGH)
         || NVM_FORMAT_FLAG
 #endif
+        || SEAGATE_SATA_QUICK_FORMAT
         ))
     {
         utility_Usage(true);
@@ -1313,6 +1319,67 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SEAGATE_SATA_QUICK_FORMAT)
+        {
+            if (DATA_ERASE_FLAG)
+            {
+                if (is_Seagate_Quick_Format_Supported(&deviceList[deviceIter]) || FORCE_FLAG)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (FORCE_FLAG)
+                        {
+                            printf("WARNING: Forcing Seagate quick format command!\n");
+                        }
+                        else
+                        {
+                            printf("Sending Seagat quick format command\n");
+                        }
+                    }
+                    switch (seagate_Quick_Format(&deviceList[deviceIter]))
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("WARNING: Seagate Quick format completed successfully!\n");
+                            printf("         Reading LBAs after a quick format without a write may result in errors!\n");
+                            printf("         A full overwrite is strongly recommended!\n\n");
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("This operation is not supported on this drive.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to perform quick format\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    printf("The Seagate quick format command is not supported on this device.\n");
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a quick format and overwrite.\n\n");
+                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
+            }
+        }
+
         if (SET_SECTOR_SIZE_FLAG)
         {
             if (DATA_ERASE_FLAG)
@@ -1735,6 +1802,7 @@ void utility_Usage(bool shortUsage)
 #endif
     print_Echo_Command_Line_Help(shortUsage);
     print_Enable_Legacy_USB_Passthrough_Help(shortUsage);
+    print_Force_Help(shortUsage);
     print_Force_ATA_Help(shortUsage);
     print_Force_ATA_DMA_Help(shortUsage);
     print_Force_ATA_PIO_Help(shortUsage);
@@ -1787,6 +1855,8 @@ void utility_Usage(bool shortUsage)
     print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Repopulate_Elements_Help(shortUsage);
     print_Set_Sector_Size_Help(shortUsage);
+    printf("\n\tSATA Only:\n\t==========\n");
+    print_Seagate_Quick_Format_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
     //print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);
