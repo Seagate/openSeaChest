@@ -1415,9 +1415,41 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Failed to set sector size!\n");
-                        if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                    }
+                    if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("For SCSI Drives, try a format unit operation\n");
+                        }
+                    }
+                    else if (deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
+                    {
+                        if (is_Seagate_Quick_Format_Supported(&deviceList[deviceIter]))//This internally checks for Seagate and will only run if it is detected correctly. This should not be issued on non-Seagate products.
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Attempting Seagate quick format to make sure drive is in a good state.\n");
+                            }
+                            switch (seagate_Quick_Format(&deviceList[deviceIter]))
+                            {
+                            case SUCCESS:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Seagate quick format completed. Please check drive information to see\n");
+                                    printf("the current sector size and retry setting the sector size if it is not\n");
+                                    printf("the intended size.\n\n");
+                                }
+                                break;
+                            default:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Seagate quick format could not complete. The drive may or may not be in\n");
+                                    printf("a good state. Try performing --%s again to ensure\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
+                                    printf("it is set to the intended sector size.\n\n");
+                                }
+                                break;
+                            }
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
