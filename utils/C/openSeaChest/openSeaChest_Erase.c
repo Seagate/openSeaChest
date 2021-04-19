@@ -349,7 +349,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%" SCNu64, &WRITE_SAME_RANGE_FLAG);
+                if (!get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_RANGE_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(WRITE_SAME_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
