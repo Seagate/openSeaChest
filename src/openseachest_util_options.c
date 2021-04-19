@@ -557,10 +557,11 @@ void print_Writesame_Help(bool shortHelp)
         printf("\t\twritesame16 command. On ATA devices, this uses the SCT writesame\n");
         printf("\t\tfeature. Combine this option with the writeSameRange option to\n");
         printf("\t\tselect the range. This operation will write 0's to the device for the\n");
-        printf("\t\tspecified range. For SATA drives, adding the --poll option will\n");
-        printf("\t\tcause this operation to poll for progress until complete. This\n");
-        printf("\t\tis not available on SAS and SCSI drives because SCSI drives do not\n");
-        printf("\t\treport the progress on a Write Same operation.\n");
+        printf("\t\tspecified range. For SATA drives, this option will poll for progress\n");
+        printf("\t\tuntil the write same has completed. SAS/SCSI drives will hold the\n");
+        printf("\t\ttool busy until the write same has completed without progress\n");
+        printf("\t\tindication since this is not possible on SAS/SCSI due to specification\n");
+        printf("\t\tlimitations on how write same was defined.\n");
         printf("\t\tOn SATA, if any other commands are sent to the drive while it's\n");
         printf("\t\tperforming a write same, the write same will be aborted.\n\n");
     }

@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.0.3";
+const char *buildVersion = "3.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -349,7 +349,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_RANGE_LONG_OPT_STRING) == 0)
             {
-                sscanf(optarg, "%"SCNu64, &WRITE_SAME_RANGE_FLAG);
+                sscanf(optarg, "%" SCNu64, &WRITE_SAME_RANGE_FLAG);
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
@@ -2145,13 +2145,16 @@ int32_t main(int argc, char *argv[])
                 if (DATA_ERASE_FLAG)
                 {
                     int writeSameRet = UNKNOWN;
+                    //NOTE: Changed to automatically setting poll, since write same on SATA is EASILY interrupted by anything other than reading the SCT status log...which is a pain since
+                    //      the OS may issue commands when opening the handle and there is not a way to easily handle this on scanning the device. So polling should help make sure nothing
+                    //      else goes on while write same is running. - TJE
                     if (PATTERN_FLAG)
                     {
-                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
+                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
                     }
                     else
                     {
-                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, POLL_FLAG, NULL, 0);
+                        writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, NULL, 0);
                     }
                     //now we need to send the erase
                     switch (writeSameRet)
@@ -2159,18 +2162,7 @@ int32_t main(int argc, char *argv[])
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            if (POLL_FLAG && deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
-                            {
-                                printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
-                            }
-                            else
-                            {
-                                printf("Erasing LBAs %"PRIu64" to %"PRIu64" using write same in the background.\n", localStartLBA, localStartLBA + localRange - 1);
-                                if (deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
-                                {
-                                    printf("\tUse --poll to see progress when using the write same command line option.\n");
-                                }
-                            }
+                            printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         break;
                     case NOT_SUPPORTED:
