@@ -563,7 +563,15 @@ void print_Writesame_Help(bool shortHelp)
         printf("\t\tindication since this is not possible on SAS/SCSI due to specification\n");
         printf("\t\tlimitations on how write same was defined.\n");
         printf("\t\tOn SATA, if any other commands are sent to the drive while it's\n");
-        printf("\t\tperforming a write same, the write same will be aborted.\n\n");
+        printf("\t\tperforming a write same, the write same will be aborted.\n");
+        printf("\t\tNOTE: On SAS/SCSI drives this command is optional. Additionally,\n");
+        printf("\t\t      the range may be limited to much less than the full device\n");
+        printf("\t\t      size. Due to the history of this command, there is not a great\n");
+        printf("\t\t      way to confirm support in all cases. Some ranges will be too\n");
+        printf("\t\t      large, and some devices may or may not allow writing the full\n");
+        printf("\t\t      medium in a single command. If you wish to write an entire\n");
+        printf("\t\t      device, consider a different command such as format unit or\n");
+        printf("\t\t      sanitize overwrite to accomplish this.\n\n");
     }
 }
 
