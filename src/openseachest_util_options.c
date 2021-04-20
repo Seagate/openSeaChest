@@ -3589,7 +3589,7 @@ void print_SCSI_MP_Reset_Help(bool shortHelp)
         printf("\t\tsettings. Valid page numbers range from 0 to 3Fh. Valid subpage numbers\n");
         printf("\t\trange from 0 to FFh.\n");
         printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to reset all mode pages.\n");
-        printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will reset all those subpages.\n");
+        printf("\t\t(SP) Subpage FFh specifies all subpages of a given page and will reset all those subpages.\n");
         printf("\t\tUsing both MP 3Fh and SP FFh will reset all pages and subpages on a device.\n\n");
         printf("\t\tWARNING: Resetting mode pages may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
