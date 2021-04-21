@@ -1308,7 +1308,7 @@ int32_t main(int argc, char *argv[])
                     printf("unlocked\n");
                 }
             }
-            switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_FIRMWARE_DOWNLOAD, FWDL_PORT_MODE_FLAG, TCG_SID_FLAG))
+            switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_FIRMWARE_DOWNLOAD, FWDL_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1349,7 +1349,7 @@ int32_t main(int argc, char *argv[])
             }
             //TODO: Seagate HDD and SAS SSD only
             {
-				switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_SID_FLAG))
+				switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
 				{
 				case SUCCESS:
 					if (VERBOSITY_QUIET < toolVerbosity)
