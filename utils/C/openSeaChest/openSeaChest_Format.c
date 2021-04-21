@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.3.0";
+const char *buildVersion = "2.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1374,7 +1374,7 @@ int32_t main(int argc, char *argv[])
                 {
                     printf("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a quick format and overwrite.\n\n");
+                    printf("to the command line arguments to run a quick format.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
             }
@@ -1386,7 +1386,20 @@ int32_t main(int argc, char *argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Set Sector Size to %"PRIu32"\n", SET_SECTOR_SIZE_SIZE);
+                    printf("Set Sector Size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
+                    printf("\nWARNING: It is not recommended to do this on USB enclosures as not\n");
+                    printf("         all USB adapters can handle a 4k sector size.\n");
+                    printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
+                    printf("         it may cause the drive to become unusable. Stop all possible background\n");
+                    printf("         activity that would attempt to communicate with the device while this\n");
+                    printf("         operation is in progress\n");
+                    printf("Press CTRL-C to cancel this operation before the timer runs out.\n");
+                    for (uint8_t timer = UINT8_C(30); timer > 0; --timer)
+                    {
+                        printf("\r %2" PRIu8, timer);
+                        delay_Seconds(UINT32_C(1));
+                    }
+                    printf("\r  0\n");
                 }
                 switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
                 {
