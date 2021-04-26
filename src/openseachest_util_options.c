@@ -2967,38 +2967,25 @@ void print_CSMI_Info_Help(bool shortHelp)
 
 void print_CSMI_Verbose_Help(bool shortHelp)
 {
-    printf("\t--%s\n", CSMI_VERBOSE_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_VERBOSE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to show some verbose output when running the\n");
-        printf("\t\ttool on a CSMI handle. The debugging information shown will be\n");
-        printf("\t\tspecific to the CSMI passthrough mechanism and may be useful\n");
-        printf("\t\twhen troubleshooting system/driver compatibility issues.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 }
 
 void print_CSMI_Force_Flags_Help(bool shortHelp)
 {
-    printf("\t--%s\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to force setting the \"ignore Port\" flag\n");
-        printf("\t\tfor the port identifier in a CSMI passthrough command.\n");
-        printf("\t\tThis option can be combined with --%s which\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
-        printf("\t\twill force the passthrough to rely on only the SAS address.\n");
-        printf("\t\tThis flag is intended to help troubleshoot or improve CSMI\n");
-        printf("\t\tcompatibility on systems that are otherwise not functional.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 
-    printf("\t--%s\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to force setting the \"Use Port\" flag\n");
-        printf("\t\tfor the PHY identifier in a CSMI passthrough command.\n");
-        printf("\t\tThis option can be combined with --%s which\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
-        printf("\t\twill force the passthrough to rely on only the SAS address.\n");
-        printf("\t\tThis flag is intended to help troubleshoot or improve CSMI\n");
-        printf("\t\tcompatibility on systems that are otherwise not functional.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 }
 #endif
