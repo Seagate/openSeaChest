@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -187,7 +187,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
             {
-                uint8_t counter = 0;
+                size_t counter = 0;
                 SCSI_DEFECTS_FLAG = true;
                 while (counter < strlen(optarg))
                 {
@@ -638,7 +638,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         /*need to go through the handle list and attempt to open each handle.*/
-        for (uint16_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
+        for (uint32_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
         {
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);

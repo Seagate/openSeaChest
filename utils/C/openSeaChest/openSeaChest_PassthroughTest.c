@@ -818,7 +818,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         /*need to go through the handle list and attempt to open each handle.*/
-        for (uint16_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
+        for (uint32_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
         {
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
@@ -2003,7 +2003,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     }
     uint16_t pagesread = 0;
     //TODO: validate peripheral qualifier and peripheral device type on every page with std inquiry data
-    for (uint16_t vpdIter = 4; vpdIter < (supportedVPDPagesLength + 4) && vpdIter < INQ_RETURN_DATA_LENGTH; vpdIter++)
+    for (uint32_t vpdIter = 4; vpdIter < C_CAST(uint32_t,(supportedVPDPagesLength + 4)) && vpdIter < INQ_RETURN_DATA_LENGTH; vpdIter++)
     {
         bool genericVPDPageReadOutput = true;
         bool readVPDPage = false;
@@ -2078,7 +2078,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     scsiDevInfo->vpdData.gotUnitSNVPDPage = true;
                     memcpy(unitSerialNumber, &pageToRead[4], vpdPageLength);
-                    for (uint8_t iter = 0; iter < vpdPageLength; ++iter)
+                    for (uint16_t iter = 0; iter < vpdPageLength && iter < UINT16_MAX; ++iter)
                     {
                         if (!is_ASCII(unitSerialNumber[iter]) || !isprint(unitSerialNumber[iter]))
                         {
@@ -2128,14 +2128,14 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 uint16_t md5Offset = 0;
                 scsiDevInfo->vpdData.gotDeviceIDVPDPage = true;
 
-                for (uint16_t offset = 4; offset < vpdPageLength + 4; offset += designatorLength + 4, ++counter)
+                for (uint32_t offset = 4; offset < C_CAST(uint32_t, vpdPageLength + 4) && offset < UINT16_MAX; offset += designatorLength + 4, ++counter)
                 {
                     uint8_t protocolIdentifier = M_Nibble1(pageToRead[offset]);
                     uint8_t codeSet = M_Nibble0(pageToRead[offset]);
                     bool piv = (pageToRead[offset + 1] & BIT7) ? true : false;
                     uint8_t association = M_GETBITRANGE(pageToRead[offset + 1], 5, 4);
                     uint8_t designatorType = M_Nibble0(pageToRead[offset + 1]);
-                    uint16_t designatorOffset = offset + 4;
+                    uint16_t designatorOffset = C_CAST(uint16_t, offset + 4);//This cast to a smaller type should be ok since the offset should never even get to the max uint16_t length. There is a small possibility of ovverflow with the +4, but it is very slim due to how this is reported from a device. This should never really happen. - TJE
                     designatorLength = pageToRead[offset + 3];
                     bool isASCII = false;
                     bool isUTF8 = false;
@@ -2319,13 +2319,13 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         case 0x08://EUI64
                             printf("\t\t\t    EUI64\n");
                             printf("\t\t\t    IEEE Company ID: ");
-                            for (uint16_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < (designatorOffset + 3); ++ieeeVIDOffset)
+                            for (uint32_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 3)); ++ieeeVIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
-                            for (uint16_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < (designatorOffset + 8); ++vuExtIDOffset)
+                            for (uint32_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++vuExtIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
                             }
@@ -2334,19 +2334,19 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         case 0x0C://EUI64 - 12 byte
                             printf("\t\t\t    EUI64 - 12 Byte\n");
                             printf("\t\t\t    IEEE Company ID: ");
-                            for (uint16_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < (designatorOffset + 3); ++ieeeVIDOffset)
+                            for (uint32_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 3)); ++ieeeVIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
-                            for (uint16_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < (designatorOffset + 8); ++vuExtIDOffset)
+                            for (uint32_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++vuExtIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Directory ID: ");
-                            for (uint16_t dIDOffset = designatorOffset + 8; dIDOffset < (designatorOffset + 12); ++dIDOffset)
+                            for (uint32_t dIDOffset = designatorOffset + 8; dIDOffset < C_CAST(uint32_t, (designatorOffset + 12)); ++dIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[dIDOffset]);
                             }
@@ -2355,19 +2355,19 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         case 0x10://EUI64 - 16 byte
                             printf("\t\t\t    EUI64 - 16 Byte\n");
                             printf("\t\t\t    Identifier Extension: ");
-                            for (uint16_t idExtOffset = designatorOffset; idExtOffset < (designatorOffset + 8); ++idExtOffset)
+                            for (uint32_t idExtOffset = designatorOffset; idExtOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++idExtOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[idExtOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    IEEE Company ID: ");
-                            for (uint16_t ieeeVIDOffset = designatorOffset + 8; ieeeVIDOffset < (designatorOffset + 11); ++ieeeVIDOffset)
+                            for (uint32_t ieeeVIDOffset = designatorOffset + 8; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 11)); ++ieeeVIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
-                            for (uint16_t vuExtIDOffset = designatorOffset + 11; vuExtIDOffset < (designatorOffset + 16); ++vuExtIDOffset)
+                            for (uint32_t vuExtIDOffset = designatorOffset + 11; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 16)); ++vuExtIDOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
                             }
@@ -2377,7 +2377,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             printf("\t\t\t    Unknown EUI64 designator length!\n");
                             printf("\t\t\t    Unknown data format: ");
                             //print it out in hex
-                            for (uint16_t euiOffset = designatorOffset; euiOffset < (designatorOffset + designatorLength); ++euiOffset)
+                            for (uint32_t euiOffset = designatorOffset; euiOffset < C_CAST(uint32_t, (designatorOffset + designatorLength)); ++euiOffset)
                             {
                                 printf("%02" PRIX8 , pageToRead[euiOffset]);
                             }
@@ -2967,7 +2967,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             if (readVPDPage)
             {
                 genericVPDPageReadOutput = false;
-                for (uint16_t featIter = 8; featIter < (vpdPageLength + 4); featIter += 2)
+                for (uint32_t featIter = 8; featIter < C_CAST(uint32_t, (vpdPageLength + 4)) && featIter < UINT16_MAX; featIter += 2)
                 {
                     uint16_t featureSetCode = M_BytesTo2ByteValue(pageToRead[featIter], pageToRead[featIter + 1]);
                     switch (featureSetCode)
@@ -4832,7 +4832,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             increment = 2;
         }
         uint16_t supportedLogPagesLen = M_BytesTo2ByteValue(logpageSupportPointer[2], logpageSupportPointer[3]);
-        for (uint16_t lpSupportOffset = 4; lpSupportOffset < (supportedLogPagesLen + 4); lpSupportOffset += increment)
+        for (uint32_t lpSupportOffset = 4; lpSupportOffset < C_CAST(uint32_t, (supportedLogPagesLen + 4)) && lpSupportOffset < 255; lpSupportOffset += increment)
         {
             bool genericLogPagePrintout = true;
             bool readLogPage = false;
@@ -4951,7 +4951,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Write Error Counters\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5032,7 +5032,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Read Error Counters\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5149,7 +5149,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Verify Error Counters\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5309,7 +5309,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Temperature\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5377,7 +5377,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Start-Stop Cycle Counter\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5467,7 +5467,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Solid State Media\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5522,7 +5522,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Background Scan Results\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5634,7 +5634,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x01:
                     printf("Pending Defects\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5696,7 +5696,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("ATA Pass-through Results\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5780,7 +5780,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("General Statistics and Performance\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -5875,7 +5875,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 case 0x00:
                     printf("Informational Exceptions\n");
                     genericLogPagePrintout = false;
-                    for (uint16_t offset = 4; offset < logPageLength + 4; offset += parameterLength + 4)
+                    for (uint32_t offset = 4; offset < C_CAST(uint32_t, logPageLength + 4) && offset < UINT16_MAX; offset += parameterLength + 4)
                     {
                         uint16_t parameterCode = M_BytesTo2ByteValue(pageToRead[offset + 0], pageToRead[offset + 1]);
                         //TODO: parameter control byte fields
@@ -7362,7 +7362,8 @@ int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_
             maxTestSizeBlocks = reportedMax;
         }
     }
-    uint8_t *data = (uint8_t*)calloc_aligned(maxTestSizeBlocks * device->drive_info.deviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.deviceBlockSize);
+    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==================================\n");
     printf("Testing SCSI Maximum Transfer Size\n");
@@ -7675,7 +7676,8 @@ int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiRepor
             maxTestSizeBlocks = scsiReportedMax;
         }
     }
-    uint8_t *data = (uint8_t*)calloc_aligned(maxTestSizeBlocks * device->drive_info.bridge_info.childDeviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.bridge_info.childDeviceBlockSize);
+    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n=============================================\n");
     printf("Testing ATA Pass-through Maximum transfer size\n");
@@ -7954,7 +7956,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     if (scsiInformation.vpdData.designators[iter].valid)
                     {
                         printf("\t\t");
-                        for (uint8_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < 16; ++desIter)
+                        for (uint16_t desIter = 0; desIter < scsiInformation.vpdData.designators[iter].designatorLength && desIter < UINT16_C(16); ++desIter)
                         {
                             printf("%02" PRIX8, scsiInformation.vpdData.designators[iter].designator[desIter]);
                         }

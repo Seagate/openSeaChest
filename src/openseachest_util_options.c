@@ -127,6 +127,8 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char *userName = NULL;
     char currentTime[30] = { 0 };
+    struct tm utilTime;
+    memset(&utilTime, 0, sizeof(struct tm));
     if (SUCCESS != get_Current_User_Name(&userName))
     {
         userName = (char*)calloc(36, sizeof(char));
@@ -146,7 +148,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (0 == strftime(currentTime, 30, "%c", localtime(&g_curTime)))
+    if (0 == strftime(currentTime, 30, "%c", get_Localtime(&g_curTime, &utilTime)))
     {
         sprintf(currentTime, "Unable to get local time");
     }
@@ -555,12 +557,21 @@ void print_Writesame_Help(bool shortHelp)
         printf("\t\twritesame16 command. On ATA devices, this uses the SCT writesame\n");
         printf("\t\tfeature. Combine this option with the writeSameRange option to\n");
         printf("\t\tselect the range. This operation will write 0's to the device for the\n");
-        printf("\t\tspecified range. For SATA drives, adding the --poll option will\n");
-        printf("\t\tcause this operation to poll for progress until complete. This\n");
-        printf("\t\tis not available on SAS and SCSI drives because SCSI drives do not\n");
-        printf("\t\treport the progress on a Write Same operation.\n");
+        printf("\t\tspecified range. For SATA drives, this option will poll for progress\n");
+        printf("\t\tuntil the write same has completed. SAS/SCSI drives will hold the\n");
+        printf("\t\ttool busy until the write same has completed without progress\n");
+        printf("\t\tindication since this is not possible on SAS/SCSI due to specification\n");
+        printf("\t\tlimitations on how write same was defined.\n");
         printf("\t\tOn SATA, if any other commands are sent to the drive while it's\n");
-        printf("\t\tperforming a write same, the write same will be aborted.\n\n");
+        printf("\t\tperforming a write same, the write same will be aborted.\n");
+        printf("\t\tNOTE: On SAS/SCSI drives this command is optional. Additionally,\n");
+        printf("\t\t      the range may be limited to much less than the full device\n");
+        printf("\t\t      size. Due to the history of this command, there is not a great\n");
+        printf("\t\t      way to confirm support in all cases. Some ranges will be too\n");
+        printf("\t\t      large, and some devices may or may not allow writing the full\n");
+        printf("\t\t      medium in a single command. If you wish to write an entire\n");
+        printf("\t\t      device, consider a different command such as format unit or\n");
+        printf("\t\t      sanitize overwrite to accomplish this.\n\n");
     }
 }
 
@@ -2281,6 +2292,50 @@ void print_Set_Sector_Size_Help(bool shortHelp)
     }
 }
 
+void print_Seagate_Quick_Format_Help(bool shortHelp)
+{
+    printf("\t--%s (SATA Only) (Seagate Only)\n", SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option performs a quick format of a Seagate SATA drive.\n");
+        printf("\t\tThe purpose of this is to help bring a drive out of a bad state\n");
+        printf("\t\twhen an operation such as Fast Format (--%s) or\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
+        printf("\t\tdepopulation/repopulation is interrupted by the host when the drive\n");
+        printf("\t\twas still processing the command. Once this command completes, these\n");
+        printf("\t\toperations can be retried if the quick format completes successfully.\n");
+        printf("\t\tBe aware that this option may erase data and the drive may not be\n");
+        printf("\t\tcompletely readable until is has been written again. It is strongly\n");
+        printf("\t\trecommended that a full overwrite is performed after this is complete\n");
+        printf("\t\tto ensure the drive operates without and further errors during reads.\n");
+        printf("\t\tThis operation may succeed or it may fail depending on the state of the\n");
+        printf("\t\tdrive when this is run.\n");
+        printf("\t\tNOTE: You can use the --%s option to attempt to force this command if\n", FORCE_LONG_OPT_STRING);
+        printf("\t\t      the tool returns \"Not supported\" errors, but it may still fail\n");
+        printf("\t\t      to issue the command.\n");
+        printf("\t\tNOTE: For SAS products, retrying a fast format is the best thing to try,\n");
+        printf("\t\t      but if that does not work, a full format may be required.\n\n");
+    }
+}
+
+void print_Force_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FORCE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse the --%s option to attempt to override and force a specific\n", FORCE_LONG_OPT_STRING);
+        printf("\t\toperation on a drive in case it is returning \"Not supported\"\n");
+        printf("\t\tmessages. This can be used to override some checks for command or\n");
+        printf("\t\tfeature support. Be aware that sending unsupported commands may\n");
+        printf("\t\tresult in command failures, and in some circumstances, it may also\n");
+        printf("\t\tcause indeterminate behavior of a device.\n");
+        printf("\t\tDo not use this command unless you are certain that a device supports\n");
+        printf("\t\tthe command or feature you are attempting to use.\n");
+        printf("\t\tThis option is not guaranteed to make things work or fix issues. This\n");
+        printf("\t\toption is not available to override every support check or other\n");
+        printf("\t\tincompatibility check in the software.\n\n");
+    }
+}
+
 void print_Show_Supported_Formats_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
@@ -2912,38 +2967,25 @@ void print_CSMI_Info_Help(bool shortHelp)
 
 void print_CSMI_Verbose_Help(bool shortHelp)
 {
-    printf("\t--%s\n", CSMI_VERBOSE_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_VERBOSE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to show some verbose output when running the\n");
-        printf("\t\ttool on a CSMI handle. The debugging information shown will be\n");
-        printf("\t\tspecific to the CSMI passthrough mechanism and may be useful\n");
-        printf("\t\twhen troubleshooting system/driver compatibility issues.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 }
 
 void print_CSMI_Force_Flags_Help(bool shortHelp)
 {
-    printf("\t--%s\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to force setting the \"ignore Port\" flag\n");
-        printf("\t\tfor the port identifier in a CSMI passthrough command.\n");
-        printf("\t\tThis option can be combined with --%s which\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
-        printf("\t\twill force the passthrough to rely on only the SAS address.\n");
-        printf("\t\tThis flag is intended to help troubleshoot or improve CSMI\n");
-        printf("\t\tcompatibility on systems that are otherwise not functional.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 
-    printf("\t--%s\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
+    printf("\t--%s (Obsolete)\n", CSMI_FORCE_USE_PORT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to force setting the \"Use Port\" flag\n");
-        printf("\t\tfor the PHY identifier in a CSMI passthrough command.\n");
-        printf("\t\tThis option can be combined with --%s which\n", CSMI_FORCE_IGNORE_PORT_LONG_OPT_STRING);
-        printf("\t\twill force the passthrough to rely on only the SAS address.\n");
-        printf("\t\tThis flag is intended to help troubleshoot or improve CSMI\n");
-        printf("\t\tcompatibility on systems that are otherwise not functional.\n\n");
+        printf("\t\tThis option is obsolete and will be removed in future versions.\n\n");
     }
 }
 #endif
@@ -3534,7 +3576,7 @@ void print_SCSI_MP_Reset_Help(bool shortHelp)
         printf("\t\tsettings. Valid page numbers range from 0 to 3Fh. Valid subpage numbers\n");
         printf("\t\trange from 0 to FFh.\n");
         printf("\t\t(MP) Mode page 3Fh specifies all mode pages and can be used to reset all mode pages.\n");
-        printf("\t\t(SP) Subpage FFH specifies all subpages of a given page and will reset all those subpages.\n");
+        printf("\t\t(SP) Subpage FFh specifies all subpages of a given page and will reset all those subpages.\n");
         printf("\t\tUsing both MP 3Fh and SP FFh will reset all pages and subpages on a device.\n\n");
         printf("\t\tWARNING: Resetting mode pages may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");

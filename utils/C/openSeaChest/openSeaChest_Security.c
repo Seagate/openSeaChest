@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2020 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1001,7 +1001,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         /*need to go through the handle list and attempt to open each handle.*/
-        for (uint16_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
+        for (uint32_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
         {
             /*Initializing is necessary*/
             deviceList[handleIter].sanity.size = sizeof(tDevice);
@@ -1308,7 +1308,7 @@ int32_t main(int argc, char *argv[])
                     printf("unlocked\n");
                 }
             }
-            switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_FIRMWARE_DOWNLOAD, FWDL_PORT_MODE_FLAG, TCG_SID_FLAG))
+            switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_FIRMWARE_DOWNLOAD, FWDL_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1349,7 +1349,7 @@ int32_t main(int argc, char *argv[])
             }
             //TODO: Seagate HDD and SAS SSD only
             {
-				switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_SID_FLAG))
+				switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
 				{
 				case SUCCESS:
 					if (VERBOSITY_QUIET < toolVerbosity)

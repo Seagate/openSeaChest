@@ -1795,6 +1795,20 @@ extern "C"
     #define PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING "pullPowerTelemetry"
     #define PULL_POWER_TELEMETRY_DATA_LONG_OPT { PULL_POWER_TELEMETRY_DATA_LONG_OPT_STRING, no_argument, &PULL_POWER_TELEMETRY_DATA_FLAG, goTrue }
 
+    //Seagate SATA quick format - This may have different requirements to support. Not supported on all Seagate products.
+    #define SEAGATE_SATA_QUICK_FORMAT sataQuickFormat
+    #define SEAGATE_SATA_QUICK_FORMAT_VARS \
+        getOptBool SEAGATE_SATA_QUICK_FORMAT = goFalse;
+    #define SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING "seagateQuickFormat"
+    #define SEAGATE_SATA_QUICK_FORMAT_LONG_OPT { SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, no_argument, &SEAGATE_SATA_QUICK_FORMAT, goTrue }
+
+    //Force option can be used to try overriding support detection, or other things. May not be supported on all operations.
+    #define FORCE_FLAG forceThisToHappen
+    #define FORCE_VAR \
+            getOptBool FORCE_FLAG = goFalse;
+    #define FORCE_LONG_OPT_STRING "force"
+    #define FORCE_LONG_OPT { FORCE_LONG_OPT_STRING, no_argument, &FORCE_FLAG, goTrue }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3127,6 +3141,10 @@ extern "C"
     void print_Get_Telemetry_Help(bool shortHelp);
 
     void print_Telemetry_Data_Set_Help(bool shortHelp);
+
+    void print_Force_Help(bool shortHelp);
+
+    void print_Seagate_Quick_Format_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
