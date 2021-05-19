@@ -114,9 +114,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    firmwareUpdateData dlOptions;
-    seatimer_t commandTimer;
-
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
@@ -1610,6 +1607,8 @@ int32_t main(int argc, char *argv[])
                 {
                     supportedDLModes supportedFWDLModes;
                     memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+                    supportedFWDLModes.size = sizeof(supportedDLModes);
+                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
                     if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
@@ -1644,9 +1643,12 @@ int32_t main(int argc, char *argv[])
                     }
                     if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
-
+                        firmwareUpdateData dlOptions;
+                        seatimer_t commandTimer;
                         memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                         memset(&commandTimer, 0, sizeof(seatimer_t));
+                        dlOptions.size = sizeof(firmwareUpdateData);
+                        dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                         dlOptions.dlMode = DOWNLOAD_FW_MODE;
                         if (FWDL_SEGMENT_SIZE_FROM_USER)
                         {
@@ -1763,11 +1765,17 @@ int32_t main(int argc, char *argv[])
         {
             supportedDLModes supportedFWDLModes;
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+            supportedFWDLModes.size = sizeof(supportedDLModes);
+            supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
+                firmwareUpdateData dlOptions;
+                seatimer_t commandTimer;
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                 memset(&commandTimer, 0, sizeof(seatimer_t));
+                dlOptions.size = sizeof(firmwareUpdateData);
+                dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode = DL_FW_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
