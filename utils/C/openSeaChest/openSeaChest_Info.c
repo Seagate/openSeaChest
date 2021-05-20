@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Info";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -94,6 +94,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
     CSMI_INFO_VAR
 #endif
+    SHOW_CONCURRENT_RANGES_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -132,6 +133,7 @@ int32_t main(int argc, char *argv[])
         CSMI_FORCE_LONG_OPTS,
         CSMI_INFO_LONG_OPT,
 #endif
+        SHOW_CONCURRENT_RANGES_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -550,6 +552,7 @@ int32_t main(int argc, char *argv[])
 #if defined (ENABLE_CSMI)
         || CSMI_INFO_FLAG
 #endif
+        || SHOW_CONCURRENT_RANGES
         ))
     {
         utility_Usage(true);
@@ -875,11 +878,17 @@ int32_t main(int argc, char *argv[])
                 print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
                 break;
             case NOT_SUPPORTED:
-                printf("Device Statistics not supported on this device\n");
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Device Statistics not supported on this device\n");
+                }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                printf("Failed to retrieve Device Statistics from this device\n");
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve Device Statistics from this device\n");
+                }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
@@ -895,11 +904,45 @@ int32_t main(int argc, char *argv[])
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
-                printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                printf("Failed to retrieve SCSI defect list from this device\n");
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve SCSI defect list from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_CONCURRENT_RANGES)
+        {
+            concurrentRanges ranges;
+            memset(&ranges, 0, sizeof(concurrentRanges));
+            ranges.size = sizeof(concurrentRanges);
+            ranges.version = CONCURRENT_RANGES_VERSION;
+            switch (get_Concurrent_Positioning_Ranges(&deviceList[deviceIter], &ranges))
+            {
+            case SUCCESS:
+                print_Concurrent_Positioning_Ranges(&ranges);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Concurrent positioning ranges are not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to read the concurrent positioning ranges.\n");
+                }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
@@ -981,6 +1024,7 @@ void utility_Usage(bool shortUsage)
     print_CSMI_Info_Help(shortUsage);
 #endif
     print_Device_Statistics_Help(shortUsage);
+    print_Show_Concurrent_Position_Ranges_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_SMART_Attributes_Help(shortUsage);

@@ -3215,6 +3215,17 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
     }
 }
 
+void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_CONCURRENT_RANGES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display the concurrent positioning ranges\n");
+        printf("\t\tsupported by a device. Concurrent positioning ranges are used\n");
+        printf("\t\tto inform which actuator is used for a given range in LBA space.\n\n");
+    }
+}
+
 void print_Pull_Self_Test_Results_Log_Help(bool shortHelp)
 {
     printf("\t--%s\n", DST_LOG_LONG_OPT_STRING);
