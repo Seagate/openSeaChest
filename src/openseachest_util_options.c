@@ -2815,6 +2815,20 @@ void print_FWDL_Segment_Size_Help(bool shortHelp)
     }
 }
 
+void print_FWDL_Ignore_Final_Segment_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_LOCKED_REGIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option should only be used when performing firmware\n");
+        printf("\t\tupdates on legacy products. What this does is it ignores\n");
+        printf("\t\ta failing error code from the OS on the final segment of a\n");
+        printf("\t\tfirmware update, but this update is actually successful.\n");
+        printf("\t\tThis is needed to workaround hardware or firmware limitations\n");
+        printf("\t\tthat were present in some old products.\n\n");
+    }
+}
+
 void print_show_FWDL_Support_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_FWDL_SUPPORT_LONG_OPT_STRING);

@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.0.2";
+const char *buildVersion = "3.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -123,6 +123,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     HIDE_LBA_COUNTER_VAR
+    FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -186,6 +187,7 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1360,6 +1362,8 @@ int32_t main(int argc, char *argv[])
             bool fileOpenedSuccessfully = true;//assume true in case of activate command
             firmwareUpdateData dlOptions;
             memset(&dlOptions, 0, sizeof(firmwareUpdateData));
+            dlOptions.size = sizeof(firmwareUpdateData);
+            dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
             if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
             {
                 //open the file and send the download
@@ -1381,6 +1385,9 @@ int32_t main(int argc, char *argv[])
                 {
                     supportedDLModes supportedFWDLModes;
                     memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+                    //set size and version before trying to read this information.
+                    supportedFWDLModes.size = sizeof(supportedDLModes);
+                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
                     if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
@@ -1414,6 +1421,7 @@ int32_t main(int argc, char *argv[])
                         dlOptions.segmentSize = 0;
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should never be larger than a few MBs for a LONG time...
+                        dlOptions.ignoreStatusOfFinalSegment = FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG ? true : false;
                         switch (firmware_Download(&deviceList[deviceIter], &dlOptions) )
                         {
                         case SUCCESS:
@@ -1488,6 +1496,10 @@ int32_t main(int argc, char *argv[])
             firmwareUpdateData dlOptions;
             memset(&dlOptions, 0, sizeof(firmwareUpdateData));
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+            supportedFWDLModes.size = sizeof(supportedDLModes);
+            supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
+            dlOptions.size = sizeof(firmwareUpdateData);
+            dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
@@ -1496,6 +1508,7 @@ int32_t main(int argc, char *argv[])
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
+                dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
                 ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                 switch (ret)
                 {
@@ -2147,6 +2160,7 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Activate_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);
     print_Firmware_Download_Mode_Help(shortUsage);
+    print_FWDL_Ignore_Final_Segment_Help(shortUsage);
     print_Short_DST_Help(shortUsage);
     print_Poll_Help(shortUsage);
     print_Progress_Help(shortUsage, "dst");

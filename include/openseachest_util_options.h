@@ -1354,6 +1354,12 @@ extern "C"
     #define FWDL_SEGMENT_SIZE_LONG_OPT_STRING "fwdlSegSize"
     #define FWDL_SEGMENT_SIZE_LONG_OPT { FWDL_SEGMENT_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //ignore final segment of FWDL for legacy drive compatibility in very specific situations
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG fwdlIgnoreFinalSegmentStatus
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR getOptBool FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG = goFalse;
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT_STRING "fwdlIgnoreFinalSegment"
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT { FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT_STRING, no_argument, &FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG, goTrue }
+
     //show Download support
     #define SHOW_FWDL_SUPPORT_INFO_FLAG showFWDLsupport
     #define SHOW_FWDL_SUPPORT_VAR getOptBool SHOW_FWDL_SUPPORT_INFO_FLAG = goFalse;
@@ -2901,6 +2907,8 @@ extern "C"
     void print_Zone_ID_Help(bool shortHelp);
 
     void print_FWDL_Segment_Size_Help(bool shortHelp);
+
+    void print_FWDL_Ignore_Final_Segment_Help(bool shortHelp);
 
     void print_show_FWDL_Support_Help(bool shortHelp);
 

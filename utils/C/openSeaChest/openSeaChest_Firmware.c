@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.1.0";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -108,6 +108,7 @@ int32_t main(int argc, char *argv[])
     SHOW_FWDL_SUPPORT_VAR
     ACTIVATE_DEFERRED_FW_VAR
     SWITCH_FW_VAR
+    FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -117,8 +118,6 @@ int32_t main(int argc, char *argv[])
     int  args = 0;
     int argIndex = 0;
     int optionIndex = 0;
-    firmwareUpdateData dlOptions;
-    seatimer_t commandTimer;
 
     //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
@@ -162,6 +161,7 @@ int32_t main(int argc, char *argv[])
         WIN10_FLEXIBLE_API_USE_LONG_OPT,
         WIN10_FWDL_FORCE_PT_LONG_OPT,
 #endif
+        FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -877,6 +877,8 @@ int32_t main(int argc, char *argv[])
         {
             supportedDLModes supportedFWDLModes;
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+            supportedFWDLModes.size = sizeof(supportedDLModes);
+            supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
             switch (get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
             {
             case SUCCESS:
@@ -924,6 +926,8 @@ int32_t main(int argc, char *argv[])
                 {
                     supportedDLModes supportedFWDLModes;
                     memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+                    supportedFWDLModes.size = sizeof(supportedDLModes);
+                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
                     if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
@@ -957,9 +961,12 @@ int32_t main(int argc, char *argv[])
                     }
                     if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {   
-
+                        firmwareUpdateData dlOptions;
+                        seatimer_t commandTimer;
                         memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                         memset(&commandTimer, 0, sizeof(seatimer_t));
+                        dlOptions.size = sizeof(firmwareUpdateData);
+                        dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                         dlOptions.dlMode = DOWNLOAD_FW_MODE;
                         if (FWDL_SEGMENT_SIZE_FROM_USER)
                         {
@@ -969,6 +976,7 @@ int32_t main(int argc, char *argv[])
                         {
                             dlOptions.segmentSize = 0;
                         }
+                        dlOptions.ignoreStatusOfFinalSegment = FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG ? true : false;
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should only be a few MB today...long ways to go before we overflow uint32_t
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
@@ -1091,11 +1099,17 @@ int32_t main(int argc, char *argv[])
         {
             supportedDLModes supportedFWDLModes;
             memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
+            supportedFWDLModes.size = sizeof(supportedDLModes);
+            supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
+                firmwareUpdateData dlOptions;
+                seatimer_t commandTimer;
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                 memset(&commandTimer, 0, sizeof(seatimer_t));
+                dlOptions.size = sizeof(firmwareUpdateData);
+                dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode = DL_FW_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
@@ -1105,6 +1119,7 @@ int32_t main(int argc, char *argv[])
                 {
                     dlOptions.existingFirmwareImage = true;
                 }
+                dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
                 start_Timer(&commandTimer);
                 ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                 stop_Timer(&commandTimer);
@@ -1304,7 +1319,8 @@ void utility_Usage(bool shortUsage)
     print_Firmware_Download_Help(shortUsage);
     print_Firmware_Download_Mode_Help(shortUsage);
     print_Firmware_Slot_Buffer_ID_Help(shortUsage);
-    print_FWDL_Segment_Size_Help(shortUsage);
     print_show_FWDL_Support_Help(shortUsage);
+    print_FWDL_Ignore_Final_Segment_Help(shortUsage);
+    print_FWDL_Segment_Size_Help(shortUsage);
     print_Firmware_Switch_Help(shortUsage);
 }
