@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1014,7 +1014,7 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
