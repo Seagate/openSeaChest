@@ -1815,6 +1815,12 @@ extern "C"
     #define FORCE_LONG_OPT_STRING "force"
     #define FORCE_LONG_OPT { FORCE_LONG_OPT_STRING, no_argument, &FORCE_FLAG, goTrue }
 
+    //Concurrent ranges (multi-actuator)
+    #define SHOW_CONCURRENT_RANGES showConcurrentRanges
+    #define SHOW_CONCURRENT_RANGES_VAR getOptBool SHOW_CONCURRENT_RANGES = goFalse;
+    #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
+    #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3153,6 +3159,8 @@ extern "C"
     void print_Force_Help(bool shortHelp);
 
     void print_Seagate_Quick_Format_Help(bool shortHelp);
+
+    void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
