@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.0.1";
+const char *buildVersion = "2.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2757,7 +2757,7 @@ int32_t main(int argc, char *argv[])
                     if (modePageBuffer && fileBuf)
                     {
                         //read the file
-                        if (fileLength == fread(fileBuf, sizeof(char), fileLength, modePageFile))
+                        if ((fileLength - 1) == fread(fileBuf, sizeof(char), (fileLength - 1), modePageFile))//need the -1 since we added an extra 1 space above for a null terminator otherwise this fails. - TJE
                         {
                             //parse the file
                             char *delimiters = " \n\r-_\\/|\t:;";
@@ -2836,7 +2836,7 @@ int32_t main(int argc, char *argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Error reading contents of firmwaremode page file!\n");
+                                printf("Error reading contents of mode page file!\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
