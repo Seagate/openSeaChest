@@ -2392,7 +2392,13 @@ void print_TCG_PSID_Help(bool shortHelp)
     {
         printf("\t\tThis option can be used to specify the value of the PSID.\n");
         printf("\t\tThis may be required in order to perform certain TCG\n");
-        printf("\t\toperations.\n\n");
+        printf("\t\toperations.\n");
+        printf("\t\tOn Seagate drives, PSIDs are 32 digits long, all uppercase,\n");
+        printf("\t\tand uses zeros and ones but do NOT use O's and I's.\n");
+        printf("\t\tAdditionally, it is possible to exhaust the number of attempts\n");
+        printf("\t\t the device allows. Seagate drives have this set to 5 attempts.\n");
+        printf("\t\tOnce this is exhausted, a full power cycle of the device is required\n");
+        printf("\t\tbefore you can try again.\n\n");
     }
 }
 
@@ -2815,6 +2821,20 @@ void print_FWDL_Segment_Size_Help(bool shortHelp)
     }
 }
 
+void print_FWDL_Ignore_Final_Segment_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_LOCKED_REGIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option should only be used when performing firmware\n");
+        printf("\t\tupdates on legacy products. What this does is it ignores\n");
+        printf("\t\ta failing error code from the OS on the final segment of a\n");
+        printf("\t\tfirmware update, but this update is actually successful.\n");
+        printf("\t\tThis is needed to workaround hardware or firmware limitations\n");
+        printf("\t\tthat were present in some old products.\n\n");
+    }
+}
+
 void print_show_FWDL_Support_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_FWDL_SUPPORT_LONG_OPT_STRING);
@@ -3212,6 +3232,17 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
         printf("\t\t bfi        | 4 - show the defects in bytes from index mode\n");
         printf("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
         printf("\n");
+    }
+}
+
+void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_CONCURRENT_RANGES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display the concurrent positioning ranges\n");
+        printf("\t\tsupported by a device. Concurrent positioning ranges are used\n");
+        printf("\t\tto inform which actuator is used for a given range in LBA space.\n\n");
     }
 }
 

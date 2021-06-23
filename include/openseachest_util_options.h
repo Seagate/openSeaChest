@@ -1354,6 +1354,12 @@ extern "C"
     #define FWDL_SEGMENT_SIZE_LONG_OPT_STRING "fwdlSegSize"
     #define FWDL_SEGMENT_SIZE_LONG_OPT { FWDL_SEGMENT_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //ignore final segment of FWDL for legacy drive compatibility in very specific situations
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG fwdlIgnoreFinalSegmentStatus
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR getOptBool FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG = goFalse;
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT_STRING "fwdlIgnoreFinalSegment"
+    #define FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT { FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT_STRING, no_argument, &FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG, goTrue }
+
     //show Download support
     #define SHOW_FWDL_SUPPORT_INFO_FLAG showFWDLsupport
     #define SHOW_FWDL_SUPPORT_VAR getOptBool SHOW_FWDL_SUPPORT_INFO_FLAG = goFalse;
@@ -1808,6 +1814,12 @@ extern "C"
             getOptBool FORCE_FLAG = goFalse;
     #define FORCE_LONG_OPT_STRING "force"
     #define FORCE_LONG_OPT { FORCE_LONG_OPT_STRING, no_argument, &FORCE_FLAG, goTrue }
+
+    //Concurrent ranges (multi-actuator)
+    #define SHOW_CONCURRENT_RANGES showConcurrentRanges
+    #define SHOW_CONCURRENT_RANGES_VAR getOptBool SHOW_CONCURRENT_RANGES = goFalse;
+    #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
+    #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
 
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2896,6 +2908,8 @@ extern "C"
 
     void print_FWDL_Segment_Size_Help(bool shortHelp);
 
+    void print_FWDL_Ignore_Final_Segment_Help(bool shortHelp);
+
     void print_show_FWDL_Support_Help(bool shortHelp);
 
     void print_Firmware_Activate_Help(bool shortHelp);
@@ -3145,6 +3159,8 @@ extern "C"
     void print_Force_Help(bool shortHelp);
 
     void print_Seagate_Quick_Format_Help(bool shortHelp);
+
+    void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

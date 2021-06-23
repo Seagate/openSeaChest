@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.0.0";
+const char *buildVersion = "1.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -7765,11 +7765,22 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         scsi_Information(inputs->device, &scsiInformation);
         scsi_VPD_Pages(inputs->device, &scsiInformation);
         scsi_Capacity_Information(inputs->device, &scsiInformation);
+
+        //check SCSI read/write CDB support. This runs a normal test, but will check for zero-length transfers IF asked to to do.
+        scsiRWSupport rwSupport;
+        memset(&rwSupport, 0, sizeof(scsiRWSupport));
+        scsi_Read_Check(inputs->device, false, &rwSupport, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads ? true : false);
+
         //Now check for mode pages - Warn about any missing MANDATORY pages
         scsi_Mode_Information(inputs->device, &scsiInformation);
         //Now check for log pages - Warn about any missing MANDATORY pages
         //This is likely where we'll find issues with subpages not being supported, but the device returning data anyways
         scsi_Log_Information(inputs->device, &scsiInformation);
+
+        //5. optionally do a more in depth check for additional SCSI commands like report supported operation codes that would also be useful, or security protocol commands.
+        otherSCSICmdSupport supScsiCmds;
+        memset(&supScsiCmds, 0, sizeof(otherSCSICmdSupport));
+        other_SCSI_Cmd_Support(inputs->device, &supScsiCmds);
 
         //now perform a test to check the device error handling. Some have poor error handling and time to report errors grows with each command slowing the whole device down.
         double relativeCommandProcessingPerformance = 0;
@@ -7869,15 +7880,6 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             set_Console_Colors(true, DEFAULT);
         }
 
-
-        //4. optionally check SCSI read/write CDB support. This will not be on by default since it doesn't actually seem to work on anything other than a proper SAS drive today
-        scsiRWSupport rwSupport;
-        memset(&rwSupport, 0, sizeof(scsiRWSupport));
-        scsi_Read_Check(inputs->device, false, &rwSupport, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads ? true : false);
-        //5. optionally do a more in depth check for additional SCSI commands like report supported operation codes that would also be useful, or security protocol commands.
-        otherSCSICmdSupport supScsiCmds;
-        memset(&supScsiCmds, 0, sizeof(otherSCSICmdSupport));
-        other_SCSI_Cmd_Support(inputs->device, &supScsiCmds);
         //Finally. Display the results and which hacks were found while testing the device.
 
         set_Console_Colors(true, HEADING_COLOR);

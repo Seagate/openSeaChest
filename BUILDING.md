@@ -32,6 +32,14 @@ Compilers or operating systems not mentioned in this file may be supported as we
     * [Set MSYS2 to Run as administrator](#set-msys2-to-run-as-administrator)
     * [Building openSeaChest with MinGW](#building-openSeaChest-with-mingw)
 
+[UEFI](#UEFI)
+
+* [Build System Info](#Build-System-Info)
+* [Checking out EDK2 and EDK2-libc](#Checking-out-EDK2-and-EDK2-libc)
+* [Setting up the EDK2 Build Environment](#Setting-up-the-EDK2-Build-Environment)
+* [Executing the UEFI Build](#Executing-the-UEFI-Build)
+* [Running OpenSeaChest UEFI Tools](#Running-OpenSeaChest-UEFI-Tools)
+
 [Documentation](#documentation)
 
 [Platforms](#platforms)
@@ -246,6 +254,76 @@ This should build all of the openSeaChest tools as defined by the variable *BUIL
 
     make -f Makefile.gccWin print-BUILD_ALL
 You will find the newly compiled executable files in the `./openseachest_exes/ folder`.
+
+### UEFI
+
+This section will document the process that was used to build the EFI shell binary versions of openSeaChest. Please note that this is not actively maintained and there are many issues trying to run these tools on a variety of systems.
+
+#### Build System Info
+
+To build the EFI binaries, use Ubuntu with thebuild-essential package installed. This has been done on Ubuntu 18.04 and Ubuntu 20.04 versions. This will likely work on other systems too, but they have not been tested.
+
+#### Checking out EDK2 and EDK2-libc
+
+To build the tools, you will need to check out EDK2 and EDK2-libc. Please note that the EDK2 project has removed the insecure string functions from EDK2 and libc no longer builds. So in order to build, you will need to check out an older tag.
+
+First clone EDK2:
+
+    git clone -b edk2-stable202005 https://github.com/tianocore/edk2.git
+
+Next, clone the EDK2 libc fork from Seagate:
+
+    git clone -b openseachest https://github.com/Seagate/edk2-libc.git
+
+The Seagate fork includes additions to the EDK2 libc package that has getopt_long and C99 style printf formatting macros (and others from inttypes.h).
+
+#### Setting up the EDK2 Build Environment
+
+Refer to [this EDK2 getting started documentation](https://github.com/tianocore/tianocore.github.io/wiki/Using-EDK-II-with-Native-GCC) to setup the system, then [this documentation](https://github.com/tianocore/tianocore.github.io/wiki/Common-instructions) to build the basetools.
+
+Once the basetools are setup, you must get the EDK2 directories setup to build openSeaChest. There is some EDK2 documentation that describes a split folder build environment, but this did not seem to work as expected, so this documentation copies the necessary folders to the right place.
+
+From the edk2-libc checkout, copy the StdLib and StdLibPrivateInternalFiles folders to the EDK2 directory.
+
+Now, it's time to copy the openSeaChest and opensea-*libs to the EDK2 directory. This has been consolidated into a single bash shell script to keep this simple.
+Navigate to `openSeaChest/Make/UEFI` and execute the script providing the path to the EDK2 directory. Relative paths are ok.
+Example:
+
+    ./copy_files.sh /this/is/the/path/to/edk2/checkout
+
+The last thing required before executing the build is to set the target for EDK2. Open the file `target.txt` which can be found in `edk2/Conf` in your editor of choice.
+
+Set `ACTIVE_PLATFORM` to `openSeaChestPkg/openSeaChestPkg.dsc`, then set the `TARGET` to `RELEASE` for a release build or set to `DEBUG` if you want a debug build.
+`TARGET_ARCH` should be set to the intended build target. NOTE: This requires setting the correct cross-compiler if targetting another CPU architecture. At this time, only `X64` has been used as that is what has been able to be tested.
+`TOOL_CHAIN_TAG` should be set to `GCC5`, but if cross-compiling this may need to be set differently.
+
+#### Executing the UEFI Build
+
+Once everything is setup, it's time to build. Some of the following steps may have already been performed when following EDK2's build setup intructions mentioned earlier.
+
+Set the base-tools directory:
+
+    export EDK_TOOLS_PATH=$HOME/src/edk2/BaseTools
+
+Call the EDK2 setup script:
+
+    bash$ . edksetup.sh BaseTools
+
+From the EDK2 directory, call build:
+
+    build
+
+The build will run, and as long as there are no errors, the output files will be found in the following directory:
+
+    edk2/Build/openSeaChestPkg/<TARGET>_<TOOL_CHAIN_CONFIG>/<TARGET_ARCH>
+
+If using the setting recommended earlier, this will be:
+
+    edk2/Build/openSeaChestPkg/RELEASE_GCC5/X64
+
+#### Running OpenSeaChest UEFI Tools
+
+All openSeaChest UEFI tools have been run through the EFI shell. If you are using a system with secureboot enabled, you must either disable secure boot, or have the tools signed and follow the chain of trust...or add your own signature to the tools and to your UEFI systems list of keys. This process is outside the scope of this documentation.
 
 ### Documentation
 
