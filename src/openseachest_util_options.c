@@ -2392,7 +2392,13 @@ void print_TCG_PSID_Help(bool shortHelp)
     {
         printf("\t\tThis option can be used to specify the value of the PSID.\n");
         printf("\t\tThis may be required in order to perform certain TCG\n");
-        printf("\t\toperations.\n\n");
+        printf("\t\toperations.\n");
+        printf("\t\tOn Seagate drives, PSIDs are 32 digits long, all uppercase,\n");
+        printf("\t\tand uses zeros and ones but do NOT use O's and I's.\n");
+        printf("\t\tAdditionally, it is possible to exhaust the number of attempts\n");
+        printf("\t\t the device allows. Seagate drives have this set to 5 attempts.\n");
+        printf("\t\tOnce this is exhausted, a full power cycle of the device is required\n");
+        printf("\t\tbefore you can try again.\n\n");
     }
 }
 

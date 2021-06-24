@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1445,6 +1445,12 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("RevertSP Failure!\n");
+                        printf("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        printf("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        printf("\tbut do NOT use O's and I's.\n");
+                        printf("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        printf("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        printf("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1522,6 +1528,12 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Revert Failure!\n");
+                        printf("\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
+                        printf("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        printf("\tbut do NOT use O's and I's.\n");
+                        printf("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        printf("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        printf("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
