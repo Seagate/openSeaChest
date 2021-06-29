@@ -3921,3 +3921,46 @@ void print_Pull_Power_Telemetry_Help(bool shortHelp)
         printf("\t\tdata and save it to a binary file.\n\n");
     }
 }
+
+void print_Show_Reservation_Capabilities(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options shows the persistent reservation\n");
+        printf("\t\tcapabilities for a device.\n");
+        printf("\t\tNOTE: Older device supporting SPC or SPC2 may not support\n");
+        printf("\t\tshowing capabilities, but do support persistent reservations.\n\n");
+    }
+}
+
+void print_Show_Full_Reservation_Info(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation full\n");
+        printf("\t\tinformation (registrations and reservations) and\n");
+        printf("\t\tprints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Registration_Keys(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_REGISTRATION_KEYS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\tregistration keys and prints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Reservations(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\treservations and prints it to the screen.\n\n");
+    }
+}

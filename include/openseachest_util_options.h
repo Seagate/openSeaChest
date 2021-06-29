@@ -1821,6 +1821,27 @@ extern "C"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
 
+    //SCSI/NVMe reservations
+    #define SHOW_RESERVATION_CAPABILITIES showReservationCapabilities
+    #define SHOW_RESERVATION_CAPABILITIES_VAR getOptBool SHOW_RESERVATION_CAPABILITIES = goFalse;
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING "showReservationCapabilties"
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT { SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING, no_argument, &SHOW_RESERVATION_CAPABILITIES, goTrue }
+
+    #define SHOW_FULL_RESERVATION_INFO showFullReservationInfo
+    #define SHOW_FULL_RESERVATION_INFO_VAR getOptBool SHOW_FULL_RESERVATION_INFO = goFalse;
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING "showFullReservationInfo"
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT { SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING, no_argument, &SHOW_FULL_RESERVATION_INFO, goTrue }
+
+    #define SHOW_REGISTRATION_KEYS showRegistrationKeys
+    #define SHOW_REGISTRATION_KEYS_VAR getOptBool SHOW_REGISTRATION_KEYS = goFalse;
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT_STRING "showRegistrationKeys"
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT { SHOW_REGISTRATION_KEYS_LONG_OPT_STRING, no_argument, &SHOW_REGISTRATION_KEYS, goTrue }
+
+    #define SHOW_RESERVATIONS showReservationKeys
+    #define SHOW_RESERVATIONS_VAR getOptBool SHOW_RESERVATIONS = goFalse;
+    #define SHOW_RESERVATIONS_LONG_OPT_STRING "showReservations"
+    #define SHOW_RESERVATIONS_LONG_OPT { SHOW_RESERVATIONS_LONG_OPT_STRING, no_argument, &SHOW_RESERVATIONS, goTrue }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3161,6 +3182,14 @@ extern "C"
     void print_Seagate_Quick_Format_Help(bool shortHelp);
 
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
+
+    void print_Show_Reservation_Capabilities(bool shortHelp);
+
+    void print_Show_Full_Reservation_Info(bool shortHelp);
+
+    void print_Show_Registration_Keys(bool shortHelp);
+
+    void print_Show_Reservations(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
