@@ -91,6 +91,19 @@ int32_t main(int argc, char *argv[])
     SHOW_FULL_RESERVATION_INFO_VAR
     SHOW_REGISTRATION_KEYS_VAR
     SHOW_RESERVATIONS_VAR
+    PERSISTENT_RESERVATION_KEY_VARS
+    PERSISTENT_RESERVATION_TYPE_VARS
+    PERSISTENT_RESERVATION_ATP_VAR
+    PERSISTENT_RESERVATION_PTPL_VAR
+    PERSISTENT_RESERVATION_REGISTER_VAR
+    PERSISTENT_RESERVATION_UNREGISTER_VAR
+    PERSISTENT_RESERVATION_REGISTER_I_VAR
+    PERSISTENT_RESERVATION_RESERVE_VAR
+    PERSISTENT_RESERVATION_RELEASE_VAR
+    PERSISTENT_RESERVATION_CLEAR_VAR
+    PERSISTENT_RESERVATION_PREEMPT_VARS
+    PERSISTENT_RESERVATION_PREEMPT_ABORT_VAR
+
 
     int  args = 0;
     int argIndex = 0;
@@ -128,6 +141,18 @@ int32_t main(int argc, char *argv[])
         SHOW_FULL_RESERVATION_INFO_LONG_OPT,
         SHOW_REGISTRATION_KEYS_LONG_OPT,
         SHOW_RESERVATIONS_LONG_OPT,
+        PERSISTENT_RESERVATION_KEY_LONG_OPT,
+        PERSISTENT_RESERVATION_TYPE_LONG_OPT,
+        PERSISTENT_RESERVATION_ATP_LONG_OPT,
+        PERSISTENT_RESERVATION_PTPL_LONG_OPT,
+        PERSISTENT_RESERVATION_REGISTER_LONG_OPT,
+        PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT,
+        PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT,
+        PERSISTENT_RESERVATION_RESERVE_LONG_OPT,
+        PERSISTENT_RESERVATION_RELEASE_LONG_OPT,
+        PERSISTENT_RESERVATION_CLEAR_LONG_OPT,
+        PERSISTENT_RESERVATION_PREEMPT_LONG_OPT,
+        PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT,
         //tool specific options go here
         LONG_OPT_TERMINATOR
     };
@@ -165,26 +190,80 @@ int32_t main(int argc, char *argv[])
         {
         case 0:
             //parse long options that have no short option and required arguments here
-            if (strncmp(longopts[optionIndex].name, "longOption", M_Min(strlen(longopts[optionIndex].name), strlen("longOption"))) == 0)
+            if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING) == 0)
             {
-                //set flags
+                if (get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_KEY))
+                {
+                    PERSISTENT_RESREVATION_KEY_VALID = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "wrex") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_WRITE_EXCLUSIVE;
+                }
+                else if (strcmp(optarg, "ex") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_EXCLUSIVE_ACCESS;
+                }
+                else if (strcmp(optarg, "wrexro") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_WRITE_EXCLUSIVE_REGISTRANTS_ONLY;
+                }
+                else if (strcmp(optarg, "exro") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_EXCLUSIVE_ACCESS_REGISTRANTS_ONLY;
+                }
+                else if (strcmp(optarg, "wrexar") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_EXCLUSIVE_ACCESS_ALL_REGISTRANTS;
+                }
+                else if (strcmp(optarg, "exar") == 0)
+                {
+                    PERSISTENT_RESREVATION_TYPE_VALID = true;
+                    PERSISTENT_RESERVATION_TYPE = RES_TYPE_EXCLUSIVE_ACCESS_ALL_REGISTRANTS;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_PREEMPT_KEY))
+                {
+                    print_Error_In_Cmd_Line_Args(PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 strncpy(MODEL_STRING_FLAG, optarg, 40);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 strncpy(FW_STRING_FLAG, optarg, 8);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
@@ -469,6 +548,12 @@ int32_t main(int argc, char *argv[])
         || SHOW_FULL_RESERVATION_INFO
         || SHOW_REGISTRATION_KEYS
         || SHOW_RESERVATIONS
+        || PERSISTENT_RESERVATION_REGISTER
+        || PERSISTENT_RESERVATION_UNREGISTER
+        || PERSISTENT_RESERVATION_RESERVE
+        || PERSISTENT_RESERVATION_RELEASE
+        || PERSISTENT_RESERVATION_CLEAR
+        || PERSISTENT_RESERVATION_PREEMPT
         ))
     {
         utility_Usage(true);
@@ -752,10 +837,12 @@ int32_t main(int argc, char *argv[])
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
+        bool prSupported = is_Persistent_Reservations_Supported(&deviceList[deviceIter]);
+
         //Util specific options here
         if (SHOW_RESERVATION_CAPABILITIES)
         {
-            if (is_Persistent_Reservations_Supported(&deviceList[deviceIter]))
+            if (prSupported)
             {
                 persistentReservationCapabilities prCapabilities;
                 memset(&prCapabilities, 0, sizeof(persistentReservationCapabilities));
@@ -794,7 +881,7 @@ int32_t main(int argc, char *argv[])
 
         if (SHOW_FULL_RESERVATION_INFO)
         {
-            if (is_Persistent_Reservations_Supported(&deviceList[deviceIter]))
+            if (prSupported)
             {
                 uint16_t fullReservationsCount = 0;
                 size_t fullReservationsDataSize = 0;
@@ -867,7 +954,7 @@ int32_t main(int argc, char *argv[])
 
         if (SHOW_REGISTRATION_KEYS)
         {
-            if (is_Persistent_Reservations_Supported(&deviceList[deviceIter]))
+            if (prSupported)
             {
                 uint16_t registrationKeyCount = 0;
                 size_t registrationKeysDataSize = 0;
@@ -941,7 +1028,7 @@ int32_t main(int argc, char *argv[])
         
         if (SHOW_RESERVATIONS)
         {
-            if (is_Persistent_Reservations_Supported(&deviceList[deviceIter]))
+            if (prSupported)
             {
                 uint16_t reservationKeyCount = 0;
                 size_t reservationsDataSize = 0;
@@ -1012,6 +1099,236 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
         }
+
+        //A key must be provided for all of these options...
+        if (!PERSISTENT_RESREVATION_KEY_VALID && (PERSISTENT_RESERVATION_REGISTER || PERSISTENT_RESERVATION_UNREGISTER || PERSISTENT_RESERVATION_RESERVE || PERSISTENT_RESERVATION_RELEASE || PERSISTENT_RESERVATION_CLEAR || PERSISTENT_RESERVATION_PREEMPT))
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("Persistent Reservations are not supported on this device\n");
+            }
+            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            continue;
+        }
+
+        //persistent reservation type must be provided for these options.
+        if(!PERSISTENT_RESREVATION_TYPE_VALID && (PERSISTENT_RESERVATION_RESERVE || PERSISTENT_RESERVATION_RELEASE || PERSISTENT_RESERVATION_PREEMPT))
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("Persistent Reservations type must be specified for reserve, release, or preempt actions.\n");
+            }
+            exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            continue;
+        }
+
+        if (PERSISTENT_RESERVATION_REGISTER)
+        {
+            if (prSupported)
+            {
+                switch (register_Key(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, M_ToBool(PERSISTENT_RESERVATION_ATP), M_ToBool(PERSISTENT_RESERVATION_PTPL), M_ToBool(PERSISTENT_RESERVATION_REGISTER_I)))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("An unsupported option was provided while trying to register the provided key.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to register provided key and registration options.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (PERSISTENT_RESERVATION_UNREGISTER)
+        {
+            if (prSupported)
+            {
+                switch (unregister_Key(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Invalid key specified. Cannot unregister this key.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to unregister provided key\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+        
+        if (PERSISTENT_RESERVATION_RESERVE)
+        {
+            if (prSupported)
+            {
+                switch (acquire_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_TYPE))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Invalid key or reservation type specified. Cannot acquire reservation for the device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to acquire a reservation for the device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (PERSISTENT_RESERVATION_RELEASE)
+        {
+            if (prSupported)
+            {
+                switch (release_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_TYPE))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Invalid key or reservation type specified. Cannot release reservation for the device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to release a reservation for the device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (PERSISTENT_RESERVATION_CLEAR)
+        {
+            if (prSupported)
+            {
+                switch (clear_Reservations(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Invalid key specified. Cannot clear reservations for the device.\n");
+                        printf("Make sure this key has been registered first, then try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to clear reservations for the device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (PERSISTENT_RESERVATION_PREEMPT)
+        {
+            if (prSupported)
+            {
+                switch (preempt_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_PREEMPT_KEY, M_ToBool(PERSISTENT_RESERVATION_PREEMPT_ABORT), PERSISTENT_RESERVATION_TYPE))
+                {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED://this should only really show up at this point if an invalid field was specified for the device since we already check if reservations are supported above.-TJE
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Invalid option specified while trying to preempt a reservation.\n");
+                        printf("Check the provided key and preempt key. Some devices may not support\n");
+                        printf("the option to preempt-abort a reservation.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to preempt a reservation for the device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Persistent Reservations are not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
 
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
