@@ -4058,7 +4058,20 @@ void print_Persistent_Reservations_Unregister_Help(bool shortHelp)
 
 void print_Persistent_Reservations_Reserve_Help(bool shortHelp)
 {
-    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING);
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tto acquire.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Release_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
