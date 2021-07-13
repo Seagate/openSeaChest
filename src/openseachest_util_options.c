@@ -4020,7 +4020,7 @@ void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHel
     }
 }
 
-void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp)
+void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp)
 {
     printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
     if (!shortHelp)
