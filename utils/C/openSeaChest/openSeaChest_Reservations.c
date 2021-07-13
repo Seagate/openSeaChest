@@ -242,7 +242,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_PREEMPT_KEY))
+                if (get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_PREEMPT_KEY))
+                {
+                    PERSISTENT_RESERVATION_PREEMPT = true;
+                }
+                else
                 {
                     print_Error_In_Cmd_Line_Args(PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
