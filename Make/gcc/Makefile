@@ -39,6 +39,10 @@ INC_DIR ?= \
 	-I../../opensea-operations/include
 
 UNAME := $(shell uname -s)
+
+#If C_INCLUDE_PATH is not set, set it to /usr/include/
+C_INCLUDE_PATH := /usr/include/
+
 ifeq ($(UNAME),Linux)
 	LFLAGS += -lm -lrt
 	TCGLFLAGS += -lm -lrt
