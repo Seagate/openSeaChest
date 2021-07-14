@@ -4117,8 +4117,8 @@ void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
-        printf("\t\treservation holder. This must be used in combinationwith the\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
-        printf("\t\t--%s option in order to specify the key to preempt.\n\n");
+        printf("\t\treservation holder. This must be used in combination with the\n");
+        printf("\t\t--%s option in order to specify the key to preempt.\n\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
     }
 }
 
