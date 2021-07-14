@@ -3261,6 +3261,30 @@ extern "C"
 
     void print_Show_Reservations(bool shortHelp);
 
+    void print_Persistent_Reservations_Key_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Type_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_All_Target_Ports_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Unregister_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Reserve_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Release_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Clear_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
+
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
     typedef struct _deviceScanFlags

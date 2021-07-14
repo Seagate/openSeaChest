@@ -4074,10 +4074,51 @@ void print_Persistent_Reservations_Release_Help(bool shortHelp)
     printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
+        printf("\t\tUse this option to release reservation using a key that is specified by\n");
         printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
-        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tThe specified key must already be registered with the device and must\n");
+        printf("\t\thave an active reservation that can be released.\n");
         printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
-        printf("\t\tto acquire.\n\n");
+        printf("\t\tto release.\n\n");
     }
 }
+
+void print_Persistent_Reservations_Clear_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to clear all reservations using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Help(bool shortHelp)
+{
+    printf("\t--%s [reservation key to preempt]\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to preempt another reservation using a registration key\n");
+        printf("\t\t that is specified by the --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tThis is used to remove a reservation from another initiator and start\n");
+        printf("\t\ta new one using the specified registration key. --%s must also\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tbe provided to specify the type of reservation that should be active\n");
+        printf("\t\tonce the preempt has completed.\n");
+        printf("\t\tUse with the --%s option to cause the preempt to abort all\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+        printf("\t\toutstanding commands to the previous reservation holder.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
+{
+    printf("\t--%s [reservation key to preempt]\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
+        printf("\t\treservation holder. This must be used in combinationwith the\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+        printf("\t\t--%s option in order to specify the key to preempt.\n\n");
+    }
+}
+

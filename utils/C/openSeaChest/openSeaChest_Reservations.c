@@ -1410,6 +1410,18 @@ void utility_Usage(bool shortUsage)
     //utility tests/operations go here - alphabetized
     //multiple interfaces
 
+    print_Persistent_Reservations_All_Target_Ports_Help(shortUsage);
+    print_Persistent_Reservations_Clear_Help(shortUsage);
+    print_Persistent_Reservations_Key_Help(shortUsage);
+    print_Persistent_Reservations_Persist_Through_Power_Loss_Help(shortUsage);
+    print_Persistent_Reservations_Preempt_Help(shortUsage);
+    print_Persistent_Reservations_Preempt_Abort_Help(shortUsage);
+    print_Persistent_Reservations_Register_Help(shortUsage);
+    print_Persistent_Reservations_Register_Ignore_Help(shortUsage);
+    print_Persistent_Reservations_Release_Help(shortUsage);
+    print_Persistent_Reservations_Reserve_Help(shortUsage);
+    print_Persistent_Reservations_Type_Help(shortUsage);
+    print_Persistent_Reservations_Unregister_Help(shortUsage);
     print_Show_Full_Reservation_Info(shortUsage);
     print_Show_Registration_Keys(shortUsage);
     print_Show_Reservations(shortUsage);
