@@ -4043,6 +4043,7 @@ void print_Persistent_Reservations_Register_Help(bool shortHelp)
         printf("\t\t--%s\n", PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING);
         printf("\t\t--%s\n", PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING);
         printf("\t\t--%s\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
+        printf("\n");
     }
 }
 
@@ -4052,7 +4053,7 @@ void print_Persistent_Reservations_Unregister_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to unregister a key that is specified by\n");
-        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tthe --%s option.\n\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
     }
 }
 
@@ -4113,7 +4114,7 @@ void print_Persistent_Reservations_Preempt_Help(bool shortHelp)
 
 void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
 {
-    printf("\t--%s [reservation key to preempt]\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
