@@ -930,7 +930,7 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
         #else
             //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
             //      compilers, using #pramga message may also work.
-            #pragma GCC diagnostic warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
+            #pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
         #endif
     #endif
 #elif defined (__sun)
