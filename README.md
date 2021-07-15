@@ -118,6 +118,10 @@ device interface commands, which are passed through to the storage device.
 **openSeaChest_PowerControl** - Disk drives offer a multitude of options to
 manage power.  This tool manipulates the various power modes.  Some power commands are Seagate-specific while many others are common to the interface specifications.
 
+**openSeaChest_Reservations** - A tool to assist with persistent reservations available on SAS drives and supported NVMe drives.
+NOTE: NVMe support under Windows is unavailable. See <https://docs.microsoft.com/en-us/windows-hardware/drivers/storage/nvme-features-supported-by-stornvme> for detail on which features
+are supported by the StorNVMe Miniport driver in Windows.
+
 **openSeaChest_Security** - Various settings are available on modern Seagate disk
 drives which may be locked and unlocked.  These settings may interact with the
 operating systems and systems BIOS.  Options also include ATA Security Erase
