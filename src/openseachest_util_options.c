@@ -3921,3 +3921,205 @@ void print_Pull_Power_Telemetry_Help(bool shortHelp)
         printf("\t\tdata and save it to a binary file.\n\n");
     }
 }
+
+void print_Show_Reservation_Capabilities(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options shows the persistent reservation\n");
+        printf("\t\tcapabilities for a device.\n");
+        printf("\t\tNOTE: Older device supporting SPC or SPC2 may not support\n");
+        printf("\t\tshowing capabilities, but do support persistent reservations.\n\n");
+    }
+}
+
+void print_Show_Full_Reservation_Info(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation full\n");
+        printf("\t\tinformation (registrations and reservations) and\n");
+        printf("\t\tprints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Registration_Keys(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_REGISTRATION_KEYS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\tregistration keys and prints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Reservations(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\treservations and prints it to the screen.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Key_Help(bool shortHelp)
+{
+    printf("\t--%s [key]\t(NVMe & SAS Only)\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the key to use for persistent\n");
+        printf("\t\treservation options. When registering a key, this provides\n");
+        printf("\t\tthe value expected for your use. It should continue to be used\n");
+        printf("\t\tthrough all persistent reseve operations until unregistered or\n");
+        printf("\t\tcleared.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Type_Help(bool shortHelp)
+{
+    printf("\t--%s [wrex | ex | wrexro | exro | wrexar | exar]\t(NVMe and SAS only)\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option specifies the type of reservation to hold.\n");
+        printf("\t\tThis is required for acquiring, preempting, and releasing\n");
+        printf("\t\treservations.\n");
+        printf("\t\tAvailable reservation types:\n");
+        printf("\t\t\twrex   - write exclusive\n");
+        printf("\t\t\tex     - exclusive access\n");
+        printf("\t\t\twrexro - write exclusive, registrants only\n");
+        printf("\t\t\texro   - exclusive access, registrants only\n");
+        printf("\t\t\twrexar - write exclusive, all registrants\n");
+        printf("\t\t\texar   - exclusive access, all registrants\n");
+        //NOTE: There are obsolete types available for SAS, but not implementing them since they are long obsolete.
+        printf("\n");
+    }
+}
+
+void print_Persistent_Reservations_All_Target_Ports_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to specify\n");
+        printf("\t\tthat it applies to all target ports.\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to activate\n");
+        printf("\t\tthe persist through power loss capability.\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to instruct\n");
+        printf("\t\tthe device to ignore any previous registration key\n");
+        printf("\t\tthat has already been registered from the same initiator\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Register_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to register a new key as specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tCombine this with the following options as needed:\n");
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING);
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING);
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
+        printf("\n");
+    }
+}
+
+void print_Persistent_Reservations_Unregister_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to unregister a key that is specified by\n");
+        printf("\t\tthe --%s option.\n\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+    }
+}
+
+void print_Persistent_Reservations_Reserve_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tto acquire.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Release_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to release reservation using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device and must\n");
+        printf("\t\thave an active reservation that can be released.\n");
+        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tto release.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Clear_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to clear all reservations using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Help(bool shortHelp)
+{
+    printf("\t--%s [reservation key to preempt]\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to preempt another reservation using a registration key\n");
+        printf("\t\t that is specified by the --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tThis is used to remove a reservation from another initiator and start\n");
+        printf("\t\ta new one using the specified registration key. --%s must also\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tbe provided to specify the type of reservation that should be active\n");
+        printf("\t\tonce the preempt has completed.\n");
+        printf("\t\tUse with the --%s option to cause the preempt to abort all\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+        printf("\t\toutstanding commands to the previous reservation holder.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
+        printf("\t\treservation holder. This must be used in combination with the\n");
+        printf("\t\t--%s option in order to specify the key to preempt.\n\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+    }
+}
+

@@ -1821,6 +1821,97 @@ extern "C"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
 
+    //SCSI/NVMe reservations
+    #define SHOW_RESERVATION_CAPABILITIES showReservationCapabilities
+    #define SHOW_RESERVATION_CAPABILITIES_VAR getOptBool SHOW_RESERVATION_CAPABILITIES = goFalse;
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING "showPReservationCapabilties"
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT { SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING, no_argument, &SHOW_RESERVATION_CAPABILITIES, goTrue }
+
+    #define SHOW_FULL_RESERVATION_INFO showFullReservationInfo
+    #define SHOW_FULL_RESERVATION_INFO_VAR getOptBool SHOW_FULL_RESERVATION_INFO = goFalse;
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING "showFullPReservationInfo"
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT { SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING, no_argument, &SHOW_FULL_RESERVATION_INFO, goTrue }
+
+    #define SHOW_REGISTRATION_KEYS showRegistrationKeys
+    #define SHOW_REGISTRATION_KEYS_VAR getOptBool SHOW_REGISTRATION_KEYS = goFalse;
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT_STRING "showPRegistrationKeys"
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT { SHOW_REGISTRATION_KEYS_LONG_OPT_STRING, no_argument, &SHOW_REGISTRATION_KEYS, goTrue }
+
+    #define SHOW_RESERVATIONS showReservationKeys
+    #define SHOW_RESERVATIONS_VAR getOptBool SHOW_RESERVATIONS = goFalse;
+    #define SHOW_RESERVATIONS_LONG_OPT_STRING "showPReservations"
+    #define SHOW_RESERVATIONS_LONG_OPT { SHOW_RESERVATIONS_LONG_OPT_STRING, no_argument, &SHOW_RESERVATIONS, goTrue }
+
+    #define PERSISTENT_RESERVATION_KEY prKey
+    #define PERSISTENT_RESREVATION_KEY_VALID prKeyValid
+    #define PERSISTENT_RESERVATION_KEY_VARS \
+    bool PERSISTENT_RESREVATION_KEY_VALID = false;\
+    uint64_t PERSISTENT_RESERVATION_KEY = 0;
+    #define PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING "prKey"
+    #define PERSISTENT_RESERVATION_KEY_LONG_OPT { PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_TYPE prType
+    #define PERSISTENT_RESREVATION_TYPE_VALID prTypeValid
+    #define PERSISTENT_RESERVATION_TYPE_VARS \
+    bool PERSISTENT_RESREVATION_TYPE_VALID = false;\
+    uint64_t PERSISTENT_RESERVATION_TYPE = 0;
+    #define PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING "prType"
+    #define PERSISTENT_RESERVATION_TYPE_LONG_OPT { PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_ATP prATP
+    #define PERSISTENT_RESERVATION_ATP_VAR getOptBool PERSISTENT_RESERVATION_ATP = goFalse;
+    #define PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING "prAllTargetPorts"
+    #define PERSISTENT_RESERVATION_ATP_LONG_OPT { PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_ATP, goTrue }
+
+    #define PERSISTENT_RESERVATION_PTPL prPTPL
+    #define PERSISTENT_RESERVATION_PTPL_VAR getOptBool PERSISTENT_RESERVATION_PTPL = goFalse;
+    #define PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING "prPersistThroughPowerLoss"
+    #define PERSISTENT_RESERVATION_PTPL_LONG_OPT { PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_PTPL, goTrue }
+
+    #define PERSISTENT_RESERVATION_REGISTER prRegister
+    #define PERSISTENT_RESERVATION_REGISTER_VAR getOptBool PERSISTENT_RESERVATION_REGISTER = goFalse;
+    #define PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING "prRegister"
+    #define PERSISTENT_RESERVATION_REGISTER_LONG_OPT { PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_REGISTER, goTrue }
+
+    #define PERSISTENT_RESERVATION_UNREGISTER prUnregister
+    #define PERSISTENT_RESERVATION_UNREGISTER_VAR getOptBool PERSISTENT_RESERVATION_UNREGISTER = goFalse;
+    #define PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING "prUnregister"
+    #define PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT { PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_UNREGISTER, goTrue }
+
+    #define PERSISTENT_RESERVATION_REGISTER_I prRegisterIgnore
+    #define PERSISTENT_RESERVATION_REGISTER_I_VAR getOptBool PERSISTENT_RESERVATION_REGISTER_I = goFalse;
+    #define PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING "prRegisterIgnore"
+    #define PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT { PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_REGISTER_I, goTrue }
+
+    #define PERSISTENT_RESERVATION_RESERVE prReserve
+    #define PERSISTENT_RESERVATION_RESERVE_VAR getOptBool PERSISTENT_RESERVATION_RESERVE = goFalse;
+    #define PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING "prReserve"
+    #define PERSISTENT_RESERVATION_RESERVE_LONG_OPT { PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_RESERVE, goTrue }
+
+    #define PERSISTENT_RESERVATION_RELEASE prRelease
+    #define PERSISTENT_RESERVATION_RELEASE_VAR getOptBool PERSISTENT_RESERVATION_RELEASE = goFalse;
+    #define PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING "prRelease"
+    #define PERSISTENT_RESERVATION_RELEASE_LONG_OPT { PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_RELEASE, goTrue }
+
+    #define PERSISTENT_RESERVATION_CLEAR prClear
+    #define PERSISTENT_RESERVATION_CLEAR_VAR getOptBool PERSISTENT_RESERVATION_CLEAR = goFalse;
+    #define PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING "prClear"
+    #define PERSISTENT_RESERVATION_CLEAR_LONG_OPT { PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_CLEAR, goTrue }
+
+    #define PERSISTENT_RESERVATION_PREEMPT_KEY prPreemptKey
+    #define PERSISTENT_RESERVATION_PREEMPT prPreempt
+    #define PERSISTENT_RESERVATION_PREEMPT_VARS \
+    bool PERSISTENT_RESERVATION_PREEMPT = false;\
+    uint64_t PERSISTENT_RESERVATION_PREEMPT_KEY = 0;
+    #define PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING "prPreempt"
+    #define PERSISTENT_RESERVATION_PREEMPT_LONG_OPT { PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT prPreemptAbort
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_VAR getOptBool PERSISTENT_RESERVATION_PREEMPT_ABORT = goFalse;
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING "prPreemptAbort"
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT { PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_PREEMPT_ABORT, goTrue }
+
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3161,6 +3252,38 @@ extern "C"
     void print_Seagate_Quick_Format_Help(bool shortHelp);
 
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
+
+    void print_Show_Reservation_Capabilities(bool shortHelp);
+
+    void print_Show_Full_Reservation_Info(bool shortHelp);
+
+    void print_Show_Registration_Keys(bool shortHelp);
+
+    void print_Show_Reservations(bool shortHelp);
+
+    void print_Persistent_Reservations_Key_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Type_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_All_Target_Ports_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Unregister_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Reserve_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Release_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Clear_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
