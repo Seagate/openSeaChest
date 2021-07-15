@@ -884,7 +884,7 @@ static void print_GNU_LGPL_License()
 }
 #endif//__GLIBC__
 
-#if defined (USING_MUSL_LIBC)
+#if (USING_MUSL_LIBC)
 static void print_Musl_MIT_License()
 {
     printf("===========================================================================\n");
@@ -925,7 +925,7 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
         //in other 'nix systems, we need to show this since we are using gnu libc
         print_GNU_LGPL_License();
     #else
-        #if defined (USING_MUSL_LIBC)
+        #if (USING_MUSL_LIBC)
             print_Musl_MIT_License();
         #else
             //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
