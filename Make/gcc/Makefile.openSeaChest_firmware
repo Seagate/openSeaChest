@@ -94,6 +94,9 @@ FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
 
 #add any defines needed for tool release. 
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+#Linux: If using a different libc, you will likely get a compile warning.
+#       You can add a -DUSING_LIBNAME_LIBC here to specify it.
+#       Currently, -DUSING_MUSL_LIBC is supported to show the MIT license for it.
 
 .PHONY: all
 

@@ -153,10 +153,11 @@ FIRMWAREOUTFILE = openSeaChest_Firmware
 
 #add any defines needed for tool release.
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
+#Linux: If using a different libc, you will likely get a compile warning.
+#       You can add a -DUSING_LIBNAME_LIBC here to specify it.
+#       Currently, -DUSING_MUSL_LIBC is supported to show the MIT license for it.
 PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
-#ifeq ($(UNAME),FreeBSD)
-#PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-#endif
+
 
 .PHONY: clean_all all
 
