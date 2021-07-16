@@ -151,12 +151,15 @@ RESERVATIONSOBJS = $(RESERVATIONSSOURCES:.c=.o)
 
 FIRMWAREOUTFILE = openSeaChest_Firmware
 
+USING_MUSL=0
 #add any defines needed for tool release.
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
-PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
-#ifeq ($(UNAME),FreeBSD)
-#PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-#endif
+#Linux: If using a different libc, you will likely get a compile warning.
+#       You can add a -DUSING_LIBNAME_LIBC here to specify it.
+#       Currently, -DUSING_MUSL_LIBC is supported to show the MIT license for it.
+#       Calling make as "make release USING_MUSL=1 will enable musl libc license quickly and easily
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT -DUSING_MUSL_LIBC=$(USING_MUSL)
+
 
 .PHONY: clean_all all
 

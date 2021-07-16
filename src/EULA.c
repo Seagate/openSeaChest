@@ -405,222 +405,6 @@ void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense)
     return;
 }
 
-void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
-{
-#if defined(_WIN32)
-    //show this license for the getopt parser in windows
-    print_Win_Getopt_Licenses();
-#elif defined (__FreeBSD__)
-    print_FreeBSD_License();
-#elif defined (__linux__)
-    //in other 'nix systems, we need to show this since we are using gnu libc
-    print_GNU_LGPL_License();
-#elif defined (__sun)
-    //TODO: Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
-#else
-	#error Please update #if for system library licenses!
-#endif
-    printf("===========================================================================\n\n");
-    if (showApacheLicense)
-    {
-        printf("===========================================================================\n\n");
-        print_Apache_2_0_License();
-    }
-    if (showZlibLicense)
-    {
-        printf("===========================================================================\n\n");
-        print_Zlib_License();
-    }
-    return;
-}
-
-void print_GNU_LGPL_License()
-{
-    printf("GNU LESSER GENERAL PUBLIC LICENSE\n\n");
-
-    printf("Version 3, 29 June 2007\n\n");
-
-    printf("Copyright © 2007 Free Software Foundation, Inc. <http://fsf.org/>\n\n");
-
-    printf("Everyone is permitted to copy and distribute verbatim copies of this license\n");
-    printf("document, but changing it is not allowed.\n\n");
-
-    printf("This version of the GNU Lesser General Public License incorporates the terms\n");
-    printf("and conditions of version 3 of the GNU General Public License, supplemented\n");
-    printf("by the additional permissions listed below.\n\n");
-
-    printf("0. Additional Definitions.\n\n");
-
-    printf("As used herein, \"this License\" refers to version 3 of the GNU Lesser General\n");
-    printf("Public License, and the \"GNU GPL\" refers to version 3 of the GNU General\n");
-    printf("Public License.\n\n");
-
-    printf("\"The Library\" refers to a covered work governed by this License, other than\n");
-    printf("an Application or a Combined Work as defined below.\n\n");
-
-    printf("An \"Application\" is any work that makes use of an interface provided by the\n");
-    printf("Library, but which is not otherwise based on the Library. Defining a subclass\n");
-    printf("of a class defined by the Library is deemed a mode of using an interface\n");
-    printf("provided by the Library.\n\n");
-
-    printf("A \"Combined Work\" is a work produced by combining or linking an Application\n");
-    printf("with the Library. The particular version of the Library with which the\n");
-    printf("Combined Work was made is also called the \"Linked Version\".\n\n");
-
-    printf("The \"Minimal Corresponding Source\" for a Combined Work means the\n");
-    printf("Corresponding Source for the Combined Work, excluding any source code for\n");
-    printf("portions of the Combined Work that, considered in isolation, are based on the\n");
-    printf("Application, and not on the Linked Version.\n\n");
-
-    printf("The \"Corresponding Application Code\" for a Combined Work means the object\n");
-    printf("code and/or source code for the Application, including any data and utility\n");
-    printf("programs needed for reproducing the Combined Work from the Application, but\n");
-    printf("excluding the System Libraries of the Combined Work.\n\n");
-
-    printf("1. Exception to Section 3 of the GNU GPL.\n\n");
-
-    printf("You may convey a covered work under sections 3 and 4 of this License without\n");
-    printf("being bound by section 3 of the GNU GPL.\n\n");
-
-    printf("2. Conveying Modified Versions.\n\n");
-
-    printf("If you modify a copy of the Library, and, in your modifications, a facility\n");
-    printf("refers to a function or data to be supplied by an Application that uses the\n");
-    printf("facility (other than as an argument passed when the facility is invoked),\n");
-    printf("then you may convey a copy of the modified version:\n\n");
-
-    printf("* a) under this License, provided that you make a good faith effort to ensure\n");
-    printf("that, in the event an Application does not supply the function or data, the\n");
-    printf("facility still operates, and performs whatever part of its purpose remains\n");
-    printf("meaningful, or\n\n");
-
-    printf("* b) under the GNU GPL, with none of the additional permissions of this\n");
-    printf("License applicable to that copy.\n\n");
-
-    printf("3. Object Code Incorporating Material from Library Header Files.\n\n");
-
-    printf("The object code form of an Application may incorporate material from a header\n");
-    printf("file that is part of the Library. You may convey such object code under terms\n");
-    printf("of your choice, provided that, if the incorporated material is not limited to\n");
-    printf("numerical parameters, data structure layouts and accessors, or small macros,\n");
-    printf("inline functions and templates (ten or fewer lines in length), you do both of\n");
-    printf("the following:\n\n");
-
-    printf("* a) Give prominent notice with each copy of the object code that the Library\n");
-    printf("is used in it and that the Library and its use are covered by this License.\n\n");
-
-    printf("* b) Accompany the object code with a copy of the GNU GPL and this license\n");
-    printf("document.\n\n");
-
-    printf("4. Combined Works.\n\n");
-
-    printf("You may convey a Combined Work under terms of your choice that, taken\n");
-    printf("together, effectively do not restrict modification of the portions of the\n");
-    printf("Library contained in the Combined Work and reverse engineering for debugging\n");
-    printf("such modifications, if you also do each of the following:\n\n");
-
-    printf("* a) Give prominent notice with each copy of the Combined Work that the\n");
-    printf("Library is used in it and that the Library and its use are covered by this\n");
-    printf("License.\n\n");
-
-    printf("* b) Accompany the Combined Work with a copy of the GNU GPL and this license\n");
-    printf("document.\n\n");
-
-    printf("* c) For a Combined Work that displays copyright notices during execution,\n");
-    printf("include the copyright notice for the Library among these notices, as well as\n");
-    printf("a reference directing the user to the copies of the GNU GPL and this license\n");
-    printf("document.\n\n");
-
-    printf("* d) Do one of the following:\n");
-    printf("  o 0) Convey the Minimal Corresponding Source under the terms of this\n");
-    printf("License, and the Corresponding Application Code in a form suitable for, and\n");
-    printf("under terms that permit, the user to recombine or relink the Application\n");
-    printf("with a modified version of the Linked Version to produce a modified\n");
-    printf("Combined Work, in the manner specified by section 6 of the GNU GPL for\n");
-    printf("conveying Corresponding Source.\n");
-    printf("  o 1) Use a suitable shared library mechanism for linking with the Library.\n");
-    printf("A suitable mechanism is one that (a) uses at run time a copy of the Library\n");
-    printf("already present on the user's computer system, and (b) will operate\n");
-    printf("properly with a modified version of the Library that is\n");
-    printf("interface-compatible with the Linked Version.\n\n");
-
-    printf("* e) Provide Installation Information, but only if you would otherwise be\n");
-    printf("required to provide such information under section 6 of the GNU GPL, and only\n");
-    printf("to the extent that such information is necessary to install and execute a\n");
-    printf("modified version of the Combined Work produced by recombining or relinking\n");
-    printf("the Application with a modified version of the Linked Version. (If you use\n");
-    printf("option 4d0, the Installation Information must accompany the Minimal\n");
-    printf("Corresponding Source and Corresponding Application Code. If you use option\n");
-    printf("4d1, you must provide the Installation Information in the manner specified by\n");
-    printf("section 6 of the GNU GPL for conveying Corresponding Source.)\n\n");
-
-    printf("5. Combined Libraries.\n\n");
-
-    printf("You may place library facilities that are a work based on the Library side by\n");
-    printf("side in a single library together with other library facilities that are not\n");
-    printf("Applications and are not covered by this License, and convey such a combined\n");
-    printf("library under terms of your choice, if you do both of the following:\n\n");
-
-    printf("* a) Accompany the combined library with a copy of the same work based on the\n");
-    printf("Library, uncombined with any other library facilities, conveyed under the\n");
-    printf("terms of this License.\n\n");
-
-    printf("* b) Give prominent notice with the combined library that part of it is a\n");
-    printf("work based on the Library, and explaining where to find the accompanying\n");
-    printf("uncombined form of the same work.\n\n");
-
-    printf("6. Revised Versions of the GNU Lesser General Public License.\n\n");
-
-    printf("The Free Software Foundation may publish revised and/or new versions of the\n");
-    printf("GNU Lesser General Public License from time to time. Such new versions will\n");
-    printf("be similar in spirit to the present version, but may differ in detail to\n");
-    printf("address new problems or concerns.\n\n");
-
-    printf("Each version is given a distinguishing version number. If the Library as you\n");
-    printf("received it specifies that a certain numbered version of the GNU Lesser\n");
-    printf("General Public License \"or any later version\" applies to it, you have the\n");
-    printf("option of following the terms and conditions either of that published version\n");
-    printf("or of any later version published by the Free Software Foundation. If the\n");
-    printf("Library as you received it does not specify a version number of the GNU\n");
-    printf("Lesser General Public License, you may choose any version of the GNU Lesser\n");
-    printf("General Public License ever published by the Free Software Foundation.\n\n");
-
-    printf("If the Library as you received it specifies that a proxy can decide whether\n");
-    printf("future versions of the GNU Lesser General Public License shall apply, that\n");
-    printf("proxy's public statement of acceptance of any version is permanent\n");
-    printf("authorization for you to choose that version for the Library.\n\n");
-    return;
-}
-
-void print_FreeBSD_License()
-{
-    printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
-    printf("Redistribution and use in source and binary forms, with or without\n");
-    printf("modification, are permitted provided that the following conditions are met :\n");
-    printf("\n");
-    printf("1. Redistributions of source code must retain the above copyright notice,\n");
-    printf("this list of conditions and the following disclaimer.\n");
-    printf("2. Redistributions in binary form must reproduce the above copyright notice,\n");
-    printf("this list of conditions and the following disclaimer in the documentation\n");
-    printf("and/or other materials provided with the distribution.\n");
-    printf("\n");
-    printf("THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY\n");
-    printf("EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n");
-    printf("WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n");
-    printf("IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n");
-    printf("INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT\n");
-    printf("LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,\n");
-    printf("OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF\n");
-    printf("LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE\n");
-    printf("OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED\n");
-    printf("OF THE POSSIBILITY OF SUCH DAMAGE.\n");
-    printf("\n");
-    printf("The views and conclusions contained in the software and documentation are those of\n");
-    printf("the authors and should not be interpreted as representing official policies, either\n");
-    printf("expressed or implied, of the FreeBSD Project.\n");
-    printf("\n\n");
-}
-
 void print_Apache_2_0_License()
 {
     printf("===========================================================================\n");
@@ -845,7 +629,8 @@ void print_Zlib_License()
     return;
 }
 
-void print_Win_Getopt_Licenses()
+#if defined (_WIN32)
+static void print_Win_Getopt_Licenses()
 {
     printf("===========================================================================\n");
     printf("wingetopt - getopt library for Windows compilers\n\n");
@@ -904,3 +689,270 @@ void print_Win_Getopt_Licenses()
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
     return;
 }
+#endif//_WIN32
+
+#if defined (__FreeBSD__)
+static void print_FreeBSD_License()
+{
+    printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions are met :\n");
+    printf("\n");
+    printf("1. Redistributions of source code must retain the above copyright notice,\n");
+    printf("this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright notice,\n");
+    printf("this list of conditions and the following disclaimer in the documentation\n");
+    printf("and/or other materials provided with the distribution.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY\n");
+    printf("EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n");
+    printf("WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n");
+    printf("IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n");
+    printf("INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES(INCLUDING, BUT NOT\n");
+    printf("LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,\n");
+    printf("OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF\n");
+    printf("LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT(INCLUDING NEGLIGENCE\n");
+    printf("OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED\n");
+    printf("OF THE POSSIBILITY OF SUCH DAMAGE.\n");
+    printf("\n");
+    printf("The views and conclusions contained in the software and documentation are those of\n");
+    printf("the authors and should not be interpreted as representing official policies, either\n");
+    printf("expressed or implied, of the FreeBSD Project.\n");
+    printf("\n\n");
+}
+#endif //__FreeBSD__
+
+#if defined(__GLIBC__)
+static void print_GNU_LGPL_License()
+{
+    printf("===========================================================================\n");
+    printf("glibc (GNU libc)\n\n");
+    printf("GNU LESSER GENERAL PUBLIC LICENSE\n\n");
+
+    printf("Version 3, 29 June 2007\n\n");
+
+    printf("Copyright © 2007 Free Software Foundation, Inc. <http://fsf.org/>\n\n");
+
+    printf("Everyone is permitted to copy and distribute verbatim copies of this license\n");
+    printf("document, but changing it is not allowed.\n\n");
+
+    printf("This version of the GNU Lesser General Public License incorporates the terms\n");
+    printf("and conditions of version 3 of the GNU General Public License, supplemented\n");
+    printf("by the additional permissions listed below.\n\n");
+
+    printf("0. Additional Definitions.\n\n");
+
+    printf("As used herein, \"this License\" refers to version 3 of the GNU Lesser General\n");
+    printf("Public License, and the \"GNU GPL\" refers to version 3 of the GNU General\n");
+    printf("Public License.\n\n");
+
+    printf("\"The Library\" refers to a covered work governed by this License, other than\n");
+    printf("an Application or a Combined Work as defined below.\n\n");
+
+    printf("An \"Application\" is any work that makes use of an interface provided by the\n");
+    printf("Library, but which is not otherwise based on the Library. Defining a subclass\n");
+    printf("of a class defined by the Library is deemed a mode of using an interface\n");
+    printf("provided by the Library.\n\n");
+
+    printf("A \"Combined Work\" is a work produced by combining or linking an Application\n");
+    printf("with the Library. The particular version of the Library with which the\n");
+    printf("Combined Work was made is also called the \"Linked Version\".\n\n");
+
+    printf("The \"Minimal Corresponding Source\" for a Combined Work means the\n");
+    printf("Corresponding Source for the Combined Work, excluding any source code for\n");
+    printf("portions of the Combined Work that, considered in isolation, are based on the\n");
+    printf("Application, and not on the Linked Version.\n\n");
+
+    printf("The \"Corresponding Application Code\" for a Combined Work means the object\n");
+    printf("code and/or source code for the Application, including any data and utility\n");
+    printf("programs needed for reproducing the Combined Work from the Application, but\n");
+    printf("excluding the System Libraries of the Combined Work.\n\n");
+
+    printf("1. Exception to Section 3 of the GNU GPL.\n\n");
+
+    printf("You may convey a covered work under sections 3 and 4 of this License without\n");
+    printf("being bound by section 3 of the GNU GPL.\n\n");
+
+    printf("2. Conveying Modified Versions.\n\n");
+
+    printf("If you modify a copy of the Library, and, in your modifications, a facility\n");
+    printf("refers to a function or data to be supplied by an Application that uses the\n");
+    printf("facility (other than as an argument passed when the facility is invoked),\n");
+    printf("then you may convey a copy of the modified version:\n\n");
+
+    printf("* a) under this License, provided that you make a good faith effort to ensure\n");
+    printf("that, in the event an Application does not supply the function or data, the\n");
+    printf("facility still operates, and performs whatever part of its purpose remains\n");
+    printf("meaningful, or\n\n");
+
+    printf("* b) under the GNU GPL, with none of the additional permissions of this\n");
+    printf("License applicable to that copy.\n\n");
+
+    printf("3. Object Code Incorporating Material from Library Header Files.\n\n");
+
+    printf("The object code form of an Application may incorporate material from a header\n");
+    printf("file that is part of the Library. You may convey such object code under terms\n");
+    printf("of your choice, provided that, if the incorporated material is not limited to\n");
+    printf("numerical parameters, data structure layouts and accessors, or small macros,\n");
+    printf("inline functions and templates (ten or fewer lines in length), you do both of\n");
+    printf("the following:\n\n");
+
+    printf("* a) Give prominent notice with each copy of the object code that the Library\n");
+    printf("is used in it and that the Library and its use are covered by this License.\n\n");
+
+    printf("* b) Accompany the object code with a copy of the GNU GPL and this license\n");
+    printf("document.\n\n");
+
+    printf("4. Combined Works.\n\n");
+
+    printf("You may convey a Combined Work under terms of your choice that, taken\n");
+    printf("together, effectively do not restrict modification of the portions of the\n");
+    printf("Library contained in the Combined Work and reverse engineering for debugging\n");
+    printf("such modifications, if you also do each of the following:\n\n");
+
+    printf("* a) Give prominent notice with each copy of the Combined Work that the\n");
+    printf("Library is used in it and that the Library and its use are covered by this\n");
+    printf("License.\n\n");
+
+    printf("* b) Accompany the Combined Work with a copy of the GNU GPL and this license\n");
+    printf("document.\n\n");
+
+    printf("* c) For a Combined Work that displays copyright notices during execution,\n");
+    printf("include the copyright notice for the Library among these notices, as well as\n");
+    printf("a reference directing the user to the copies of the GNU GPL and this license\n");
+    printf("document.\n\n");
+
+    printf("* d) Do one of the following:\n");
+    printf("  o 0) Convey the Minimal Corresponding Source under the terms of this\n");
+    printf("License, and the Corresponding Application Code in a form suitable for, and\n");
+    printf("under terms that permit, the user to recombine or relink the Application\n");
+    printf("with a modified version of the Linked Version to produce a modified\n");
+    printf("Combined Work, in the manner specified by section 6 of the GNU GPL for\n");
+    printf("conveying Corresponding Source.\n");
+    printf("  o 1) Use a suitable shared library mechanism for linking with the Library.\n");
+    printf("A suitable mechanism is one that (a) uses at run time a copy of the Library\n");
+    printf("already present on the user's computer system, and (b) will operate\n");
+    printf("properly with a modified version of the Library that is\n");
+    printf("interface-compatible with the Linked Version.\n\n");
+
+    printf("* e) Provide Installation Information, but only if you would otherwise be\n");
+    printf("required to provide such information under section 6 of the GNU GPL, and only\n");
+    printf("to the extent that such information is necessary to install and execute a\n");
+    printf("modified version of the Combined Work produced by recombining or relinking\n");
+    printf("the Application with a modified version of the Linked Version. (If you use\n");
+    printf("option 4d0, the Installation Information must accompany the Minimal\n");
+    printf("Corresponding Source and Corresponding Application Code. If you use option\n");
+    printf("4d1, you must provide the Installation Information in the manner specified by\n");
+    printf("section 6 of the GNU GPL for conveying Corresponding Source.)\n\n");
+
+    printf("5. Combined Libraries.\n\n");
+
+    printf("You may place library facilities that are a work based on the Library side by\n");
+    printf("side in a single library together with other library facilities that are not\n");
+    printf("Applications and are not covered by this License, and convey such a combined\n");
+    printf("library under terms of your choice, if you do both of the following:\n\n");
+
+    printf("* a) Accompany the combined library with a copy of the same work based on the\n");
+    printf("Library, uncombined with any other library facilities, conveyed under the\n");
+    printf("terms of this License.\n\n");
+
+    printf("* b) Give prominent notice with the combined library that part of it is a\n");
+    printf("work based on the Library, and explaining where to find the accompanying\n");
+    printf("uncombined form of the same work.\n\n");
+
+    printf("6. Revised Versions of the GNU Lesser General Public License.\n\n");
+
+    printf("The Free Software Foundation may publish revised and/or new versions of the\n");
+    printf("GNU Lesser General Public License from time to time. Such new versions will\n");
+    printf("be similar in spirit to the present version, but may differ in detail to\n");
+    printf("address new problems or concerns.\n\n");
+
+    printf("Each version is given a distinguishing version number. If the Library as you\n");
+    printf("received it specifies that a certain numbered version of the GNU Lesser\n");
+    printf("General Public License \"or any later version\" applies to it, you have the\n");
+    printf("option of following the terms and conditions either of that published version\n");
+    printf("or of any later version published by the Free Software Foundation. If the\n");
+    printf("Library as you received it does not specify a version number of the GNU\n");
+    printf("Lesser General Public License, you may choose any version of the GNU Lesser\n");
+    printf("General Public License ever published by the Free Software Foundation.\n\n");
+
+    printf("If the Library as you received it specifies that a proxy can decide whether\n");
+    printf("future versions of the GNU Lesser General Public License shall apply, that\n");
+    printf("proxy's public statement of acceptance of any version is permanent\n");
+    printf("authorization for you to choose that version for the Library.\n\n");
+    return;
+}
+#endif//__GLIBC__
+
+#if (USING_MUSL_LIBC)
+static void print_Musl_MIT_License()
+{
+    printf("===========================================================================\n");
+    printf("musl libc\n\n");
+    printf("Copyright © 2005-2020 Rich Felker, et al.\n"
+    "\n"
+    "Permission is hereby granted, free of charge, to any person obtaining\n"
+    "a copy of this software and associated documentation files (the\n"
+    "\"Software\"), to deal in the Software without restriction, including\n"
+    "without limitation the rights to use, copy, modify, merge, publish,\n"
+    "distribute, sublicense, and/or sell copies of the Software, and to\n"
+    "permit persons to whom the Software is furnished to do so, subject to\n"
+    "the following conditions:\n"
+    "\n"
+    "The above copyright notice and this permission notice shall be\n"
+    "included in all copies or substantial portions of the Software.\n"
+    "\n"
+    "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n"
+    "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n"
+    "MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n"
+    "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\n"
+    "CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\n"
+    "TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n"
+    "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n");
+    return;
+}
+#endif //USING_MUSL_LIBC
+
+void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
+{
+#if defined(_WIN32)
+    //show this license for the getopt parser in windows
+    print_Win_Getopt_Licenses();
+#elif defined (__FreeBSD__)
+    print_FreeBSD_License();
+#elif defined (__linux__)
+    #if defined (__GLIBC__)
+        //in other 'nix systems, we need to show this since we are using gnu libc
+        print_GNU_LGPL_License();
+    #else
+        #if (USING_MUSL_LIBC)
+            print_Musl_MIT_License();
+        #else
+            //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
+            //      compilers, using #pramga message may also work.
+            #pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
+        #endif
+    #endif
+#elif defined (__sun)
+    //TODO: Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
+#else
+	#error Please update #if for system library licenses!
+#endif
+    printf("===========================================================================\n\n");
+    if (showApacheLicense)
+    {
+        printf("===========================================================================\n\n");
+        print_Apache_2_0_License();
+    }
+    if (showZlibLicense)
+    {
+        printf("===========================================================================\n\n");
+        print_Zlib_License();
+    }
+    return;
+}
+
+
+
+
+
