@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.1.0";
+const char *buildVersion = "1.1.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1020,16 +1020,16 @@ int32_t main(int argc, char *argv[])
             memset(&params, 0, sizeof(passthroughTestParams));
             params.device = &deviceList[deviceIter];
 
-            params.allowLegacyATAPTTest = ENABLE_LEGACY_ATA_PT_TESTING > 0 ? true : false;
-            params.testPotentiallyDeviceHangingCommands = ENABLE_HANG_COMMANDS_TEST > 0 ? true : false;
+            params.allowLegacyATAPTTest = M_ToBool(ENABLE_LEGACY_ATA_PT_TESTING);
+            params.testPotentiallyDeviceHangingCommands = M_ToBool(ENABLE_HANG_COMMANDS_TEST);
             if (ENABLE_HANG_COMMANDS_TEST)
             {
-                params.hangCommandsToTest.returnResponseInforWithoutTdir = TEST_RETURN_RESPONSE_NO_TDIR > 0 ? true : false;
-                params.hangCommandsToTest.sctLogWithGPL = TEST_SCT_STATUS_GPL > 0 ? true : false;
-                params.hangCommandsToTest.zeroLengthReads = TEST_ZERO_LENGTH_READS > 0 ? true : false;
+                params.hangCommandsToTest.returnResponseInforWithoutTdir = M_ToBool(TEST_RETURN_RESPONSE_NO_TDIR);
+                params.hangCommandsToTest.sctLogWithGPL = M_ToBool(TEST_SCT_STATUS_GPL);
+                params.hangCommandsToTest.zeroLengthReads = M_ToBool(TEST_ZERO_LENGTH_READS);
             }
-            params.forceRetest = FORCE_RETEST > 0 ? true : false;
-            params.disableTranslatorPassthroughTesting = DISABLE_PT_TESTING > 0 ? true : false;
+            params.forceRetest = M_ToBool(FORCE_RETEST);
+            params.disableTranslatorPassthroughTesting = M_ToBool(DISABLE_PT_TESTING);
             if (PT_DRIVE_HINT > 0)
             {
                 params.suspectedDriveTypeProvidedByUser = true;
@@ -2132,7 +2132,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     uint8_t protocolIdentifier = M_Nibble1(pageToRead[offset]);
                     uint8_t codeSet = M_Nibble0(pageToRead[offset]);
-                    bool piv = (pageToRead[offset + 1] & BIT7) ? true : false;
+                    bool piv = M_ToBool(pageToRead[offset + 1] & BIT7);
                     uint8_t association = M_GETBITRANGE(pageToRead[offset + 1], 5, 4);
                     uint8_t designatorType = M_Nibble0(pageToRead[offset + 1]);
                     uint16_t designatorOffset = C_CAST(uint16_t, offset + 4);//This cast to a smaller type should be ok since the offset should never even get to the max uint16_t length. There is a small possibility of ovverflow with the +4, but it is very slim due to how this is reported from a device. This should never really happen. - TJE
@@ -3431,7 +3431,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     //provisioning type SHOULD be reported especially for SCSI to NVMe
                     printf("\tUnmap Command: ");
                     scsiDevInfo->vpdData.gotLogicalBlockProvisioningVPDPage = true;
-                    scsiDevInfo->vpdData.unmapSupported = (pageToRead[5] & BIT7) > 0 ? true : false;
+                    scsiDevInfo->vpdData.unmapSupported = M_ToBool(pageToRead[5] & BIT7);
                     if (scsiDevInfo->vpdData.unmapSupported)
                     {
                         printf("Supported\n");
@@ -4056,7 +4056,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
             uint8_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
             uint8_t readpageCode = M_GETBITRANGE((*dataBuffer)[offset + 0], 5, 0);
             uint8_t readsubpage = 0;
-            bool subpageFormat = ((*dataBuffer)[offset + 0] & BIT6) > 0 ? true : false;
+            bool subpageFormat = M_ToBool((*dataBuffer)[offset + 0] & BIT6);
             uint16_t pageLength = (*dataBuffer)[offset + 1];
             uint16_t pageLengthValidation = 2;
             if (subpageFormat)
@@ -4118,7 +4118,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
             uint16_t offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
             uint8_t readpageCode = M_GETBITRANGE((*dataBuffer)[offset + 0], 5, 0);
             uint8_t readsubpage = 0;
-            bool subpageFormat = ((*dataBuffer)[offset + 0] & BIT6) > 0 ? true : false;
+            bool subpageFormat = M_ToBool((*dataBuffer)[offset + 0] & BIT6);
             uint16_t pageLength = (*dataBuffer)[offset + 1];
             uint16_t pageLengthValidation = 2;
             if (subpageFormat)
@@ -4240,13 +4240,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         //if (subpageFormat)
         //{
@@ -4256,7 +4256,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         printf("Control Mode Page\n");
         successfullyReadAtLeastOnePage = true;
         scsiDevInfo->modeData.gotControlPage = true;
-        scsiDevInfo->modeData.controlData.d_sense = (modeData[offset + 2] & BIT2) > 0 ? true : false;
+        scsiDevInfo->modeData.controlData.d_sense = M_ToBool(modeData[offset + 2] & BIT2);
         printf("\tD_Sense = ");
         if (scsiDevInfo->modeData.controlData.d_sense)
         {
@@ -4281,13 +4281,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             blockDescriptorLength = modeData[3];
             offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-            //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
             //uint16_t pageLength = modeData[offset + 1];
             if (!use6Byte)
             {
                 blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                 offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
             }
             //if (subpageFormat)
             //{
@@ -4315,13 +4315,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         //if (subpageFormat)
         //{
@@ -4331,7 +4331,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         scsiDevInfo->modeData.gotReadWriteErrorRecoveryPage = true;
         printf("Read Write Error Recovery Mode Page\n");
         successfullyReadAtLeastOnePage = true;
-        scsiDevInfo->modeData.rwErrRecData.awre = (modeData[offset + 2] & BIT7) > 0 ? true : false;
+        scsiDevInfo->modeData.rwErrRecData.awre = M_ToBool(modeData[offset + 2] & BIT7);
         printf("\tAutomatic Write Reallocation: ");
         if (scsiDevInfo->modeData.rwErrRecData.awre)
         {
@@ -4341,7 +4341,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             printf("Disabled\n");
         }
-        scsiDevInfo->modeData.rwErrRecData.arre = (modeData[offset + 2] & BIT6) > 0 ? true : false;
+        scsiDevInfo->modeData.rwErrRecData.arre = M_ToBool(modeData[offset + 2] & BIT6);
         printf("\tAutomatic Read Reallocation: ");
         if (scsiDevInfo->modeData.rwErrRecData.arre)
         {
@@ -4366,13 +4366,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         if (subpageFormat)
         {
@@ -4382,7 +4382,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         scsiDevInfo->modeData.gotCachingPage = true;
         printf("Caching Mode Page\n");
         successfullyReadAtLeastOnePage = true;
-        scsiDevInfo->modeData.cachingData.wce = (modeData[offset + 2] & BIT2) > 0 ? true : false;
+        scsiDevInfo->modeData.cachingData.wce = M_ToBool(modeData[offset + 2] & BIT2);
         printf("\tWrite Cache: ");
         if (scsiDevInfo->modeData.cachingData.wce)
         {
@@ -4394,7 +4394,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         if (pageLength >= 0x0A) //checking this for SCSI 2 compatibility
         {
-            scsiDevInfo->modeData.cachingData.dra = (modeData[offset + 12] & BIT5) > 0 ? true : false;
+            scsiDevInfo->modeData.cachingData.dra = M_ToBool(modeData[offset + 12] & BIT5);
             printf("\tRead Ahead: ");
             if (scsiDevInfo->modeData.cachingData.dra)
             {
@@ -4419,13 +4419,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         //if (subpageFormat)
         //{
@@ -4497,13 +4497,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         //uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         //if (subpageFormat)
         //{
@@ -4513,7 +4513,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         scsiDevInfo->modeData.gotInformationalExceptionsControlPage = true;
         printf("Informational Exceptions Control Mode Page\n");
         successfullyReadAtLeastOnePage = true;
-        scsiDevInfo->modeData.infoExcepData.perf = (modeData[offset + 2] & BIT7) > 0 ? true : false;
+        scsiDevInfo->modeData.infoExcepData.perf = M_ToBool(modeData[offset + 2] & BIT7);
         printf("\tPERF: ");
         if (scsiDevInfo->modeData.infoExcepData.perf)
         {
@@ -4523,7 +4523,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             printf("0\n");
         }
-        scsiDevInfo->modeData.infoExcepData.ewasc = (modeData[offset + 2] & BIT4) > 0 ? true : false;
+        scsiDevInfo->modeData.infoExcepData.ewasc = M_ToBool(modeData[offset + 2] & BIT4);
         printf("\tEWASC: ");
         if (scsiDevInfo->modeData.infoExcepData.ewasc)
         {
@@ -4533,7 +4533,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             printf("0\n");
         }
-        scsiDevInfo->modeData.infoExcepData.dexcpt = (modeData[offset + 2] & BIT3) > 0 ? true : false;
+        scsiDevInfo->modeData.infoExcepData.dexcpt = M_ToBool(modeData[offset + 2] & BIT3);
         printf("\tDEXCPT: ");
         if (scsiDevInfo->modeData.infoExcepData.dexcpt)
         {
@@ -4558,13 +4558,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         uint16_t blockDescriptorLength = modeData[3];
         uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-        bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+        bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         uint16_t pageLength = modeData[offset + 1];
         if (!use6Byte)
         {
             blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
             offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-            subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
         }
         if (subpageFormat)
         {
@@ -4574,11 +4574,11 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         scsiDevInfo->modeData.gotPowerConditionControlPage = true;
         printf("Power Condition Control Mode Page\n");
         successfullyReadAtLeastOnePage = true;
-        scsiDevInfo->modeData.powerConditionCtrlData.standbyY = (modeData[offset + 2] & BIT0) > 0 ? true : false;
-        scsiDevInfo->modeData.powerConditionCtrlData.standbyZ = (modeData[offset + 3] & BIT0) > 0 ? true : false;
-        scsiDevInfo->modeData.powerConditionCtrlData.idleA = (modeData[offset + 3] & BIT1) > 0 ? true : false;
-        scsiDevInfo->modeData.powerConditionCtrlData.idleB = (modeData[offset + 3] & BIT2) > 0 ? true : false;
-        scsiDevInfo->modeData.powerConditionCtrlData.idleC = (modeData[offset + 3] & BIT3) > 0 ? true : false;
+        scsiDevInfo->modeData.powerConditionCtrlData.standbyY = M_ToBool(modeData[offset + 2] & BIT0);
+        scsiDevInfo->modeData.powerConditionCtrlData.standbyZ = M_ToBool(modeData[offset + 3] & BIT0);
+        scsiDevInfo->modeData.powerConditionCtrlData.idleA = M_ToBool(modeData[offset + 3] & BIT1);
+        scsiDevInfo->modeData.powerConditionCtrlData.idleB = M_ToBool(modeData[offset + 3] & BIT2);
+        scsiDevInfo->modeData.powerConditionCtrlData.idleC = M_ToBool(modeData[offset + 3] & BIT3);
         scsiDevInfo->modeData.powerConditionCtrlData.idleATimer = M_BytesTo4ByteValue(modeData[offset + 4], modeData[offset + 5], modeData[offset + 6], modeData[offset + 7]);
         scsiDevInfo->modeData.powerConditionCtrlData.standbyZTimer = M_BytesTo4ByteValue(modeData[offset + 8], modeData[offset + 9], modeData[offset + 10], modeData[offset + 11]);
         if (scsiDevInfo->modeData.powerConditionCtrlData.standbyZ)
@@ -4625,13 +4625,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 uint16_t blockDescriptorLength = modeData[3];
                 uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-                //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
                 //uint16_t pageLength = modeData[offset + 1];
                 if (!use6Byte)
                 {
                     blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                     offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                    //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                    //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
                 }
                 //if (subpageFormat)
                 //{
@@ -4641,18 +4641,18 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 scsiDevInfo->modeData.gotPataControlPage = true;
                 printf("PATA Control Mode Page\n");
                 successfullyReadAtLeastOnePage = true;
-                scsiDevInfo->modeData.pataCtrlData.pio3 = (modeData[offset + 4] & BIT0) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.pio4 = (modeData[offset + 4] & BIT1) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.mwd0 = (modeData[offset + 4] & BIT4) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.mwd1 = (modeData[offset + 4] & BIT5) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.mwd2 = (modeData[offset + 4] & BIT6) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma0 = (modeData[offset + 5] & BIT0) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma1 = (modeData[offset + 5] & BIT1) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma2 = (modeData[offset + 5] & BIT2) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma3 = (modeData[offset + 5] & BIT3) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma4 = (modeData[offset + 5] & BIT4) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma5 = (modeData[offset + 5] & BIT5) > 0 ? true : false;
-                scsiDevInfo->modeData.pataCtrlData.udma6 = (modeData[offset + 5] & BIT6) > 0 ? true : false;
+                scsiDevInfo->modeData.pataCtrlData.pio3 = M_ToBool(modeData[offset + 4] & BIT0);
+                scsiDevInfo->modeData.pataCtrlData.pio4 = M_ToBool(modeData[offset + 4] & BIT1);
+                scsiDevInfo->modeData.pataCtrlData.mwd0 = M_ToBool(modeData[offset + 4] & BIT4);
+                scsiDevInfo->modeData.pataCtrlData.mwd1 = M_ToBool(modeData[offset + 4] & BIT5);
+                scsiDevInfo->modeData.pataCtrlData.mwd2 = M_ToBool(modeData[offset + 4] & BIT6);
+                scsiDevInfo->modeData.pataCtrlData.udma0 = M_ToBool(modeData[offset + 5] & BIT0);
+                scsiDevInfo->modeData.pataCtrlData.udma1 = M_ToBool(modeData[offset + 5] & BIT1);
+                scsiDevInfo->modeData.pataCtrlData.udma2 = M_ToBool(modeData[offset + 5] & BIT2);
+                scsiDevInfo->modeData.pataCtrlData.udma3 = M_ToBool(modeData[offset + 5] & BIT3);
+                scsiDevInfo->modeData.pataCtrlData.udma4 = M_ToBool(modeData[offset + 5] & BIT4);
+                scsiDevInfo->modeData.pataCtrlData.udma5 = M_ToBool(modeData[offset + 5] & BIT5);
+                scsiDevInfo->modeData.pataCtrlData.udma6 = M_ToBool(modeData[offset + 5] & BIT6);
             }
             safe_Free_aligned(modeData);
         }
@@ -4667,13 +4667,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             uint16_t blockDescriptorLength = modeData[3];
             uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-            //bool subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+            //bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
             //uint16_t pageLength = modeData[offset + 1];
             if (!use6Byte)
             {
                 blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
                 offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-                //subpageFormat = (modeData[offset + 0] & BIT6) > 0 ? true : false;
+                //subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
             }
             //if (subpageFormat)
             //{
@@ -4683,7 +4683,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             scsiDevInfo->modeData.gotATAPowerConditionPage = true;
             printf("ATA Power Condition Mode Page\n");
             successfullyReadAtLeastOnePage = true;
-            scsiDevInfo->modeData.ataPwrConditionData.apmp = (modeData[offset + 5] & BIT0) > 0 ? true : false;
+            scsiDevInfo->modeData.ataPwrConditionData.apmp = M_ToBool(modeData[offset + 5] & BIT0);
             printf("\tAPMP: ");
             if (scsiDevInfo->modeData.ataPwrConditionData.apmp)
             {
@@ -4709,13 +4709,13 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
 //      uint16_t blockDescriptorLength = modeData[3];
 //      uint16_t offset = MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
-//      bool subpageFormat = modeData[offset + 0] & BIT6 > 0 ? true : false;
+//      bool subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
 //      uint16_t pageLength = modeData[offset + 1];
 //      if (!use6Byte)
 //      {
 //          blockDescriptorLength = M_BytesTo2ByteValue(modeData[6], modeData[7]);
 //          offset = MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
-//          subpageFormat = (modeData[offset + 0] & BIT6 > 0 ? true : false;
+//          subpageFormat = M_ToBool(modeData[offset + 0] & BIT6);
 //      }
 //      if (subpage)
 //      {
@@ -6390,13 +6390,22 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         scsi_Test_Unit_Ready(device, NULL);
     }
-    else if (averageFromBadCommands == 0 || ret == OS_PASSTHROUGH_FAILURE)
+    else if (ret == OS_PASSTHROUGH_FAILURE)
     {
         set_Console_Colors(true, LIKELY_HACK_COLOR);
         printf("Likely HACK FOUND: TURF%" PRIu8 "\n", 33);//setting 33...this should be sooo much higher and worse that this should remain true for a long long time.
         set_Console_Colors(true, DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         device->drive_info.passThroughHacks.turfValue = 33;
+        scsi_Test_Unit_Ready(device, NULL);
+    }
+    else if (averageFromBadCommands == 0)
+    {
+        set_Console_Colors(true, LIKELY_HACK_COLOR);
+        printf("Likely HACK FOUND: TURF%" PRIu8 "\n", 34);//setting 34...this helps differentiate from the issue above
+        set_Console_Colors(true, DEFAULT);
+        device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
+        device->drive_info.passThroughHacks.turfValue = 34;
         scsi_Test_Unit_Ready(device, NULL);
     }
 
@@ -6438,7 +6447,7 @@ int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool s
         }
         //now GPL
         printf("\tTesting with read log ext\n");
-        if (SUCCESS == ata_Read_Log_Ext(device, ATA_SCT_COMMAND_STATUS, 0, sctStatus, 512, device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA && device->drive_info.ata_Options.readLogWriteLogDMASupported ? true : false, 0))
+        if (SUCCESS == ata_Read_Log_Ext(device, ATA_SCT_COMMAND_STATUS, 0, sctStatus, 512, (device->drive_info.ata_Options.dmaMode != ATA_DMA_MODE_NO_DMA && device->drive_info.ata_Options.readLogWriteLogDMASupported) ? true : false, 0))
         {
             printf("\t    Successfully read SCT status with Read Log Ext!\n");
         }
@@ -7001,9 +7010,10 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
                 }
                 else
                 {
-                    set_Console_Colors(true, WARNING_COLOR);
-                    printf("WARNING: TPSIU worked for identify, but doesn't work properly for other commands!\n");
+                    set_Console_Colors(true, HACK_COLOR);
+                    printf("HACK FOUND: TPID\n");
                     set_Console_Colors(true, DEFAULT);
+                    inputs->device->drive_info.passThroughHacks.ataPTHacks.limitedUseTPSIU = true;
                     inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
                 }
                 safe_Free_aligned(data);
@@ -7060,7 +7070,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
 
         if (!inputs->noReturnResponseInfoTest)
         {
-            return_Response_Info_Test(inputs->device, smartSupported, smartLoggingSupported, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.returnResponseInforWithoutTdir ? true : false);
+            return_Response_Info_Test(inputs->device, smartSupported, smartLoggingSupported, (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.returnResponseInforWithoutTdir) ? true : false);
         }
 
         if (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.sctLogWithGPL)
@@ -7769,7 +7779,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //check SCSI read/write CDB support. This runs a normal test, but will check for zero-length transfers IF asked to to do.
         scsiRWSupport rwSupport;
         memset(&rwSupport, 0, sizeof(scsiRWSupport));
-        scsi_Read_Check(inputs->device, false, &rwSupport, inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads ? true : false);
+        scsi_Read_Check(inputs->device, false, &rwSupport, (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads) ? true : false);
 
         //Now check for mode pages - Warn about any missing MANDATORY pages
         scsi_Mode_Information(inputs->device, &scsiInformation);
@@ -8146,6 +8156,10 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 {
                     printf(" TPSIU,");
                 }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.limitedUseTPSIU)
+                {
+                    printf(" TPID,");
+                }
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
                 {
                     printf(" CHK,");
@@ -8242,7 +8256,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
         {
             printf("%" PRIu8 "\tImprove error handling for unknown commands. This device takes longer\n", recommendationCounter);
-            printf("\t    and longer to respond with each unknown command. This shouldn't happen ever.\n");
+            printf("\t    and longer to respond with each unknown command.\n");
             ++recommendationCounter;
         }
         if (inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_SAT && inputs->device->drive_info.passThroughHacks.passthroughType != ATA_PASSTHROUGH_UNKNOWN)
