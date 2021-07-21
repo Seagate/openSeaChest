@@ -1421,7 +1421,7 @@ int32_t main(int argc, char *argv[])
                         dlOptions.segmentSize = 0;
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should never be larger than a few MBs for a LONG time...
-                        dlOptions.ignoreStatusOfFinalSegment = FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG ? true : false;
+                        dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         switch (firmware_Download(&deviceList[deviceIter], &dlOptions) )
                         {
                         case SUCCESS:

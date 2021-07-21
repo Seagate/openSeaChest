@@ -976,7 +976,7 @@ int32_t main(int argc, char *argv[])
                         {
                             dlOptions.segmentSize = 0;
                         }
-                        dlOptions.ignoreStatusOfFinalSegment = FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG ? true : false;
+                        dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should only be a few MB today...long ways to go before we overflow uint32_t
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
