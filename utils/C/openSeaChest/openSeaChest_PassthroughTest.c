@@ -1637,7 +1637,51 @@ void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLo
         else
         {
             device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = false;
-            //TODO: test if check condition bit works on non-data properly...which generally is true.
+            //test if check condition bit works on non-data properly...which generally is true.
+            uint8_t pm = 0;
+            if (SUCCESS == ata_Check_Power_Mode(device, &pm))
+            {
+                //need to see status set for success
+                if (device->drive_info.lastCommandRTFRs.status != 0 && !(ATA_STATUS_BIT_ERROR & device->drive_info.lastCommandRTFRs.status)
+                    &&
+                    device->drive_info.lastCommandRTFRs.error == 0)
+                {
+                    set_Console_Colors(true, HACK_COLOR);
+                    printf("HACK FOUND: CHKND\n");//check condition bit is supported for non-data commands only
+                    set_Console_Colors(true, DEFAULT);
+                }
+                else
+                {
+                    set_Console_Colors(true, HACK_COLOR);
+                    printf("HACK FOUND: CHKDB\n");
+                    set_Console_Colors(true, DEFAULT);
+                    device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty = true;
+                }
+            }
+        }
+    }
+    else
+    {
+        //test a non-data command to make sure check condition bit DOES work
+        uint8_t pm = 0;
+        if (SUCCESS == ata_Check_Power_Mode(device, &pm))
+        {
+            //need to see status set for success
+            if (device->drive_info.lastCommandRTFRs.status != 0 && !(ATA_STATUS_BIT_ERROR & device->drive_info.lastCommandRTFRs.status)
+                &&
+                device->drive_info.lastCommandRTFRs.error == 0)
+            {
+                set_Console_Colors(true, HACK_COLOR);
+                printf("HACK FOUND: CHKND\n");//check condition bit is supported for non-data commands only
+                set_Console_Colors(true, DEFAULT);
+            }
+        }
+        else
+        {
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: NCHK\n");
+            set_Console_Colors(true, DEFAULT);
+            device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition = true;
         }
     }
 }
@@ -7461,7 +7505,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
             }
             else
             {
-                if (device->drive_info.ata_Options.dmaMode == ATA_DMA_MODE_NO_DMA)
+                if (device->drive_info.ata_Options.dmaMode == ATA_DMA_MODE_NO_DMA || device->drive_info.passThroughHacks.ataPTHacks.dmaNotSupported)
                 {
                     //use PIO commands
                     //check if read multiple is supported (current # logical sectors per DRQ data block)
@@ -8163,6 +8207,14 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable)
                 {
                     printf(" CHK,");
+                }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty)
+                {
+                    printf(" CHKE,");
+                }
+                if (inputs->device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition)
+                {
+                    printf(" NCHK,");
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
