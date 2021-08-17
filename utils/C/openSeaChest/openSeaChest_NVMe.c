@@ -1276,7 +1276,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                uint32_t size = BLOCK_SIZE;
+                uint32_t size = 512;
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
                 uint64_t offset = 0;
@@ -1297,7 +1297,7 @@ int32_t main(int argc, char *argv[])
                     cmdOpts.offset = offset;
 
                     rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                    offset += BLOCK_SIZE;
+                    offset += 512;
 
                     if (rtnVal == SUCCESS)
                     {
@@ -1311,17 +1311,17 @@ int32_t main(int argc, char *argv[])
 
                         if (TELEMETRY_DATA_AREA == 1)
                         {
-                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea1;
+                            fullSize = offset + 512 * teleHdr->teleDataArea1;
                         }
 
                         if (TELEMETRY_DATA_AREA == 2)
                         {
-                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea2;
+                            fullSize = offset + 512 * teleHdr->teleDataArea2;
                         }
 
                         if (TELEMETRY_DATA_AREA == 3)
                         {
-                            fullSize = offset + BLOCK_SIZE * teleHdr->teleDataArea3;
+                            fullSize = offset + 512 * teleHdr->teleDataArea3;
                         }
 
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||
@@ -1341,13 +1341,13 @@ int32_t main(int argc, char *argv[])
                                 cmdOpts.offset = offset;
 
                                 rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                                offset += BLOCK_SIZE;
+                                offset += 512;
 
                                 if (rtnVal != SUCCESS)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
+                                        printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - 512);
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     break;
@@ -1379,13 +1379,13 @@ int32_t main(int argc, char *argv[])
                                     cmdOpts.offset = offset;
 
                                     rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                                    offset += BLOCK_SIZE;
+                                    offset += 512;
 
                                     if (rtnVal != SUCCESS)
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - BLOCK_SIZE);
+                                            printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n", GET_TELEMETRY_IDENTIFIER, offset - 512);
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
 
