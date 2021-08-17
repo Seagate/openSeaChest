@@ -200,8 +200,16 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                DOWNLOAD_FW_FLAG = true;
-                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                if (scanRet > 0 && scanRet != EOF)
+                {
+                    DOWNLOAD_FW_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -978,7 +986,7 @@ int32_t main(int argc, char *argv[])
                         }
                         dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should only be a few MB today...long ways to go before we overflow uint32_t
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);

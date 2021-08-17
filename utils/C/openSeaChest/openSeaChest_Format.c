@@ -438,51 +438,60 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *colonLocation = strstr(optarg, ":") + 1;//adding 1 to offset just beyond the colon for parsing the remaining data
-                    if (strncmp("file:", optarg, 5) == 0)
+                    char *colonLocation = strstr(optarg, ":");
+                    if (colonLocation)
                     {
-                        FILE *patternFile = NULL;
-                        char *filename = (char*)calloc(strlen(colonLocation) + 1, sizeof(char));
-                        if (!filename)
+                        colonLocation += 1;//adding 1 to offset just beyond the colon for parsing the remaining data
+                        if (strncmp("file:", optarg, 5) == 0)
                         {
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        strcpy(filename, colonLocation);
-                        //open file
-                        if (NULL == (patternFile = fopen(filename, "rb")))
-                        {
-                            printf("Unable to open file \"%s\" for pattern\n", filename);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        //read contents into buffer
-                        if(0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
-                        {
-                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
+                            FILE *patternFile = NULL;
+                            char *filename = (char*)calloc(strlen(colonLocation) + 1, sizeof(char));
+                            if (!filename)
+                            {
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
+                            strcpy(filename, colonLocation);
+                            //open file
+                            if (NULL == (patternFile = fopen(filename, "rb")))
+                            {
+                                printf("Unable to open file \"%s\" for pattern\n", filename);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
+                            //read contents into buffer
+                            if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                            {
+                                printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
+                                fclose(patternFile);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
+                            //close file
                             fclose(patternFile);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            safe_Free(filename);
                         }
-                        //close file
-                        fclose(patternFile);
-                        safe_Free(filename);
-                    }
-                    else if (strncmp("increment:", optarg, 10) == 0)
-                    {
-                        uint8_t incrementStart = (uint8_t)atoi(colonLocation);
-                        fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
-                    }
-                    else if (strncmp("repeat:", optarg, 7) == 0)
-                    {
-                        //if final character is a lower case h, it's an hex pattern
-                        if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
+                        else if (strncmp("increment:", optarg, 10) == 0)
                         {
-                            uint32_t hexPattern = (uint32_t)strtol(colonLocation, NULL, 16);
-                            //TODO: add endianness check before byte swap
-                            byte_Swap_32(&hexPattern);
-                            fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            uint8_t incrementStart = (uint8_t)atoi(colonLocation);
+                            fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                        }
+                        else if (strncmp("repeat:", optarg, 7) == 0)
+                        {
+                            //if final character is a lower case h, it's an hex pattern
+                            if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
+                            {
+                                uint32_t hexPattern = (uint32_t)strtol(colonLocation, NULL, 16);
+                                //TODO: add endianness check before byte swap
+                                byte_Swap_32(&hexPattern);
+                                fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
+                            else
+                            {
+                                fill_ASCII_Pattern_In_Buffer(colonLocation, (uint32_t)strlen(colonLocation), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
                         }
                         else
                         {
-                            fill_ASCII_Pattern_In_Buffer(colonLocation, (uint32_t)strlen(colonLocation), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
                     }
                     else

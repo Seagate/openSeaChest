@@ -321,7 +321,12 @@ int32_t main(int argc, char *argv[])
                 {
                     //set the value to change to (watts)
                     //use the lf specifier otherwise it thinks it's a standard float and you won't get the right value.
-                    sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
+                    int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
+                    if (scanRet == 0 || scanRet != EOF)
+                    {
+                        print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_APM_LEVEL_LONG_OPT_STRING))) == 0)

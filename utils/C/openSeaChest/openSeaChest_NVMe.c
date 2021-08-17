@@ -217,9 +217,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                    printf("Please use -h option to print help\n\n");
+                    print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
 
             }
@@ -239,9 +238,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                    printf("Please use -h option to print help\n\n");
+                    print_Error_In_Cmd_Line_Args(GET_FEATURES_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
 
             }
@@ -255,8 +253,16 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                DOWNLOAD_FW_FLAG = true;
-                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                if (scanRet > 0 && scanRet != EOF)
+                {
+                    DOWNLOAD_FW_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -333,9 +339,8 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                        printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                        printf("Please use -h option to print help\n\n");
+                        print_Error_In_Cmd_Line_Args(GET_NVME_LOG_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -351,9 +356,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                    printf("Please use -h option to print help\n\n");
+                    print_Error_In_Cmd_Line_Args(GET_TELEMETRY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, TELEMETRY_DATA_AREA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TELEMETRY_DATA_AREA_LONG_OPT_STRING))) == 0)
@@ -365,9 +369,8 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
-                    printf("\nerror processing --%s\n\n",longopts[optionIndex].name);
-                    printf("Please use -h option to print help\n\n");
+                    print_Error_In_Cmd_Line_Args(TELEMETRY_DATA_AREA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
@@ -376,7 +379,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     //set the sector size
-                    NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = (uint32_t)atoi(optarg);
+                    NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, atoi(optarg));
                 }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_NSID_LONG_OPT_STRING) == 0)
@@ -1442,7 +1445,7 @@ int32_t main(int argc, char *argv[])
                 }
             }
         }
-
+        
         if (NVME_TEMP_STATS_FLAG)
         {
             switch (nvme_Print_Temp_Statistics(&deviceList[deviceIter]))

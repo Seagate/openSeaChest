@@ -239,16 +239,25 @@ int32_t main(int argc, char *argv[])
                 {
                     //read in the argument as a hex value instead of an integer
                     uint32_t iddTestNumber = 0;
-                    sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    switch (iddTestNumber)
+                    int res = sscanf(optarg, "%"SCNx32, &iddTestNumber);
+                    if (res != EOF && res > 0)
                     {
-                    case 0x70:
-                        IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                        break;
-                    case 0x71:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                        break;
-                    default:
+                        switch (iddTestNumber)
+                        {
+                        case 0x70:
+                            IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
+                            break;
+                        case 0x71:
+                            IDD_TEST_FLAG = SEAGATE_IDD_LONG;
+                            break;
+                        default:
+                            print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            break;
+                        }
+                    }
+                    else
+                    {
                         print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }

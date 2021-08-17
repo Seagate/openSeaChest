@@ -330,8 +330,16 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                DOWNLOAD_FW_FLAG = true;
-                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                if (scanRet > 0 && scanRet != EOF)
+                {
+                    DOWNLOAD_FW_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -357,8 +365,16 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
-                SET_MAX_LBA_FLAG = true;
-                sscanf(optarg, "%"SCNu64"", &SET_MAX_LBA_VALUE);
+                int scanRet = sscanf(optarg, "%" SCNu64, &SET_MAX_LBA_VALUE);
+                if (scanRet > 0 && scanRet != EOF)
+                {
+                    SET_MAX_LBA_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_MAX_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
             {
