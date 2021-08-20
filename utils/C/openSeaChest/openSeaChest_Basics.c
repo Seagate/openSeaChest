@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.1.0";
+const char *buildVersion = "3.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -124,6 +124,7 @@ int32_t main(int argc, char *argv[])
 #endif
     HIDE_LBA_COUNTER_VAR
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
+    SHOW_CONCURRENT_RANGES_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -188,6 +189,7 @@ int32_t main(int argc, char *argv[])
         CSMI_FORCE_LONG_OPTS,
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
+        SHOW_CONCURRENT_RANGES_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -837,6 +839,7 @@ int32_t main(int argc, char *argv[])
         || RUN_TRIM_UNMAP_FLAG
         || (PROGRESS_CHAR != NULL)
         || DISPLAY_LBA_FLAG
+        || SHOW_CONCURRENT_RANGES
         //check for other tool specific options here
         ))
     {
@@ -1120,6 +1123,34 @@ int32_t main(int argc, char *argv[])
         if (TEST_UNIT_READY_FLAG)
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
+        }
+
+        if (SHOW_CONCURRENT_RANGES)
+        {
+            concurrentRanges ranges;
+            memset(&ranges, 0, sizeof(concurrentRanges));
+            ranges.size = sizeof(concurrentRanges);
+            ranges.version = CONCURRENT_RANGES_VERSION;
+            switch (get_Concurrent_Positioning_Ranges(&deviceList[deviceIter], &ranges))
+            {
+            case SUCCESS:
+                print_Concurrent_Positioning_Ranges(&ranges);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Concurrent positioning ranges are not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to read the concurrent positioning ranges.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
         }
 
         if (DISPLAY_LBA_FLAG)
@@ -2183,10 +2214,11 @@ void utility_Usage(bool shortUsage)
     print_Abort_DST_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
-    print_Set_Max_LBA_Help(shortUsage);
-    print_Spindown_Help(shortUsage);
-    print_SMART_Check_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
+    print_Set_Max_LBA_Help(shortUsage);
+    print_Show_Concurrent_Position_Ranges_Help(shortUsage);
+    print_SMART_Check_Help(shortUsage);
+    print_Spindown_Help(shortUsage);
     print_Write_Cache_Help(shortUsage);
 
     //SATA Only Options
