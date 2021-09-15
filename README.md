@@ -5,7 +5,6 @@
 
 ### Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
-[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
