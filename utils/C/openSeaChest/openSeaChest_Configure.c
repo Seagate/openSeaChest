@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.0.2";
+const char *buildVersion = "2.0.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2867,127 +2867,144 @@ int32_t main(int argc, char *argv[])
             {
                 //inputs were parsed, now we need to turn the inputs into what the user wants to change.
                 //first, figure out how large the mode page is, then read all it's bytes...then start going through and changing things as the user requests (the hard part)
-                uint32_t modePageSize = 0;
-                if (SUCCESS == get_SCSI_Mode_Page_Size(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, &modePageSize))
+                uint32_t rawModePageSize = 0;
+                if (SUCCESS == get_SCSI_Mode_Page_Size(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, &rawModePageSize))
                 {
-                    uint8_t *modePageBuffer = (uint8_t*)calloc(modePageSize, sizeof(uint8_t));
-                    if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, NULL, NULL, true, modePageBuffer, modePageSize, NULL, NULL))
+                    uint8_t *rawmodePageBuffer = (uint8_t*)calloc(rawModePageSize, sizeof(uint8_t));
+                    if (rawmodePageBuffer)
                     {
-                        //TODO: some of this code can probably be simplified a bit more than it currently is.
-                        //now we have the data, we can begin modifying the field requested.
-                        if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
+                        bool usedSizeByteCmd = false;
+                        if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, NULL, NULL, true, rawmodePageBuffer, rawModePageSize, NULL, &usedSizeByteCmd))
                         {
-                            //not a multi-bye aligned field. Ex: 12 bits or 3 bits, etc
-                            //check if the number of bits is greater than a byte or not and if the starting bit anf field width would break across byte boundaries
-                            if (SCSI_SET_MP_FIELD_LEN_BITS > BITSPERBYTE || (int)((int)SCSI_SET_MP_BIT - (int)SCSI_SET_MP_FIELD_LEN_BITS) < 0)
+                            uint32_t modeHeaderLen = usedSizeByteCmd ? MODE_PARAMETER_HEADER_6_LEN : MODE_PARAMETER_HEADER_10_LEN;
+                            uint32_t blockDescriptorLength = (deviceList[deviceIter].drive_info.scsiVersion < SCSI_VERSION_SCSI2) ? SHORT_LBA_BLOCK_DESCRIPTOR_LEN : 0;//the get_SCSI_MP function will only pull a block descriptor on old drives for compatibility using mode sense 6 commands, which is why this check is minimal
+                            uint32_t dataLengthAdjustment = modeHeaderLen + blockDescriptorLength;
+                            uint32_t modePageSize = rawModePageSize - dataLengthAdjustment;
+                            uint8_t* modePageBuffer = rawmodePageBuffer + dataLengthAdjustment;
+                            //TODO: some of this code can probably be simplified a bit more than it currently is.
+                            //now we have the data, we can begin modifying the field requested.
+                            if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
                             {
-                                //setting bits within multiple bytes, but not necessarily full bytes!
-                                uint8_t remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;
-                                uint8_t highUnalignedBits = 0;//always least significant bits in this byte
-                                uint8_t lowUnalignedBits = 0;//always most significant bits in this byte
-                                if (SCSI_SET_MP_BIT != 7)
+                                //not a multi-bye aligned field. Ex: 12 bits or 3 bits, etc
+                                //check if the number of bits is greater than a byte or not and if the starting bit anf field width would break across byte boundaries
+                                if (SCSI_SET_MP_FIELD_LEN_BITS > BITSPERBYTE || (int)((int)SCSI_SET_MP_BIT - (int)SCSI_SET_MP_FIELD_LEN_BITS) < 0)
                                 {
-                                    highUnalignedBits = SCSI_SET_MP_BIT + 1;
-                                    remainingBits -= highUnalignedBits;
-                                }
-                                //check how many full bytes worth of bits we'll be setting.
-                                uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                remainingBits -= fullBytesToSet * BITSPERBYTE;
-                                lowUnalignedBits = remainingBits;
-                                //now we know how we need to set things, so lets start at the end (lsb) and work up from there.
-                                //as we set the necessary bits, we will shift the original value to the right to make it easy to set each piece of the bits.
-                                remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;//resetting this to help keep track as we shift through the bits.
-                                uint16_t offset = SCSI_SET_MP_BYTE + fullBytesToSet;
-                                if (lowUnalignedBits > 0)
-                                {
-                                    ++offset;//add one to the offset since these bits are on another byte past the starting offset and any full bytes we need to set
-                                    //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
-                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1);
-                                    //clear the requested bits first
-                                    modePageBuffer[offset] &= ~(mask);
-                                    //now set them as requested
-                                    modePageBuffer[offset] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1)));
-                                    //bits are set, decrease the offset for the next operation
-                                    --offset;
-                                    SCSI_SET_MP_FIELD_VALUE >>= lowUnalignedBits;
-                                }
-                                if (fullBytesToSet > 0)
-                                {
-                                    for (uint8_t byteCnt = 0; byteCnt < fullBytesToSet; ++byteCnt, SCSI_SET_MP_FIELD_VALUE >>= BITSPERBYTE, --offset)
+                                    //setting bits within multiple bytes, but not necessarily full bytes!
+                                    uint8_t remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;
+                                    uint8_t highUnalignedBits = 0;//always least significant bits in this byte
+                                    uint8_t lowUnalignedBits = 0;//always most significant bits in this byte
+                                    if (SCSI_SET_MP_BIT != 7)
                                     {
-                                        modePageBuffer[offset] = M_Byte0(SCSI_SET_MP_FIELD_VALUE);
+                                        highUnalignedBits = SCSI_SET_MP_BIT + 1;
+                                        remainingBits -= highUnalignedBits;
+                                    }
+                                    //check how many full bytes worth of bits we'll be setting.
+                                    uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
+                                    remainingBits -= fullBytesToSet * BITSPERBYTE;
+                                    lowUnalignedBits = remainingBits;
+                                    //now we know how we need to set things, so lets start at the end (lsb) and work up from there.
+                                    //as we set the necessary bits, we will shift the original value to the right to make it easy to set each piece of the bits.
+                                    remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;//resetting this to help keep track as we shift through the bits.
+                                    uint16_t offset = SCSI_SET_MP_BYTE + fullBytesToSet;
+                                    if (lowUnalignedBits > 0)
+                                    {
+                                        ++offset;//add one to the offset since these bits are on another byte past the starting offset and any full bytes we need to set
+                                        //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
+                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1);
+                                        //clear the requested bits first
+                                        modePageBuffer[offset] &= ~(mask);
+                                        //now set them as requested
+                                        modePageBuffer[offset] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1)));
+                                        //bits are set, decrease the offset for the next operation
+                                        --offset;
+                                        SCSI_SET_MP_FIELD_VALUE >>= lowUnalignedBits;
+                                    }
+                                    if (fullBytesToSet > 0)
+                                    {
+                                        for (uint8_t byteCnt = 0; byteCnt < fullBytesToSet; ++byteCnt, SCSI_SET_MP_FIELD_VALUE >>= BITSPERBYTE, --offset)
+                                        {
+                                            modePageBuffer[offset] = M_Byte0(SCSI_SET_MP_FIELD_VALUE);
+                                        }
+                                    }
+                                    if (highUnalignedBits > 0)
+                                    {
+                                        //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
+                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1);
+                                        //clear the requested bits first
+                                        modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                        //now set them as requested
+                                        modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1)));
                                     }
                                 }
-                                if (highUnalignedBits > 0)
+                                else
                                 {
-                                    //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
-                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1);
+                                    //setting bits within a single byte.
+                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
                                     //clear the requested bits first
                                     modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
                                     //now set them as requested
-                                    modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1)));
+                                    modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1)));
                                 }
                             }
                             else
                             {
-                                //setting bits within a single byte.
-                                uint8_t mask = M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
-                                //clear the requested bits first
-                                modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
-                                //now set them as requested
-                                modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1)));
+                                //set full bytes to the value requested.
+                                uint16_t fieldWidthBytes = SCSI_SET_MP_FIELD_LEN_BITS / BITSPERBYTE;
+                                uint8_t byteNumber = 0;
+                                while (fieldWidthBytes >= 1)
+                                {
+                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = (uint8_t)((M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
+                                    --fieldWidthBytes;
+                                    ++byteNumber;
+                                }
+                            }
+                            //buffer is ready to send to the drive!
+                            switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, C_CAST(uint16_t, modePageSize), !VOLATILE_FLAG))
+                            {
+                            case SUCCESS:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Successfully set SCSI mode page!\n");
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    }
+                                }
+                                break;
+                            case NOT_SUPPORTED:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Unable to change the requested values in the mode page. These may not be changeable or are an invalid combination.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                break;
+                            default:
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Failed to set the mode page changes that were requested.\n");
+                                }
+                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                break;
                             }
                         }
                         else
                         {
-                            //set full bytes to the value requested.
-                            uint16_t fieldWidthBytes = SCSI_SET_MP_FIELD_LEN_BITS / BITSPERBYTE;
-                            uint8_t byteNumber = 0;
-                            while (fieldWidthBytes >= 1)
-                            {
-                                modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = (uint8_t)((M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
-                                --fieldWidthBytes;
-                                ++byteNumber;
-                            }
-                        }
-                        //buffer is ready to send to the drive!
-                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, C_CAST(uint16_t, modePageSize), !VOLATILE_FLAG))
-                        {
-                        case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Successfully set SCSI mode page!\n");
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
-                                }
-                            }
-                            break;
-                        case NOT_SUPPORTED:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Unable to change the requested values in the mode page. These may not be changeable or are an invalid combination.\n");
+                                printf("Unable to read the requested mode page...it may not be supported.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Failed to set the mode page changes that were requested.\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
                         }
+                        safe_Free(rawmodePageBuffer);
                     }
                     else
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Unable to read the requested mode page...it may not be supported.\n");
+                            printf("Unable to allocate memory to modify mode page.\n");
                         }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        exitCode = UTIL_EXIT_NOT_ENOUGH_RESOURCES;
                     }
-                    safe_Free(modePageBuffer);
                 }
                 else
                 {
