@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.1.1";
+const char *buildVersion = "1.1.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -429,22 +429,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
+                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':'://missing required argument
@@ -7130,8 +7130,9 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         set_Console_Colors(true, DEFAULT);
         //Here we will compare the reported information by the bridge from SCSI commands to what the ATA Identify data reports.
         //For MN, SN, FW, check for commonly broken reporting methods.
-        char scsiProdID[17] = { 0 };
-        strcpy(scsiProdID, scsiInformation->inquiryData.productId);
+#define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
+        char scsiProdID[PASSTHROUGH_TEST_SCSI_PROD_ID_LEN] = { 0 };
+        snprintf(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s", scsiInformation->inquiryData.productId);
         remove_Leading_And_Trailing_Whitespace(scsiProdID);
         if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(16, strlen(scsiProdID))) == 0)
         {
@@ -7146,9 +7147,9 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
             if (strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.productId) && strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.vendorId))
             {
                 //Most likely had the vendor+productID set as the full ATA MN
-                char fullMN[42] = { 0 };
-                strcpy(fullMN, scsiInformation->inquiryData.vendorId);
-                strcat(fullMN, scsiInformation->inquiryData.productId);
+#define PASSTHROUGH_TEST_FULL_MN_LENGTH 42
+                char fullMN[PASSTHROUGH_TEST_FULL_MN_LENGTH] = { 0 };
+                snprintf(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s", scsiInformation->inquiryData.vendorId, scsiInformation->inquiryData.productId);
                 if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN, M_Min(strlen(fullMN), strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
                 {
                     printf("\t\tTranslator put full ATA MN in combination of Vendor and Product ID fields.\n");
