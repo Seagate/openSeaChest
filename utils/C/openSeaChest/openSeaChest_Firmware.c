@@ -246,7 +246,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 NEW_FW_MATCH_FLAG = true;
-                snprintf(NEW_FW_MATCH_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {

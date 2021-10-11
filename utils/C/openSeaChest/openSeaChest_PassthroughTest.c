@@ -444,7 +444,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf(CHILD_FW_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':'://missing required argument
