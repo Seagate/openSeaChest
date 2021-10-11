@@ -633,17 +633,19 @@ extern "C"
     #define WRITE_SAME_LONG_OPTS WRITE_SAME_LONG_OPT,WRITE_SAME_RANGE_LONG_OPT
 
     //TCG SID flag
+    #define TCG_SID_BUF_LEN 33
     #define TCG_SID_FLAG sid
     #define TCG_SID_VARS \
-    char sidBuf[33] = { 0 };\
+    char sidBuf[TCG_SID_BUF_LEN] = { 0 };\
     char* TCG_SID_FLAG = &sidBuf[0];
     #define TCG_SID_LONG_OPT_STRING "sid"
     #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //TCG PSID flag
+    #define TCG_PSID_BUF_LEN 33
     #define TCG_PSID_FLAG psid
     #define TCG_PSID_VARS \
-    char psidBuf[33] = { 0 };\
+    char psidBuf[TCG_PSID_BUF_LEN] = { 0 };\
     char* TCG_PSID_FLAG = &psidBuf[0];
     #define TCG_PSID_LONG_OPT_STRING "psid"
     #define TCG_PSID_LONG_OPT { TCG_PSID_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -748,29 +750,32 @@ extern "C"
     //model number match
     #define MODEL_MATCH_FLAG modelNumberMatch
     #define MODEL_STRING_FLAG modelString
+    #define MODEL_STRING_LENGTH 41
     #define MODEL_MATCH_VARS \
     bool MODEL_MATCH_FLAG = false;\
-    char modelMatchArray[41] = { 0 };\
+    char modelMatchArray[MODEL_STRING_LENGTH] = { 0 };\
     char *MODEL_STRING_FLAG = &modelMatchArray[0];
     #define MODEL_MATCH_LONG_OPT_STRING "modelMatch"
     #define MODEL_MATCH_LONG_OPT { MODEL_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //fw rev match
     #define FW_MATCH_FLAG fwNumberMatch
+    #define FW_MATCH_STRING_LENGTH 9
     #define FW_STRING_FLAG fwString
     #define FW_MATCH_VARS \
     bool FW_MATCH_FLAG = false;\
-    char fwMatchArray[9] = { 0 };\
+    char fwMatchArray[FW_MATCH_STRING_LENGTH] = { 0 };\
     char *FW_STRING_FLAG = &fwMatchArray[0];
     #define FW_MATCH_LONG_OPT_STRING "onlyFW"
     #define FW_MATCH_LONG_OPT { FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //new fw rev match
+    #define NEW_FW_MATCH_STRING_LENGTH 9
     #define NEW_FW_MATCH_FLAG newfwNumberMatch
     #define NEW_FW_STRING_FLAG newfwString
     #define NEW_FW_MATCH_VARS \
     bool NEW_FW_MATCH_FLAG = false;\
-    char newfwMatchArray[9] = { 0 };\
+    char newfwMatchArray[NEW_FW_MATCH_STRING_LENGTH] = { 0 };\
     char *NEW_FW_STRING_FLAG = &newfwMatchArray[0];
     #define NEW_FW_MATCH_LONG_OPT_STRING "newFW"
     #define NEW_FW_MATCH_LONG_OPT { NEW_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -778,9 +783,10 @@ extern "C"
     //child model number match
     #define CHILD_MODEL_MATCH_FLAG childModelNumberMatch
     #define CHILD_MODEL_STRING_FLAG childModelString
+    #define CHILD_MATCH_STRING_LENGTH 41
     #define CHILD_MODEL_MATCH_VARS \
     bool CHILD_MODEL_MATCH_FLAG = false;\
-    char childModelMatchArray[41] = { 0 };\
+    char childModelMatchArray[CHILD_MATCH_STRING_LENGTH] = { 0 };\
     char *CHILD_MODEL_STRING_FLAG = &childModelMatchArray[0];
     #define CHILD_MODEL_MATCH_LONG_OPT_STRING "childModelMatch"
     #define CHILD_MODEL_MATCH_LONG_OPT { CHILD_MODEL_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -788,19 +794,21 @@ extern "C"
     //child fw rev match
     #define CHILD_FW_MATCH_FLAG childFwNumberMatch
     #define CHILD_FW_STRING_FLAG childFwString
+    #define CHILD_FW_MATCH_STRING_LENGTH 9
     #define CHILD_FW_MATCH_VARS \
     bool CHILD_FW_MATCH_FLAG = false;\
-    char childFwMatchArray[9] = { 0 };\
+    char childFwMatchArray[CHILD_FW_MATCH_STRING_LENGTH] = { 0 };\
     char *CHILD_FW_STRING_FLAG = &childFwMatchArray[0];
     #define CHILD_FW_MATCH_LONG_OPT_STRING "childOnlyFW"
     #define CHILD_FW_MATCH_LONG_OPT { CHILD_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //child new fw rev match
+    #define CHILD_NEW_FW_STRING_MATCH_LENGTH 9
     #define CHILD_NEW_FW_MATCH_FLAG childNewfwNumberMatch
     #define CHILD_NEW_FW_STRING_FLAG childNewfwString
     #define CHILD_NEW_FW_MATCH_VARS \
     bool CHILD_NEW_FW_MATCH_FLAG = false;\
-    char childNewfwMatchArray[9] = { 0 };\
+    char childNewfwMatchArray[CHILD_NEW_FW_STRING_MATCH_LENGTH] = { 0 };\
     char *CHILD_NEW_FW_STRING_FLAG = &childNewfwMatchArray[0];
     #define CHILD_NEW_FW_MATCH_LONG_OPT_STRING "childNewFW"
     #define CHILD_NEW_FW_MATCH_LONG_OPT { CHILD_NEW_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }

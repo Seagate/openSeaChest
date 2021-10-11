@@ -126,15 +126,17 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     time_t g_curTime = time(NULL);
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char *userName = NULL;
-    char currentTime[30] = { 0 };
+#define CURRENT_TIME_STRING_MAX_LENGTH 30
+    char currentTime[CURRENT_TIME_STRING_MAX_LENGTH] = { 0 };
     struct tm utilTime;
     memset(&utilTime, 0, sizeof(struct tm));
     if (SUCCESS != get_Current_User_Name(&userName))
     {
-        userName = (char*)calloc(36, sizeof(char));
+#define UNKNOWN_USER_NAME_MAX_LENGTH 36
+        userName = (char*)calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char));
         if(userName)
         {
-            sprintf(userName, "Unable to retrieve current username");
+            snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
     }
     //char g_timeString[64] = { 0 };
@@ -148,9 +150,9 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (0 == strftime(currentTime, 30, "%c", get_Localtime(&g_curTime, &utilTime)))
+    if (0 == strftime(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "%c", get_Localtime(&g_curTime, &utilTime)))
     {
-        sprintf(currentTime, "Unable to get local time");
+        snprintf(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "Unable to get local time");
     }
     printf(" Today: %s\tUser: %s\n", currentTime, userName);
     printf("==========================================================================================\n");
@@ -2891,24 +2893,25 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         {
             *userHandleProvided = true;
 #if defined(_WIN32)
-            char windowsHandle[50] = { 0 };
+#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+            char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
             char *deviceHandle = &windowsHandle[0];
             char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
             if (_strnicmp((char *)optarg, "PD", 2) == 0)
             {
                 physicalDeviceNumber = strpbrk((char *)optarg, "0123456789");
-                sprintf(deviceHandle, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
             }
 #if defined(ENABLE_CSMI)
             else if (strncmp((char *)optarg, "csmi", 4) == 0)
             {
-                sprintf(deviceHandle, "%s", optarg);
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
 #endif
             else if (strncmp((char *)optarg, "\\\\.\\", 4) == 0)
             {
-                sprintf(deviceHandle, "%s", optarg);
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
             /*If we want to add another format for accepting a handle, then add an else-if here*/
             else /*we have an invalid handle*/
@@ -2945,14 +2948,15 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             }
             /*the list has been allocated, now put the handle we've received into the list*/
             /*start by allocating memory for the handle at the new list location*/
-            (*handleList)[(*deviceCount) - 1] = (char*)calloc(strlen(deviceHandle) + 1, sizeof(char));
+            size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
+            (*handleList)[(*deviceCount) - 1] = (char*)calloc(handleListNewHandleLength, sizeof(char));
             if (!(*handleList)[(*deviceCount) - 1])
             {
                 perror("error allocating memory for adding device handle to list\n");
                 return 255;
             }
             /*copy the handle into memory*/
-            strcpy((*handleList)[(*deviceCount) - 1], deviceHandle);
+            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
         }
     }
     return 0;

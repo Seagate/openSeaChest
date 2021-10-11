@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.0";
+const char *buildVersion = "2.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -461,28 +461,18 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 NEW_FW_MATCH_FLAG = true;
-                strncpy(NEW_FW_STRING_FLAG, optarg, 8);
+                snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-//          else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
-//          {
-//              CHILD_MODEL_MATCH_FLAG = true;
-//              strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
-//          }
-//          else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
-//          {
-//              CHILD_FW_MATCH_FLAG = true;
-//              strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
-//          }
             break;
         case ':'://missing required argument
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
@@ -1112,8 +1102,9 @@ int32_t main(int argc, char *argv[])
                                 FILE * pLogFile = NULL;
                                 char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                                 char * fileNameUsed = &identifyFileName[0];
-                                char logName[16];
-                                sprintf(logName, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
+                                #define SEACHEST_NVME_LOG_NAME_LENGTH 16
+                                char logName[SEACHEST_NVME_LOG_NAME_LENGTH] = { 0 };
+                                snprintf(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
                                 if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
                                     logName, "bin", 1, &fileNameUsed))
                                 {
@@ -1365,8 +1356,8 @@ int32_t main(int argc, char *argv[])
                             FILE * pLogFile = NULL;
                             char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                             char * fileNameUsed = &identifyFileName[0];
-                            char logName[16];
-                            sprintf(logName, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
+                            char logName[SEACHEST_NVME_LOG_NAME_LENGTH] = { 0 };
+                            snprintf(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
                             if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
                                 logName, "bin", 1, &fileNameUsed))
                             {

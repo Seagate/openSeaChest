@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.0.2";
+const char *buildVersion = "3.0.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -653,22 +653,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
+                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':'://missing required argument
@@ -2353,18 +2353,19 @@ int32_t main(int argc, char *argv[])
 
         if (SAS_PARTIAL_FLAG || SAS_SLUMBER_FLAG)
         {
-            char partialSlumberString[40] = { 0 };
+#define SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH 40
+            char partialSlumberString[SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH] = { 0 };
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
-                sprintf(partialSlumberString, "SAS Partial & Slumber");
+                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial & Slumber");
             }
             else if (SAS_PARTIAL_FLAG)
             {
-                sprintf(partialSlumberString, "SAS Partial");
+                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial");
             }
             else if (SAS_SLUMBER_FLAG)
             {
-                sprintf(partialSlumberString, "Slumber");
+                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
             }
             switch (scsi_Set_Partial_Slumber(&deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG, SAS_SLUMBER_FLAG, SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER))
             {
