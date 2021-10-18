@@ -667,7 +667,7 @@ int32_t main(int argc, char *argv[])
                         }
                         //close file
                         fclose(patternFile);
-                        safe_Free(filename);
+                        safe_Free(filename)
                     }
                     else if (strncmp("increment:", optarg, 10) == 0)
                     {
@@ -1376,7 +1376,7 @@ int32_t main(int argc, char *argv[])
                 printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(displaySector);
+            safe_Free(displaySector)
         }
 
         if (SHOW_PHYSICAL_ELEMENT_STATUS_FLAG)
@@ -2480,7 +2480,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(DEVICE_LIST)
     exit(exitCode);
 }
 

@@ -2841,7 +2841,7 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
-                        safe_Free_aligned(modePageBuffer);
+                        safe_Free(modePageBuffer)
                     }
                     else
                     {
@@ -2852,8 +2852,8 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                     fclose(modePageFile);
-                    safe_Free_aligned(modePageBuffer);
-                    safe_Free(fileBuf);
+                    safe_Free(modePageBuffer)
+                    safe_Free(fileBuf)
                 }
                 else
                 {
@@ -2996,7 +2996,7 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
-                        safe_Free(rawmodePageBuffer);
+                        safe_Free(rawmodePageBuffer)
                     }
                     else
                     {
@@ -3020,7 +3020,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(DEVICE_LIST)
     exit(exitCode);
 }
 
