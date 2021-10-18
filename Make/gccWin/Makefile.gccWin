@@ -41,10 +41,8 @@ endif
 
 LIB_FILE_OUTPUT_DIR = lib
 
-#turning off format warnings because they are EVERYWHERE but only in minGW which is due to backwards compatibility warnings.
-#I tried using __USE_MINGW_ANSI_STDIO, but this didn't solve the problem either. - TJE
-#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
-CFLAGS ?= -Wall -Wextra  -Wno-format
+#NOTE: If having excessive format warnings, add -Wnoformat to shut things up. We use -D__USE_MINGW_ANSI_STDIO below to work around this though - TJE
+CFLAGS ?= -Wall -Wextra 
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
 CFLAGS += -isystem
@@ -187,8 +185,10 @@ ifneq (,$(findstring reservations,$(BUILD_ALL)))
     RESERVATIONSOBJS = $(RESERVATIONSSOURCES:.c=.o)
 endif
 
-PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS
-PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
+#use __USE_MINGW_ANSI_STDIO to get rid of format warnings for printf uint64_t
+#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
+PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS -D__USE_MINGW_ANSI_STDIO
+PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS
 
 PROJECT_DEFINES += -DENABLE_CSMI
 PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT 
