@@ -3344,11 +3344,11 @@ extern "C"
                     if (startSet == false)                                      \
                     {                                                           \
                         startSet = true;                                        \
-                        eraseRangeStart = (uint64_t)atoll(nextSubOpt);          \
+                        eraseRangeStart = C_CAST(uint64_t, atoll(nextSubOpt));  \
                     }                                                           \
                     else                                                        \
                     {                                                           \
-                        eraseRangeEnd = (uint64_t)atoll(nextSubOpt);            \
+                        eraseRangeEnd = C_CAST(uint64_t, atoll(nextSubOpt));    \
                     }                                                           \
                 }                                                               \
             }                                                                   \
@@ -3396,11 +3396,11 @@ uint64_t            eraseTimeStartLBA = 0;
                     if (lbaSet == false)                                                                                        \
                     {                                                                                                           \
                         lbaSet = true;                                                                                          \
-                        eraseTimeStartLBA = (uint64_t)atoll(nextSubOpt);                                                        \
+                        eraseTimeStartLBA = C_CAST(uint64_t, atoll(nextSubOpt));                                                \
                     }                                                                                                           \
                     else                                                                                                        \
                     {                                                                                                           \
-                        eraseTimeSeconds = (uint64_t)atoll(nextSubOpt);                                                         \
+                        eraseTimeSeconds = C_CAST(uint64_t, atoll(nextSubOpt));                                                 \
                     }                                                                                                           \
                 }                                                                                                               \
             }                                                                                                                   \

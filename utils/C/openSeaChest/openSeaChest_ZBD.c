@@ -1066,7 +1066,7 @@ int32_t main(int argc, char *argv[])
                     printf("Failed to get zones to report!\n");
                     break;
                 }
-                safe_Free(zoneDescriptors)
+                safe_Free(zoneDescriptors);
             }
             else
             {
@@ -1077,7 +1077,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST)
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 

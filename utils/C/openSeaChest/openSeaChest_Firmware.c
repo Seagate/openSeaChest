@@ -1084,7 +1084,7 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free(firmwareMem)
+                    safe_Free_aligned(firmwareMem)
                 }
                 else
                 {
@@ -1196,7 +1196,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST)
+    safe_Free(DEVICE_LIST);
     exit(exitCode);
 }
 
