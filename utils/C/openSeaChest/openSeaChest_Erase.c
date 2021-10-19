@@ -257,7 +257,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -272,7 +272,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -304,7 +304,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -312,7 +312,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -337,19 +337,19 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = (uint8_t)atoi(optarg);
+                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = (uint16_t)atoi(optarg);
+                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = (uint32_t)atoi(optarg);
+                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(WRITE_SAME_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -357,7 +357,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_START_FLAG))
                 {
                     RUN_WRITE_SAME_FLAG = true;
                 }
@@ -396,7 +396,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
                     {
                         //set the sector size
                         FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
@@ -410,7 +410,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -435,7 +435,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = (eFormatType)atoi(optarg);
+                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
@@ -503,7 +503,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
                     memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
                 }
                 else
@@ -517,7 +517,7 @@ int32_t main(int argc, char *argv[])
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
                     memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)M_Min(strlen(optarg), 32);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), 32));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING))) == 0)
@@ -646,7 +646,7 @@ int32_t main(int argc, char *argv[])
                     {
                         FILE *patternFile = NULL;
                         size_t filenameLength = strlen(colonLocation) + 1;
-                        char *filename = (char*)calloc(filenameLength, sizeof(char));
+                        char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
                         if (!filename)
                         {
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -671,7 +671,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else if (strncmp("increment:", optarg, 10) == 0)
                     {
-                        uint8_t incrementStart = (uint8_t)atoi(colonLocation);
+                        uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
                         fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                     }
                     else if (strncmp("repeat:", optarg, 7) == 0)
@@ -679,14 +679,14 @@ int32_t main(int argc, char *argv[])
                         //if final character is a lower case h, it's an hex pattern
                         if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
                         {
-                            uint32_t hexPattern = (uint32_t)strtol(colonLocation, NULL, 16);
+                            uint32_t hexPattern = C_CAST(uint32_t, strtol(colonLocation, NULL, 16));
                             //TODO: add endianness check before byte swap
                             byte_Swap_32(&hexPattern);
                             fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                         else
                         {
-                            fill_ASCII_Pattern_In_Buffer(colonLocation, (uint32_t)strlen(colonLocation), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                     }
                     else
@@ -698,7 +698,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
-                REMOVE_PHYSICAL_ELEMENT_FLAG = (uint32_t)atoi(optarg);
+                REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -967,7 +967,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         //user did not set a password, so we need to set "SeaChest"
-        ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+        ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
         memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
     }
 
@@ -1059,7 +1059,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1352,7 +1352,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1393,7 +1393,7 @@ int32_t main(int argc, char *argv[])
                 get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
                 if (numberOfDescriptors > 0)
                 {
-                    ptrPhysicalElement elementList = (ptrPhysicalElement)malloc(numberOfDescriptors * sizeof(physicalElement));
+                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
                     memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
                     if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
                     {

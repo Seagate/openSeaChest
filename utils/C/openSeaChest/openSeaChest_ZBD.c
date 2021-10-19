@@ -175,7 +175,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (!get_And_Validate_Integer_Input((const char *)optarg, &ZONE_ID_FLAG))
+                    if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &ZONE_ID_FLAG))
                     {
                         print_Error_In_Cmd_Line_Args(ZONE_ID_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -185,7 +185,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MAX_ZONES_LONG_OPT_STRING))) == 0)
             {
                 uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     MAX_ZONES_FLAG = C_CAST(uint32_t, temp);
                 }
@@ -557,7 +557,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1045,7 +1045,7 @@ int32_t main(int argc, char *argv[])
             if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
-                ptrZoneDescriptor zoneDescriptors = (ptrZoneDescriptor)calloc(numberOfZones, sizeof(zoneDescriptor));
+                ptrZoneDescriptor zoneDescriptors = C_CAST(ptrZoneDescriptor, calloc(numberOfZones, sizeof(zoneDescriptor)));
                 if (!zoneDescriptors)
                 {
                     perror("cannot allocate memory for zone descriptors");

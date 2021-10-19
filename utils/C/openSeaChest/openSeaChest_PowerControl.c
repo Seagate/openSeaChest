@@ -286,7 +286,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
             {
                 uint64_t temp = UINT64_MAX;
-                if (get_And_Validate_Integer_Input((const char*)optarg, &temp) && temp < INT32_MAX)
+                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp) && temp < INT32_MAX)
                 {
                     TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
                 }
@@ -332,7 +332,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_APM_LEVEL_LONG_OPT_STRING))) == 0)
             {
                 SET_APM_LEVEL_FLAG = true;
-                SET_APM_LEVEL_VALUE_FLAG = (uint8_t)atoi(optarg);
+                SET_APM_LEVEL_VALUE_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, SEAGATE_POWER_BALANCE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SEAGATE_POWER_BALANCE_LONG_OPT_STRING))) == 0)
             {
@@ -446,7 +446,7 @@ int32_t main(int argc, char *argv[])
             } 
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING)) == 0)
             {
-                SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
+                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_A_LONG_OPT_STRING) == 0)
             {
@@ -468,7 +468,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     IDLE_A_TIMER_VALID = true;
-                    IDLE_A_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    IDLE_A_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_B_LONG_OPT_STRING) == 0)
@@ -491,7 +491,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     IDLE_B_TIMER_VALID = true;
-                    IDLE_B_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    IDLE_B_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_C_LONG_OPT_STRING) == 0)
@@ -514,7 +514,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     IDLE_C_TIMER_VALID = true;
-                    IDLE_C_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    IDLE_C_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Z_LONG_OPT_STRING) == 0)
@@ -537,7 +537,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     STANDBY_Z_TIMER_VALID = true;
-                    STANDBY_Z_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    STANDBY_Z_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Y_LONG_OPT_STRING) == 0)
@@ -560,7 +560,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     STANDBY_Y_TIMER_VALID = true;
-                    STANDBY_Y_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    STANDBY_Y_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_IDLE_LONG_OPT_STRING) == 0)
@@ -583,7 +583,7 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     LEGACY_IDLE_TIMER_VALID = true;
-                    LEGACY_IDLE_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    LEGACY_IDLE_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_STANDBY_LONG_OPT_STRING) == 0)
@@ -606,13 +606,13 @@ int32_t main(int argc, char *argv[])
                     //the set function expects time in 100 millisecond units
                     //Take the input millisecond time and divide it by 100
                     LEGACY_STANDBY_TIMER_VALID = true;
-                    LEGACY_STANDBY_POWER_MODE_TIMER = (uint32_t)atoi(optarg) / 100;
+                    LEGACY_STANDBY_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
             else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING)) == 0)
             {
                 uint64_t measurementTime = 0;
-                if (get_And_Validate_Integer_Input((const char*)optarg, &measurementTime))
+                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &measurementTime))
                 {
                     REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
                     if (measurementTime > 65535)
@@ -986,7 +986,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1381,7 +1381,7 @@ int32_t main(int argc, char *argv[])
 #if !defined (DISABLE_NVME_PASSTHROUGH)
         if (TRANSITION_POWER_STATE_TO >= 0)
         {
-            switch (transition_NVM_Power_State(&deviceList[deviceIter], (uint8_t)TRANSITION_POWER_STATE_TO))
+            switch (transition_NVM_Power_State(&deviceList[deviceIter], C_CAST(uint8_t, TRANSITION_POWER_STATE_TO)))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2406,7 +2406,7 @@ int32_t main(int argc, char *argv[])
             }
             if (SUCCESS == result)
             {
-                ptrSasEnhPhyControl phyData = (ptrSasEnhPhyControl)calloc(phyListSize, sizeof(sasEnhPhyControl));
+                ptrSasEnhPhyControl phyData = C_CAST(ptrSasEnhPhyControl, calloc(phyListSize, sizeof(sasEnhPhyControl)));
                 if (phyData)
                 {
                     //get the information needed, then show it
@@ -2456,7 +2456,7 @@ int32_t main(int argc, char *argv[])
         {
             if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
             {
-                switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, (ePowerTelemetryMeasurementOptions)REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE))
+                switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, C_CAST(ePowerTelemetryMeasurementOptions, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE)))
                 {
                 case SUCCESS:
                     //show a time when the measurement is expected to be complete?

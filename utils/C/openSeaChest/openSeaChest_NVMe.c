@@ -289,11 +289,11 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
             {
                 FWDL_SEGMENT_SIZE_FROM_USER = true;
-                FWDL_SEGMENT_SIZE_FLAG = (uint16_t)atoi(optarg);
+                FWDL_SEGMENT_SIZE_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
-                FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
+                FIRMWARE_SLOT_FLAG = C_CAST(uint8_t, atoi(optarg));
                 if (FIRMWARE_SLOT_FLAG > 7)
                 {
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -420,7 +420,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_PI_TYPE = (uint8_t)atoi(optarg);
+                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
             {
@@ -440,7 +440,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_METADATA_SIZE = (uint32_t)atoi(optarg);
+                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
             {
@@ -762,7 +762,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1006,7 +1006,7 @@ int32_t main(int argc, char *argv[])
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
             uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
-            ptrSupportedFormats formats = (ptrSupportedFormats)malloc(memSize);
+            ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, malloc(memSize));
             if (formats)
             {
                 memset(formats, 0, memSize);
@@ -1081,12 +1081,12 @@ int32_t main(int argc, char *argv[])
                     {
                         size = 32 * size; //Get first 32 entries.
                     }
-                    logBuffer = (uint8_t *)calloc((size_t)size, sizeof(uint8_t));
+                    logBuffer = C_CAST(uint8_t *, calloc(C_CAST(size_t, size), sizeof(uint8_t)));
                     if (logBuffer != NULL)
                     {
                         cmdOpts.nsid = NVME_ALL_NAMESPACES;
                         cmdOpts.addr = logBuffer;
-                        cmdOpts.dataLen = (uint32_t)size;
+                        cmdOpts.dataLen = C_CAST(uint32_t, size);
                         cmdOpts.lid = GET_NVME_LOG_IDENTIFIER;
                         if (nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts) == SUCCESS)
                         {
@@ -1094,7 +1094,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 printf("Log Page %d Buffer:\n", GET_NVME_LOG_IDENTIFIER);
                                 printf("================================\n");
-                                print_Data_Buffer((uint8_t *)logBuffer, (uint32_t)size, true);
+                                print_Data_Buffer(C_CAST(uint8_t *, logBuffer), C_CAST(uint32_t, size), true);
                                 printf("================================\n");
                             }
                             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
@@ -1108,7 +1108,7 @@ int32_t main(int argc, char *argv[])
                                 if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
                                     logName, "bin", 1, &fileNameUsed))
                                 {
-                                    fwrite(logBuffer, sizeof(uint8_t), (size_t)size, pLogFile);
+                                    fwrite(logBuffer, sizeof(uint8_t), C_CAST(size_t, size), pLogFile);
                                     fflush(pLogFile);
                                     fclose(pLogFile);
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1280,7 +1280,7 @@ int32_t main(int argc, char *argv[])
 
                 memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
 
-                logBuffer = (uint8_t*)calloc(size, sizeof(uint8_t));
+                logBuffer = C_CAST(uint8_t*, calloc(size, sizeof(uint8_t)));
 
                 if (logBuffer != NULL)
                 {
@@ -1295,7 +1295,7 @@ int32_t main(int argc, char *argv[])
 
                     if (rtnVal == SUCCESS)
                     {
-                        teleHdr = (nvmeTemetryLogHdr *)logBuffer;
+                        teleHdr = C_CAST(nvmeTemetryLogHdr *, logBuffer);
 
 #if defined(_DEBUG)
                         printf("Telemetry Data Area 1 : %d \n", teleHdr->teleDataArea1);
@@ -1323,7 +1323,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Log Page %d Buffer:\n", GET_TELEMETRY_IDENTIFIER);
                             printf("================================\n");
-                            print_Data_Buffer((uint8_t *)logBuffer, size, true);
+                            print_Data_Buffer(C_CAST(uint8_t *, logBuffer), size, true);
 
                             while (offset < fullSize)
                             {
@@ -1347,7 +1347,7 @@ int32_t main(int argc, char *argv[])
                                     break;
                                 }
 
-                                print_Data_Buffer((uint8_t *)logBuffer, size, true);
+                                print_Data_Buffer(C_CAST(uint8_t *, logBuffer), size, true);
                             }
                             printf("================================\n");
                         }
@@ -1595,8 +1595,8 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                size_t firmwareFileSize = (size_t)get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc(firmwareFileSize, sizeof(uint8_t));
+                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
+                uint8_t *firmwareMem = C_CAST(uint8_t*, calloc(firmwareFileSize, sizeof(uint8_t)));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -1869,7 +1869,7 @@ int32_t main(int argc, char *argv[])
                 if (NVM_FORMAT_METADATA_SIZE != UINT32_MAX && !nvmformatParameters.formatNumberProvided)
                 {
                     nvmformatParameters.newSize.changeMetadataSize = true;
-                    nvmformatParameters.newSize.metadataSize = (uint16_t)NVM_FORMAT_METADATA_SIZE;
+                    nvmformatParameters.newSize.metadataSize = C_CAST(uint16_t, NVM_FORMAT_METADATA_SIZE);
                 }
                 if (NVM_FORMAT_NSID != UINT32_MAX)
                 {

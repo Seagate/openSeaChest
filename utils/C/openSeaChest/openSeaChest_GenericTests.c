@@ -211,7 +211,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_START_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_START_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &USER_GENERIC_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &USER_GENERIC_START_FLAG))
                 {
                     RUN_USER_GENERIC_TEST = true;
                 }
@@ -236,7 +236,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_RANGE_STRING))) == 0)
             {
-                USER_GENERIC_RANGE_FLAG = (uint64_t)atoll(optarg);
+                USER_GENERIC_RANGE_FLAG = C_CAST(uint64_t, atoll(optarg));
                 //Check to see if any units were specified, otherwise assume LBAs
                 uint64_t multiplier = 1;
                 if (strstr(optarg, "KB"))
@@ -283,7 +283,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
-                ERROR_LIMIT_FLAG = (uint16_t)atoi(optarg);
+                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
                 if(strstr(optarg, "l"))
                 {
                     ERROR_LIMIT_LOGICAL_COUNT = true;
@@ -291,15 +291,15 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(HOURS_TIME_LONG_OPT_STRING))) == 0)
             {
-                HOURS_TIME_FLAG = (uint8_t)atoi(optarg);
+                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MINUTES_TIME_LONG_OPT_STRING))) == 0)
             {
-                MINUTES_TIME_FLAG = (uint16_t)atoi(optarg);
+                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SECONDS_TIME_LONG_OPT_STRING))) == 0)
             {
-                SECONDS_TIME_FLAG = (uint32_t)atoi(optarg);
+                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GENERIC_TEST_LONG_OPT_STRING))) == 0)
             {
@@ -343,7 +343,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -383,7 +383,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OD_MD_ID_TEST_RANGE_LONG_OPT_STRING) == 0)
             {
-                OD_ID_MD_TEST_RANGE = (uint64_t)atoll(optarg);
+                OD_ID_MD_TEST_RANGE = C_CAST(uint64_t, atoll(optarg));
                 //Check to see if any units were specified, otherwise assume LBAs
                 uint64_t multiplier = 1;
                 if (strstr(optarg, "KB"))
@@ -721,7 +721,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1008,7 +1008,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");

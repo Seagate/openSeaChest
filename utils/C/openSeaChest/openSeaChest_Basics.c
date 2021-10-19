@@ -240,7 +240,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -255,7 +255,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -287,7 +287,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -295,7 +295,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -320,15 +320,15 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = (uint8_t)atoi(optarg);
+                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = (uint16_t)atoi(optarg);
+                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = (uint32_t)atoi(optarg);
+                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
@@ -381,12 +381,12 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
             {
                 SET_PHY_SPEED_FLAG = true;
-                SET_PHY_SPEED_GEN = (uint8_t)atoi(optarg);
+                SET_PHY_SPEED_GEN = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
             {
                 SET_PHY_ALL_PHYS = false;
-                SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
+                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
             }
             else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0) ||
                 (strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
@@ -467,7 +467,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -518,7 +518,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -849,7 +849,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1155,7 +1155,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1426,8 +1426,8 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                size_t firmwareFileSize = (size_t)get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
+                uint8_t *firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;

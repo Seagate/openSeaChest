@@ -382,7 +382,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
                     memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
                 }
                 else
@@ -396,7 +396,7 @@ int32_t main(int argc, char *argv[])
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
                     memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)M_Min(strlen(optarg), 32);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), 32));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING))) == 0)
@@ -442,7 +442,7 @@ int32_t main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                ATA_SECURITY_MASTER_PW_ID = (uint16_t)masterIDOut;
+                ATA_SECURITY_MASTER_PW_ID = C_CAST(uint16_t, masterIDOut);
             }
 #endif
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
@@ -825,7 +825,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         //user did not set a password, so we need to set "SeaChest"
-        ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+        ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
         memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
     }
 
@@ -921,7 +921,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1217,7 +1217,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");

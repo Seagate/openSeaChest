@@ -266,11 +266,11 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
             {
                 FWDL_SEGMENT_SIZE_FROM_USER = true;
-                FWDL_SEGMENT_SIZE_FLAG = (uint16_t)atoi(optarg);
+                FWDL_SEGMENT_SIZE_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
-                FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
+                FIRMWARE_SLOT_FLAG = C_CAST(uint8_t, atoi(optarg));
                 if (FIRMWARE_SLOT_FLAG > 7)
                 {
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -568,7 +568,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -929,7 +929,7 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+                uint8_t *firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -994,7 +994,7 @@ int32_t main(int argc, char *argv[])
                         switch (ret)
                         {
                         case SUCCESS:
-                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
+                            exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE);
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware Download successful\n");
@@ -1010,7 +1010,7 @@ int32_t main(int argc, char *argv[])
                             }
                             if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                             {
-                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
@@ -1022,7 +1022,7 @@ int32_t main(int argc, char *argv[])
                             }
                             else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
                             {
-                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("This drive requires a full power cycle to activate the new code.\n");
@@ -1134,7 +1134,7 @@ int32_t main(int argc, char *argv[])
                 switch (ret)
                 {
                 case SUCCESS:
-                    exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
+                    exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED);
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Firmware activation successful\n");
@@ -1230,7 +1230,7 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     //SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE
     int totalErrorCodes = SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-    ptrToolSpecificxitCode seachestFirmwareExitCodes = (ptrToolSpecificxitCode)calloc(totalErrorCodes, sizeof(toolSpecificxitCode));
+    ptrToolSpecificxitCode seachestFirmwareExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
     //now set up all the exit codes and their meanings
     if (seachestFirmwareExitCodes)
     {

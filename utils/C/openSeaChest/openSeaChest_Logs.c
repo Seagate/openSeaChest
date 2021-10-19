@@ -232,7 +232,7 @@ int32_t main(int argc, char *argv[])
             {
                 //set the raw data length - but check the units first!
                 uint64_t multiplier = 1;
-                uint64_t optargInt = (uint64_t)atoll(optarg);
+                uint64_t optargInt = C_CAST(uint64_t, atoll(optarg));
                 if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
                 {
                     //they specified blocks. For log transfers this means a number of 512B sectors
@@ -574,7 +574,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)

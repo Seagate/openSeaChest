@@ -222,7 +222,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                 }
@@ -235,12 +235,12 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
             {
                 SET_PHY_SPEED_FLAG = true;
-                SET_PHY_SPEED_GEN = (uint8_t)atoi(optarg);
+                SET_PHY_SPEED_GEN = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
             {
                 SET_PHY_ALL_PHYS = false;
-                SET_PHY_SAS_PHY_IDENTIFIER = (uint8_t)atoi(optarg);
+                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
             }
             else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
             {
@@ -343,7 +343,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -504,7 +504,7 @@ int32_t main(int argc, char *argv[])
                         multiplier = UINT32_C(3600000);
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = (uint32_t)atoi(optarg) * multiplier;
+                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING) == 0)
@@ -534,7 +534,7 @@ int32_t main(int argc, char *argv[])
                         multiplier = UINT32_C(3600000);
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = (uint32_t)atoi(optarg) * multiplier;
+                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
@@ -563,7 +563,7 @@ int32_t main(int argc, char *argv[])
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     FREE_FALL_FLAG = true;
-                    FREE_FALL_SENSITIVITY = (uint8_t)value;
+                    FREE_FALL_SENSITIVITY = C_CAST(uint8_t, value);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESET_LONG_OPT_STRING) == 0)
@@ -580,14 +580,14 @@ int32_t main(int argc, char *argv[])
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESET_PAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_RESET_PAGE_NUMBER = C_CAST(uint8_t, value);
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESET_SUBPAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_RESET_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
                             break;
                         default:
                             errorInCL = true;
@@ -621,14 +621,14 @@ int32_t main(int argc, char *argv[])
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESTORE_PAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_RESTORE_PAGE_NUMBER = C_CAST(uint8_t, value);
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
                             break;
                         default:
                             errorInCL = true;
@@ -662,14 +662,14 @@ int32_t main(int argc, char *argv[])
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_SAVE_PAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_SAVE_PAGE_NUMBER = C_CAST(uint8_t, value);
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_SAVE_SUBPAGE_NUMBER = (uint8_t)value;
+                            SCSI_MP_SAVE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
                             break;
                         default:
                             errorInCL = true;
@@ -703,14 +703,14 @@ int32_t main(int argc, char *argv[])
                         switch (count)
                         {
                         case 0:
-                            SCSI_SHOW_MP_PAGE_NUMBER = (uint8_t)value;
+                            SCSI_SHOW_MP_PAGE_NUMBER = C_CAST(uint8_t, value);
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_SHOW_MP_SUBPAGE_NUMBER = (uint8_t)value;
+                            SCSI_SHOW_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
                             break;
                         default:
                             errorInCL = true;
@@ -774,7 +774,7 @@ int32_t main(int argc, char *argv[])
                         }
                         break;
                         case 1://byte
-                            SCSI_SET_MP_BYTE = (uint16_t)atoi(token);
+                            SCSI_SET_MP_BYTE = C_CAST(uint16_t, atoi(token));
                             break;
                         case 2://bit
                             if (atoi(token) > 7)
@@ -782,7 +782,7 @@ int32_t main(int argc, char *argv[])
                                 print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
-                            SCSI_SET_MP_BIT = (uint8_t)atoi(token);
+                            SCSI_SET_MP_BIT = C_CAST(uint8_t, atoi(token));
                             break;
                         case 3://field width
                             if (atoi(token) > 64)
@@ -790,7 +790,7 @@ int32_t main(int argc, char *argv[])
                                 print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
-                            SCSI_SET_MP_FIELD_LEN_BITS = (uint8_t)atoi(token);
+                            SCSI_SET_MP_FIELD_LEN_BITS = C_CAST(uint8_t, atoi(token));
                             break;
                         case 4://value
                             if (!get_And_Validate_Integer_Input(token, &SCSI_SET_MP_FIELD_VALUE))
@@ -809,17 +809,17 @@ int32_t main(int argc, char *argv[])
                     char *pagetoken = strtok(pageAndSubpage, "-");
                     if (pagetoken)
                     {
-                        SCSI_SET_MP_PAGE_NUMBER = (uint8_t)strtoul(pagetoken, NULL, 16);
+                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
                         pagetoken = strtok(NULL, "-");
                         if (pagetoken)
                         {
-                            SCSI_SET_MP_SUBPAGE_NUMBER = (uint8_t)strtoul(pagetoken, NULL, 16);
+                            SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
                         }
                     }
                     else //should this be an error condition since strtok failed?
                     {
                         //no subpage
-                        SCSI_SET_MP_PAGE_NUMBER = (uint8_t)strtoul(pageAndSubpage, NULL, 16);
+                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pageAndSubpage, NULL, 16));
                         SCSI_SET_MP_SUBPAGE_NUMBER = 0;
                     }
                     if (SCSI_SET_MP_PAGE_NUMBER > 0x3F)
@@ -910,14 +910,14 @@ int32_t main(int argc, char *argv[])
                         switch (count)
                         {
                         case 0:
-                            SCSI_RESET_LP_PAGE_NUMBER = (uint8_t)value;
+                            SCSI_RESET_LP_PAGE_NUMBER = C_CAST(uint8_t, value);
                             if (value > 0x3F)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_RESET_LP_SUBPAGE_NUMBER = (uint8_t)value;
+                            SCSI_RESET_LP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
                             break;
                         default:
                             errorInCL = true;
@@ -1273,7 +1273,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2752,9 +2752,9 @@ int32_t main(int argc, char *argv[])
                 if (modePageFile)
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
-                    size_t fileLength = (size_t)get_File_Size(modePageFile) + 1;//add 1 so that we have a null terminator once we read in the file.
-                    uint8_t *modePageBuffer = (uint8_t*)calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
-                    char *fileBuf = (char*)calloc(fileLength, sizeof(char));
+                    size_t fileLength = C_CAST(size_t, get_File_Size(modePageFile)) + 1;//add 1 so that we have a null terminator once we read in the file.
+                    uint8_t *modePageBuffer = C_CAST(uint8_t*, calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                    char *fileBuf = C_CAST(char*, calloc(fileLength, sizeof(char)));
                     if (modePageBuffer && fileBuf)
                     {
                         //read the file
@@ -2780,7 +2780,7 @@ int32_t main(int argc, char *argv[])
                                         break;
                                     }
                                     //not an invalid character or a missing separator, so convert the string to an array value.
-                                    modePageBuffer[modeBufferElementCount] = (uint8_t)strtoul(token, NULL, 16);
+                                    modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, strtoul(token, NULL, 16));
                                     ++modeBufferElementCount;
                                     token = strtok(NULL, delimiters);
                                 } while (token);
@@ -2871,7 +2871,7 @@ int32_t main(int argc, char *argv[])
                 uint32_t rawModePageSize = 0;
                 if (SUCCESS == get_SCSI_Mode_Page_Size(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, &rawModePageSize))
                 {
-                    uint8_t *rawmodePageBuffer = (uint8_t*)calloc(rawModePageSize, sizeof(uint8_t));
+                    uint8_t *rawmodePageBuffer = C_CAST(uint8_t*, calloc(rawModePageSize, sizeof(uint8_t)));
                     if (rawmodePageBuffer)
                     {
                         bool usedSizeByteCmd = false;
@@ -2888,7 +2888,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 //not a multi-bye aligned field. Ex: 12 bits or 3 bits, etc
                                 //check if the number of bits is greater than a byte or not and if the starting bit anf field width would break across byte boundaries
-                                if (SCSI_SET_MP_FIELD_LEN_BITS > BITSPERBYTE || (int)((int)SCSI_SET_MP_BIT - (int)SCSI_SET_MP_FIELD_LEN_BITS) < 0)
+                                if (SCSI_SET_MP_FIELD_LEN_BITS > BITSPERBYTE || (C_CAST(int, SCSI_SET_MP_BIT) - C_CAST(int, SCSI_SET_MP_FIELD_LEN_BITS)) < 0)
                                 {
                                     //setting bits within multiple bytes, but not necessarily full bytes!
                                     uint8_t remainingBits = SCSI_SET_MP_FIELD_LEN_BITS;
@@ -2954,7 +2954,7 @@ int32_t main(int argc, char *argv[])
                                 uint8_t byteNumber = 0;
                                 while (fieldWidthBytes >= 1)
                                 {
-                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = (uint8_t)((M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
+                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = C_CAST(uint8_t, (M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
                                     --fieldWidthBytes;
                                     ++byteNumber;
                                 }

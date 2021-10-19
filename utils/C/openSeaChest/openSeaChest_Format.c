@@ -240,7 +240,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
                     {
                         //set the sector size
                         FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
@@ -255,7 +255,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
             {
                 uint64_t tempSectorSize = 0;
-                if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
                 {
                     SET_SECTOR_SIZE_FLAG = true;
                     SET_SECTOR_SIZE_SIZE = C_CAST(uint32_t, tempSectorSize);
@@ -268,7 +268,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -293,21 +293,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = (eFormatType)atoi(optarg);
+                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_TYPE = (uint8_t)atoi(optarg);
+                FORMAT_UNIT_PROTECTION_TYPE = C_CAST(uint8_t, atoi(optarg));
                 FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = (uint8_t)atoi(optarg);
+                FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = C_CAST(uint8_t, atoi(optarg));
                 FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &FORMAT_UNIT_NEW_MAX_LBA))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &FORMAT_UNIT_NEW_MAX_LBA))
                 {
                     print_Error_In_Cmd_Line_Args(FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -315,7 +315,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DEPOP_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &DEPOP_MAX_LBA_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DEPOP_MAX_LBA_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(DEPOP_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -324,7 +324,7 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
                 uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, temp);
                 }
@@ -341,7 +341,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     uint64_t temp = 0;
-                    if (get_And_Validate_Integer_Input((const char *)optarg, &temp))
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                     {
                         NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
                     }
@@ -390,7 +390,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_PI_TYPE = (uint8_t)atoi(optarg);
+                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
             {
@@ -410,7 +410,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_METADATA_SIZE = (uint32_t)atoi(optarg);
+                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
             {
@@ -446,7 +446,7 @@ int32_t main(int argc, char *argv[])
                         {
                             FILE *patternFile = NULL;
                             size_t filenameLength = strlen(colonLocation) + 1;
-                            char *filename = (char*)calloc(filenameLength, sizeof(char));
+                            char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
                             if (!filename)
                             {
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -471,7 +471,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else if (strncmp("increment:", optarg, 10) == 0)
                         {
-                            uint8_t incrementStart = (uint8_t)atoi(colonLocation);
+                            uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
                             fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                         else if (strncmp("repeat:", optarg, 7) == 0)
@@ -479,14 +479,14 @@ int32_t main(int argc, char *argv[])
                             //if final character is a lower case h, it's an hex pattern
                             if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
                             {
-                                uint32_t hexPattern = (uint32_t)strtol(colonLocation, NULL, 16);
+                                uint32_t hexPattern = C_CAST(uint32_t, strtol(colonLocation, NULL, 16));
                                 //TODO: add endianness check before byte swap
                                 byte_Swap_32(&hexPattern);
                                 fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                             }
                             else
                             {
-                                fill_ASCII_Pattern_In_Buffer(colonLocation, (uint32_t)strlen(colonLocation), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                                fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                             }
                         }
                         else
@@ -802,7 +802,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1080,7 +1080,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1111,7 +1111,7 @@ int32_t main(int argc, char *argv[])
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
             uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
-            ptrSupportedFormats formats = (ptrSupportedFormats)malloc(memSize);
+            ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, malloc(memSize));
             if (formats)
             {
                 memset(formats, 0, memSize);
@@ -1185,7 +1185,7 @@ int32_t main(int argc, char *argv[])
                 get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
                 if (numberOfDescriptors > 0)
                 {
-                    ptrPhysicalElement elementList = (ptrPhysicalElement)malloc(numberOfDescriptors * sizeof(physicalElement));
+                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
                     memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
                     if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
                     {
@@ -1652,7 +1652,7 @@ int32_t main(int argc, char *argv[])
                 if (NVM_FORMAT_METADATA_SIZE != UINT32_MAX && !nvmformatParameters.formatNumberProvided)
                 {
                     nvmformatParameters.newSize.changeMetadataSize = true;
-                    nvmformatParameters.newSize.metadataSize = (uint16_t)NVM_FORMAT_METADATA_SIZE;
+                    nvmformatParameters.newSize.metadataSize = C_CAST(uint16_t, NVM_FORMAT_METADATA_SIZE);
                 }
                 if (NVM_FORMAT_NSID != UINT32_MAX)
                 {

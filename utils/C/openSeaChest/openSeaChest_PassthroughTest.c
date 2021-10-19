@@ -733,7 +733,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1174,7 +1174,7 @@ int return_Response_Extend_Bit_Test(tDevice *device)
 
 void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddress, uint32_t logSize)
 {
-    uint8_t *log = (uint8_t*)calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    uint8_t *log = C_CAST(uint8_t*, calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (log)
     {
         int cmdResult = SUCCESS;
@@ -1191,7 +1191,7 @@ void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddre
         if (cmdResult == SUCCESS)
         {
             //now we need to read and compare if the pattern changed!
-            uint8_t *logR = (uint8_t*)calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+            uint8_t *logR = C_CAST(uint8_t*, calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment));
             if (logR)
             {
                 if (gpl)
@@ -1350,7 +1350,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
                         if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, logSize * 512, false, 0))
@@ -1429,7 +1429,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = (uint8_t *)calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
                         if (SUCCESS == ata_SMART_Read_Log(device, logAddress, log, logSize * 512))
@@ -1506,7 +1506,7 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smartSupport
     uint64_t lba = 0;
     uint16_t sectors = 1;
     uint32_t dataSize = device->drive_info.bridge_info.childDeviceBlockSize * sectors;
-    uint8_t *ptrData = (uint8_t *)calloc_aligned(dataSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    uint8_t *ptrData = C_CAST(uint8_t *, calloc_aligned(dataSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (ptrData)
     {
         bool use48 = device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported;
@@ -1590,7 +1590,7 @@ void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLo
         {
             //SMART is available.
             //Try SMART read data
-            uint8_t *smartData = (uint8_t*)calloc_aligned(512, sizeof(uint8_t), device->os_info.minimumAlignment);
+            uint8_t *smartData = C_CAST(uint8_t*, calloc_aligned(512, sizeof(uint8_t), device->os_info.minimumAlignment));
             memset(&device->drive_info.lastCommandRTFRs, 0, sizeof(ataReturnTFRs));
             if (smartData)
             {
@@ -2052,7 +2052,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         bool genericVPDPageReadOutput = true;
         bool readVPDPage = false;
-        uint8_t *pageToRead = (uint8_t*)calloc_aligned(4, sizeof(uint8_t), device->os_info.minimumAlignment);
+        uint8_t *pageToRead = C_CAST(uint8_t*, calloc_aligned(4, sizeof(uint8_t), device->os_info.minimumAlignment));
         uint16_t vpdPageLength = 0;
         printf("\tFound page %" PRIX8 "h\n", supportedPages[vpdIter]);
 
@@ -2118,7 +2118,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     set_Console_Colors(true, DEFAULT);
                     device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable = true;
                 }
-                char *unitSerialNumber = (char *)calloc(vpdPageLength + 1, sizeof(char)); //add 1 for NULL terminator
+                char *unitSerialNumber = C_CAST(char *, calloc(vpdPageLength + 1, sizeof(char))); //add 1 for NULL terminator
                 if (unitSerialNumber)
                 {
                     scsiDevInfo->vpdData.gotUnitSNVPDPage = true;
@@ -2336,7 +2336,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             printf("\t\t\t    T10 Vendor ID: %s\n", desVendorID);
                             if (designatorLength > 8)
                             {
-                                vendorSpecificID = (char*)calloc(designatorLength - 8 + 1, sizeof(char));
+                                vendorSpecificID = C_CAST(char*, calloc(designatorLength - 8 + 1, sizeof(char)));
                                 if (vendorSpecificID)
                                 {
                                     memcpy(vendorSpecificID, &pageToRead[designatorOffset + 8], designatorLength - 8);
@@ -2569,7 +2569,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         }
                         {
                             char *scsiNameString = NULL;
-                            scsiNameString = (char*)calloc(designatorLength + 1, sizeof(char));
+                            scsiNameString = C_CAST(char*, calloc(designatorLength + 1, sizeof(char)));
                             if (scsiNameString)
                             {
                                 memcpy(scsiNameString, &pageToRead[designatorOffset], designatorLength);
@@ -3900,7 +3900,7 @@ int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             {
                                 char versionString[20] = { 0 };
                                 printf("\t%04" PRIX16 " - ", scsiDevInfo->inquiryData.versionDescriptors[versionIter]);
-                                decypher_SCSI_Version_Descriptors(scsiDevInfo->inquiryData.versionDescriptors[versionIter], (char*)versionString);
+                                decypher_SCSI_Version_Descriptors(scsiDevInfo->inquiryData.versionDescriptors[versionIter], C_CAST(char*, versionString));
                                 printf("%s\n", versionString);
                                 //TODO: Note when finding SAT or USB, etc to and how it's helpful to figure out what a device supports and how to discover it.
                             }
@@ -3986,7 +3986,7 @@ int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo
     {
         scsiDevInfo->readCapData.rc16MaxLBA = M_BytesTo8ByteValue(readCapacityData[0], readCapacityData[1], readCapacityData[2], readCapacityData[3], readCapacityData[4], readCapacityData[5], readCapacityData[6], readCapacityData[7]);
         scsiDevInfo->readCapData.rc16blockSize = M_BytesTo4ByteValue(readCapacityData[8], readCapacityData[9], readCapacityData[10], readCapacityData[11]);
-        scsiDevInfo->readCapData.rc16physBlockSize = (uint32_t)power_Of_Two(M_Nibble0(readCapacityData[13])) * scsiDevInfo->readCapData.rc16blockSize;
+        scsiDevInfo->readCapData.rc16physBlockSize = C_CAST(uint32_t, power_Of_Two(M_Nibble0(readCapacityData[13]))) * scsiDevInfo->readCapData.rc16blockSize;
         printf("\tRead Capacity 16 data:\n");
         printf("\t\tMaxLBA: %" PRIu64 "\n", scsiDevInfo->readCapData.rc16MaxLBA);
         printf("\t\tLogical Block Size: %" PRIu32 "\n", scsiDevInfo->readCapData.rc16blockSize);
@@ -4138,7 +4138,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     //reallocate enough data and reread the page.
-                    uint8_t *temp = (uint8_t *)realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation, device->os_info.minimumAlignment);
+                    uint8_t *temp = C_CAST(uint8_t *, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation, device->os_info.minimumAlignment));
                     if (temp)
                     {
                         *dataBuffer = temp;
@@ -4200,7 +4200,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     //reallocate enough data and reread the page.
-                    uint8_t *temp = (uint8_t *)realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation, device->os_info.minimumAlignment);
+                    uint8_t *temp = C_CAST(uint8_t *, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation, device->os_info.minimumAlignment));
                     if (temp)
                     {
                         *dataBuffer = temp;
@@ -4276,7 +4276,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     uint8_t *modeData = NULL;
     //control mode page
     modeDataLength = MP_CONTROL_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4317,7 +4317,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 
         //control extension mode page (not 6 byte, and check if it reports correctly)
         modeDataLength = MP_CONTROL_EXTENSION_LEN + commonModeDataLength;
-        modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+        modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -4351,7 +4351,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     
     //read write error recovery mode page
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4402,7 +4402,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     safe_Free_aligned(modeData)
     //caching mode page
     modeDataLength = MP_CACHING_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4455,7 +4455,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     
     //rigid disk geometry page
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4513,7 +4513,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             break;
         }
         scsiDevInfo->modeData.rigidDiskData.rotationalOffset = modeData[offset + 18];
-        printf("\tRotational Offset: %0.02f Revolution Skew\n", (double)scsiDevInfo->modeData.rigidDiskData.rotationalOffset / 256.0);
+        printf("\tRotational Offset: %0.02f Revolution Skew\n", C_CAST(double, scsiDevInfo->modeData.rigidDiskData.rotationalOffset) / 256.0);
         scsiDevInfo->modeData.rigidDiskData.mediumRotationRate = M_BytesTo2ByteValue(modeData[offset + 20], modeData[offset + 21]);
         printf("\tMedium Rotation Rate: ");
         switch (scsiDevInfo->modeData.rigidDiskData.mediumRotationRate)
@@ -4533,7 +4533,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     
     //informational exceptions mode page
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4594,7 +4594,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     safe_Free_aligned(modeData)
     //power condition control mode page
     modeDataLength = MP_POWER_CONDITION_LEN + commonModeDataLength;
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4661,7 +4661,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         {
             //pata control mode page - only read if the device could be a PATA drive.
             modeDataLength = 8 + commonModeDataLength;
-            modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+            modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
             if (!modeData)
             {
                 return MEMORY_FAILURE;
@@ -4703,7 +4703,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         }
         //ata power condition mode page
         modeDataLength = 16 + commonModeDataLength;
-        modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+        modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -4745,7 +4745,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     }
     //Check for vendor specific page 0? May help detect true SCSI devices, but nothing says a translator cannot implement it.
     modeDataLength = UINT8_MAX;//try this size since it's unlikely this page will be this size, but it should be more than enough memory.
-    modeData = (uint8_t *)calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+    modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4895,7 +4895,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 printf("\tFound page %02" PRIX8 "h\n", pageCode);
             }
             //TODO: Read the length of the current page/subpage, then read the whole thing. Keep this pointer for the rest of the loop below.
-            uint8_t *pageToRead = (uint8_t*)calloc_aligned(logPageLength, sizeof(uint8_t), device->os_info.minimumAlignment);
+            uint8_t *pageToRead = C_CAST(uint8_t*, calloc_aligned(logPageLength, sizeof(uint8_t), device->os_info.minimumAlignment));
 
             if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES,pageCode,subPageCode, 0, pageToRead, logPageLength))
             {
@@ -4915,7 +4915,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             if (M_GETBITRANGE(pageToRead[0], 5, 0) != pageCode)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
-                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, (uint8_t)M_GETBITRANGE(pageToRead[0], 5, 0));
+                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, C_CAST(uint8_t, M_GETBITRANGE(pageToRead[0], 5, 0)));
                                 set_Console_Colors(true, DEFAULT);
                             }
                             else if (pageToRead[1] != subPageCode)
@@ -4934,7 +4934,7 @@ int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             if (M_GETBITRANGE(pageToRead[0], 5, 0) != pageCode)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
-                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, (uint8_t)M_GETBITRANGE(pageToRead[0], 5, 0));
+                                printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, C_CAST(uint8_t, M_GETBITRANGE(pageToRead[0], 5, 0)));
                                 set_Console_Colors(true, DEFAULT);
                             }
                             else
@@ -6048,7 +6048,7 @@ int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport 
     if (!zeroLengthTransfers)
     {
         transferLength = 1;
-        ptrData = (uint8_t *)calloc_aligned(device->drive_info.deviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+        ptrData = C_CAST(uint8_t *, calloc_aligned(device->drive_info.deviceBlockSize, sizeof(uint8_t), device->os_info.minimumAlignment));
         transferLengthBytes = device->drive_info.deviceBlockSize;
         if (!ptrData)
         {
@@ -6413,7 +6413,7 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
         averageFromBadCommands += commandTimes[badIter];
     }
 
-    double xTimesHigher = (double)averageFromBadCommands / (double)averageCommandTimeNS;
+    double xTimesHigher = C_CAST(double, averageFromBadCommands) / C_CAST(double, averageCommandTimeNS);
     if (badCommandRelativeTimeToGood)
     {
         *badCommandRelativeTimeToGood = xTimesHigher;
@@ -6428,7 +6428,7 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
-        device->drive_info.passThroughHacks.turfValue = (uint8_t)round(xTimesHigher);
+        device->drive_info.passThroughHacks.turfValue = C_CAST(uint8_t, round(xTimesHigher));
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: TURF%" PRIu8 "\n", device->drive_info.passThroughHacks.turfValue);
         set_Console_Colors(true, DEFAULT);
@@ -6581,7 +6581,7 @@ void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bo
             uint8_t sectorSizeExponent = 0;
             //get the number of logical blocks per physical blocks
             sectorSizeExponent = ident_word[106] & 0x000F;
-            inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = (uint32_t)(inputs->device->drive_info.bridge_info.childDeviceBlockSize * power_Of_Two(sectorSizeExponent));
+            inputs->device->drive_info.bridge_info.childDevicePhyBlockSize = C_CAST(uint32_t, inputs->device->drive_info.bridge_info.childDeviceBlockSize * power_Of_Two(sectorSizeExponent));
         }
     }
     else
@@ -7035,7 +7035,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
         {
             //if TPSIU worked for identify, we need to try another command, a read, to ensure that it actually works for other commands.
             //This was added after testing yet another USB bridge that did something odd and different that doesn't really work well
-            uint8_t *data = (uint8_t*)calloc_aligned(inputs->device->drive_info.deviceBlockSize * 1, sizeof(uint8_t), inputs->device->os_info.minimumAlignment);
+            uint8_t *data = C_CAST(uint8_t*, calloc_aligned(inputs->device->drive_info.deviceBlockSize * 1, sizeof(uint8_t), inputs->device->os_info.minimumAlignment));
             if (data)
             {
                 bool use48 = inputs->device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported;
@@ -7419,7 +7419,7 @@ int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_
         }
     }
     size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.deviceBlockSize);
-    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    uint8_t *data = C_CAST(uint8_t*, calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==================================\n");
     printf("Testing SCSI Maximum Transfer Size\n");
@@ -7520,7 +7520,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                             uint16_t cylinder = 0;
                             uint8_t head = 0;
                             uint8_t sector = 0;
-                            if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                            if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                             {
                                 ret = ata_Legacy_Read_Multiple_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, true);
                             }
@@ -7541,7 +7541,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                             uint16_t cylinder = 0;
                             uint8_t head = 0;
                             uint8_t sector = 0;
-                            if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                            if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                             {
                                 ret = ata_Legacy_Read_Sectors_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, true);
                             }
@@ -7563,7 +7563,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                         uint16_t cylinder = 0;
                         uint8_t head = 0;
                         uint8_t sector = 0;
-                        if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                        if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                         {
                             ret = ata_Legacy_Read_DMA_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, true);
                         }
@@ -7634,7 +7634,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                                 uint16_t cylinder = 0;
                                 uint8_t head = 0;
                                 uint8_t sector = 0;
-                                if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                                if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                                 {
                                     ret = ata_Legacy_Read_Multiple_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, false);
                                 }
@@ -7655,7 +7655,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                                 uint16_t cylinder = 0;
                                 uint8_t head = 0;
                                 uint8_t sector = 0;
-                                if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                                if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                                 {
                                     ret = ata_Legacy_Read_Sectors_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, false);
                                 }
@@ -7677,7 +7677,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
                             uint16_t cylinder = 0;
                             uint8_t head = 0;
                             uint8_t sector = 0;
-                            if (SUCCESS == convert_LBA_To_CHS(device, (uint32_t)lba, &cylinder, &head, &sector))
+                            if (SUCCESS == convert_LBA_To_CHS(device, C_CAST(uint32_t, lba), &cylinder, &head, &sector))
                             {
                                 ret = ata_Legacy_Read_DMA_CHS(device, cylinder, head, sector, ptrData, sectors, dataSize, false);
                             }
@@ -7733,7 +7733,7 @@ int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiRepor
         }
     }
     size_t dataBufSize = C_CAST(size_t, maxTestSizeBlocks) * C_CAST(size_t, device->drive_info.bridge_info.childDeviceBlockSize);
-    uint8_t *data = (uint8_t*)calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment);
+    uint8_t *data = C_CAST(uint8_t*, calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n=============================================\n");
     printf("Testing ATA Pass-through Maximum transfer size\n");
