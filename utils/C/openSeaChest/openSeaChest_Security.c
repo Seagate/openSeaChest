@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.0.2";
+const char *buildVersion = "3.0.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -377,8 +377,8 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "empty") == 0)
                 {
                     //the modification option can change this to all F's if desired instead of zeros.
-                    memset(&ATA_SECURITY_PASSWORD[0], 0, 32);
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = 32;
+                    memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = ATA_SECURITY_MAX_PW_LENGTH;
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
@@ -389,14 +389,14 @@ int32_t main(int argc, char *argv[])
                 {
                     //If the user quoted their password when putting on the cmdline, then we can accept spaces. Otherwise spaces cannot be picked up.
                     //TODO: If comma separated values were given, then we need to parse the input differently!!!
-                    if (strlen(optarg) > 32)
+                    if (strlen(optarg) > ATA_SECURITY_MAX_PW_LENGTH)
                     {
                         print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
-                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), 32));
+                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING))) == 0)
@@ -506,7 +506,7 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
                 DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%"SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (0 == sscanf(optarg, "%" SCNu64, &DISPLAY_LBA_THE_LBA))
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
@@ -745,31 +745,31 @@ int32_t main(int argc, char *argv[])
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
         {
             //change all to uppercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Upper_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
         {
             //change all to lowercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Lower_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
         {
             //swap case from upper to lower and lower to upper.
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Inverse_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         //check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = 0; iter < 32; iter += 2)
+            for (uint8_t iter = 0; iter < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
             {
                 uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -784,8 +784,8 @@ int32_t main(int argc, char *argv[])
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
         {
             //memcpy and memset based on how many characters were provided by the caller.
-            memmove(&ATA_SECURITY_PASSWORD[32 - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
-            memset(&ATA_SECURITY_PASSWORD[0], 0, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
         }
         //now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
@@ -797,22 +797,22 @@ int32_t main(int argc, char *argv[])
             //convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
         {
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
 #if defined (MD5_PASSWORD_SUPPORTED)

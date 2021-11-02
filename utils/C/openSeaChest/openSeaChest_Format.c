@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.3.2";
+const char *buildVersion = "2.3.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -479,7 +479,7 @@ int32_t main(int argc, char *argv[])
                             //if final character is a lower case h, it's an hex pattern
                             if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
                             {
-                                uint32_t hexPattern = C_CAST(uint32_t, strtol(colonLocation, NULL, 16));
+                                uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
                                 //TODO: add endianness check before byte swap
                                 byte_Swap_32(&hexPattern);
                                 fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);

@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.1.2";
+const char *buildVersion = "3.1.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -498,8 +498,8 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "empty") == 0)
                 {
                     //the modification option can change this to all F's if desired instead of zeros.
-                    memset(&ATA_SECURITY_PASSWORD[0], 0, 32);
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = 32;
+                    memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = ATA_SECURITY_MAX_PW_LENGTH;
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
@@ -510,14 +510,14 @@ int32_t main(int argc, char *argv[])
                 {
                     //If the user quoted their password when putting on the cmdline, then we can accept spaces. Otherwise spaces cannot be picked up.
                     //TODO: If comma separated values were given, then we need to parse the input differently!!!
-                    if (strlen(optarg) > 32)
+                    if (strlen(optarg) > ATA_SECURITY_MAX_PW_LENGTH)
                     {
                         print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
-                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), 32));
+                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING))) == 0)
@@ -679,7 +679,7 @@ int32_t main(int argc, char *argv[])
                         //if final character is a lower case h, it's an hex pattern
                         if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
                         {
-                            uint32_t hexPattern = C_CAST(uint32_t, strtol(colonLocation, NULL, 16));
+                            uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
                             //TODO: add endianness check before byte swap
                             byte_Swap_32(&hexPattern);
                             fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
@@ -887,31 +887,31 @@ int32_t main(int argc, char *argv[])
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
         {
             //change all to uppercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Upper_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
         {
             //change all to lowercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Lower_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
         {
             //swap case from upper to lower and lower to upper.
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Inverse_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         //check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = 0; iter < 32; iter += 2)
+            for (uint8_t iter = 0; iter < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
             {
                 uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -926,8 +926,8 @@ int32_t main(int argc, char *argv[])
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
         {
             //memcpy and memset based on how many characters were provided by the caller.
-            memmove(&ATA_SECURITY_PASSWORD[32 - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
-            memset(&ATA_SECURITY_PASSWORD[0], 0, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
         }
         //now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
@@ -939,22 +939,22 @@ int32_t main(int argc, char *argv[])
             //convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
         {
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
 #if defined (MD5_PASSWORD_SUPPORTED)
@@ -2028,6 +2028,7 @@ int32_t main(int argc, char *argv[])
                 }
                 formatUnitParameters.securityInitialize = false;
                 int formatRet = UNKNOWN;
+                os_Lock_Device(&deviceList[deviceIter]);
                 if (PATTERN_FLAG)
                 {
                     formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
@@ -2036,6 +2037,7 @@ int32_t main(int argc, char *argv[])
                 {
                     formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
                 }
+                os_Unlock_Device(&deviceList[deviceIter]);
                 switch (formatRet)
                 {
                 case SUCCESS:
@@ -2165,6 +2167,7 @@ int32_t main(int argc, char *argv[])
                     //NOTE: Changed to automatically setting poll, since write same on SATA is EASILY interrupted by anything other than reading the SCT status log...which is a pain since
                     //      the OS may issue commands when opening the handle and there is not a way to easily handle this on scanning the device. So polling should help make sure nothing
                     //      else goes on while write same is running. - TJE
+                    os_Lock_Device(&deviceList[deviceIter]);
                     if (PATTERN_FLAG)
                     {
                         writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
@@ -2173,6 +2176,7 @@ int32_t main(int argc, char *argv[])
                     {
                         writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, NULL, 0);
                     }
+                    os_Unlock_Device(&deviceList[deviceIter]);
                     //now we need to send the erase
                     switch (writeSameRet)
                     {
@@ -2301,7 +2305,7 @@ int32_t main(int argc, char *argv[])
             if (DATA_ERASE_FLAG)
             {
                 //check the time
-                uint64_t overwriteSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+                uint64_t overwriteSeconds = C_CAST(uint64_t, SECONDS_TIME_FLAG) + (C_CAST(uint64_t, MINUTES_TIME_FLAG) * UINT64_C(60)) + (C_CAST(uint64_t, HOURS_TIME_FLAG) * UINT64_C(3600));
                 //determine if it's timed or a range
                 if (overwriteSeconds == 0)
                 {
@@ -2477,6 +2481,8 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+        //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
+        os_Update_File_System_Cache(&deviceList[deviceIter]);
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
