@@ -966,7 +966,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_ERROR_HISTORY_PULL_FLAG)
         {
-            switch (pull_Generic_Error_History(&deviceList[deviceIter], (uint8_t) GENERIC_ERROR_HISTORY_BUFFER_ID, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_Generic_Error_History(&deviceList[deviceIter], C_CAST(uint8_t, GENERIC_ERROR_HISTORY_BUFFER_ID), PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
