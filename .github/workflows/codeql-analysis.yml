@@ -64,9 +64,12 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - run: |
-       cd Make/gcc
-       make release
+    - name: Configuring and compiling with meson
+      uses: BSFishy/meson-build@v1.0.3
+      with:
+        action: build
+        options: --verbose
+        meson-version: 0.60.1
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

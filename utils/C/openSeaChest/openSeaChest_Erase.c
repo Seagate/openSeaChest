@@ -25,6 +25,7 @@
 #error "OS Not Defined or known"
 #endif
 #include "EULA.h"
+#include "platform_helper.h"
 #include "openseachest_util_options.h"
 #include "cmds.h"
 #if !defined(DISABLE_TCG_SUPPORT)
@@ -43,7 +44,6 @@
 #include "drive_info.h"
 #include "format.h"
 #include "depopulate.h"
-#include "platform_helper.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////

@@ -366,3 +366,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Meson build dir
+/builddir

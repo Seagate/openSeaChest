@@ -1,0 +1,100 @@
+name: CI for meson build
+
+on:
+  push:
+    branches: [ develop, master, release/* ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+        - {
+            name: "Windows MSVC x64",
+            os: windows-latest,
+            cc: "cl.exe",
+            cxx: "cl.exe",
+            arch: "x64"
+          }
+        - {
+            name: "Windows MSVC x86",
+            os: windows-latest,
+            cc: "cl.exe",
+            cxx: "cl.exe",
+            arch: "x64_x86"
+          }
+        - {
+            name: "Windows GCC",
+            os: windows-latest,
+            cc: "gcc.exe",
+            cxx: "g++.exe",
+          }
+        - {
+            name: "Windows Clang",
+            os: windows-latest,
+            cc: "clang.exe",
+            cxx: "clang++.exe",
+          }
+        - {
+            name: "Ubuntu GCC",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++"
+          }
+        - {
+            name: "Ubuntu Clang",
+            os: ubuntu-latest,
+            cc: "clang",
+            cxx: "clang++"
+          }
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Getting CMake for wingetopt
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      uses: lukka/get-cmake@latest
+
+    - name: Settings vars for MSVC
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.config.arch }}
+
+
+    - name: Get latest LLVM version
+      if: startsWith(matrix.config.name, 'Windows Clang')
+      run: echo "LLVM_RELID=$((Invoke-WebRequest 'https://api.github.com/repos/llvm/llvm-project/releases/latest').Content | ConvertFrom-Json | Select-Object -ExpandProperty id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Restore LLVM from cache
+      if: startsWith(matrix.config.name, 'Windows Clang')
+      id: llvm-cache
+      uses: actions/cache@v2
+      with:
+        path: C:/Program Files/LLVM
+        key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
+
+    - name: Downloading latest clang for Windows
+      if: steps.cache-primes.outputs.cache-hit != 'true' && startsWith(matrix.config.name, 'Windows Clang')
+      run: |
+        Invoke-WebRequest -OutFile "LLVM.exe" ((Invoke-WebRequest "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
+        7z x LLVM.exe -y -o"C:/Program Files/LLVM"
+
+    - uses: actions/setup-python@v1
+
+    - name: Configuring and compiling with meson
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      uses: BSFishy/meson-build@v1.0.3
+      with:
+        action: build
+        options: --verbose
+        meson-version: 0.60.1
+
