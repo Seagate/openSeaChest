@@ -3,6 +3,7 @@ name: CI for meson build
 on:
   push:
     branches: [ develop, master, release/* ]
+    tags: [ v* ]
   pull_request:
     branches: [ develop ]
 
@@ -18,14 +19,22 @@ jobs:
             os: windows-latest,
             cc: "cl.exe",
             cxx: "cl.exe",
-            arch: "x64"
+            arch: "x64",
+            publish_release: true,
+            release_name: "win-x64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
           }
         - {
             name: "Windows MSVC x86",
             os: windows-latest,
             cc: "cl.exe",
             cxx: "cl.exe",
-            arch: "x64_x86"
+            arch: "x64_x86",
+            publish_release: true,
+            release_name: "win-x86",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
           }
         - {
             name: "Windows GCC",
@@ -49,7 +58,11 @@ jobs:
             name: "Ubuntu Clang",
             os: ubuntu-latest,
             cc: "clang",
-            cxx: "clang++"
+            cxx: "clang++",
+            publish_release: true,
+            release_name: "linux-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
           }
 
     steps:
@@ -81,10 +94,17 @@ jobs:
         key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
 
     - name: Downloading latest clang for Windows
-      if: steps.cache-primes.outputs.cache-hit != 'true' && startsWith(matrix.config.name, 'Windows Clang')
+      if: ${{ !steps.cache-primes.outputs.cache-hit && startsWith(matrix.config.name, 'Windows Clang') }}
       run: |
         Invoke-WebRequest -OutFile "LLVM.exe" ((Invoke-WebRequest "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
+
+    - name: Setting release name
+      env:
+        DESTDIR: ${{ format('openSeaChest-{0}-{1}', github.ref_name, matrix.config.release_name) }} 
+      run: |
+        echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
+      shell: bash
 
     - uses: actions/setup-python@v1
 
@@ -94,7 +114,21 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       uses: BSFishy/meson-build@v1.0.3
       with:
-        action: build
-        options: --verbose
+        action: install
+        setup-options: -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
         meson-version: 0.60.1
 
+    - name: Packing release
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }} 
+      run: |
+        cd build
+        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+      shell: bash
+  
+    - name: Publish release
+      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }} 
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ format('./build/{0}{1}', env.DESTDIR,  matrix.config.release_extension) }}
