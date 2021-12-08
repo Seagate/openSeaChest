@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -281,6 +281,10 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "analyzed") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                }
+                else if (strcmp(optarg, "hybrid") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
                 }
                 else
                 {
