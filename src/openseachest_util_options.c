@@ -715,7 +715,7 @@ void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType)
 
 void print_SMART_Attributes_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t--%s [raw | hybrid | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThe drive will display its list of supported SMART attributes.\n");
@@ -725,7 +725,15 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\tused to determine a warranty return. Use the --smartCheck\n");
         printf("\t\tcommand to determine if one of the warranty attributes has been\n");
         printf("\t\ttripped. Seagate Support does not help to analyze SMART\n");
-        printf("\t\tattributes.\n\n");
+        printf("\t\tattributes.\n");
+        printf("\t\tOutput modes:\n");
+        printf("\t\t  raw - All hex output for those that need every single bit.\n");
+        printf("\t\t  hybrid - classic table view with some interpretation of some\n");
+        printf("\t\t           fields. Partial raw interpretation, but not all drive\n");
+        printf("\t\t           and firmware combinations are supported.\n");
+        printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
+        printf("\t\t             attribute's data. Full raw data interpretation only\n");
+        printf("\t\t             available on select devices.")
     }
 }
 
