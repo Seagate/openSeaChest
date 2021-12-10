@@ -282,6 +282,11 @@ extern "C"
     #define SMART_ATTRIBUTES_LONG_OPT_STRING "smartAttributes"
     #define SMART_ATTRIBUTES_LONG_OPT { SMART_ATTRIBUTES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    #define NVME_HEALTH_FLAG showNVMeHealthData
+    #define NVME_HEALTH_VAR getOptBool NVME_HEALTH_FLAG = goFalse;
+    #define NVME_HEALTH_LONG_OPT_STRING "showNvmeHealth"
+    #define NVME_HEALTH_LONG_OPT { NVME_HEALTH_LONG_OPT_STRING, no_argument, &NVME_HEALTH_FLAG, goTrue }
+
     #define ABORT_DST_FLAG abortDST
     #define ABORT_DST_VAR getOptBool ABORT_DST_FLAG = goFalse;
     #define ABORT_DST_LONG_OPT_STRING "abortDST"
@@ -3292,6 +3297,8 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Help(bool shortHelp);
 
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
+
+    void print_NVME_Health_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

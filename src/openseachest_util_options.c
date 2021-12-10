@@ -734,6 +734,18 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         printf("\t\t             attribute's data. Full raw data interpretation only\n");
         printf("\t\t             available on select devices.");
+        printf("\t\tNOTE: Migration to device statistics is recommended.\n\n");
+    }
+}
+
+void print_NVME_Health_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", NVME_HEALTH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThe drive will display the NVMe Health log (also called\n");
+        printf("\t\tSMART log). All standardized fields will be printed to the\n");
+        printf("\t\tscreen for the device.\n\n");
     }
 }
 
