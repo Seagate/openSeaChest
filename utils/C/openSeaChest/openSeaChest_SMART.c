@@ -32,6 +32,7 @@
 #include "drive_info.h"
 #include "seagate_operations.h"
 #include "defect.h"
+#include "device_statistics.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -114,6 +115,8 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    DEVICE_STATISTICS_VAR
+    NVME_HEALTH_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -172,6 +175,8 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        DEVICE_STATISTICS_LONG_OPT,
+        NVME_HEALTH_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -788,6 +793,8 @@ int32_t main(int argc, char *argv[])
         || SET_MRIE_MODE_FLAG
         || SCSI_DEFECTS_FLAG
         || SHOW_SMART_ERROR_LOG_FLAG
+        || DEVICE_STATISTICS_FLAG
+        || NVME_HEALTH_FLAG
         //check for other tool specific options here
         ))
     {
@@ -1180,6 +1187,30 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get SMART attributes\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (NVME_HEALTH_FLAG)
+        {
+            switch (show_NVMe_Health(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                //nothing to print here since if it was successful, the attributes will be printed to the screen
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing NVMe Health data is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A failure occured while trying to get NVMe health data\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1913,6 +1944,32 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (DEVICE_STATISTICS_FLAG)
+        {
+            deviceStatistics deviceStats;
+            memset(&deviceStats, 0, sizeof(deviceStatistics));
+            switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
+            {
+            case SUCCESS:
+                print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Device Statistics not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve Device Statistics from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (PROGRESS_CHAR != NULL)
         {
             int result = UNKNOWN;
@@ -2066,6 +2123,10 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
+
+    //NVMe Only
+    printf("\n\tNVMe Only:\n\t=========\n");
+    print_NVME_Health_Help(shortUsage);
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
