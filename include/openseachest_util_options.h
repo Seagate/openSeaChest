@@ -1607,7 +1607,7 @@ extern "C"
     #define ATA_SECURITY_PASSWORD               ataSecPassword
     #define ATA_SECURITY_PASSWORD_BYTE_COUNT    ataSecPasswordBytesProvided //count of how many bytes of password were given by the user so that when the modificaions are performed, they are done based on this value.
     #define ATA_SECURITY_USING_MASTER_PW        ataSecurityUsingMasterPW
-    #define ATA_SECURITY_ERASE_ENHANCED         ataSecEnhancedErase
+    #define ATA_SECURITY_ERASE_ENHANCED_FLAG    ataSecEnhancedErase
     #define ATA_SECURITY_MASTER_PW_CAPABILITY   ataMasterPWCap
     #define ATA_SECURITY_MASTER_PW_ID           masterPasswordIdentifier
     #define ATA_SECURITY_FORCE_SAT              forceATASecViaSAT
@@ -1648,7 +1648,7 @@ extern "C"
     #define ATA_SECURITY_ERASE_OP performATASecurityErase
     #define ATA_SECURITY_ERASE_OP_VARS \
     bool ATA_SECURITY_ERASE_OP = false; \
-    bool ATA_SECURITY_ERASE_ENHANCED = false;//false = normal erase, true - enhanced erase
+    bool ATA_SECURITY_ERASE_ENHANCED_FLAG = false;//false = normal erase, true - enhanced erase
     #define ATA_SECURITY_ERASE_OP_LONG_OPT_STRING "ataSecureErase"
     #define ATA_SECURITY_ERASE_OP_LONG_OPT { ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, required_argument, NULL, 0 }
 

@@ -470,11 +470,11 @@ int32_t main(int argc, char *argv[])
                 ATA_SECURITY_ERASE_OP = true;
                 if (strcmp(optarg, "enhanced") == 0)
                 {
-                    ATA_SECURITY_ERASE_ENHANCED = true;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
                 }
                 else if (strcmp(optarg, "normal") == 0)
                 {
-                    ATA_SECURITY_ERASE_ENHANCED = false;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = false;
                 }
                 else
                 {
@@ -1641,7 +1641,7 @@ int32_t main(int argc, char *argv[])
                 memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
                 eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
-                if (ATA_SECURITY_ERASE_ENHANCED)
+                if (ATA_SECURITY_ERASE_ENHANCED_FLAG)
                 {
                     ataSecureEraseType = ATA_SECURITY_ERASE_ENHANCED_ERASE;
                 }
