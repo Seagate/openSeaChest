@@ -1,0 +1,18 @@
+option('tools', type : 'array', choices : [
+  'Basics',
+  'Configure',
+  'Erase',
+  'Firmware',
+  'FormatUnit',
+  'GenericTests',
+  'Info',
+  'Logs',
+  'NVMe',
+  'PassthroughTest',
+  'PowerControl',
+  'Security',
+  'SMART',
+  'ZBD'
+])
+option('tcg', type : 'feature', value : 'disabled')
+option('libc_musl', type : 'boolean', value : 'false')

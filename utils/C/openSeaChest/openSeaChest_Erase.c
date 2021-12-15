@@ -44,7 +44,6 @@
 #include "drive_info.h"
 #include "format.h"
 #include "depopulate.h"
-#include "platform_helper.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
