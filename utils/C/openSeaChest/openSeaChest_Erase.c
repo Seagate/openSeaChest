@@ -25,7 +25,7 @@
 #error "OS Not Defined or known"
 #endif
 #include "EULA.h"
-#include "platform_helper.h"
+#include "ata_helper.h" //for defined ATA security password size of 32bytes
 #include "openseachest_util_options.h"
 #include "cmds.h"
 #if !defined(DISABLE_TCG_SUPPORT)
