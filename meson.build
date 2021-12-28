@@ -20,7 +20,7 @@ common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 os_deps = []
 
 if target_machine.system() == 'windows'
-  if c.get_define('__MINGW32__') == ''
+  if not c.has_header('getopt.h')
     cmake = import('cmake')
 
     wingetopt = cmake.subproject('wingetopt')
