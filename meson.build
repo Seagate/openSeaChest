@@ -27,6 +27,9 @@ if target_machine.system() == 'windows'
     wingetopt_dep = wingetopt.dependency('wingetopt')
     os_deps += [wingetopt_dep]
   endif
+  windows = import('windows')
+  resources = windows.compile_resources('openSeaChest.rc')
+  common_sources += [resources]
   add_project_arguments('-D_CRT_SECURE_NO_WARNINGS', language : 'c')
 endif
 
