@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.0.5";
+const char *buildVersion = "3.0.6";
 
 ////////////////////////////
 //  functions to declare  //
@@ -322,8 +322,9 @@ int32_t main(int argc, char *argv[])
                     //set the value to change to (watts)
                     //use the lf specifier otherwise it thinks it's a standard float and you won't get the right value.
                     int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
-                    if (scanRet == 0 || scanRet != EOF)
-                    {
+//ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
+                    if (scanRet == 0 || scanRet == EOF)
+                        {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
@@ -1057,13 +1058,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -1117,13 +1118,13 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -1347,9 +1348,9 @@ int32_t main(int argc, char *argv[])
                         printf("\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
                         printf("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-	                    {
-	                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-	                    }
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1707,9 +1708,9 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("Successfully configured the requested idle and standby settings.\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-	                    {
-	                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-	                    }
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1786,9 +1787,9 @@ int32_t main(int argc, char *argv[])
                                 {
                                     printf("Successfully configured the requested idle settings.\n");
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-				                    {
-				                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-				                    }
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    }
                                 }
                                 break;
                             case NOT_SUPPORTED:
@@ -1829,9 +1830,9 @@ int32_t main(int argc, char *argv[])
                             {
                                 printf("Successfully configured the requested standby settings.\n");
                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-			                    {
-			                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-			                    }
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                }
                             }
                             break;
                         case NOT_SUPPORTED:
@@ -1876,9 +1877,9 @@ int32_t main(int argc, char *argv[])
                                 {
                                     printf("Successfully configured the requested standby settings.\n");
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-				                    {
-				                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-				                    }
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    }
                                 }
                                 break;
                             case NOT_SUPPORTED:
