@@ -21,10 +21,8 @@ os_deps = []
 
 if target_machine.system() == 'windows'
   if not c.has_header('getopt.h')
-    cmake = import('cmake')
-
-    wingetopt = cmake.subproject('wingetopt')
-    wingetopt_dep = wingetopt.dependency('wingetopt')
+    wingetopt = subproject('wingetopt', default_options: 'default_library=static')
+    wingetopt_dep = wingetopt.get_variable('wingetopt_dep')
     os_deps += [wingetopt_dep]
   endif
   windows = import('windows')

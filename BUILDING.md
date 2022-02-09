@@ -74,7 +74,6 @@ This is a brief list of the known features used from C99 that a compiler should 
   * Clang or MSVC from [Visual Studio](https://visualstudio.microsoft.com/downloads/)
   * [MSYS2/MinGW](https://www.msys2.org/wiki/MSYS2-introduction/)
 * [meson](https://github.com/mesonbuild/meson/releases)
-* CMake (either from [Visual Studio Installer > Modify > CMake](https://docs.microsoft.com/en-us/visualstudio/install/modify-visual-studio) or from [cmake.org](https://cmake.org/download/#latest)).
 * Use either the Visual Studio Command Prompt or MinGW shell (or make sure you can run MinGW gcc from your shell) depending on your chosen compiler
 
 ### Linux/FreeBSD/Solaris/Illumos
