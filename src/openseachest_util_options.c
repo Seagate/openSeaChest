@@ -611,7 +611,7 @@ void print_Revert_Help(bool shortHelp)
 
 void print_RevertSP_Help(bool shortHelp)
 {
-    printf("\t--%s\t(Seagate Only)\n", TCG_REVERT_SP_LONG_OPT_STRING);
+    printf("\t--%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis operation performs a revertSP on a Seagate SED drive\n");
@@ -1396,7 +1396,7 @@ void print_Firmware_Activate_Help(bool shortHelp)
 
 void print_Firmware_Switch_Help(bool shortHelp)
 {
-    printf("\t--%s \t(NVMe Only) (Seagate Only)\n", SWITCH_FW_LONG_OPT_STRING);
+    printf("\t--%s \t(NVMe Only)\n", SWITCH_FW_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to switch to a different firmware slot on an\n");
@@ -1800,6 +1800,8 @@ void print_Phy_Speed_Help(bool shortHelp)
         printf("\t\t3 - allow negotiation up to 6.0Gb/s\n");
         printf("\t\t4 - allow negotiation up to 12.0Gb/s (SAS Only)\n");
         printf("\t\t5 - allow negotiation up to 22.5Gb/s (SAS Only)\n");
+        printf("\n");
+        printf("\t\tNOTE: SATA phy speed changes are only available on Seagate drives.\n");
         printf("\n");
         printf("\t\tWARNING: Changing Phy speed may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
@@ -2289,7 +2291,7 @@ void print_Show_Format_Status_Log_Help(bool shortHelp)
 
 void print_Set_Sector_Size_Help(bool shortHelp)
 {
-    printf("\t--%s [new sector size]\t\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
+    printf("\t--%s [new sector size]\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is only available for drives that support sector\n");
@@ -2441,7 +2443,7 @@ void print_Low_Current_Spinup_Help(bool shortHelp)
 
 void print_Disable_Data_Locking_Help(bool shortHelp)
 {
-    printf("\t--%s (Seagate Only)\n", DISABLE_DATA_LOCKING_LONG_OPT_STRING);
+    printf("\t--%s\n", DISABLE_DATA_LOCKING_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to disable data locking on a TCG drive.\n");
@@ -2828,7 +2830,7 @@ void print_Reset_Write_Pointer_Zone_Help(bool shortHelp)
 
 void print_FWDL_Segment_Size_Help(bool shortHelp)
 {
-    printf("\t--%s [segment size in 512B blocks]\t\n", FWDL_SEGMENT_SIZE_LONG_OPT_STRING);
+    printf("\t--%s [segment size in 512B blocks]\n", FWDL_SEGMENT_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a segment size in 512B blocks\n");
@@ -3133,7 +3135,7 @@ void print_Depop_MaxLBA_Help(bool shortHelp)
 
 void print_Repopulate_Elements_Help(bool shortHelp)
 {
-    printf("\t--%s \n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
+    printf("\t--%s\n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to repopulate any physical storage\n");
@@ -3730,7 +3732,7 @@ void print_SCSI_Reset_LP_Page_Help(bool shortHelp)
 
 void print_Set_SCSI_MP_Help(bool shortHelp)
 {
-    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only) (Seagate Only)\n", SCSI_SET_MP_LONG_OPT_STRING);
+    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only)\n", SCSI_SET_MP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to set a specific field in a mode page to a value.\n");

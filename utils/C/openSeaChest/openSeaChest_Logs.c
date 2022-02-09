@@ -173,7 +173,6 @@ int32_t main(int argc, char *argv[])
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
         utility_Usage(true);
-        printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     //get options we know we need
@@ -956,12 +955,6 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-
-            // Adding this here so we avoid printing that this is not a seagate device. -X
-            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
-            {
-                continue;
-            }
         }
 
         if (GENERIC_ERROR_HISTORY_PULL_FLAG)
@@ -995,21 +988,6 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-
-            // Adding this here so we avoid printing that this is not a seagate device. -X
-            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
-            {
-                continue;
-            }
-        }
-
-        if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
-        {
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("\nPulling vendor unique logs is only supported for Seagate devices\n");
-            }
-            continue;
         }
 
         if (FARM_PULL_FLAG)

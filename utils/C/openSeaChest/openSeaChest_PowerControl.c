@@ -324,7 +324,7 @@ int32_t main(int argc, char *argv[])
                     int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
 //ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
                     if (scanRet == 0 || scanRet == EOF)
-                        {
+                    {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
@@ -2119,82 +2119,104 @@ int32_t main(int argc, char *argv[])
 
         if (SEAGATE_POWER_BALANCE_FLAG)
         {
-            switch (seagate_Set_Power_Balance(&deviceList[deviceIter], SEAGATE_POWER_BALANCE_ENABLE_FLAG))
+            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-            case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    if (SEAGATE_POWER_BALANCE_ENABLE_FLAG)
-                    {
-                        printf("Successfully enabled Seagate Power Balance!\n");
-                    }
-                    else
-                    {
-                        printf("Successfully disabled Seagate Power Balance!\n");
-                    }
-                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                    {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
-                    }
-                }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Setting Seagate Power Balance feature is not supported on this device.\n");
+                    printf("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+            }
+            else
+            {
+                switch (seagate_Set_Power_Balance(&deviceList[deviceIter], SEAGATE_POWER_BALANCE_ENABLE_FLAG))
                 {
-                    printf("Failed to set the Seagate Power Balance feature!\n");
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (SEAGATE_POWER_BALANCE_ENABLE_FLAG)
+                        {
+                            printf("Successfully enabled Seagate Power Balance!\n");
+                        }
+                        else
+                        {
+                            printf("Successfully disabled Seagate Power Balance!\n");
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Setting Seagate Power Balance feature is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to set the Seagate Power Balance feature!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
 
         if (SEAGATE_POWER_BALANCE_INFO_FLAG)
         {
-            bool powerBalanceSupported = false, powerBalanceEnabled = false;
-            switch (seagate_Get_Power_Balance(&deviceList[deviceIter], &powerBalanceSupported, &powerBalanceEnabled))
+            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-            case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Seagate Power Balance: ");
-                    if (powerBalanceSupported)
+                    printf("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+            else
+            {
+                bool powerBalanceSupported = false, powerBalanceEnabled = false;
+                switch (seagate_Get_Power_Balance(&deviceList[deviceIter], &powerBalanceSupported, &powerBalanceEnabled))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        if (powerBalanceEnabled)
+                        printf("Seagate Power Balance: ");
+                        if (powerBalanceSupported)
                         {
-                            printf("Enabled\n");
+                            if (powerBalanceEnabled)
+                            {
+                                printf("Enabled\n");
+                            }
+                            else
+                            {
+                                printf("Disabled\n");
+                            }
                         }
                         else
                         {
-                            printf("Disabled\n");
+                            printf("Not Supported\n");
                         }
                     }
-                    else
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Not Supported\n");
+                        printf("Getting Seagate Power Balance info is not supported on this device.\n");
                     }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get the Seagate Power Balance info!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Getting Seagate Power Balance info is not supported on this device.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Failed to get the Seagate Power Balance info!\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
 
@@ -2455,86 +2477,108 @@ int32_t main(int argc, char *argv[])
 
         if (REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG)
         {
-            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, C_CAST(ePowerTelemetryMeasurementOptions, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE)))
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                case SUCCESS:
-                    //show a time when the measurement is expected to be complete?
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Successfully requested a power measurement.\n");
-                        time_t currentTime = time(NULL);
-                        time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
-                        char timeFormat[TIME_STRING_LENGTH] = { 0 };
-                        printf("\n\tCurrent Time: %s\n", get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat, TIME_STRING_LENGTH));
-                        memset(timeFormat, 0, TIME_STRING_LENGTH);
-                        printf("\tEstimated completion Time : %s", get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat, TIME_STRING_LENGTH));
-                    }
-                    break;
-                case NOT_SUPPORTED: //unlikely since we checked for support first
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Requesting a power measurement is not supported on this device.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                    break;
-                default:
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Failed to request a power measurement!\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    break;
+                    printf("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
             else
             {
-                //power telemetry is not supported
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
                 {
-                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                    switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, C_CAST(ePowerTelemetryMeasurementOptions, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE)))
+                    {
+                    case SUCCESS:
+                        //show a time when the measurement is expected to be complete?
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Successfully requested a power measurement.\n");
+                            time_t currentTime = time(NULL);
+                            time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
+                            char timeFormat[TIME_STRING_LENGTH] = { 0 };
+                            printf("\n\tCurrent Time: %s\n", get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat, TIME_STRING_LENGTH));
+                            memset(timeFormat, 0, TIME_STRING_LENGTH);
+                            printf("\tEstimated completion Time : %s", get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat, TIME_STRING_LENGTH));
+                        }
+                        break;
+                    case NOT_SUPPORTED: //unlikely since we checked for support first
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Requesting a power measurement is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to request a power measurement!\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                else
+                {
+                    //power telemetry is not supported
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Seagate Power Telemetry is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
             }
         }
 
         if (SHOW_POWER_TELEMETRY_FLAG)
         {
-            if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
+            if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                seagatePwrTelemetry pwrTelData;
-                memset(&pwrTelData, 0, sizeof(seagatePwrTelemetry));
-                switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                case SUCCESS:
-                    //show it
-                    show_Power_Telemetry_Data(&pwrTelData);
-                    break;
-                case NOT_SUPPORTED: //unlikely to happen due to outside guard
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Getting a power telemetry data is not supported on this device.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                    break;
-                default:
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Failed to get a power telemetry data!\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    break;
+                    printf("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
             else
             {
-                //power telemetry is not supported
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
                 {
-                    printf("Seagate Power Telemetry is not supported on this device.\n");
+                    seagatePwrTelemetry pwrTelData;
+                    memset(&pwrTelData, 0, sizeof(seagatePwrTelemetry));
+                    switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
+                    {
+                    case SUCCESS:
+                        //show it
+                        show_Power_Telemetry_Data(&pwrTelData);
+                        break;
+                    case NOT_SUPPORTED: //unlikely to happen due to outside guard
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Getting a power telemetry data is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to get a power telemetry data!\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                else
+                {
+                    //power telemetry is not supported
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Seagate Power Telemetry is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
             }
         }
 

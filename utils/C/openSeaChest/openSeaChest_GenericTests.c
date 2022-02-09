@@ -1063,29 +1063,6 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        //check if the drive is seagate or not. If not seagate, disable the repairs because repairs are only allowed on Seagate Drives
-        if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
-        {
-            if (REPAIR_ON_FLY_FLAG || REPAIR_AT_END_FLAG)
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Repairs are only allowed on Seagate Drives.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                continue;
-            }
-            if (GENERIC_TEST_MODE_FLAG == RWV_COMMAND_WRITE)
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("Write command testing is only allowed on Seagate Drives.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                continue;
-            }
-        }
-
         if (REPAIR_AT_END_FLAG && REPAIR_ON_FLY_FLAG)
         {
             //tell the user that only one repair flag is allowed
