@@ -1629,7 +1629,7 @@ int32_t main(int argc, char *argv[])
 
         if (GET_SSC_FLAG)
         {
-            switch (get_SSC_Feature_SATA(&deviceList[deviceIter], (eSSCFeatureState*)&SSC_MODE))
+            switch (get_SSC_Feature_SATA(&deviceList[deviceIter], C_CAST(eSSCFeatureState*, &SSC_MODE)))
             {
             case SUCCESS:
                 printf("SSC Feature is ");

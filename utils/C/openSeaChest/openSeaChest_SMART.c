@@ -2102,6 +2102,7 @@ void utility_Usage(bool shortUsage)
     print_Abort_IDD_Help(shortUsage);
     print_Captive_Foreground_Help(shortUsage);
     print_Conveyance_DST_Help(shortUsage);
+    print_Device_Statistics_Help(shortUsage);
     print_Error_Limit_Help(shortUsage);
     print_IDD_Help(shortUsage);
     print_Long_DST_Help(shortUsage, commandWindowType);
