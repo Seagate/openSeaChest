@@ -70,10 +70,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Getting CMake for wingetopt
-      if: startsWith(matrix.config.name, 'Windows MSVC')
-      uses: lukka/get-cmake@latest
-
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
       uses: ilammy/msvc-dev-cmd@v1
