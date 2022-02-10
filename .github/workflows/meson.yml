@@ -2,7 +2,7 @@ name: CI for meson build
 
 on:
   push:
-    branches: [ develop, master, release/* ]
+    branches: [ develop, master, release/*, feature/* ]
     tags: [ v* ]
   pull_request:
     branches: [ develop ]
@@ -12,6 +12,7 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
+      fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
         config:
         - {
@@ -108,11 +109,10 @@ jobs:
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
-      uses: BSFishy/meson-build@v1.0.3
-      with:
-        action: install
-        setup-options: -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-        meson-version: 0.60.1
+      run: |
+        pip install meson==0.61.1 ninja
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+        meson install -C build
 
     - name: Packing release
       env:
