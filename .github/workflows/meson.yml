@@ -110,7 +110,7 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        pip install meson==0.61.1 ninja
+        pip install meson==0.60.3 ninja
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
         meson install -C build
 
