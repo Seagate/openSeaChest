@@ -42,18 +42,27 @@ jobs:
             os: windows-latest,
             cc: "gcc.exe",
             cxx: "g++.exe",
+            release_name: "win-x86_64-gcc",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
           }
         - {
             name: "Windows Clang",
             os: windows-latest,
             cc: "clang.exe",
             cxx: "clang++.exe",
+            release_name: "win-x86_64-clang",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
           }
         - {
             name: "Ubuntu GCC",
             os: ubuntu-latest,
             cc: "gcc",
-            cxx: "g++"
+            cxx: "g++",
+            release_name: "linux-x86_64-gcc",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
           }
         - {
             name: "Ubuntu Clang",
@@ -96,9 +105,13 @@ jobs:
         Invoke-WebRequest -OutFile "LLVM.exe" ((Invoke-WebRequest "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
 
+    - name: Escape backslash in branch name
+      shell: bash
+      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
     - name: Setting release name
       env:
-        DESTDIR: ${{ format('openSeaChest-{0}-{1}', github.ref_name, matrix.config.release_name) }} 
+        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
       run: |
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
@@ -117,14 +130,18 @@ jobs:
     - name: Packing release
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
-      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }} 
       run: |
         cd build
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
       shell: bash
-  
+
+    - name: Uploading artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+
     - name: Publish release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }} 
+      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ format('./build/{0}{1}', env.DESTDIR,  matrix.config.release_extension) }}
+        files: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
