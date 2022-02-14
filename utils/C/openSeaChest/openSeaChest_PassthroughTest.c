@@ -7849,7 +7849,6 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         //TODO: Move these passthrough tests to separate functions.
         if (!inputs->disableTranslatorPassthroughTesting)
         {
-#if !defined (DISABLE_NVME_PASSTHROUGH)
             if (strncmp(scsiInformation.inquiryData.vendorId, "NVMe", 4) == 0 || inputs->suspectedDriveType == NVME_DRIVE) //NVMe
             {
                 set_Console_Colors(true, HEADING_COLOR);
@@ -7901,9 +7900,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     //TODO: Based on passthrough type, do more testing for max xferlength, etc
                 }
             }
-            else 
-#endif 
-                if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
+            else if (strncmp(scsiInformation.inquiryData.vendorId, "ATA", 3) == 0 || inputs->suspectedDriveType == ATA_DRIVE || inputs->allowLegacyATAPTTest) //ATA
             {
                 //TODO: need to move this SAT testing to another function.
                 if (!test_SAT_Capabilities(inputs, &scsiInformation))

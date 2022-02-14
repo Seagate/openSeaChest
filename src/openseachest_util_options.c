@@ -142,9 +142,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     printf(" - NVMe Enabled");
-#endif
     printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n", get_current_year(year));
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
@@ -319,16 +317,12 @@ void print_Scan_Flags_Help(bool shortHelp)
         printf("\t\t\tata - show only ATA (SATA) devices\n");
         printf("\t\t\tusb - show only USB devices\n");
         printf("\t\t\tscsi - show only SCSI (SAS) devices\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\tnvme - show only NVMe devices\n");
-#endif
         //printf("\t\t\traid - show RAID devices\n");//commented out until we officially add raid support. Currently raids show up as SCSI devices
         printf("\t\t\tinterfaceATA - show devices on an ATA interface\n");
         printf("\t\t\tinterfaceUSB - show devices on a USB interface\n");
         printf("\t\t\tinterfaceSCSI - show devices on a SCSI or SAS interface\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\tinterfaceNVME = show devices on an NVMe interface\n");
-#endif
 #if defined(__linux__)
         printf("\t\t\tsd - show sd device handles\n");
         printf("\t\t\tsgtosd - show the sd and sg device handle mapping\n");
@@ -1488,11 +1482,7 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 
 void print_Get_Telemetry_Help(bool shortHelp)
 {
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     printf("\t--%s [host | current || ctrl | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
-#else
-    printf("\t--%s [current | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
-#endif
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the Telemetry data for a device.\n");
@@ -1501,10 +1491,8 @@ void print_Get_Telemetry_Help(bool shortHelp)
         printf("\t\tUse the --%s option to control the amount of \n", GET_TELEMETRY_LONG_OPT_STRING);
         printf("\t\tdata collected. \n\n");
         printf("\t\tSupported Modes:\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\thost - get Host initiated Telemetry on NVMe (same as \"current\")\n");
         printf("\t\t\tctrl - get Controller initiated Telemetry on NVMe (Same as \"saved\"\n");
-#endif
         printf("\t\t\tcurrent - get the current internal status log on SAS/SATA\n");
         printf("\t\t\tsaved - get the saved internal status log on SAS/SATA\n");
         printf("\n");

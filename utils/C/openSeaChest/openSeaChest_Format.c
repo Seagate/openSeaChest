@@ -102,10 +102,8 @@ int32_t main(int argc, char *argv[])
     DEPOP_MAX_LBA_VAR
     SEAGATE_SATA_QUICK_FORMAT_VARS
 
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     NVM_FORMAT_VARS
     NVM_FORMAT_OPTION_VARS
-#endif
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -161,10 +159,8 @@ int32_t main(int argc, char *argv[])
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         REPOPULATE_ELEMENTS_LONG_OPT,
         DEPOP_MAX_LBA_LONG_OPT,
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
-#endif
         SEAGATE_SATA_QUICK_FORMAT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
@@ -334,7 +330,6 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-#if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
             {
                 NVM_FORMAT_FLAG = true;
@@ -428,7 +423,6 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-#endif
             else if (strcmp(longopts[optionIndex].name, PATTERN_LONG_OPT_STRING) == 0)
             {
                 PATTERN_FLAG = true;
@@ -790,9 +784,7 @@ int32_t main(int argc, char *argv[])
         || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG
         || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
         || REPOPULATE_ELEMENTS_FLAG
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         || NVM_FORMAT_FLAG
-#endif
         || SEAGATE_SATA_QUICK_FORMAT
         ))
     {
@@ -1622,7 +1614,6 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         if (NVM_FORMAT_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1751,7 +1742,6 @@ int32_t main(int argc, char *argv[])
                 }
             }
         }
-#endif
 
         if (PROGRESS_CHAR != NULL)
         {
@@ -1767,7 +1757,6 @@ int32_t main(int argc, char *argv[])
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
-#if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strcmp(progressTest, "NVMFORMAT") == 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1776,7 +1765,6 @@ int32_t main(int argc, char *argv[])
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
-#endif
             else if (strcmp(progressTest, "DEPOP") == 0 || strcmp(progressTest, "REPOP") == 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1881,11 +1869,7 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Poll_Help(shortUsage);
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     print_Progress_Help(shortUsage, "format | nvmformat | depop | repop");
-#else
-    print_Progress_Help(shortUsage, "format | depop | repop");
-#endif
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
@@ -1925,7 +1909,6 @@ void utility_Usage(bool shortUsage)
     print_Format_Unit_Help(shortUsage);
     print_Format_Security_Initialize_Help(shortUsage);
     print_Format_Stop_On_List_Error_Help(shortUsage);
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     printf("\n\tNVMe Only:\n\t=========\n");
     print_NVM_Format_Metadata_Setting_Help(shortUsage);
     print_NVM_Format_Metadata_Size_Help(shortUsage);
@@ -1934,5 +1917,4 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_PIL_Help(shortUsage);
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
-#endif
 }

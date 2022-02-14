@@ -62,7 +62,6 @@ static void utility_Usage(bool shortUsage);
 int32_t main(int argc, char *argv[])
 {
     eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
-#if !defined(DISABLE_NVME_PASSTHROUGH)
     /////////////////
     //  Variables  //
     /////////////////
@@ -2013,7 +2012,6 @@ int32_t main(int argc, char *argv[])
         close_Device(&deviceList[deviceIter]);
     }
     safe_Free(DEVICE_LIST);
-#endif //DISABLE_NVME_PASSTHROUGH
     exit(exitCode);
 }
 

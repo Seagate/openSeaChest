@@ -87,9 +87,7 @@ int32_t main(int argc, char *argv[])
     SPIN_DOWN_VAR
     EPC_ENABLED_VAR
     TRANSITION_POWER_MODE_VARS
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     TRANSITION_POWER_STATE_VAR
-#endif
     SET_POWER_CONSUMPTION_VARS
     SHOW_POWER_CONSUMPTION_VAR
     SET_APM_LEVEL_VARS
@@ -173,9 +171,7 @@ int32_t main(int argc, char *argv[])
         STANDBY_Y_LONG_OPT,
         LEGACY_IDLE_LONG_OPT,
         LEGACY_STANDBY_LONG_OPT,
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         TRANSITION_POWER_STATE_LONG_OPT,
-#endif
         SHOW_POWER_TELEMETRY_LONG_OPT,
         REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         LONG_OPT_TERMINATOR
@@ -282,7 +278,6 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-#if !defined (DISABLE_NVME_PASSTHROUGH)
             else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
             {
                 uint64_t temp = UINT64_MAX;
@@ -296,7 +291,6 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-#endif
             else if (strncmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_POWER_CONSUMPTION_LONG_OPT_STRING))) == 0)
             {
                 //set the flag for making the power consumption change
@@ -974,9 +968,7 @@ int32_t main(int argc, char *argv[])
         || STANDBY_Y_POWER_MODE_FLAG
         || LEGACY_IDLE_POWER_MODE_FLAG
         || LEGACY_STANDBY_POWER_MODE_FLAG
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         || (TRANSITION_POWER_STATE_TO > 0)
-#endif
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         ))
@@ -1003,9 +995,7 @@ int32_t main(int argc, char *argv[])
     version.size = sizeof(tDevice);
 
     if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         || (TRANSITION_POWER_STATE_TO > 0)
-#endif
         )
     {
         flags = DO_NOT_WAKE_DRIVE;
@@ -1379,7 +1369,6 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         if (TRANSITION_POWER_STATE_TO >= 0)
         {
             switch (transition_NVM_Power_State(&deviceList[deviceIter], C_CAST(uint8_t, TRANSITION_POWER_STATE_TO)))
@@ -1407,7 +1396,6 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-#endif
 
         //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
         if (CHECK_POWER_FLAG)
@@ -2685,9 +2673,7 @@ void utility_Usage(bool shortUsage)
     print_SAS_Phy_Slumber_Help(shortUsage);
     print_Set_Power_Consumption_Help(shortUsage);
     print_Show_Power_Consumption_Help(shortUsage);
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     //NVMe Only
     printf("\n\tNVMe Only:\n\t=========\n");
     print_Transition_Power_State_Help(shortUsage);
-#endif
 }
