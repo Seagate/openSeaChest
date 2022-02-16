@@ -47,40 +47,16 @@ ifeq ($(UNAME),Linux)
 	LFLAGS += -lm -lrt
 	TCGLFLAGS += -lm -lrt
 	STRIPOPTS= -s
-
-	NVME_IOCTL_H = $(C_INCLUDE_PATH)/linux/nvme_ioctl.h 
-	NVME_H = $(C_INCLUDE_PATH)/linux/nvme.h 
-	UAPI_NVME_H = $(C_INCLUDE_PATH)/uapi/nvme.h 
-
-	ifeq ($(shell test -f $(NVME_IOCTL_H) && printf "yes"),yes)
-		PROJECT_DEFINES += -DSEA_NVME_IOCTL_H
-	else
-		ifeq ($(shell test -f $(NVME_H) && printf "yes"),yes)
-			PROJECT_DEFINES += -DSEA_NVME_H
-		else
-			ifeq ($(shell test -f $(UAPI_NVME_H) && printf "yes"),yes)
-				PROJECT_DEFINES += -DSEA_UAPI_NVME_H
-			else
-				PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-			endif
-		endif
-	endif
-
 endif
 ifeq ($(UNAME),SunOS)
 	LFLAGS += -lm
 	TCGLFLAGS += -lm
 	STRIPOPTS=
-	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
 endif
 ifeq ($(UNAME),FreeBSD)
 	LFLAGS += -lm -lcam
 	TCGLFLAGS += -lm -lcam
 	STRIPOPTS= -s
-	FREEBSD_NVME_H = $(C_INCLUDE_PATH)/dev/nvme/nvme.h
-	ifneq ($(shell test -f $(FREEBSD_NVME_H) && printf "yes"),yes)
-		PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-	endif
 endif
 
 MACHINE := $(shell uname -m)
