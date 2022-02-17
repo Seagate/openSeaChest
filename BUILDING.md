@@ -7,6 +7,11 @@ The openSeaChest tools have been built for the UEFI shell as well, but this is n
 
 Compilers or operating systems not mentioned in this file may be supported as well using similar build instructions. The openSeaChest tools and opensea-*libs should be compatible with a C99 compliant compiler.
 
+Be sure to perform a recursive clone to ensure all submodules are pulled and properly initialized. If the submodules are missing, the build will fail since these must be compiled to build the openSeaChest tools.
+Example:
+
+      git clone --recursive <https://github.com/Seagate/openSeaChest.git>
+
 ## Table Of Contents
 
 [C99 Features Used](#c99-features-used)
@@ -33,13 +38,13 @@ Compilers or operating systems not mentioned in this file may be supported as we
 
 ## C99 Features Used
 
-This is a brief list of the known features used from C99 that a compiler should support in order to compie the openSeaChest tools:
+This is a brief list of the known features used from C99 that a compiler should support in order to compile the openSeaChest tools:
 
 * Declare variables anywhere within scope:
 
       int myFunc()
       {
-          int delareAtBeg = 0;
+          int declareAtBeg = 0;
           // code
           // more code
           int newVariable = 3;
@@ -83,19 +88,27 @@ This is a brief list of the known features used from C99 that a compiler should 
 
 ## Building
 
-Run the following commands
+Run the following commands:
 
-```
-meson --buildtype=release builddir
-ninja -C builddir
-```
+      meson --buildtype=release builddir
+      ninja -C builddir
 
 The tools will be in the builddir.
 To install them system-wide, simply run `ninja -C builddir install` with appropriate permissions
 
 To cross-compile, see [the official docs](https://mesonbuild.com/Cross-compilation.html)
 
-To build with a diffirent compiler, set the CC environment variable to your desired compiler.
+To build with a different compiler, set the CC environment variable to your desired compiler.
+Example:
+
+      CC=clang meson --buildtype=release buildclang
+      ninja -C buildclang
+
+NOTE: If using GCC and older than [5.5.0](https://gcc.gnu.org/onlinedocs/gcc-4.9.4/gcc/Standards.html#Standards), the C standard defaults to gnu90. Add the flag `-Dc_std=gnu99` to build openSeaChest. This is needed for CentOS 7 which uses GCC [4.8.5](https://gcc.gnu.org/onlinedocs/gcc-4.8.5/gcc/Standards.html#Standards)
+Example:
+
+      meson --buildtype=release -Dc_std=gnu99 buildOldGCC
+      ninja -C buildOldGCC
 
 ## Documentation
 

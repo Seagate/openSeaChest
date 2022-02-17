@@ -7,6 +7,11 @@ The openSeaChest tools have been built for the UEFI shell as well, but this is n
 
 Compilers or operating systems not mentioned in this file may be supported as well using similar build instructions. The openSeaChest tools and opensea-*libs should be compatible with a C99 compliant compiler.
 
+Be sure to perform a recursive clone to ensure all submodules are pulled and properly initialized. If the submodules are missing, the build will fail since these must be compiled to build the openSeaChest tools.
+Example:
+
+      git clone --recursive <https://github.com/Seagate/openSeaChest.git>
+
 ## Table Of Contents
 
 [C99 Features Used](#C99-Features-Used)
