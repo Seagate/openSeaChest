@@ -42,6 +42,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
+      if: ${{ startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/master') }} 
       uses: github/codeql-action/init@v1
       with:
         languages: ${{ matrix.language }}
@@ -57,4 +58,5 @@ jobs:
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{matrix.platform}}
       
     - name: Perform CodeQL Analysis
+      if: ${{ startsWith(github.ref, 'refs/heads/develop') || startsWith(github.ref, 'refs/heads/master') }} 
       uses: github/codeql-action/analyze@v1
