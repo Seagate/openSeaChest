@@ -37,41 +37,16 @@ UNAME := $(shell uname)
 ifeq ($(UNAME),Linux)
 	FWDLLFLAGS += -lm -lrt
 	STRIPOPTS = -s
-
-	NVME_IOCTL_H = /usr/include/linux/nvme_ioctl.h 
-	NVME_H = /usr/include/linux/nvme.h 
-	UAPI_NVME_H = /usr/include/uapi/nvme.h 
-
-	ifeq ($(shell test -f $(NVME_IOCTL_H) && printf "yes"),yes)
-		PROJECT_DEFINES += -DSEA_NVME_IOCTL_H
-	else
-		ifeq ($(shell test -f $(NVME_H) && printf "yes"),yes)
-			PROJECT_DEFINES += -DSEA_NVME_H
-		else
-			ifeq ($(shell test -f $(UAPI_NVME_H) && printf "yes"),yes)
-				PROJECT_DEFINES += -DSEA_UAPI_NVME_H
-			else
-				PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-			endif
-		endif
-	endif
-
 endif
 ifeq ($(UNAME),SunOS)
 	FWDLLFLAGS += -lm
 	export AR=gar
 	STRIPOPTS=
-	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
+	PROJECT_DEFINES +=
 endif
 ifeq ($(UNAME),FreeBSD)
 	FWDLLFLAGS += -lm -lcam
 	STRIPOPTS = -s
-
-	FREEBSD_NVME_H = /usr/include/dev/nvme/nvme.h
-	ifneq ($(shell test -f $(FREEBSD_NVME_H) && printf "yes"),yes)
-		PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
-	endif
-
 endif
 
 MACHINE := $(shell uname -m)
@@ -97,6 +72,7 @@ FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
 #Linux: If using a different libc, you will likely get a compile warning.
 #       You can add a -DUSING_LIBNAME_LIBC here to specify it.
 #       Currently, -DUSING_MUSL_LIBC is supported to show the MIT license for it.
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT -DUSING_MUSL_LIBC=$(USING_MUSL)
 
 .PHONY: all
 

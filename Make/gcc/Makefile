@@ -129,7 +129,7 @@ FIRMWAREOUTFILE = openSeaChest_Firmware
 
 USING_MUSL=0
 #add any defines needed for tool release.
-#PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH -DDISABLE_TCG_SUPPORT
+#PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
 #Linux: If using a different libc, you will likely get a compile warning.
 #       You can add a -DUSING_LIBNAME_LIBC here to specify it.
 #       Currently, -DUSING_MUSL_LIBC is supported to show the MIT license for it.
@@ -293,7 +293,7 @@ $(ERASEOUTFILE): $(ERASEOBJS) opensea-libs mkoutputdir
 	$(CC) $(CFLAGS) $(INC_DIR) $(PROJECT_DEFINES) $< -o $@
 
 clean:
-	rm -f *.o *.a $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)* $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)* $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)* $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)* $(FILE_OUTPUT_DIR)/stripped* $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)* $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)* $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)* $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)* $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)* $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)*
+	rm -f *.o *.a $(FILE_OUTPUT_DIR)/openSeaChest*
 	rm -f ../../src/*.o
 	rm -f $(UTIL_SRC_DIR)/*.o
 	rm -rf $(FILE_OUTPUT_DIR)
