@@ -67,6 +67,7 @@ FIRMWARESOURCES = \
 
 FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
 
+USING_MUSL=0
 #add any defines needed for tool release. 
 #PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
 #Linux: If using a different libc, you will likely get a compile warning.
