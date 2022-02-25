@@ -49,7 +49,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.1.4";
+const char *buildVersion = "3.1.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2031,6 +2031,7 @@ int32_t main(int argc, char *argv[])
                 formatUnitParameters.securityInitialize = false;
                 int formatRet = UNKNOWN;
                 os_Lock_Device(&deviceList[deviceIter]);
+                os_Unmount_File_Systems_On_Device(&deviceList[deviceIter]);
                 if (PATTERN_FLAG)
                 {
                     formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
@@ -2170,6 +2171,11 @@ int32_t main(int argc, char *argv[])
                     //      the OS may issue commands when opening the handle and there is not a way to easily handle this on scanning the device. So polling should help make sure nothing
                     //      else goes on while write same is running. - TJE
                     os_Lock_Device(&deviceList[deviceIter]);
+                    if (localStartLBA == 0)
+                    {
+                        //only unmount when touching boot sectors
+                        os_Unmount_File_Systems_On_Device(&deviceList[deviceIter]);
+                    }
                     if (PATTERN_FLAG)
                     {
                         writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
