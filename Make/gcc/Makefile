@@ -17,15 +17,15 @@ CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
 STRIP ?= strip
 STRIPOPTS ?=
-CFLAGS ?= -Wall -Wextra -c -std=gnu99
+CFLAGS ?= -Wall -Wextra -c -std=gnu99 -ffunction-sections -fdata-sections
 CFLAGS_I686 ?= -Wall -Wextra -c -m32
 LFLAGS ?= \
-	-Wall \
+	-Wall -Wl,--gc-sections \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 TCGLFLAGS ?= \
-	-Wall \
+	-Wall -Wl,--gc-sections \
 	../../SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
 	../../SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
 	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \

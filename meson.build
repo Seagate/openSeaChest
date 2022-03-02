@@ -2,6 +2,18 @@ project('openSeaChest', 'c', license: 'MPL-2.0', version: '2.0.2')
 
 c = meson.get_compiler('c')
 
+if meson.get_compiler('c').get_id() == 'gcc'
+  add_global_arguments(
+      '-ffunction-sections',
+      '-fdata-sections',
+      language: 'c',
+  )
+  add_global_link_arguments(
+      '-Wl,--gc-sections',
+      language: 'c',
+  )
+endif
+
 if not get_option('tcg').enabled()
   add_project_arguments('-DDISABLE_TCG_SUPPORT', language : 'c')
 endif
