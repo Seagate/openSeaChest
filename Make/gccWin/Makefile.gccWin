@@ -315,7 +315,7 @@ ifneq (,$(findstring basics,$(BUILD_ALL)))
     $(BASICSOUTFILE): $(BASICSOBJS) opensea-libs mkoutputdir
 	$(CC) $(BASICSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 endif
 
 #security
@@ -323,7 +323,7 @@ ifneq (,$(findstring security,$(BUILD_ALL)))
     $(SECURITYOUTFILE): $(SECURITYOBJS) opensea-libs mkoutputdir
 	$(CC) $(SECURITYOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
 endif
 
 
@@ -332,7 +332,7 @@ ifneq (,$(findstring configure,$(BUILD_ALL)))
     $(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir
 	$(CC) $(CONFIGUREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 endif
 
 #erase
@@ -341,7 +341,7 @@ ifneq (,$(findstring erase,$(BUILD_ALL)))
     ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
 		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
-		./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+		sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
     else
 #		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 #		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
@@ -353,7 +353,7 @@ ifneq (,$(findstring firmware,$(BUILD_ALL)))
     $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir
 	$(CC) $(FIRMWAREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 endif
 
 #format
@@ -361,7 +361,7 @@ ifneq (,$(findstring format,$(BUILD_ALL)))
     $(FORMATOUTFILE): $(FORMATOBJS) opensea-libs mkoutputdir
 	$(CC) $(FORMATOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
 endif
 
 #generictests
@@ -369,7 +369,7 @@ ifneq (,$(findstring generictests,$(BUILD_ALL)))
     $(GENERICTESTSOUTFILE) : $(GENERICTESTSOBJS) opensea-libs mkoutputdir
 	$(CC) $(GENERICTESTSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
 endif
 
 #info
@@ -377,7 +377,7 @@ ifneq (,$(findstring info,$(BUILD_ALL)))
     $(INFOOUTFILE): $(INFOOBJS) opensea-libs mkoutputdir
 	$(CC) $(INFOOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 endif
 
 #logs
@@ -385,7 +385,7 @@ ifneq (,$(findstring logs,$(BUILD_ALL)))
     $(LOGSOUTFILE): $(LOGSOBJS) opensea-libs mkoutputdir
 	$(CC) $(LOGSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
 endif
 
 #nvme
@@ -393,7 +393,7 @@ ifneq (,$(findstring nvme,$(BUILD_ALL)))
     $(NVMEOUTFILE): $(NVMEOBJS) opensea-libs mkoutputdir
 	$(CC) $(NVMEOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
 endif
 
 #powercontrol
@@ -401,7 +401,7 @@ ifneq (,$(findstring powercontrol,$(BUILD_ALL)))
     $(POWERCONTROLOUTFILE) : $(POWERCONTROLOBJS) opensea-libs mkoutputdir
 	$(CC) $(POWERCONTROLOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
 endif
 
 #smart
@@ -409,7 +409,7 @@ ifneq (,$(findstring smart,$(BUILD_ALL)))
     $(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir
 	$(CC) $(SMARTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
 endif
 
 #zbd
@@ -417,7 +417,7 @@ ifneq (,$(findstring zbd,$(BUILD_ALL)))
     $(ZBDOUTFILE): $(ZBDOBJS) opensea-libs mkoutputdir
 	$(CC) $(ZBDOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 endif
 
 #passthrough
@@ -425,7 +425,7 @@ ifneq (,$(findstring passthrough,$(BUILD_ALL)))
     $(PASSTHROUGHTESTOUTFILE): $(PASSTHROUGHTESTOBJS) opensea-libs mkoutputdir
 	$(CC) $(PASSTHROUGHTESTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
 endif
 
 #reservations 
@@ -433,7 +433,7 @@ ifneq (,$(findstring reservations,$(BUILD_ALL)))
     $(RESERVATIONSOUTFILE): $(RESERVATIONSOBJS) opensea-libs mkoutputdir
 	$(CC) $(RESERVATIONSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
 endif
 
 %.o: %.c
