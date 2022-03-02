@@ -8,15 +8,73 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false # so that if one config fails, other won't be cancelled automatically
+      matrix:
+        config:
+        - {
+            name: "Windows GCC",
+            os: windows-latest,
+            builddir: "Make/gccWin",
+            makefile: "Makefile.gccWin",
+            release_name: "win-x86_64-gcc",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
+            name: "Ubuntu GCC",
+            os: ubuntu-latest,
+            builddir: "Make/gcc",
+            makefile: "Makefile",
+            release_name: "linux-x86_64-gcc",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
 
-    - name: make
+    - name: Escape backslash in branch name
+      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+
+    - name: Setting release name
+      env:
+        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
       run: |
-        cd Make/gcc
-        make release
+        echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
+
+    - name: Add Mingw-w64 to path
+      if: startsWith(matrix.config.name, 'Windows GCC')
+      run: |
+        echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
+
+    - name: make
+      working-directory: ${{ matrix.config.builddir }}
+      run: |
+        make release -f ${{ matrix.config.makefile }}
+
+    - name: Packing release
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      run: |
+        mkdir build
+        cd build
+        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
+
+    - name: Uploading artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+
+    # - name: Publish release
+    #   if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
+    #   uses: softprops/action-gh-release@v1
+    #   with:
+    #     files: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
