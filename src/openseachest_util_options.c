@@ -3145,7 +3145,7 @@ void print_Show_Locked_Regions_Help(bool shortHelp)
 
 void print_Seagate_Power_Balance_Help(bool shortHelp)
 {
-    printf("\t--%s [ info | enable | disable ]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
+    printf("\t--%s [ info | enable | disable | limited]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to see the state of the Seagate Power Balance\n");
@@ -3153,8 +3153,9 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
         printf("\t\tSeagate's PowerBalance feature will adjust drive performance during\n");
         printf("\t\trandom operations to reduce power consumption of the drive.\n");
         printf("\t\t  info - will dump the state of the Power Balance feature on the screen\n");
-        printf("\t\t  enable - use this to enable Power Balance\n");
-        printf("\t\t  disable - use this to disable Power Balance\n");
+        printf("\t\t  enable - use this to enable Power Balance (lowest power consumption)\n");
+        printf("\t\t  disable - use this to disable Power Balance (hihgest power consumption)\n");
+        printf("\t\t  limited - 12w limited mode. Dual actuator SATA only\n");
         printf("\t\tNote: While this feature is available on some SAS products,\n");
         printf("\t\tit is recommended that the --%s option is\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
         printf("\t\tused instead since it allows more levels of control.\n");
