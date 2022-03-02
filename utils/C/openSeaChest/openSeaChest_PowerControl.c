@@ -339,12 +339,20 @@ int32_t main(int argc, char *argv[])
                 {
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = true;
+					POWER_BALANCE_MODE = POWER_BAL_ENABLE;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
-                }
+					POWER_BALANCE_MODE = POWER_BAL_DISABLE;
+				}
+				else if (strcmp(optarg, "limited") == 0)
+				{
+					SEAGATE_POWER_BALANCE_FLAG = true;
+					SEAGATE_POWER_BALANCE_LIMITED_FLAG = true;
+					POWER_BALANCE_MODE = POWER_BAL_LIMITED;
+				}
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
@@ -2117,7 +2125,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                switch (seagate_Set_Power_Balance(&deviceList[deviceIter], SEAGATE_POWER_BALANCE_ENABLE_FLAG))
+                switch (seagate_Set_Power_Balance(&deviceList[deviceIter], POWER_BALANCE_MODE))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2126,7 +2134,11 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully enabled Seagate Power Balance!\n");
                         }
-                        else
+						else if (SEAGATE_POWER_BALANCE_LIMITED_FLAG)
+						{
+							printf("Successfully limited Seagate Power Balance!\n");
+						}
+						else
                         {
                             printf("Successfully disabled Seagate Power Balance!\n");
                         }
