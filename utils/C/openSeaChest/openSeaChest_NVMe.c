@@ -1,7 +1,7 @@
 //
 // openSeaChest_NVMe.c
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.0.4";
 
 ////////////////////////////
 //  functions to declare  //
