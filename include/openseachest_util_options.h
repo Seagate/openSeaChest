@@ -1461,11 +1461,15 @@ extern "C"
 
     //Seagate Power Balance options (SATA only since SAS can use the setPowerConsumption options)
     #define SEAGATE_POWER_BALANCE_FLAG powerBalanceFeature
+	#define POWER_BALANCE_MODE powerBalanceMode
     #define SEAGATE_POWER_BALANCE_ENABLE_FLAG powerBalanceEnable
+	#define SEAGATE_POWER_BALANCE_LIMITED_FLAG powerBalanceLimited
     #define SEAGATE_POWER_BALANCE_INFO_FLAG powerBalanceInfo
     #define SEAGATE_POWER_BALANCE_VARS \
+		uint8_t POWER_BALANCE_MODE = 0;\
         bool SEAGATE_POWER_BALANCE_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;\
+		bool SEAGATE_POWER_BALANCE_LIMITED_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_INFO_FLAG = false;
     #define SEAGATE_POWER_BALANCE_LONG_OPT_STRING "powerBalanceFeature"
     #define SEAGATE_POWER_BALANCE_LONG_OPT { SEAGATE_POWER_BALANCE_LONG_OPT_STRING, required_argument, NULL, 0 }
