@@ -2125,6 +2125,9 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tfor progress until the format is complete.\n\n");
         printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
+		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 
@@ -2360,6 +2363,9 @@ void print_Show_Supported_Formats_Help(bool shortHelp)
         printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
         printf("\t\tand later) If the device does not report supported sector\n");
         printf("\t\tsizes, please consult your product manual.\n\n");
+		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 

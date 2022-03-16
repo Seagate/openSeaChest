@@ -1104,6 +1104,13 @@ int32_t main(int argc, char *argv[])
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
             uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
             ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, malloc(memSize));
+
+			if (VERBOSITY_QUIET < toolVerbosity)
+			{
+				printf("\nWARNING: Customer unique firmware may have specific requirements that \n");
+				printf("         restrict sector sizes on some products. It may not be possible to format/ \n");
+				printf("         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
+			}
             if (formats)
             {
                 memset(formats, 0, memSize);
