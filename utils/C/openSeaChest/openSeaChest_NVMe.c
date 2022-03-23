@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.4";
+const char *buildVersion = "2.0.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1166,7 +1166,7 @@ int32_t main(int argc, char *argv[])
                 switch (GET_NVME_LOG_IDENTIFIER)
                 {
                 case NVME_LOG_SMART_ID:
-                    switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTR_OUTPUT_RAW))
+                    switch (show_NVMe_Health(&deviceList[deviceIter]))
                     {
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
