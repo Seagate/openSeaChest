@@ -2,7 +2,7 @@ project('openSeaChest', 'c', license: 'MPL-2.0', version: '2.0.2')
 
 c = meson.get_compiler('c')
 
-if c.get_id() == 'gcc'
+if c.get_id() == 'gcc' or c.get_id() == 'clang'
   add_global_arguments(
       '-ffunction-sections',
       '-fdata-sections',
