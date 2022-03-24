@@ -334,7 +334,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else if (strncmp("selfTest", optarg, strlen(optarg)) == 0)
                     {
-                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST_ID;
                     }
                     else
                     {
@@ -347,11 +347,11 @@ int32_t main(int argc, char *argv[])
             {
                 if (strncmp("host", optarg, strlen(optarg)) == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST_ID;
                 }
                 else if (strncmp("ctrl", optarg, strlen(optarg)) == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL_ID;
                 }
                 else
                 {
@@ -1225,7 +1225,7 @@ int32_t main(int argc, char *argv[])
                         break;
                     }
                     break;
-                case NVME_LOG_DEV_SELF_TEST:
+                case NVME_LOG_DEV_SELF_TEST_ID:
                     switch (nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
                     {
                     case SUCCESS:
