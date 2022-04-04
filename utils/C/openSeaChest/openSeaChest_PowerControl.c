@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.1.8";
+const char *buildVersion = "3.1.9";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1727,6 +1727,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
+#define LEGACY_POWER_MODE_CHANGE_STR_LEN 24
                 //need to check if SCSI since ATA won't allow some of these.
                 //deviceList[deviceIter].drive_info.drive_type
                 if (LEGACY_IDLE_POWER_MODE_FLAG)
@@ -1740,20 +1741,20 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested idle settings.\n");
+                                    printf("Successfully configured the idle timer.\n");
                                 }
                                 break;
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring idle settings is not supported on this device.\n");
+                                    printf("Configuring idle timer is not supported on this device.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                    printf("An Error occurred while trying to configure the idle timer.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1762,16 +1763,24 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             int idleRet = SUCCESS;
+                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_IDLE_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
                             default:
                                 break;
@@ -1781,7 +1790,7 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested idle settings.\n");
+                                    printf("Successfully %s the requested idle settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1791,14 +1800,14 @@ int32_t main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring idle settings is not supported on this device.\n");
+                                    printf("%s idle settings is not supported on this device.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                    printf("An Error occurred while %s idle settings.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1824,7 +1833,7 @@ int32_t main(int argc, char *argv[])
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Successfully configured the requested standby settings.\n");
+                                printf("Successfully configured the requested standby timer.\n");
                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                 {
                                     printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1834,14 +1843,14 @@ int32_t main(int argc, char *argv[])
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Configuring standby settings is not supported on this device.\n");
+                                printf("Configuring standby timer is not supported on this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An Error occurred while trying to configure the standby settings.\n");
+                                printf("An Error occurred while trying to configure the standby timer.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -1852,16 +1861,24 @@ int32_t main(int argc, char *argv[])
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
                             int standbyRet = SUCCESS;
+                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_STANDBY_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
                             default:
                                 break;
@@ -1871,7 +1888,7 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested standby settings.\n");
+                                    printf("Successfully %s the requested standby settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1881,14 +1898,14 @@ int32_t main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring standby settings is not supported on this device.\n");
+                                    printf("%s standby settings is not supported on this device.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the standby settings.\n");
+                                    printf("An Error occurred while trying to %s standby settings.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1899,7 +1916,7 @@ int32_t main(int argc, char *argv[])
                             //not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Configuring standby settings is not supported on this device.\n");
+                                printf("Enabling, disabling, or restoring default standby settings is not supported on this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
