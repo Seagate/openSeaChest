@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -126,31 +126,31 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     time_t g_curTime = time(NULL);
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char *userName = NULL;
-    char currentTime[30] = { 0 };
+#define CURRENT_TIME_STRING_MAX_LENGTH 30
+    char currentTime[CURRENT_TIME_STRING_MAX_LENGTH] = { 0 };
     struct tm utilTime;
     memset(&utilTime, 0, sizeof(struct tm));
     if (SUCCESS != get_Current_User_Name(&userName))
     {
-        userName = (char*)calloc(36, sizeof(char));
+#define UNKNOWN_USER_NAME_MAX_LENGTH 36
+        userName = C_CAST(char*, calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
         if(userName)
         {
-            sprintf(userName, "Unable to retrieve current username");
+            snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
     }
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     printf(" - NVMe Enabled");
-#endif
     printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n", get_current_year(year));
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (0 == strftime(currentTime, 30, "%c", get_Localtime(&g_curTime, &utilTime)))
+    if (0 == strftime(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "%c", get_Localtime(&g_curTime, &utilTime)))
     {
-        sprintf(currentTime, "Unable to get local time");
+        snprintf(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "Unable to get local time");
     }
     printf(" Today: %s\tUser: %s\n", currentTime, userName);
     printf("==========================================================================================\n");
@@ -317,16 +317,12 @@ void print_Scan_Flags_Help(bool shortHelp)
         printf("\t\t\tata - show only ATA (SATA) devices\n");
         printf("\t\t\tusb - show only USB devices\n");
         printf("\t\t\tscsi - show only SCSI (SAS) devices\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\tnvme - show only NVMe devices\n");
-#endif
         //printf("\t\t\traid - show RAID devices\n");//commented out until we officially add raid support. Currently raids show up as SCSI devices
         printf("\t\t\tinterfaceATA - show devices on an ATA interface\n");
         printf("\t\t\tinterfaceUSB - show devices on a USB interface\n");
         printf("\t\t\tinterfaceSCSI - show devices on a SCSI or SAS interface\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\tinterfaceNVME = show devices on an NVMe interface\n");
-#endif
 #if defined(__linux__)
         printf("\t\t\tsd - show sd device handles\n");
         printf("\t\t\tsgtosd - show the sd and sg device handle mapping\n");
@@ -609,7 +605,7 @@ void print_Revert_Help(bool shortHelp)
 
 void print_RevertSP_Help(bool shortHelp)
 {
-    printf("\t--%s\t(Seagate Only)\n", TCG_REVERT_SP_LONG_OPT_STRING);
+    printf("\t--%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis operation performs a revertSP on a Seagate SED drive\n");
@@ -713,7 +709,7 @@ void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType)
 
 void print_SMART_Attributes_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t--%s [raw | hybrid | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThe drive will display its list of supported SMART attributes.\n");
@@ -723,7 +719,27 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\tused to determine a warranty return. Use the --smartCheck\n");
         printf("\t\tcommand to determine if one of the warranty attributes has been\n");
         printf("\t\ttripped. Seagate Support does not help to analyze SMART\n");
-        printf("\t\tattributes.\n\n");
+        printf("\t\tattributes.\n");
+        printf("\t\tOutput modes:\n");
+        printf("\t\t  raw - All hex output for those that need every single bit.\n");
+        printf("\t\t  hybrid - classic table view with some interpretation of some\n");
+        printf("\t\t           fields. Partial raw interpretation, but not all drive\n");
+        printf("\t\t           and firmware combinations are supported.\n");
+        printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
+        printf("\t\t             attribute's data. Full raw data interpretation only\n");
+        printf("\t\t             available on select devices.");
+        printf("\t\tNOTE: Migration to device statistics is recommended.\n\n");
+    }
+}
+
+void print_NVME_Health_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", NVME_HEALTH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThe drive will display the NVMe Health log (also called\n");
+        printf("\t\tSMART log). All standardized fields will be printed to the\n");
+        printf("\t\tscreen for the device.\n\n");
     }
 }
 
@@ -1374,7 +1390,7 @@ void print_Firmware_Activate_Help(bool shortHelp)
 
 void print_Firmware_Switch_Help(bool shortHelp)
 {
-    printf("\t--%s \t(NVMe Only) (Seagate Only)\n", SWITCH_FW_LONG_OPT_STRING);
+    printf("\t--%s \t(NVMe Only)\n", SWITCH_FW_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to switch to a different firmware slot on an\n");
@@ -1466,11 +1482,7 @@ void print_NVMe_Get_Log_Help(bool shortHelp)
 
 void print_Get_Telemetry_Help(bool shortHelp)
 {
-#if !defined (DISABLE_NVME_PASSTHROUGH)
     printf("\t--%s [host | current || ctrl | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
-#else
-    printf("\t--%s [current | saved]\n", GET_TELEMETRY_LONG_OPT_STRING);
-#endif
     if (!shortHelp)
     {
         printf("\t\tUse this option to get the Telemetry data for a device.\n");
@@ -1479,10 +1491,8 @@ void print_Get_Telemetry_Help(bool shortHelp)
         printf("\t\tUse the --%s option to control the amount of \n", GET_TELEMETRY_LONG_OPT_STRING);
         printf("\t\tdata collected. \n\n");
         printf("\t\tSupported Modes:\n");
-#if !defined (DISABLE_NVME_PASSTHROUGH)
         printf("\t\t\thost - get Host initiated Telemetry on NVMe (same as \"current\")\n");
         printf("\t\t\tctrl - get Controller initiated Telemetry on NVMe (Same as \"saved\"\n");
-#endif
         printf("\t\t\tcurrent - get the current internal status log on SAS/SATA\n");
         printf("\t\t\tsaved - get the saved internal status log on SAS/SATA\n");
         printf("\n");
@@ -1778,6 +1788,8 @@ void print_Phy_Speed_Help(bool shortHelp)
         printf("\t\t3 - allow negotiation up to 6.0Gb/s\n");
         printf("\t\t4 - allow negotiation up to 12.0Gb/s (SAS Only)\n");
         printf("\t\t5 - allow negotiation up to 22.5Gb/s (SAS Only)\n");
+        printf("\n");
+        printf("\t\tNOTE: SATA phy speed changes are only available on Seagate drives.\n");
         printf("\n");
         printf("\t\tWARNING: Changing Phy speed may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
@@ -2113,6 +2125,9 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tfor progress until the format is complete.\n\n");
         printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
+		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 
@@ -2267,7 +2282,7 @@ void print_Show_Format_Status_Log_Help(bool shortHelp)
 
 void print_Set_Sector_Size_Help(bool shortHelp)
 {
-    printf("\t--%s [new sector size]\t\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
+    printf("\t--%s [new sector size]\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is only available for drives that support sector\n");
@@ -2348,6 +2363,9 @@ void print_Show_Supported_Formats_Help(bool shortHelp)
         printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
         printf("\t\tand later) If the device does not report supported sector\n");
         printf("\t\tsizes, please consult your product manual.\n\n");
+		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 
@@ -2419,7 +2437,7 @@ void print_Low_Current_Spinup_Help(bool shortHelp)
 
 void print_Disable_Data_Locking_Help(bool shortHelp)
 {
-    printf("\t--%s (Seagate Only)\n", DISABLE_DATA_LOCKING_LONG_OPT_STRING);
+    printf("\t--%s\n", DISABLE_DATA_LOCKING_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to disable data locking on a TCG drive.\n");
@@ -2806,7 +2824,7 @@ void print_Reset_Write_Pointer_Zone_Help(bool shortHelp)
 
 void print_FWDL_Segment_Size_Help(bool shortHelp)
 {
-    printf("\t--%s [segment size in 512B blocks]\t\n", FWDL_SEGMENT_SIZE_LONG_OPT_STRING);
+    printf("\t--%s [segment size in 512B blocks]\n", FWDL_SEGMENT_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a segment size in 512B blocks\n");
@@ -2891,24 +2909,25 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         {
             *userHandleProvided = true;
 #if defined(_WIN32)
-            char windowsHandle[50] = { 0 };
+#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+            char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
             char *deviceHandle = &windowsHandle[0];
             char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
-            if (_strnicmp((char *)optarg, "PD", 2) == 0)
+            if (_strnicmp(optarg, "PD", 2) == 0)
             {
-                physicalDeviceNumber = strpbrk((char *)optarg, "0123456789");
-                sprintf(deviceHandle, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+                physicalDeviceNumber = strpbrk(optarg, "0123456789");
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
             }
 #if defined(ENABLE_CSMI)
-            else if (strncmp((char *)optarg, "csmi", 4) == 0)
+            else if (strncmp(optarg, "csmi", 4) == 0)
             {
-                sprintf(deviceHandle, "%s", optarg);
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
 #endif
-            else if (strncmp((char *)optarg, "\\\\.\\", 4) == 0)
+            else if (strncmp(optarg, "\\\\.\\", 4) == 0)
             {
-                sprintf(deviceHandle, "%s", optarg);
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
             /*If we want to add another format for accepting a handle, then add an else-if here*/
             else /*we have an invalid handle*/
@@ -2925,7 +2944,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             if (!*handleList)
             {
                 /*allocate the list and add this handle to it.*/
-                *handleList = (char**)calloc((*deviceCount), sizeof(char*));
+                *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
                 if (!*handleList)
                 {
                     perror("error allocating memory for handle list\n");
@@ -2935,7 +2954,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             else
             {
                 /*list already allocated, so reallocate and add this next handle to it.*/
-                char **temp = (char**)realloc(*handleList, (*deviceCount) * sizeof(char*));
+                char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
                 if (!temp)
                 {
                     perror("error reallocating memory for handle list\n");
@@ -2945,14 +2964,15 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             }
             /*the list has been allocated, now put the handle we've received into the list*/
             /*start by allocating memory for the handle at the new list location*/
-            (*handleList)[(*deviceCount) - 1] = (char*)calloc(strlen(deviceHandle) + 1, sizeof(char));
+            size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
+            (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
             if (!(*handleList)[(*deviceCount) - 1])
             {
                 perror("error allocating memory for adding device handle to list\n");
                 return 255;
             }
             /*copy the handle into memory*/
-            strcpy((*handleList)[(*deviceCount) - 1], deviceHandle);
+            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
         }
     }
     return 0;
@@ -3109,7 +3129,7 @@ void print_Depop_MaxLBA_Help(bool shortHelp)
 
 void print_Repopulate_Elements_Help(bool shortHelp)
 {
-    printf("\t--%s \n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
+    printf("\t--%s\n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to repopulate any physical storage\n");
@@ -3131,7 +3151,7 @@ void print_Show_Locked_Regions_Help(bool shortHelp)
 
 void print_Seagate_Power_Balance_Help(bool shortHelp)
 {
-    printf("\t--%s [ info | enable | disable ]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
+    printf("\t--%s [ info | enable | disable | limited]\t (Seagate Only)\n", SEAGATE_POWER_BALANCE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to see the state of the Seagate Power Balance\n");
@@ -3139,8 +3159,9 @@ void print_Seagate_Power_Balance_Help(bool shortHelp)
         printf("\t\tSeagate's PowerBalance feature will adjust drive performance during\n");
         printf("\t\trandom operations to reduce power consumption of the drive.\n");
         printf("\t\t  info - will dump the state of the Power Balance feature on the screen\n");
-        printf("\t\t  enable - use this to enable Power Balance\n");
-        printf("\t\t  disable - use this to disable Power Balance\n");
+        printf("\t\t  enable - use this to enable Power Balance (lowest power consumption)\n");
+        printf("\t\t  disable - use this to disable Power Balance (hihgest power consumption)\n");
+        printf("\t\t  limited - 12w limited mode. Dual actuator SATA only\n");
         printf("\t\tNote: While this feature is available on some SAS products,\n");
         printf("\t\tit is recommended that the --%s option is\n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
         printf("\t\tused instead since it allows more levels of control.\n");
@@ -3706,7 +3727,7 @@ void print_SCSI_Reset_LP_Page_Help(bool shortHelp)
 
 void print_Set_SCSI_MP_Help(bool shortHelp)
 {
-    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only) (Seagate Only)\n", SCSI_SET_MP_LONG_OPT_STRING);
+    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only)\n", SCSI_SET_MP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to set a specific field in a mode page to a value.\n");
@@ -3921,3 +3942,205 @@ void print_Pull_Power_Telemetry_Help(bool shortHelp)
         printf("\t\tdata and save it to a binary file.\n\n");
     }
 }
+
+void print_Show_Reservation_Capabilities(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options shows the persistent reservation\n");
+        printf("\t\tcapabilities for a device.\n");
+        printf("\t\tNOTE: Older device supporting SPC or SPC2 may not support\n");
+        printf("\t\tshowing capabilities, but do support persistent reservations.\n\n");
+    }
+}
+
+void print_Show_Full_Reservation_Info(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation full\n");
+        printf("\t\tinformation (registrations and reservations) and\n");
+        printf("\t\tprints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Registration_Keys(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_REGISTRATION_KEYS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\tregistration keys and prints it to the screen.\n\n");
+    }
+}
+
+void print_Show_Reservations(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS Only)\n", SHOW_RESERVATIONS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis options reads the persistent reservation\n");
+        printf("\t\treservations and prints it to the screen.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Key_Help(bool shortHelp)
+{
+    printf("\t--%s [key]\t(NVMe & SAS Only)\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the key to use for persistent\n");
+        printf("\t\treservation options. When registering a key, this provides\n");
+        printf("\t\tthe value expected for your use. It should continue to be used\n");
+        printf("\t\tthrough all persistent reseve operations until unregistered or\n");
+        printf("\t\tcleared.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Type_Help(bool shortHelp)
+{
+    printf("\t--%s [wrex | ex | wrexro | exro | wrexar | exar]\t(NVMe and SAS only)\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option specifies the type of reservation to hold.\n");
+        printf("\t\tThis is required for acquiring, preempting, and releasing\n");
+        printf("\t\treservations.\n");
+        printf("\t\tAvailable reservation types:\n");
+        printf("\t\t\twrex   - write exclusive\n");
+        printf("\t\t\tex     - exclusive access\n");
+        printf("\t\t\twrexro - write exclusive, registrants only\n");
+        printf("\t\t\texro   - exclusive access, registrants only\n");
+        printf("\t\t\twrexar - write exclusive, all registrants\n");
+        printf("\t\t\texar   - exclusive access, all registrants\n");
+        //NOTE: There are obsolete types available for SAS, but not implementing them since they are long obsolete.
+        printf("\n");
+    }
+}
+
+void print_Persistent_Reservations_All_Target_Ports_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to specify\n");
+        printf("\t\tthat it applies to all target ports.\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to activate\n");
+        printf("\t\tthe persist through power loss capability.\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option when registering a new key to instruct\n");
+        printf("\t\tthe device to ignore any previous registration key\n");
+        printf("\t\tthat has already been registered from the same initiator\n");
+        printf("\t\tNOTE: Not all devices will support this option\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Register_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to register a new key as specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tCombine this with the following options as needed:\n");
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING);
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING);
+        printf("\t\t--%s\n", PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING);
+        printf("\n");
+    }
+}
+
+void print_Persistent_Reservations_Unregister_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to unregister a key that is specified by\n");
+        printf("\t\tthe --%s option.\n\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+    }
+}
+
+void print_Persistent_Reservations_Reserve_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tto acquire.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Release_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to release reservation using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device and must\n");
+        printf("\t\thave an active reservation that can be released.\n");
+        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tto release.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Clear_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to clear all reservations using a key that is specified by\n");
+        printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Help(bool shortHelp)
+{
+    printf("\t--%s [reservation key to preempt]\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to preempt another reservation using a registration key\n");
+        printf("\t\t that is specified by the --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
+        printf("\t\tThe specified key must already be registered with the device.\n");
+        printf("\t\tThis is used to remove a reservation from another initiator and start\n");
+        printf("\t\ta new one using the specified registration key. --%s must also\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tbe provided to specify the type of reservation that should be active\n");
+        printf("\t\tonce the preempt has completed.\n");
+        printf("\t\tUse with the --%s option to cause the preempt to abort all\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+        printf("\t\toutstanding commands to the previous reservation holder.\n\n");
+    }
+}
+
+void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe & SAS only)\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
+        printf("\t\treservation holder. This must be used in combination with the\n");
+        printf("\t\t--%s option in order to specify the key to preempt.\n\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+    }
+}
+

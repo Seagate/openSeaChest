@@ -24,9 +24,9 @@ endif
 # example: BUILD_ALL = firmware   for just firmware
 # BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 ifneq (,$(findstring Linux,$(MYUNAME)))
-	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd passthrough 
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd passthrough reservations 
 else
-	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd passthrough 
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd passthrough reservations 
 endif
 
 UTIL_SRC_DIR = ../../utils/C/openSeaChest
@@ -41,10 +41,8 @@ endif
 
 LIB_FILE_OUTPUT_DIR = lib
 
-#turning off format warnings because they are EVERYWHERE but only in minGW which is due to backwards compatibility warnings.
-#I tried using __USE_MINGW_ANSI_STDIO, but this didn't solve the problem either. - TJE
-#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
-CFLAGS ?= -Wall -Wextra  -Wno-format
+#NOTE: If having excessive format warnings, add -Wnoformat to shut things up. We use -D__USE_MINGW_ANSI_STDIO below to work around this though - TJE
+CFLAGS ?= -Wall -Wextra 
 CFLAGS += -c -std=gnu99
 #BR note: is this necessary?
 CFLAGS += -isystem
@@ -180,12 +178,19 @@ ifneq (,$(findstring passthrough,$(BUILD_ALL)))
     PASSTHROUGHTESTOBJS = $(PASSTHROUGHTESTSOURCES:.c=.o)
 endif
 
+#reservations
+ifneq (,$(findstring reservations,$(BUILD_ALL)))
+    RESERVATIONSOUTFILE = openSeaChest_Reservations
+    RESERVATIONSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Reservations.c $(EULA_UTIL)
+    RESERVATIONSOBJS = $(RESERVATIONSSOURCES:.c=.o)
+endif
 
-PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS
-PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE
+#use __USE_MINGW_ANSI_STDIO to get rid of format warnings for printf uint64_t
+#https://sourceforge.net/p/mingw-w64/mailman/mingw-w64-public/thread/20120411101049.GA4263%40glandium.org/#msg29128250
+PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS -D__USE_MINGW_ANSI_STDIO
+PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS
 
 PROJECT_DEFINES += -DENABLE_CSMI
-PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100162990L
 PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT 
 ifneq (,$(findstring Linux,$(MYUNAME)))
 	PROJECT_DEFINES += -DDISABLE_NVME_PASSTHROUGH
@@ -199,8 +204,6 @@ ifneq (,$(findstring MINGW64,$(UNAME)))
 	#BR note: trying different stuff during debugging
 	#BR note: -D_WIN32_WINNT=0x0601 fixes unknown Windows version in winioctl.h
 	# PROJECT_DEFINES += -D_WIN32_WINNT=0x0601
-	# PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=100150630L
-	# PROJECT_DEFINES += -DWIN_API_TARGET_VERSION=81000000L
 	# PROJECT_DEFINES += -DWINVER=SEA_WIN32_WINNT_WIN10
 endif
 
@@ -233,7 +236,8 @@ debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_dbg.exe
 debug: SMARTOUTFILE := $(SMARTOUTFILE)_dbg.exe
 debug: ZBDOUTFILE := $(ZBDOUTFILE)_dbg.exe
 debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_dbg.exe
-debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_dbg.exe
+debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-debug: CXXFLAGS += -g
 static-debug: CFLAGS += -g
@@ -253,7 +257,8 @@ static-debug: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static_dbg.exe
 static-debug: SMARTOUTFILE := $(SMARTOUTFILE)_static_dbg.exe
 static-debug: ZBDOUTFILE := $(ZBDOUTFILE)_static_dbg.exe
 static-debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static_dbg.exe
-static-debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+static-debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static_dbg.exe
+static-debug: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 release: CXXFLAGS += -O3
 release: CFLAGS += -O3
@@ -271,7 +276,8 @@ release: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE).exe
 release: SMARTOUTFILE := $(SMARTOUTFILE).exe
 release: ZBDOUTFILE := $(ZBDOUTFILE).exe
 release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE).exe
-release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE).exe
+release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-release: CXXFLAGS += -O3
 static-release: CFLAGS += -O3
@@ -292,7 +298,8 @@ static-release: POWERCONTROLOUTFILE := $(POWERCONTROLOUTFILE)_static.exe
 static-release: SMARTOUTFILE := $(SMARTOUTFILE)_static.exe
 static-release: ZBDOUTFILE := $(ZBDOUTFILE)_static.exe
 static-release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static.exe
-static-release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE)
+static-release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static.exe
+static-release: mkoutputdir $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 export CFLAGS
 export CXXFLAGS
@@ -308,7 +315,7 @@ ifneq (,$(findstring basics,$(BUILD_ALL)))
     $(BASICSOUTFILE): $(BASICSOBJS) opensea-libs mkoutputdir
 	$(CC) $(BASICSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 endif
 
 #security
@@ -316,7 +323,7 @@ ifneq (,$(findstring security,$(BUILD_ALL)))
     $(SECURITYOUTFILE): $(SECURITYOBJS) opensea-libs mkoutputdir
 	$(CC) $(SECURITYOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
 endif
 
 
@@ -325,7 +332,7 @@ ifneq (,$(findstring configure,$(BUILD_ALL)))
     $(CONFIGUREOUTFILE): $(CONFIGUREOBJS) opensea-libs mkoutputdir
 	$(CC) $(CONFIGUREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 endif
 
 #erase
@@ -334,7 +341,7 @@ ifneq (,$(findstring erase,$(BUILD_ALL)))
     ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
 		$(CC) $(ERASEOBJS) $(PROJECT_DEFINES) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
-		./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
+		sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
     else
 #		$(CC) $(ERASEOBJS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
 #		$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ERASEOUTFILE)
@@ -346,7 +353,7 @@ ifneq (,$(findstring firmware,$(BUILD_ALL)))
     $(FIRMWAREOUTFILE): $(FIRMWAREOBJS) opensea-libs mkoutputdir
 	$(CC) $(FIRMWAREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 endif
 
 #format
@@ -354,7 +361,7 @@ ifneq (,$(findstring format,$(BUILD_ALL)))
     $(FORMATOUTFILE): $(FORMATOBJS) opensea-libs mkoutputdir
 	$(CC) $(FORMATOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(FORMATOUTFILE)
 endif
 
 #generictests
@@ -362,7 +369,7 @@ ifneq (,$(findstring generictests,$(BUILD_ALL)))
     $(GENERICTESTSOUTFILE) : $(GENERICTESTSOBJS) opensea-libs mkoutputdir
 	$(CC) $(GENERICTESTSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(GENERICTESTSOUTFILE)
 endif
 
 #info
@@ -370,7 +377,7 @@ ifneq (,$(findstring info,$(BUILD_ALL)))
     $(INFOOUTFILE): $(INFOOBJS) opensea-libs mkoutputdir
 	$(CC) $(INFOOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 endif
 
 #logs
@@ -378,7 +385,7 @@ ifneq (,$(findstring logs,$(BUILD_ALL)))
     $(LOGSOUTFILE): $(LOGSOBJS) opensea-libs mkoutputdir
 	$(CC) $(LOGSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(LOGSOUTFILE)
 endif
 
 #nvme
@@ -386,7 +393,7 @@ ifneq (,$(findstring nvme,$(BUILD_ALL)))
     $(NVMEOUTFILE): $(NVMEOBJS) opensea-libs mkoutputdir
 	$(CC) $(NVMEOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(NVMEOUTFILE)
 endif
 
 #powercontrol
@@ -394,7 +401,7 @@ ifneq (,$(findstring powercontrol,$(BUILD_ALL)))
     $(POWERCONTROLOUTFILE) : $(POWERCONTROLOBJS) opensea-libs mkoutputdir
 	$(CC) $(POWERCONTROLOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(POWERCONTROLOUTFILE)
 endif
 
 #smart
@@ -402,7 +409,7 @@ ifneq (,$(findstring smart,$(BUILD_ALL)))
     $(SMARTOUTFILE): $(SMARTOBJS) opensea-libs mkoutputdir
 	$(CC) $(SMARTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
 endif
 
 #zbd
@@ -410,7 +417,7 @@ ifneq (,$(findstring zbd,$(BUILD_ALL)))
     $(ZBDOUTFILE): $(ZBDOBJS) opensea-libs mkoutputdir
 	$(CC) $(ZBDOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(ZBDOUTFILE)
 endif
 
 #passthrough
@@ -418,7 +425,15 @@ ifneq (,$(findstring passthrough,$(BUILD_ALL)))
     $(PASSTHROUGHTESTOUTFILE): $(PASSTHROUGHTESTOBJS) opensea-libs mkoutputdir
 	$(CC) $(PASSTHROUGHTESTOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
-	./rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
+endif
+
+#reservations 
+ifneq (,$(findstring reservations,$(BUILD_ALL)))
+    $(RESERVATIONSOUTFILE): $(RESERVATIONSOBJS) opensea-libs mkoutputdir
+	$(CC) $(RESERVATIONSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
+	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
+	sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
 endif
 
 %.o: %.c

@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2019 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -52,79 +52,6 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense);
 
-    //-----------------------------------------------------------------------------
-    //
-    //  print_GNU_LGPL_License()
-    //
-    //! \brief   Description:  Print the GNU LGPL license to the screen
-    //
-    //  Entry:
-    //!
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    #if defined (__linux__)
-    void print_GNU_LGPL_License();
-    #endif
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_FreeBSD_License()
-    //
-    //! \brief   Description:  Print the FreeBSD 2 clause BSD license to the screen
-    //
-    //  Entry:
-    //!
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    #if defined (__FreeBSD__)
-    void print_FreeBSD_License();
-    #endif
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Apache_2_0_License()
-    //
-    //! \brief   Description:  Print the Apache 2.0 license to the screen (for mbedtls)
-    //
-    //  Entry:
-    //!
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Apache_2_0_License();
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Zlib_License()
-    //
-    //! \brief   Description:  Print the ZLib license to the screen
-    //
-    //  Entry:
-    //!
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Zlib_License();
-
-    //-----------------------------------------------------------------------------
-    //
-    //  print_Win_Getopt_Licenses()
-    //
-    //! \brief   Description:  Print the Win Getopt project license to the screen
-    //
-    //  Entry:
-    //!
-    //  Exit:
-    //!   \return VOID
-    //
-    //-----------------------------------------------------------------------------
-    void print_Win_Getopt_Licenses();
 
 #if defined (__cplusplus)
 }

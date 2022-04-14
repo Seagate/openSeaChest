@@ -2,11 +2,38 @@ task:
   name: FreeBSD
   freebsd_instance:
     matrix:
-      image_family: freebsd-13-0-snap
-      image_family: freebsd-12-1-snap
-      image_family: freebsd-11-3-snap
-  install_script: pkg install -y git gmake
+      image_family: freebsd-13-0
+      image_family: freebsd-12-3
+      image_family: freebsd-11-4
+  install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script:
-    - cd Make/gcc
-    - gmake release
+    - meson --buildtype=release builddir
+    - ninja -C builddir
+
+task:
+  name: windowsservercore:visualstudio2019
+  windows_container:
+    image: cirrusci/windowsservercore:visualstudio2019
+  env:
+    CIRRUS_SHELL: powershell
+
+    # Path to the solution file relative to the root of the project.
+    SOLUTION_FILE_PATH: "Make/VS.2019"
+
+    # Configuration type to build.
+    # You can convert this to a build matrix if you need coverage of multiple configuration types.
+    # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    BUILD_CONFIGURATION: "Release"
+
+    matrix:
+      - PLATFORM: "x86"
+      - PLATFORM: "x64"
+  submodules_script: git submodule update --init --recursive --progress
+  build_script: |
+    $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+    echo "vswhere: $vsWhere"
+    $msBuild = & $vswhere -products * -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | select-object -first 1
+    echo "msbuild: $msBuild"
+    echo "$msBuild /m /p:Configuration=${env:BUILD_CONFIGURATION} ${env:SOLUTION_FILE_PATH} /p:Platform=${env:PLATFORM}"
+    & $msBuild /m /p:Configuration=${env:BUILD_CONFIGURATION} ${env:SOLUTION_FILE_PATH} /p:Platform=${env:PLATFORM}

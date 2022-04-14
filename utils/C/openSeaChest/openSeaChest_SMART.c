@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -32,11 +32,12 @@
 #include "drive_info.h"
 #include "seagate_operations.h"
 #include "defect.h"
+#include "device_statistics.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.0.1";
+const char *buildVersion = "2.1.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -114,6 +115,8 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    DEVICE_STATISTICS_VAR
+    NVME_HEALTH_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -172,6 +175,8 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        DEVICE_STATISTICS_LONG_OPT,
+        NVME_HEALTH_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -239,16 +244,25 @@ int32_t main(int argc, char *argv[])
                 {
                     //read in the argument as a hex value instead of an integer
                     uint32_t iddTestNumber = 0;
-                    sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    switch (iddTestNumber)
+                    int res = sscanf(optarg, "%"SCNx32, &iddTestNumber);
+                    if (res != EOF && res > 0)
                     {
-                    case 0x70:
-                        IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
-                        break;
-                    case 0x71:
-                        IDD_TEST_FLAG = SEAGATE_IDD_LONG;
-                        break;
-                    default:
+                        switch (iddTestNumber)
+                        {
+                        case 0x70:
+                            IDD_TEST_FLAG = SEAGATE_IDD_SHORT;
+                            break;
+                        case 0x71:
+                            IDD_TEST_FLAG = SEAGATE_IDD_LONG;
+                            break;
+                        default:
+                            print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            break;
+                        }
+                    }
+                    else
+                    {
                         print_Error_In_Cmd_Line_Args(IDD_TEST_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
@@ -256,7 +270,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
-                ERROR_LIMIT_FLAG = (uint16_t)atoi(optarg);
+                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
                 if(strstr(optarg, "l"))
                 {
                     ERROR_LIMIT_LOGICAL_COUNT = true;
@@ -272,6 +286,10 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "analyzed") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                }
+                else if (strcmp(optarg, "hybrid") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
                 }
                 else
                 {
@@ -305,7 +323,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    SET_MRIE_MODE_VALUE = (uint8_t)atoi(optarg);
+                    SET_MRIE_MODE_VALUE = C_CAST(uint8_t, atoi(optarg));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING))) == 0)
@@ -442,22 +460,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
+                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':'://missing required argument
@@ -775,6 +793,8 @@ int32_t main(int argc, char *argv[])
         || SET_MRIE_MODE_FLAG
         || SCSI_DEFECTS_FLAG
         || SHOW_SMART_ERROR_LOG_FLAG
+        || DEVICE_STATISTICS_FLAG
+        || NVME_HEALTH_FLAG
         //check for other tool specific options here
         ))
     {
@@ -784,7 +804,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1039,7 +1059,7 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1167,6 +1187,30 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("A failure occured while trying to get SMART attributes\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (NVME_HEALTH_FLAG)
+        {
+            switch (show_NVMe_Health(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                //nothing to print here since if it was successful, the attributes will be printed to the screen
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing NVMe Health data is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A failure occured while trying to get NVMe health data\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1900,6 +1944,32 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (DEVICE_STATISTICS_FLAG)
+        {
+            deviceStatistics deviceStats;
+            memset(&deviceStats, 0, sizeof(deviceStatistics));
+            switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
+            {
+            case SUCCESS:
+                print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Device Statistics not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve Device Statistics from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (PROGRESS_CHAR != NULL)
         {
             int result = UNKNOWN;
@@ -2032,6 +2102,7 @@ void utility_Usage(bool shortUsage)
     print_Abort_IDD_Help(shortUsage);
     print_Captive_Foreground_Help(shortUsage);
     print_Conveyance_DST_Help(shortUsage);
+    print_Device_Statistics_Help(shortUsage);
     print_Error_Limit_Help(shortUsage);
     print_IDD_Help(shortUsage);
     print_Long_DST_Help(shortUsage, commandWindowType);
@@ -2053,6 +2124,10 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
+
+    //NVMe Only
+    printf("\n\tNVMe Only:\n\t=========\n");
+    print_NVME_Health_Help(shortUsage);
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");

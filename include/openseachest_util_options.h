@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -281,6 +281,11 @@ extern "C"
     int SMART_ATTRIBUTES_MODE_FLAG = 0;
     #define SMART_ATTRIBUTES_LONG_OPT_STRING "smartAttributes"
     #define SMART_ATTRIBUTES_LONG_OPT { SMART_ATTRIBUTES_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define NVME_HEALTH_FLAG showNVMeHealthData
+    #define NVME_HEALTH_VAR getOptBool NVME_HEALTH_FLAG = goFalse;
+    #define NVME_HEALTH_LONG_OPT_STRING "showNvmeHealth"
+    #define NVME_HEALTH_LONG_OPT { NVME_HEALTH_LONG_OPT_STRING, no_argument, &NVME_HEALTH_FLAG, goTrue }
 
     #define ABORT_DST_FLAG abortDST
     #define ABORT_DST_VAR getOptBool ABORT_DST_FLAG = goFalse;
@@ -633,17 +638,19 @@ extern "C"
     #define WRITE_SAME_LONG_OPTS WRITE_SAME_LONG_OPT,WRITE_SAME_RANGE_LONG_OPT
 
     //TCG SID flag
+    #define TCG_SID_BUF_LEN 33
     #define TCG_SID_FLAG sid
     #define TCG_SID_VARS \
-    char sidBuf[33] = { 0 };\
+    char sidBuf[TCG_SID_BUF_LEN] = { 0 };\
     char* TCG_SID_FLAG = &sidBuf[0];
     #define TCG_SID_LONG_OPT_STRING "sid"
     #define TCG_SID_LONG_OPT { TCG_SID_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //TCG PSID flag
+    #define TCG_PSID_BUF_LEN 33
     #define TCG_PSID_FLAG psid
     #define TCG_PSID_VARS \
-    char psidBuf[33] = { 0 };\
+    char psidBuf[TCG_PSID_BUF_LEN] = { 0 };\
     char* TCG_PSID_FLAG = &psidBuf[0];
     #define TCG_PSID_LONG_OPT_STRING "psid"
     #define TCG_PSID_LONG_OPT { TCG_PSID_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -748,29 +755,32 @@ extern "C"
     //model number match
     #define MODEL_MATCH_FLAG modelNumberMatch
     #define MODEL_STRING_FLAG modelString
+    #define MODEL_STRING_LENGTH 41
     #define MODEL_MATCH_VARS \
     bool MODEL_MATCH_FLAG = false;\
-    char modelMatchArray[41] = { 0 };\
+    char modelMatchArray[MODEL_STRING_LENGTH] = { 0 };\
     char *MODEL_STRING_FLAG = &modelMatchArray[0];
     #define MODEL_MATCH_LONG_OPT_STRING "modelMatch"
     #define MODEL_MATCH_LONG_OPT { MODEL_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //fw rev match
     #define FW_MATCH_FLAG fwNumberMatch
+    #define FW_MATCH_STRING_LENGTH 9
     #define FW_STRING_FLAG fwString
     #define FW_MATCH_VARS \
     bool FW_MATCH_FLAG = false;\
-    char fwMatchArray[9] = { 0 };\
+    char fwMatchArray[FW_MATCH_STRING_LENGTH] = { 0 };\
     char *FW_STRING_FLAG = &fwMatchArray[0];
     #define FW_MATCH_LONG_OPT_STRING "onlyFW"
     #define FW_MATCH_LONG_OPT { FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //new fw rev match
+    #define NEW_FW_MATCH_STRING_LENGTH 9
     #define NEW_FW_MATCH_FLAG newfwNumberMatch
     #define NEW_FW_STRING_FLAG newfwString
     #define NEW_FW_MATCH_VARS \
     bool NEW_FW_MATCH_FLAG = false;\
-    char newfwMatchArray[9] = { 0 };\
+    char newfwMatchArray[NEW_FW_MATCH_STRING_LENGTH] = { 0 };\
     char *NEW_FW_STRING_FLAG = &newfwMatchArray[0];
     #define NEW_FW_MATCH_LONG_OPT_STRING "newFW"
     #define NEW_FW_MATCH_LONG_OPT { NEW_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -778,9 +788,10 @@ extern "C"
     //child model number match
     #define CHILD_MODEL_MATCH_FLAG childModelNumberMatch
     #define CHILD_MODEL_STRING_FLAG childModelString
+    #define CHILD_MATCH_STRING_LENGTH 41
     #define CHILD_MODEL_MATCH_VARS \
     bool CHILD_MODEL_MATCH_FLAG = false;\
-    char childModelMatchArray[41] = { 0 };\
+    char childModelMatchArray[CHILD_MATCH_STRING_LENGTH] = { 0 };\
     char *CHILD_MODEL_STRING_FLAG = &childModelMatchArray[0];
     #define CHILD_MODEL_MATCH_LONG_OPT_STRING "childModelMatch"
     #define CHILD_MODEL_MATCH_LONG_OPT { CHILD_MODEL_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -788,19 +799,21 @@ extern "C"
     //child fw rev match
     #define CHILD_FW_MATCH_FLAG childFwNumberMatch
     #define CHILD_FW_STRING_FLAG childFwString
+    #define CHILD_FW_MATCH_STRING_LENGTH 9
     #define CHILD_FW_MATCH_VARS \
     bool CHILD_FW_MATCH_FLAG = false;\
-    char childFwMatchArray[9] = { 0 };\
+    char childFwMatchArray[CHILD_FW_MATCH_STRING_LENGTH] = { 0 };\
     char *CHILD_FW_STRING_FLAG = &childFwMatchArray[0];
     #define CHILD_FW_MATCH_LONG_OPT_STRING "childOnlyFW"
     #define CHILD_FW_MATCH_LONG_OPT { CHILD_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //child new fw rev match
+    #define CHILD_NEW_FW_STRING_MATCH_LENGTH 9
     #define CHILD_NEW_FW_MATCH_FLAG childNewfwNumberMatch
     #define CHILD_NEW_FW_STRING_FLAG childNewfwString
     #define CHILD_NEW_FW_MATCH_VARS \
     bool CHILD_NEW_FW_MATCH_FLAG = false;\
-    char childNewfwMatchArray[9] = { 0 };\
+    char childNewfwMatchArray[CHILD_NEW_FW_STRING_MATCH_LENGTH] = { 0 };\
     char *CHILD_NEW_FW_STRING_FLAG = &childNewfwMatchArray[0];
     #define CHILD_NEW_FW_MATCH_LONG_OPT_STRING "childNewFW"
     #define CHILD_NEW_FW_MATCH_LONG_OPT { CHILD_NEW_FW_MATCH_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -1448,11 +1461,15 @@ extern "C"
 
     //Seagate Power Balance options (SATA only since SAS can use the setPowerConsumption options)
     #define SEAGATE_POWER_BALANCE_FLAG powerBalanceFeature
+	#define POWER_BALANCE_MODE powerBalanceMode
     #define SEAGATE_POWER_BALANCE_ENABLE_FLAG powerBalanceEnable
+	#define SEAGATE_POWER_BALANCE_LIMITED_FLAG powerBalanceLimited
     #define SEAGATE_POWER_BALANCE_INFO_FLAG powerBalanceInfo
     #define SEAGATE_POWER_BALANCE_VARS \
+		uint8_t POWER_BALANCE_MODE = 0;\
         bool SEAGATE_POWER_BALANCE_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;\
+		bool SEAGATE_POWER_BALANCE_LIMITED_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_INFO_FLAG = false;
     #define SEAGATE_POWER_BALANCE_LONG_OPT_STRING "powerBalanceFeature"
     #define SEAGATE_POWER_BALANCE_LONG_OPT { SEAGATE_POWER_BALANCE_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -1594,7 +1611,7 @@ extern "C"
     #define ATA_SECURITY_PASSWORD               ataSecPassword
     #define ATA_SECURITY_PASSWORD_BYTE_COUNT    ataSecPasswordBytesProvided //count of how many bytes of password were given by the user so that when the modificaions are performed, they are done based on this value.
     #define ATA_SECURITY_USING_MASTER_PW        ataSecurityUsingMasterPW
-    #define ATA_SECURITY_ERASE_ENHANCED         ataSecEnhancedErase
+    #define ATA_SECURITY_ERASE_ENHANCED_FLAG    ataSecEnhancedErase
     #define ATA_SECURITY_MASTER_PW_CAPABILITY   ataMasterPWCap
     #define ATA_SECURITY_MASTER_PW_ID           masterPasswordIdentifier
     #define ATA_SECURITY_FORCE_SAT              forceATASecViaSAT
@@ -1635,7 +1652,7 @@ extern "C"
     #define ATA_SECURITY_ERASE_OP performATASecurityErase
     #define ATA_SECURITY_ERASE_OP_VARS \
     bool ATA_SECURITY_ERASE_OP = false; \
-    bool ATA_SECURITY_ERASE_ENHANCED = false;//false = normal erase, true - enhanced erase
+    bool ATA_SECURITY_ERASE_ENHANCED_FLAG = false;//false = normal erase, true - enhanced erase
     #define ATA_SECURITY_ERASE_OP_LONG_OPT_STRING "ataSecureErase"
     #define ATA_SECURITY_ERASE_OP_LONG_OPT { ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1820,6 +1837,97 @@ extern "C"
     #define SHOW_CONCURRENT_RANGES_VAR getOptBool SHOW_CONCURRENT_RANGES = goFalse;
     #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
+
+    //SCSI/NVMe reservations
+    #define SHOW_RESERVATION_CAPABILITIES showReservationCapabilities
+    #define SHOW_RESERVATION_CAPABILITIES_VAR getOptBool SHOW_RESERVATION_CAPABILITIES = goFalse;
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING "showPReservationCapabilties"
+    #define SHOW_RESERVATION_CAPABILITIES_LONG_OPT { SHOW_RESERVATION_CAPABILITIES_LONG_OPT_STRING, no_argument, &SHOW_RESERVATION_CAPABILITIES, goTrue }
+
+    #define SHOW_FULL_RESERVATION_INFO showFullReservationInfo
+    #define SHOW_FULL_RESERVATION_INFO_VAR getOptBool SHOW_FULL_RESERVATION_INFO = goFalse;
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING "showFullPReservationInfo"
+    #define SHOW_FULL_RESERVATION_INFO_LONG_OPT { SHOW_FULL_RESERVATION_INFO_LONG_OPT_STRING, no_argument, &SHOW_FULL_RESERVATION_INFO, goTrue }
+
+    #define SHOW_REGISTRATION_KEYS showRegistrationKeys
+    #define SHOW_REGISTRATION_KEYS_VAR getOptBool SHOW_REGISTRATION_KEYS = goFalse;
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT_STRING "showPRegistrationKeys"
+    #define SHOW_REGISTRATION_KEYS_LONG_OPT { SHOW_REGISTRATION_KEYS_LONG_OPT_STRING, no_argument, &SHOW_REGISTRATION_KEYS, goTrue }
+
+    #define SHOW_RESERVATIONS showReservationKeys
+    #define SHOW_RESERVATIONS_VAR getOptBool SHOW_RESERVATIONS = goFalse;
+    #define SHOW_RESERVATIONS_LONG_OPT_STRING "showPReservations"
+    #define SHOW_RESERVATIONS_LONG_OPT { SHOW_RESERVATIONS_LONG_OPT_STRING, no_argument, &SHOW_RESERVATIONS, goTrue }
+
+    #define PERSISTENT_RESERVATION_KEY prKey
+    #define PERSISTENT_RESREVATION_KEY_VALID prKeyValid
+    #define PERSISTENT_RESERVATION_KEY_VARS \
+    bool PERSISTENT_RESREVATION_KEY_VALID = false;\
+    uint64_t PERSISTENT_RESERVATION_KEY = 0;
+    #define PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING "prKey"
+    #define PERSISTENT_RESERVATION_KEY_LONG_OPT { PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_TYPE prType
+    #define PERSISTENT_RESREVATION_TYPE_VALID prTypeValid
+    #define PERSISTENT_RESERVATION_TYPE_VARS \
+    bool PERSISTENT_RESREVATION_TYPE_VALID = false;\
+    uint64_t PERSISTENT_RESERVATION_TYPE = 0;
+    #define PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING "prType"
+    #define PERSISTENT_RESERVATION_TYPE_LONG_OPT { PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_ATP prATP
+    #define PERSISTENT_RESERVATION_ATP_VAR getOptBool PERSISTENT_RESERVATION_ATP = goFalse;
+    #define PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING "prAllTargetPorts"
+    #define PERSISTENT_RESERVATION_ATP_LONG_OPT { PERSISTENT_RESERVATION_ATP_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_ATP, goTrue }
+
+    #define PERSISTENT_RESERVATION_PTPL prPTPL
+    #define PERSISTENT_RESERVATION_PTPL_VAR getOptBool PERSISTENT_RESERVATION_PTPL = goFalse;
+    #define PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING "prPersistThroughPowerLoss"
+    #define PERSISTENT_RESERVATION_PTPL_LONG_OPT { PERSISTENT_RESERVATION_PTPL_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_PTPL, goTrue }
+
+    #define PERSISTENT_RESERVATION_REGISTER prRegister
+    #define PERSISTENT_RESERVATION_REGISTER_VAR getOptBool PERSISTENT_RESERVATION_REGISTER = goFalse;
+    #define PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING "prRegister"
+    #define PERSISTENT_RESERVATION_REGISTER_LONG_OPT { PERSISTENT_RESERVATION_REGISTER_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_REGISTER, goTrue }
+
+    #define PERSISTENT_RESERVATION_UNREGISTER prUnregister
+    #define PERSISTENT_RESERVATION_UNREGISTER_VAR getOptBool PERSISTENT_RESERVATION_UNREGISTER = goFalse;
+    #define PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING "prUnregister"
+    #define PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT { PERSISTENT_RESERVATION_UNREGISTER_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_UNREGISTER, goTrue }
+
+    #define PERSISTENT_RESERVATION_REGISTER_I prRegisterIgnore
+    #define PERSISTENT_RESERVATION_REGISTER_I_VAR getOptBool PERSISTENT_RESERVATION_REGISTER_I = goFalse;
+    #define PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING "prRegisterIgnore"
+    #define PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT { PERSISTENT_RESERVATION_REGISTER_I_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_REGISTER_I, goTrue }
+
+    #define PERSISTENT_RESERVATION_RESERVE prReserve
+    #define PERSISTENT_RESERVATION_RESERVE_VAR getOptBool PERSISTENT_RESERVATION_RESERVE = goFalse;
+    #define PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING "prReserve"
+    #define PERSISTENT_RESERVATION_RESERVE_LONG_OPT { PERSISTENT_RESERVATION_RESERVE_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_RESERVE, goTrue }
+
+    #define PERSISTENT_RESERVATION_RELEASE prRelease
+    #define PERSISTENT_RESERVATION_RELEASE_VAR getOptBool PERSISTENT_RESERVATION_RELEASE = goFalse;
+    #define PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING "prRelease"
+    #define PERSISTENT_RESERVATION_RELEASE_LONG_OPT { PERSISTENT_RESERVATION_RELEASE_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_RELEASE, goTrue }
+
+    #define PERSISTENT_RESERVATION_CLEAR prClear
+    #define PERSISTENT_RESERVATION_CLEAR_VAR getOptBool PERSISTENT_RESERVATION_CLEAR = goFalse;
+    #define PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING "prClear"
+    #define PERSISTENT_RESERVATION_CLEAR_LONG_OPT { PERSISTENT_RESERVATION_CLEAR_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_CLEAR, goTrue }
+
+    #define PERSISTENT_RESERVATION_PREEMPT_KEY prPreemptKey
+    #define PERSISTENT_RESERVATION_PREEMPT prPreempt
+    #define PERSISTENT_RESERVATION_PREEMPT_VARS \
+    bool PERSISTENT_RESERVATION_PREEMPT = false;\
+    uint64_t PERSISTENT_RESERVATION_PREEMPT_KEY = 0;
+    #define PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING "prPreempt"
+    #define PERSISTENT_RESERVATION_PREEMPT_LONG_OPT { PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT prPreemptAbort
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_VAR getOptBool PERSISTENT_RESERVATION_PREEMPT_ABORT = goFalse;
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING "prPreemptAbort"
+    #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT { PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_PREEMPT_ABORT, goTrue }
+
 
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -3162,6 +3270,40 @@ extern "C"
 
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
+    void print_Show_Reservation_Capabilities(bool shortHelp);
+
+    void print_Show_Full_Reservation_Info(bool shortHelp);
+
+    void print_Show_Registration_Keys(bool shortHelp);
+
+    void print_Show_Reservations(bool shortHelp);
+
+    void print_Persistent_Reservations_Key_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Type_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_All_Target_Ports_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Persist_Through_Power_Loss_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Ignore_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Register_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Unregister_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Reserve_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Release_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Clear_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Help(bool shortHelp);
+
+    void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
+
+    void print_NVME_Health_Help(bool shortHelp);
+
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
     typedef struct _deviceScanFlags
@@ -3213,11 +3355,11 @@ extern "C"
                     if (startSet == false)                                      \
                     {                                                           \
                         startSet = true;                                        \
-                        eraseRangeStart = (uint64_t)atoll(nextSubOpt);          \
+                        eraseRangeStart = C_CAST(uint64_t, atoll(nextSubOpt));  \
                     }                                                           \
                     else                                                        \
                     {                                                           \
-                        eraseRangeEnd = (uint64_t)atoll(nextSubOpt);            \
+                        eraseRangeEnd = C_CAST(uint64_t, atoll(nextSubOpt));    \
                     }                                                           \
                 }                                                               \
             }                                                                   \
@@ -3265,11 +3407,11 @@ uint64_t            eraseTimeStartLBA = 0;
                     if (lbaSet == false)                                                                                        \
                     {                                                                                                           \
                         lbaSet = true;                                                                                          \
-                        eraseTimeStartLBA = (uint64_t)atoll(nextSubOpt);                                                        \
+                        eraseTimeStartLBA = C_CAST(uint64_t, atoll(nextSubOpt));                                                \
                     }                                                                                                           \
                     else                                                                                                        \
                     {                                                                                                           \
-                        eraseTimeSeconds = (uint64_t)atoll(nextSubOpt);                                                         \
+                        eraseTimeSeconds = C_CAST(uint64_t, atoll(nextSubOpt));                                                 \
                     }                                                                                                           \
                 }                                                                                                               \
             }                                                                                                                   \

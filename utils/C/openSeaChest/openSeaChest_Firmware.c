@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.1.0";
+const char *buildVersion = "3.1.3";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -200,8 +200,16 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                DOWNLOAD_FW_FLAG = true;
-                sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                if (scanRet > 0 && scanRet != EOF)
+                {
+                    DOWNLOAD_FW_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
@@ -228,41 +236,41 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 NEW_FW_MATCH_FLAG = true;
-                strncpy(NEW_FW_STRING_FLAG, optarg, 8);
+                snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
+                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_NEW_FW_MATCH_FLAG = true;
-                strncpy(CHILD_NEW_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_NEW_FW_STRING_FLAG, CHILD_NEW_FW_STRING_MATCH_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
             {
                 FWDL_SEGMENT_SIZE_FROM_USER = true;
-                FWDL_SEGMENT_SIZE_FLAG = (uint16_t)atoi(optarg);
+                FWDL_SEGMENT_SIZE_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
-                FIRMWARE_SLOT_FLAG = (uint8_t)atoi(optarg);
+                FIRMWARE_SLOT_FLAG = C_CAST(uint8_t, atoi(optarg));
                 if (FIRMWARE_SLOT_FLAG > 7)
                 {
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -560,7 +568,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -839,7 +847,7 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
         }
 
 #if defined (_WIN32) && WINVER >= SEA_WIN32_WINNT_WIN10
@@ -921,7 +929,7 @@ int32_t main(int argc, char *argv[])
             if (fileOpenedSuccessfully)
             {
                 size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
-                uint8_t *firmwareMem = (uint8_t*)calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+                uint8_t *firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -976,9 +984,9 @@ int32_t main(int argc, char *argv[])
                         {
                             dlOptions.segmentSize = 0;
                         }
-                        dlOptions.ignoreStatusOfFinalSegment = FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG ? true : false;
+                        dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files should only be a few MB today...long ways to go before we overflow uint32_t
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
@@ -986,7 +994,7 @@ int32_t main(int argc, char *argv[])
                         switch (ret)
                         {
                         case SUCCESS:
-                            exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
+                            exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE);
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware Download successful\n");
@@ -1002,7 +1010,7 @@ int32_t main(int argc, char *argv[])
                             }
                             if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                             {
-                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
@@ -1014,7 +1022,7 @@ int32_t main(int argc, char *argv[])
                             }
                             else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
                             {
-                                exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED;
+                                exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("This drive requires a full power cycle to activate the new code.\n");
@@ -1076,7 +1084,7 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free_aligned(firmwareMem);
+                    safe_Free_aligned(firmwareMem)
                 }
                 else
                 {
@@ -1126,7 +1134,7 @@ int32_t main(int argc, char *argv[])
                 switch (ret)
                 {
                 case SUCCESS:
-                    exitCode = (eUtilExitCodes)SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED;
+                    exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED);
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Firmware activation successful\n");
@@ -1222,7 +1230,7 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     //SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE
     int totalErrorCodes = SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-    ptrToolSpecificxitCode seachestFirmwareExitCodes = (ptrToolSpecificxitCode)calloc(totalErrorCodes, sizeof(toolSpecificxitCode));
+    ptrToolSpecificxitCode seachestFirmwareExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
     //now set up all the exit codes and their meanings
     if (seachestFirmwareExitCodes)
     {
@@ -1232,40 +1240,31 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Firmware Download Complete", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware Download Complete");
                 break;
             case SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Deferred Firmware Download Complete", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Deferred Firmware Download Complete");
                 break;
             case SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Deferred Code Activated", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Deferred Code Activated");
                 break;
             case SEACHEST_FIRMWARE_EXIT_NO_MATCH_FOUND:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "No Drive or Firmware match found", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "No Drive or Firmware match found");
                 break;
             case SEACHEST_FIRMWARE_EXIT_MN_MATCH_FW_MISMATCH:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Model number matched, but Firmware mismatched", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Model number matched, but Firmware mismatched");
                 break;
             case SEACHEST_FIRMWARE_EXIT_FIRMWARE_HASH_DOESNT_MATCH:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Firmware File Hash Error", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware File Hash Error");
                 break;
             case SEACHEST_FIRMWARE_EXIT_ALREADY_UP_TO_DATE:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Firmware Already up to date", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware Already up to date");
                 break;
             case SEACHEST_FIRMWARE_EXIT_MATCH_FOUND:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Firmware Match Found for update", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware Match Found for update");
                 break;
             case SEACHEST_FIRMWARE_EXIT_MATCH_FOUND_DEFERRED_SUPPORTED:
-                strncpy(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, "Firmware Match Found for update - deferred update supported", TOOL_EXIT_CODE_STRING_MAX_LENGTH);
-                seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString[TOOL_EXIT_CODE_STRING_MAX_LENGTH - 1] = '\0';
+                snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware Match Found for update - deferred update supported");
                 break;
                 //TODO: add more exit codes here!
             default://We shouldn't ever hit the default case!

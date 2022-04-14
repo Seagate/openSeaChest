@@ -5,7 +5,6 @@
 
 ### Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
-[![Build(develop) Status](https://travis-ci.org/Seagate/openSeaChest.svg?branch=develop)](https://travis-ci.org/Seagate/openSeaChest)
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
@@ -117,6 +116,10 @@ device interface commands, which are passed through to the storage device.
 
 **openSeaChest_PowerControl** - Disk drives offer a multitude of options to
 manage power.  This tool manipulates the various power modes.  Some power commands are Seagate-specific while many others are common to the interface specifications.
+
+**openSeaChest_Reservations** - A tool to assist with persistent reservations available on SAS drives and supported NVMe drives.
+NOTE: NVMe support under Windows is unavailable. See <https://docs.microsoft.com/en-us/windows-hardware/drivers/storage/nvme-features-supported-by-stornvme> for detail on which features
+are supported by the StorNVMe Miniport driver in Windows.
 
 **openSeaChest_Security** - Various settings are available on modern Seagate disk
 drives which may be locked and unlocked.  These settings may interact with the

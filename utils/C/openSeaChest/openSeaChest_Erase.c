@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,7 @@
 #error "OS Not Defined or known"
 #endif
 #include "EULA.h"
+#include "ata_helper.h" //for defined ATA security password size of 32bytes
 #include "openseachest_util_options.h"
 #include "cmds.h"
 #if !defined(DISABLE_TCG_SUPPORT)
@@ -43,11 +44,12 @@
 #include "drive_info.h"
 #include "format.h"
 #include "depopulate.h"
+#include "platform_helper.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.1.1";
+const char *buildVersion = "3.1.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -257,7 +259,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -272,7 +274,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -304,7 +306,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -312,7 +314,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -337,19 +339,19 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = (uint8_t)atoi(optarg);
+                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = (uint16_t)atoi(optarg);
+                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = (uint32_t)atoi(optarg);
+                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(WRITE_SAME_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -357,7 +359,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &WRITE_SAME_START_FLAG))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_START_FLAG))
                 {
                     RUN_WRITE_SAME_FLAG = true;
                 }
@@ -383,11 +385,11 @@ int32_t main(int argc, char *argv[])
             #if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
-                strncpy(TCG_SID_FLAG, optarg, 32);
+                snprintf(TCG_SID_FLAG, TCG_SID_BUF_LEN, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, TCG_PSID_LONG_OPT_STRING) == 0)
             {
-                strncpy(TCG_PSID_FLAG, optarg, 32);
+                snprintf(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
             }
             #endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
@@ -396,7 +398,7 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "current") != 0)
                 {
                     uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input((const char *)optarg, &tempSectorSize))
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
                     {
                         //set the sector size
                         FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
@@ -410,7 +412,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input((const char *)optarg, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -435,7 +437,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = (eFormatType)atoi(optarg);
+                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
@@ -461,11 +463,11 @@ int32_t main(int argc, char *argv[])
                 ATA_SECURITY_ERASE_OP = true;
                 if (strcmp(optarg, "enhanced") == 0)
                 {
-                    ATA_SECURITY_ERASE_ENHANCED = true;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
                 }
                 else if (strcmp(optarg, "normal") == 0)
                 {
-                    ATA_SECURITY_ERASE_ENHANCED = false;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = false;
                 }
                 else
                 {
@@ -498,26 +500,26 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "empty") == 0)
                 {
                     //the modification option can change this to all F's if desired instead of zeros.
-                    memset(&ATA_SECURITY_PASSWORD[0], 0, 32);
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = 32;
+                    memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH);
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = ATA_SECURITY_MAX_PW_LENGTH;
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
                     memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
                 }
                 else
                 {
                     //If the user quoted their password when putting on the cmdline, then we can accept spaces. Otherwise spaces cannot be picked up.
                     //TODO: If comma separated values were given, then we need to parse the input differently!!!
-                    if (strlen(optarg) > 32)
+                    if (strlen(optarg) > ATA_SECURITY_MAX_PW_LENGTH)
                     {
                         print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
-                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), 32));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
-                    ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)M_Min(strlen(optarg), 32);
+                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
+                    ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING))) == 0)
@@ -615,22 +617,22 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                strncpy(MODEL_STRING_FLAG, optarg, 40);
+                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 FW_MATCH_FLAG = true;
-                strncpy(FW_STRING_FLAG, optarg, 8);
+                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                strncpy(CHILD_MODEL_STRING_FLAG, optarg, 40);
+                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                strncpy(CHILD_FW_STRING_FLAG, optarg, 8);
+                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, PATTERN_LONG_OPT_STRING) == 0)
             {
@@ -645,12 +647,13 @@ int32_t main(int argc, char *argv[])
                     if (strncmp("file:", optarg, 5) == 0)
                     {
                         FILE *patternFile = NULL;
-                        char *filename = (char*)calloc(strlen(colonLocation) + 1, sizeof(char));
+                        size_t filenameLength = strlen(colonLocation) + 1;
+                        char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
                         if (!filename)
                         {
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
-                        strcpy(filename, colonLocation);
+                        snprintf(filename, filenameLength, "%s", colonLocation);
                         //open file
                         if (NULL == (patternFile = fopen(filename, "rb")))
                         {
@@ -670,7 +673,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else if (strncmp("increment:", optarg, 10) == 0)
                     {
-                        uint8_t incrementStart = (uint8_t)atoi(colonLocation);
+                        uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
                         fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                     }
                     else if (strncmp("repeat:", optarg, 7) == 0)
@@ -678,14 +681,14 @@ int32_t main(int argc, char *argv[])
                         //if final character is a lower case h, it's an hex pattern
                         if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
                         {
-                            uint32_t hexPattern = (uint32_t)strtol(colonLocation, NULL, 16);
+                            uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
                             //TODO: add endianness check before byte swap
                             byte_Swap_32(&hexPattern);
                             fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                         else
                         {
-                            fill_ASCII_Pattern_In_Buffer(colonLocation, (uint32_t)strlen(colonLocation), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                     }
                     else
@@ -697,7 +700,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
-                REMOVE_PHYSICAL_ELEMENT_FLAG = (uint32_t)atoi(optarg);
+                REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, atoi(optarg));
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -886,31 +889,31 @@ int32_t main(int argc, char *argv[])
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
         {
             //change all to uppercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Upper_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
         {
             //change all to lowercase
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Lower_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
         {
             //swap case from upper to lower and lower to upper.
-            char thePassword[33] = { 0 };
-            memcpy(thePassword, ATA_SECURITY_PASSWORD, 32);
+            char thePassword[ATA_SECURITY_MAX_PW_LENGTH + 1] = { 0 };
+            memcpy(thePassword, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
             convert_String_To_Inverse_Case(thePassword);
-            memcpy(ATA_SECURITY_PASSWORD, thePassword, 32);
+            memcpy(ATA_SECURITY_PASSWORD, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         //check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = 0; iter < 32; iter += 2)
+            for (uint8_t iter = 0; iter < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
             {
                 uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -925,8 +928,8 @@ int32_t main(int argc, char *argv[])
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
         {
             //memcpy and memset based on how many characters were provided by the caller.
-            memmove(&ATA_SECURITY_PASSWORD[32 - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
-            memset(&ATA_SECURITY_PASSWORD[0], 0, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT], &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            memset(&ATA_SECURITY_PASSWORD[0], 0, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
         }
         //now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
@@ -938,22 +941,22 @@ int32_t main(int argc, char *argv[])
             //convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], ' ', ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
         {
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[0], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
             else
             {
-                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, 32 - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT], UINT8_MAX, ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
             }
         }
 #if defined (MD5_PASSWORD_SUPPORTED)
@@ -966,7 +969,7 @@ int32_t main(int argc, char *argv[])
     else
     {
         //user did not set a password, so we need to set "SeaChest"
-        ATA_SECURITY_PASSWORD_BYTE_COUNT = (uint8_t)strlen("SeaChest");
+        ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, strlen("SeaChest"));
         memcpy(ATA_SECURITY_PASSWORD, "SeaChest", strlen("SeaChest"));
     }
 
@@ -1058,7 +1061,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = (tDevice*)calloc(DEVICE_LIST_COUNT, sizeof(tDevice));
+    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1313,7 +1316,7 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1351,7 +1354,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = (uint8_t*)calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment);
+            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1375,7 +1378,7 @@ int32_t main(int argc, char *argv[])
                 printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(displaySector);
+            safe_Free_aligned(displaySector)
         }
 
         if (SHOW_PHYSICAL_ELEMENT_STATUS_FLAG)
@@ -1392,7 +1395,7 @@ int32_t main(int argc, char *argv[])
                 get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
                 if (numberOfDescriptors > 0)
                 {
-                    ptrPhysicalElement elementList = (ptrPhysicalElement)malloc(numberOfDescriptors * sizeof(physicalElement));
+                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
                     memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
                     if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
                     {
@@ -1468,11 +1471,11 @@ int32_t main(int argc, char *argv[])
                     break;
                 case ERASE_ATA_SECURITY_ENHANCED:
                     ATA_SECURITY_ERASE_OP = true;
-                    ATA_SECURITY_ERASE_ENHANCED = true;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
                     break;
                 case ERASE_ATA_SECURITY_NORMAL:
                     ATA_SECURITY_ERASE_OP = true;
-                    ATA_SECURITY_ERASE_ENHANCED = false;
+                    ATA_SECURITY_ERASE_ENHANCED_FLAG = false;
                     break;
                 case ERASE_WRITE_SAME:
                     RUN_WRITE_SAME_FLAG = true;
@@ -2027,6 +2030,8 @@ int32_t main(int argc, char *argv[])
                 }
                 formatUnitParameters.securityInitialize = false;
                 int formatRet = UNKNOWN;
+                os_Lock_Device(&deviceList[deviceIter]);
+                os_Unmount_File_Systems_On_Device(&deviceList[deviceIter]);
                 if (PATTERN_FLAG)
                 {
                     formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
@@ -2035,6 +2040,7 @@ int32_t main(int argc, char *argv[])
                 {
                     formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
                 }
+                os_Unlock_Device(&deviceList[deviceIter]);
                 switch (formatRet)
                 {
                 case SUCCESS:
@@ -2097,7 +2103,7 @@ int32_t main(int argc, char *argv[])
                 memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
                 eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
-                if (ATA_SECURITY_ERASE_ENHANCED)
+                if (ATA_SECURITY_ERASE_ENHANCED_FLAG)
                 {
                     ataSecureEraseType = ATA_SECURITY_ERASE_ENHANCED_ERASE;
                 }
@@ -2164,6 +2170,12 @@ int32_t main(int argc, char *argv[])
                     //NOTE: Changed to automatically setting poll, since write same on SATA is EASILY interrupted by anything other than reading the SCT status log...which is a pain since
                     //      the OS may issue commands when opening the handle and there is not a way to easily handle this on scanning the device. So polling should help make sure nothing
                     //      else goes on while write same is running. - TJE
+                    os_Lock_Device(&deviceList[deviceIter]);
+                    if (localStartLBA == 0)
+                    {
+                        //only unmount when touching boot sectors
+                        os_Unmount_File_Systems_On_Device(&deviceList[deviceIter]);
+                    }
                     if (PATTERN_FLAG)
                     {
                         writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
@@ -2172,6 +2184,7 @@ int32_t main(int argc, char *argv[])
                     {
                         writeSameRet = writesame(&deviceList[deviceIter], localStartLBA, localRange, true, NULL, 0);
                     }
+                    os_Unlock_Device(&deviceList[deviceIter]);
                     //now we need to send the erase
                     switch (writeSameRet)
                     {
@@ -2300,7 +2313,7 @@ int32_t main(int argc, char *argv[])
             if (DATA_ERASE_FLAG)
             {
                 //check the time
-                uint64_t overwriteSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+                uint64_t overwriteSeconds = C_CAST(uint64_t, SECONDS_TIME_FLAG) + (C_CAST(uint64_t, MINUTES_TIME_FLAG) * UINT64_C(60)) + (C_CAST(uint64_t, HOURS_TIME_FLAG) * UINT64_C(3600));
                 //determine if it's timed or a range
                 if (overwriteSeconds == 0)
                 {
@@ -2476,6 +2489,8 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
+        //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
+        os_Update_File_System_Cache(&deviceList[deviceIter]);
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }

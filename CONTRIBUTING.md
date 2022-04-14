@@ -130,11 +130,11 @@ Once, modified, you can set this template to be used globally, or per repository
 
 ###### Global Commit Template
 
-git config –-global commit.template path/modified_commit_template.txt
+`git config --global commit.template path/modified_commit_template.txt`
 
 ###### Local Commit Template
 
-git config commit.template path/modified_commit_template.txt
+`git config commit.template path/modified_commit_template.txt`
 
 ##### Commit Message Components
 
@@ -149,6 +149,7 @@ git config commit.template path/modified_commit_template.txt
 | `lib` | Updating the submodule/library pointers to a new commit |
 | `release` | Software release |
 | `save` | checking in code to save place while working on larger bug or feature. |
+| `ci`  | Changes related to the CI and how it runs, but does not affect utility code. |
 
 #### Code Style
 
