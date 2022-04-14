@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.8
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32407.337
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win_getopt", "..\..\wingetopt\VS.2019\Win_getopt.vcxproj", "{621B44CE-B314-4E05-B214-5DC70F2B4798}"
 EndProject
@@ -863,8 +863,8 @@ Global
 		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|ARM64.Build.0 = Static-Release|ARM64
 		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x64.ActiveCfg = Static-Release|x64
 		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x64.Build.0 = Static-Release|x64
-		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x86.ActiveCfg = Release|Win32
-		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x86.Build.0 = Release|Win32
+		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x86.ActiveCfg = Static-Release|Win32
+		{926C8C5D-B6E6-4516-836F-70F9488378A1}.Static-Release|x86.Build.0 = Static-Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
