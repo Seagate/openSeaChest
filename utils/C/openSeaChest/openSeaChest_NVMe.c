@@ -1,7 +1,7 @@
 //
 // openSeaChest_NVMe.c
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.0.6";
 
 ////////////////////////////
 //  functions to declare  //
@@ -204,7 +204,7 @@ int32_t main(int argc, char *argv[])
                     DATA_ERASE_FLAG = true;
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(OUTPUT_MODE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING) == 0)
             {
                 if (strncmp(optarg, "raw", strlen(optarg)) == 0)
                 {
@@ -221,7 +221,7 @@ int32_t main(int argc, char *argv[])
                 }
 
             }
-            else if (strncmp(longopts[optionIndex].name, GET_FEATURES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_FEATURES_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, GET_FEATURES_LONG_OPT_STRING) == 0)
             {
                 if (isdigit(optarg[0]))
                 {
@@ -242,15 +242,15 @@ int32_t main(int argc, char *argv[])
                 }
 
             }
-            else if (strncmp(longopts[optionIndex].name, NVME_TEMP_STATS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NVME_TEMP_STATS_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, NVME_TEMP_STATS_LONG_OPT_STRING) == 0)
             {
                 NVME_TEMP_STATS_FLAG = goTrue;
             }
-            else if (strncmp(longopts[optionIndex].name, NVME_PCI_STATS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NVME_PCI_STATS_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, NVME_PCI_STATS_LONG_OPT_STRING) == 0)
             {
                 NVME_PCI_STATS_FLAG = goTrue;
             }
-            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING) == 0)
             {
                 int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
                 if (scanRet > 0 && scanRet != EOF)
@@ -263,7 +263,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING) == 0)
             {
                 USER_SET_DOWNLOAD_MODE = true;
                 DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
@@ -302,12 +302,12 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING) == 0)
             {
                 //set the timer value
                 TRANSITION_POWER_STATE_TO = atoi(optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, GET_NVME_LOG_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_NVME_LOG_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, GET_NVME_LOG_LONG_OPT_STRING) == 0)
             {
                 //set the power mode
                 if (isdigit(optarg[0]))//this will get the valid NVMe power levels
@@ -334,7 +334,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else if (strncmp("selfTest", optarg, strlen(optarg)) == 0)
                     {
-                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST;
+                        GET_NVME_LOG_IDENTIFIER = NVME_LOG_DEV_SELF_TEST_ID;
                     }
                     else
                     {
@@ -343,15 +343,15 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, GET_TELEMETRY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GET_TELEMETRY_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, GET_TELEMETRY_LONG_OPT_STRING) == 0)
             {
                 if (strncmp("host", optarg, strlen(optarg)) == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST_ID;
                 }
                 else if (strncmp("ctrl", optarg, strlen(optarg)) == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL;
+                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL_ID;
                 }
                 else
                 {
@@ -359,7 +359,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, TELEMETRY_DATA_AREA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TELEMETRY_DATA_AREA_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, TELEMETRY_DATA_AREA_LONG_OPT_STRING) == 0)
             {
                 //set the telemetry data area
                 if (isdigit(optarg[0]))//this will get the valid NVMe telemetry data area
@@ -457,17 +457,17 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 NEW_FW_MATCH_FLAG = true;
                 snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -1166,7 +1166,7 @@ int32_t main(int argc, char *argv[])
                 switch (GET_NVME_LOG_IDENTIFIER)
                 {
                 case NVME_LOG_SMART_ID:
-                    switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTR_OUTPUT_RAW))
+                    switch (show_NVMe_Health(&deviceList[deviceIter]))
                     {
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
@@ -1225,7 +1225,7 @@ int32_t main(int argc, char *argv[])
                         break;
                     }
                     break;
-                case NVME_LOG_DEV_SELF_TEST:
+                case NVME_LOG_DEV_SELF_TEST_ID:
                     switch (nvme_Print_DevSelfTest_Log_Page(&deviceList[deviceIter]))
                     {
                     case SUCCESS:
@@ -1477,12 +1477,12 @@ int32_t main(int argc, char *argv[])
 
         if (TRANSITION_POWER_STATE_TO >= 0)
         {
-            switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_STATE_TO))
+            switch (transition_NVM_Power_State(&deviceList[deviceIter], C_CAST(uint8_t, TRANSITION_POWER_STATE_TO)))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully transitioned to power state %d.\n", TRANSITION_POWER_STATE_TO);
+                    printf("\nSuccessfully transitioned to power state %" PRIi32 ".\n", TRANSITION_POWER_STATE_TO);
                     printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
                 }
                 break;
@@ -1496,7 +1496,7 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not transition to the new power state %d\n", TRANSITION_POWER_STATE_TO);
+                    printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;

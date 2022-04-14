@@ -1,7 +1,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.0.7";
+const char *buildVersion = "3.1.9";
 
 ////////////////////////////
 //  functions to declare  //
@@ -210,7 +210,7 @@ int32_t main(int argc, char *argv[])
         {
         case 0:
 
-            if (strncmp(longopts[optionIndex].name, EPC_ENABLED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(EPC_ENABLED_LONG_OPT_STRING))) == 0)
+            if (strcmp(longopts[optionIndex].name, EPC_ENABLED_LONG_OPT_STRING) == 0)
             {
                 if (strncmp("enable", optarg, strlen(optarg)) == 0)
                 {
@@ -226,8 +226,21 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING) == 0)
+            {
+                uint64_t temp = UINT64_MAX;
+                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp) && temp < INT32_MAX)
+                {
+                    TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             //parse long options that have no short option and required arguments here
-            else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_MODE_LONG_OPT_STRING, strlen(TRANSITION_POWER_MODE_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_MODE_LONG_OPT_STRING) == 0)
             {
                 TRANSITION_POWER_MODE_FLAG = true;
                 //set the power mode
@@ -278,20 +291,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(TRANSITION_POWER_STATE_LONG_OPT_STRING))) == 0)
-            {
-                uint64_t temp = UINT64_MAX;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp) && temp < INT32_MAX)
-                {
-                    TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
-            }
-            else if (strncmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_POWER_CONSUMPTION_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING) == 0)
             {
                 //set the flag for making the power consumption change
                 SET_POWER_CONSUMPTION_FLAG = true;
@@ -324,12 +324,12 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_APM_LEVEL_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING) == 0)
             {
                 SET_APM_LEVEL_FLAG = true;
                 SET_APM_LEVEL_VALUE_FLAG = C_CAST(uint8_t, atoi(optarg));
             }
-            else if (strncmp(longopts[optionIndex].name, SEAGATE_POWER_BALANCE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SEAGATE_POWER_BALANCE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SEAGATE_POWER_BALANCE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -359,7 +359,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SATA_DIPM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DIPM_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SATA_DIPM_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -381,7 +381,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SATA_DAPS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SATA_DAPS_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SATA_DAPS_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -403,7 +403,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING, strlen(SAS_PARTIAL_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, SAS_PARTIAL_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -425,7 +425,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
-            else if (strncmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING, strlen(SAS_SLUMBER_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -447,7 +447,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
                 SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
             }
@@ -612,7 +612,7 @@ int32_t main(int argc, char *argv[])
                     LEGACY_STANDBY_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING) == 0)
             {
                 uint64_t measurementTime = 0;
                 if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &measurementTime))
@@ -633,7 +633,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             } 
-            else if (strncmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING, strlen(REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp("all", optarg) == 0)
                 {
@@ -653,22 +653,22 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -1384,7 +1384,7 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully transitioned to power state %" PRIu32 ".\n", TRANSITION_POWER_STATE_TO);
+                    printf("\nSuccessfully transitioned to power state %" PRIi32 ".\n", TRANSITION_POWER_STATE_TO);
                     printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
                 }
                 break;
@@ -1398,7 +1398,7 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not transition to the new power state %" PRIu32 "\n", TRANSITION_POWER_STATE_TO);
+                    printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1727,6 +1727,7 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
+#define LEGACY_POWER_MODE_CHANGE_STR_LEN 24
                 //need to check if SCSI since ATA won't allow some of these.
                 //deviceList[deviceIter].drive_info.drive_type
                 if (LEGACY_IDLE_POWER_MODE_FLAG)
@@ -1740,20 +1741,20 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested idle settings.\n");
+                                    printf("Successfully configured the idle timer.\n");
                                 }
                                 break;
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring idle settings is not supported on this device.\n");
+                                    printf("Configuring idle timer is not supported on this device.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                    printf("An Error occurred while trying to configure the idle timer.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1762,16 +1763,24 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             int idleRet = SUCCESS;
+                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_IDLE_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
                             default:
                                 break;
@@ -1781,7 +1790,7 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested idle settings.\n");
+                                    printf("Successfully %s the requested idle settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1791,14 +1800,14 @@ int32_t main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring idle settings is not supported on this device.\n");
+                                    printf("%s idle settings is not supported on this device.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the idle settings.\n");
+                                    printf("An Error occurred while %s idle settings.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1824,7 +1833,7 @@ int32_t main(int argc, char *argv[])
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Successfully configured the requested standby settings.\n");
+                                printf("Successfully configured the requested standby timer.\n");
                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                 {
                                     printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1834,14 +1843,14 @@ int32_t main(int argc, char *argv[])
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Configuring standby settings is not supported on this device.\n");
+                                printf("Configuring standby timer is not supported on this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An Error occurred while trying to configure the standby settings.\n");
+                                printf("An Error occurred while trying to configure the standby timer.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -1852,16 +1861,24 @@ int32_t main(int argc, char *argv[])
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
                             int standbyRet = SUCCESS;
+                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_STANDBY_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
+                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
                             default:
                                 break;
@@ -1871,7 +1888,7 @@ int32_t main(int argc, char *argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the requested standby settings.\n");
+                                    printf("Successfully %s the requested standby settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1881,14 +1898,14 @@ int32_t main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring standby settings is not supported on this device.\n");
+                                    printf("%s standby settings is not supported on this device.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the standby settings.\n");
+                                    printf("An Error occurred while trying to %s standby settings.\n", modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -1899,7 +1916,7 @@ int32_t main(int argc, char *argv[])
                             //not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Configuring standby settings is not supported on this device.\n");
+                                printf("Enabling, disabling, or restoring default standby settings is not supported on this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
