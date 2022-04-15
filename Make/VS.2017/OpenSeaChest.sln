@@ -3,28 +3,28 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win_getopt", "..\..\wingetopt\VS.2017\Win_getopt.vcxproj", "{621B44CE-B314-4E05-B214-5DC70F2B4798}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win_getopt", "..\..\subprojects\wingetopt\VS.2017\Win_getopt.vcxproj", "{621B44CE-B314-4E05-B214-5DC70F2B4798}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-common", "..\..\opensea-common\Make\VS.2017\opensea-common\opensea-common\opensea-common.vcxproj", "{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-common", "..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\opensea-common\opensea-common.vcxproj", "{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-operationsLib", "..\..\opensea-operations\Make\VS.2017\opensea-operations\opensea-operations\opensea-operations.vcxproj", "{A0771494-8717-48AB-A0E5-49191252FF2C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-operationsLib", "..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\opensea-operations\opensea-operations.vcxproj", "{A0771494-8717-48AB-A0E5-49191252FF2C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7DAC7F63-E808-47FD-BEEB-33E4A870008B} = {7DAC7F63-E808-47FD-BEEB-33E4A870008B}
 		{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF} = {FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-operations-DLL", "..\..\opensea-operations\Make\VS.2017\opensea-operations\opensea-operations-DLL\opensea-operations-DLL.vcxproj", "{D73F51F3-3C0C-4E82-A0C2-10823534A5D8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-operations-DLL", "..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\opensea-operations-DLL\opensea-operations-DLL.vcxproj", "{D73F51F3-3C0C-4E82-A0C2-10823534A5D8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{EC785B2D-14C3-4AAF-AF33-595BFC96343C} = {EC785B2D-14C3-4AAF-AF33-595BFC96343C}
 		{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF} = {FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-transportLib", "..\..\opensea-transport\Make\VS.2017\opensea-transport\opensea-transport\opensea-transport.vcxproj", "{7DAC7F63-E808-47FD-BEEB-33E4A870008B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-transportLib", "..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\opensea-transport\opensea-transport.vcxproj", "{7DAC7F63-E808-47FD-BEEB-33E4A870008B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF} = {FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-transport-DLL", "..\..\opensea-transport\Make\VS.2017\opensea-transport\opensea-transport-DLL\opensea-transport-DLL.vcxproj", "{EC785B2D-14C3-4AAF-AF33-595BFC96343C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opensea-transport-DLL", "..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\opensea-transport-DLL\opensea-transport-DLL.vcxproj", "{EC785B2D-14C3-4AAF-AF33-595BFC96343C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF} = {FBCBA2F1-3BF8-4A25-B815-E228E1AEDCFF}
 	EndProjectSection

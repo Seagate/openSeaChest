@@ -21,22 +21,22 @@ CFLAGS ?= -Wall -Wextra -c -std=gnu99 -ffunction-sections -fdata-sections
 CFLAGS_I686 ?= -Wall -Wextra -c -m32
 LFLAGS ?= \
 	-Wall -Wl,--gc-sections \
-	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
-	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 TCGLFLAGS ?= \
 	-Wall -Wl,--gc-sections \
-	../../SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
-	../../SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
-	../../opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
-	../../opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+	../../subprojects/SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
+	../../subprojects/SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
+	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 INC_DIR ?= \
-	-I../../opensea-common/include \
-	-I../../opensea-transport/include \
-	-I../../opensea-transport/include/vendor \
+	-I../../subprojects/opensea-common/include \
+	-I../../subprojects/opensea-transport/include \
+	-I../../subprojects/opensea-transport/include/vendor \
 	-I../../include \
-	-I../../opensea-operations/include
+	-I../../subprojects/opensea-operations/include
 
 UNAME := $(shell uname -s)
 
@@ -220,9 +220,9 @@ export CXXFLAGS
 export PROJECT_DEFINES
 
 opensea-libs:
-	$(MAKE) $(MAKEFLAG) -C ../../opensea-common/Make/gcc
-	$(MAKE) $(MAKEFLAG) -C ../../opensea-transport/Make/gcc
-	$(MAKE) $(MAKEFLAG) -C ../../opensea-operations/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-common/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-transport/Make/gcc
+	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-operations/Make/gcc
 
 $(SMARTOUTFILE): $(SMARTOBJS)
 	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
@@ -310,9 +310,9 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
-	$(MAKE) -C ../../opensea-common/Make/gcc clean
-	$(MAKE) -C ../../opensea-transport/Make/gcc clean
-	$(MAKE) -C ../../opensea-operations/Make/gcc clean
+	$(MAKE) -C ../../subprojects/opensea-common/Make/gcc clean
+	$(MAKE) -C ../../subprojects/opensea-transport/Make/gcc clean
+	$(MAKE) -C ../../subprojects/opensea-operations/Make/gcc clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)

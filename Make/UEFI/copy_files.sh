@@ -26,9 +26,9 @@ if [ -d "$1" ]; then
     #copy UEFI makefiles for openSeaChest
     cp -r "$openSeaChestBaseDir/Make/UEFI/openSeaChest"* "$openSeaChestPkgDir"
     #now copy opensea-libs
-    "$openSeaChestBaseDir"/opensea-common/Make/UEFI/copy_files.sh "$1"
-    "$openSeaChestBaseDir"/opensea-transport/Make/UEFI/copy_files.sh "$1"
-    "$openSeaChestBaseDir"/opensea-operations/Make/UEFI/copy_files.sh "$1"
+    "$openSeaChestBaseDir"/subprojects/opensea-common/Make/UEFI/copy_files.sh "$1"
+    "$openSeaChestBaseDir"/subprojects/opensea-transport/Make/UEFI/copy_files.sh "$1"
+    "$openSeaChestBaseDir"/subprojects/opensea-operations/Make/UEFI/copy_files.sh "$1"
 
 else
     echo "Cannot find specified path: $1"

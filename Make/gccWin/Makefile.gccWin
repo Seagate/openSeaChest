@@ -50,15 +50,15 @@ CFLAGS_I686 = -Wall -Wextra -c -m32
 
 LDFLAGS = -Wall
 LDLIBS = \
-	../../opensea-operations/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
-	../../opensea-transport/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../opensea-common/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+	../../subprojects/opensea-operations/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../subprojects/opensea-transport/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../subprojects/opensea-common/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 
 INC_DIR= \
-	-I../../opensea-common/include \
-	-I../../opensea-transport/include \
-	-I../../opensea-transport/include/vendor \
-	-I../../opensea-operations/include \
+	-I../../subprojects/opensea-common/include \
+	-I../../subprojects/opensea-transport/include \
+	-I../../subprojects/opensea-transport/include/vendor \
+	-I../../subprojects/opensea-operations/include \
 	-I../../include
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
@@ -306,9 +306,9 @@ export CXXFLAGS
 export PROJECT_DEFINES
 
 opensea-libs:
-	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin
-	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin
-	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin
+	$(MAKE) -C ../../subprojects/opensea-common/Make/gccWin -f Makefile.gccWin
+	$(MAKE) -C ../../subprojects/opensea-transport/Make/gccWin -f Makefile.gccWin
+	$(MAKE) -C ../../subprojects/opensea-operations/Make/gccWin -f Makefile.gccWin
 
 #basics
 ifneq (,$(findstring basics,$(BUILD_ALL)))
@@ -447,9 +447,9 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
-	$(MAKE) -C ../../opensea-common/Make/gccWin -f Makefile.gccWin clean
-	$(MAKE) -C ../../opensea-transport/Make/gccWin -f Makefile.gccWin clean
-	$(MAKE) -C ../../opensea-operations/Make/gccWin -f Makefile.gccWin clean
+	$(MAKE) -C ../../subprojects/opensea-common/Make/gccWin -f Makefile.gccWin clean
+	$(MAKE) -C ../../subprojects/opensea-transport/Make/gccWin -f Makefile.gccWin clean
+	$(MAKE) -C ../../subprojects/opensea-operations/Make/gccWin -f Makefile.gccWin clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)

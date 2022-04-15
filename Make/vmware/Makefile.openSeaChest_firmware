@@ -389,18 +389,18 @@ CFLAGS += -DVMK_CROSS_COMP
 	
 FWDLLFLAGS = \
 	-Wall \
-	../../opensea-operations/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
-	../../opensea-transport/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../opensea-common/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
+	../../subprojects/opensea-operations/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
+	../../subprojects/opensea-transport/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
+	../../subprojects/opensea-common/Make/vmware/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
 	$(VMW_$(VMW_TARGET)_COMPILEFLAGS) \
 	$(DEV_$(DEV_OBJDIR)_OBJECTS) $(VMW_LINK_FLAGS) \
 	-lm -lrt
 	
 INC_DIR= \
-	-I../../opensea-common/include \
-	-I../../opensea-transport/include \
+	-I../../subprojects/opensea-common/include \
+	-I../../subprojects/opensea-transport/include \
 	-I../../include \
-	-I../../opensea-operations/include
+	-I../../subprojects/opensea-operations/include
 
 MACHINE := $(shell uname -m)
 
@@ -463,9 +463,9 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
-	$(MAKE) -C ../../opensea-common/Make/vmware clean
-	$(MAKE) -C ../../opensea-transport/Make/vmware clean
-	$(MAKE) -C ../../opensea-operations/Make/vmware clean
+	$(MAKE) -C ../../subprojects/opensea-common/Make/vmware clean
+	$(MAKE) -C ../../subprojects/opensea-transport/Make/vmware clean
+	$(MAKE) -C ../../subprojects/opensea-operations/Make/vmware clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)
