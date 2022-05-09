@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.6";
+const char *buildVersion = "2.0.7";
 
 ////////////////////////////
 //  functions to declare  //
@@ -752,6 +752,7 @@ int32_t main(int argc, char *argv[])
           || NVME_PCI_STATS_FLAG
           || SHOW_SUPPORTED_FORMATS_FLAG
           || NVM_FORMAT_FLAG
+          || PROGRESS_CHAR != NULL
         //check for other tool specific options here
         ))
     {
