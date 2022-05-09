@@ -4,7 +4,6 @@ task:
     matrix:
       image_family: freebsd-13-0
       image_family: freebsd-12-3
-      image_family: freebsd-11-4
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script:
