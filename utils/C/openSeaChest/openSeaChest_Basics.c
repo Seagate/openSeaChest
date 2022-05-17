@@ -80,6 +80,7 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAG_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
+	NO_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
     MODEL_MATCH_VARS
@@ -139,6 +140,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
+		NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -657,7 +659,8 @@ int32_t main(int argc, char *argv[])
 
     if (VERBOSITY_QUIET < toolVerbosity)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+		if (!NO_BANNER_FLAG)
+			openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)

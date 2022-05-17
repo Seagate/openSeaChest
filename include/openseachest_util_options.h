@@ -123,6 +123,11 @@ extern "C"
     #define SCAN_FLAGS_LONG_OPT_STRING "scanFlags"
     #define SCAN_FLAGS_LONG_OPT { SCAN_FLAGS_LONG_OPT_STRING, required_argument, NULL, SCAN_FLAGS_SHORT_OPT }
 
+	#define NO_BANNER_FLAG noBanner
+	#define NO_BANNER_VAR getOptBool NO_BANNER_FLAG = goFalse;
+	#define NO_BANNER_OPT_STRING "noBanner"
+	#define NO_BANNER_OPT { NO_BANNER_OPT_STRING, no_argument, &NO_BANNER_FLAG, goTrue}
+
     #define SHOW_BANNER_FLAG showBanner
     #define SHOW_BANNER_VAR bool SHOW_BANNER_FLAG = false;
     #define VERSION_SHORT_OPT 'V'
