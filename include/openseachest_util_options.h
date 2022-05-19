@@ -3253,6 +3253,8 @@ extern "C"
 
     void print_No_Time_Limit_Help(bool shortHelp);
 
+	void print_No_Banner_Help(bool shortUsage);
+
     void print_SAS_Phy_Partial_Help(bool shortHelp);
 
     void print_SAS_Phy_Slumber_Help(bool shortHelp);

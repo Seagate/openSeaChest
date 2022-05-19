@@ -386,10 +386,9 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < toolVerbosity)
+    if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		if (!NO_BANNER_FLAG)
-			openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -1393,6 +1392,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
+	print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);

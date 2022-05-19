@@ -3887,6 +3887,16 @@ void print_No_Time_Limit_Help(bool shortHelp)
     }
 }
 
+void print_No_Banner_Help(bool shortHelp)
+{
+	printf("\t--%s\n", NO_BANNER_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option to suppress the text banner that displays each time\n");
+		printf("\t\topenSeaChest is run.\n\n");
+	}
+}
+
 void print_Show_Power_Telemetry_Help(bool shortHelp)
 {
     printf("\t--%s\t(Seagate Only)\n", SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
