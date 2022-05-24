@@ -2152,6 +2152,9 @@ void print_Fast_Format_Help(bool shortHelp)
         printf("\t\t        logical sector size quickly. Media may or may not be\n");
         printf("\t\t        read accessible until a write has been performed to\n");
         printf("\t\t        the media.\n\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a fast format operation.\n\n");
     }
 }
 
@@ -2303,7 +2306,10 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\t         activity that would attempt to communicate with the device while this\n");
         printf("\t\t         operation is in progress\n");
         printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
-        printf("\t\t         all USB adapters can handle a 4k sector size.\n\n");
+        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
     }
 }
 
