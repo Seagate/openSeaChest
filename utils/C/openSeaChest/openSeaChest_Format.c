@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.3.5";
+const char *buildVersion = "2.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -67,6 +67,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_INFO_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
+    POSSIBLE_DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
@@ -205,6 +206,10 @@ int32_t main(int argc, char *argv[])
                 if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
                     DATA_ERASE_FLAG = true;
+                }
+                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                {
+                    POSSIBLE_DATA_ERASE_FLAG = true;
                 }
                 else
                 {
@@ -1226,7 +1231,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Format Unit\n");
             }
-            if (DATA_ERASE_FLAG)
+            if (DATA_ERASE_FLAG || (FAST_FORMAT_FLAG > 0 && POSSIBLE_DATA_ERASE_FLAG))
             {
                 bool currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
@@ -1322,17 +1327,27 @@ int32_t main(int argc, char *argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a format unit.\n\n");
-                    printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    if (FAST_FORMAT_FLAG > 0)
+                    {
+                        printf("\n");
+                        printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("to the command line arguments to run a format unit.\n\n");
+                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    }
+                    else
+                    {
+                        printf("\n");
+                        printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                        printf("to the command line arguments to run a format unit.\n\n");
+                        printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    }
                 }
             }
         }
 
         if (SEAGATE_SATA_QUICK_FORMAT)
         {
-            if (DATA_ERASE_FLAG)
+            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
             {
                 if (is_Seagate_Quick_Format_Supported(&deviceList[deviceIter]) || FORCE_FLAG)
                 {
@@ -1384,16 +1399,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a quick format.\n\n");
-                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
 
         if (SET_SECTOR_SIZE_FLAG)
         {
-            if (DATA_ERASE_FLAG)
+            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1485,22 +1500,25 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a set sector size operation.\n\n");
-                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     printf("WARNING: It is not recommended to do this on USB as not\n");
                     printf("         all USB adapters can handle a 4k sector size.\n\n");
                     printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
                     printf("         it may cause the drive to become unusable. Stop all possible background\n");
                     printf("         activity that would attempt to communicate with the device while this\n");
                     printf("         operation is in progress\n\n");
+                    printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                    printf("\t\t         before using this option. Interruptions can be caused by these\n");
+                    printf("\t\t         and may prevent completion of a fast format operation.\n\n");
                 }
             }
         }
 
         if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
         {
-            if (DATA_ERASE_FLAG)
+            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
             {
                 bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
                 if (depopSupport)
@@ -1554,16 +1572,16 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a remove physical element command.\n\n");
-                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
 
         if (REPOPULATE_ELEMENTS_FLAG)
         {
-            if (DATA_ERASE_FLAG)
+            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
             {
                 bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], NULL);
                 if (repopSupport)
@@ -1616,9 +1634,9 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to run a repopulate elements operation.\n\n");
-                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }

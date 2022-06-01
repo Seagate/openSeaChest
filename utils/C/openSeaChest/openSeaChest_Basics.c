@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.2.3";
+const char *buildVersion = "3.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -75,6 +75,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_INFO_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
+    POSSIBLE_DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
@@ -233,6 +234,10 @@ int32_t main(int argc, char *argv[])
                 if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
                     DATA_ERASE_FLAG = true;
+                }
+                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                {
+                    POSSIBLE_DATA_ERASE_FLAG = true;
                 }
                 else
                 {
@@ -1862,7 +1867,7 @@ int32_t main(int argc, char *argv[])
                 {
                     localRange = deviceList[deviceIter].drive_info.deviceMaxLba - localStartLBA + 1;
                 }
-                if (DATA_ERASE_FLAG)
+                if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
                 {
                     switch (trim_Unmap_Range(&deviceList[deviceIter], localStartLBA, localRange))
                     {
@@ -1893,9 +1898,9 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("\n");
-                        printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                        printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                         printf("to the command line arguments to run a trim/unmap operation.\n\n");
-                        printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                        printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     }
                 }
             }

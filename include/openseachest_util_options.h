@@ -227,9 +227,12 @@ extern "C"
     #define PROGRESS_LONG_OPT { PROGRESS_LONG_OPT_STRING, required_argument, NULL, PROGRESS_SHORT_OPT }
 
     #define DATA_ERASE_ACCEPT_STRING "this-will-erase-data"
+    #define POSSIBLE_DATA_ERASE_ACCEPT_STRING "this-may-erase-data"
     #define LONG_TEST_ACCEPT_STRING "I-understand-this-command-will-take-a-long-time-to-complete"
     #define SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING "I-understand-this-command-may-erase-single-sectors-if-they-are-already-unreadable"
 
+    #define POSSIBLE_DATA_ERASE_FLAG possibleDataEraseAccepted
+    #define POSSIBLE_DATA_ERASE_VAR bool POSSIBLE_DATA_ERASE_FLAG = false;
     #define DATA_ERASE_FLAG dataEraseAccepted
     #define DATA_ERASE_VAR bool DATA_ERASE_FLAG = false;
     #define LONG_TEST_FLAG longOperationAccepted
