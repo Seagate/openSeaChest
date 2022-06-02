@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.1.9";
+const char *buildVersion = "3.1.10";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2633,6 +2633,11 @@ void utility_Usage(bool shortUsage)
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_EPC_SETTINGS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, IDLE_B_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s standby_z\n", util_name, deviceHandleExample, TRANSITION_POWER_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
