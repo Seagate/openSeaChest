@@ -1261,7 +1261,7 @@ int32_t main(int argc, char *argv[])
              * If it is not in between 1-3 we should exit with error
              */
 
-            if ((TELEMETRY_DATA_AREA < 1) && (TELEMETRY_DATA_AREA > 3))
+            if ((TELEMETRY_DATA_AREA < 1) || (TELEMETRY_DATA_AREA > 3))
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {

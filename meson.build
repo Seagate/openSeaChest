@@ -1,6 +1,28 @@
-project('openSeaChest', 'c', license: 'MPL-2.0', version: '2.0.2')
+project('openSeaChest', 'c', license: 'MPL-2.0', version: '2.0.2', default_options : ['warning_level=2'])
 
 c = meson.get_compiler('c')
+
+#TODO: Add -Wcast-align=strict and fix these issues to help ensure better portability
+#NOTE: -Wsign-conversion can be useful while debugging, but there are numerous places this shows up
+#      and it is not useful, so only add it while debugging.
+warning_flags = [
+#	'-Wcast-align=strict',
+#	'-Wsign-conversion',
+	'-Wshadow=compatible-local',
+	'-Wvla',
+	'-Wfloat-equal',
+	'-Wnull-dereference',
+	'-Wunused-const-variable',
+	'-Wduplicated-cond',
+	'-Wjump-misses-init',
+	'-Wstringop-overflow',
+	'-Wlogical-op',
+	'-Wshift-overflow=2',
+	'-Wdouble-promotion',
+	'-Wformat-security'
+]
+
+add_project_arguments(c.get_supported_arguments(warning_flags), language : 'c')
 
 if not (target_machine.system() == 'sunos') and (c.get_id() == 'gcc' or c.get_id() == 'clang')
   add_global_arguments(

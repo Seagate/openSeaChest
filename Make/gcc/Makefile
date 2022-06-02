@@ -17,15 +17,17 @@ CC ?= gcc
 LIB_FILE_OUTPUT_DIR=lib
 STRIP ?= strip
 STRIPOPTS ?=
-CFLAGS ?= -Wall -Wextra -c -std=gnu99 -ffunction-sections -fdata-sections
+CFLAGS ?= -Wall -Wextra -c -std=gnu99 -Wcast-align=strict -Wshadow=compatible-local -Wvla -Wfloat-equal -Wnull-dereference -Wunused-const-variable \
+	-Wduplicated-cond -Wjump-misses-init -Wstringop-overflow -Wlogical-op -Wshift-overflow=2 -Wsign-conversion -Wdouble-promotion -Wformat-security
+
 CFLAGS_I686 ?= -Wall -Wextra -c -m32
 LFLAGS ?= \
-	-Wall -Wl,--gc-sections \
+	-Wall \
 	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
 TCGLFLAGS ?= \
-	-Wall -Wl,--gc-sections \
+	-Wall \
 	../../subprojects/SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
 	../../subprojects/SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
 	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
@@ -44,8 +46,8 @@ UNAME := $(shell uname -s)
 C_INCLUDE_PATH := /usr/include/
 
 ifeq ($(UNAME),Linux)
-	LFLAGS += -lm -lrt
-	TCGLFLAGS += -lm -lrt
+	LFLAGS += -lm -lrt -Wl,--gc-sections 
+	TCGLFLAGS += -lm -lrt -Wl,--gc-sections 
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
@@ -55,8 +57,8 @@ ifeq ($(UNAME),SunOS)
 	STRIPOPTS=
 endif
 ifeq ($(UNAME),FreeBSD)
-	LFLAGS += -lm -lcam
-	TCGLFLAGS += -lm -lcam
+	LFLAGS += -lm -lcam -Wl,--gc-sections 
+	TCGLFLAGS += -lm -lcam -Wl,--gc-sections 
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif

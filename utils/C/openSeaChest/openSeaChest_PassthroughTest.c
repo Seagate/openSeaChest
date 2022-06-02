@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.1.3";
+const char *buildVersion = "1.1.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -4070,10 +4070,6 @@ int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
             if (pageCode != 0x01)
             {
                 return use_Mode_Sense_6(device, 0x01, use6Byte);//trying page 0x01 since any device type SHOULD have that page. For direct access block, it is the RW error recovery page
-            }
-            else if (pageCode != 0x01)
-            {
-                return use_Mode_Sense_6(device, 0, use6Byte);
             }
             else
             {
