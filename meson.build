@@ -34,6 +34,15 @@ if not (target_machine.system() == 'sunos') and (c.get_id() == 'gcc' or c.get_id
       '-Wl,--gc-sections',
       language: 'c',
   )
+  #if GCC less than 5.5.x, need to set gnu99 standard (CentOS7, RH7, possibly others)
+  #TODO: May be able to move to c11/gnu11 instead, but will need to do a lot of testing first
+  if c.get_id().contains('gcc')
+    verStr = c.version().split('.')
+    if verStr.get(0).to_int() <= 5 or (verStr.get(0).to_int() == 5 and verStr.get(1).to_int() < 5)
+	add_global_arguments('-std=gnu99', language: 'c',)
+    endif
+  endif
+  
 endif
 
 if not get_option('tcg').enabled()
