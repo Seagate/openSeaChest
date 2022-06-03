@@ -18,7 +18,7 @@ LIB_FILE_OUTPUT_DIR=lib
 STRIP ?= strip
 STRIPOPTS ?=
 #start with only -Wall and -Wextra. More warnings added below based on version of clang/gcc
-CFLAGS ?= -Wall -Wextra -c -std=gnu99
+CFLAGS ?= -Wall -Wextra -c
 
 CFLAGS_I686 ?= -Wall -Wextra -c -m32
 LFLAGS ?= \
@@ -100,6 +100,10 @@ else
 			ifeq ($(shell test $(GCC_MINOR) -gt 4; echo $$?),0)
 				CFLAGS += -Wlogical-not-parentheses
 			endif
+		else
+			#GCC less that v 5.x.x needs to set gnu99 standard
+			#as of 5.x.x, gnu11 is default
+			CFLAGS += -std=gnu99
 		endif
 		
 		CFLAGS += -Wvla -Wfloat-equal -Wjump-misses-init -Wlogical-op -Wdouble-promotion -Wformat-security
