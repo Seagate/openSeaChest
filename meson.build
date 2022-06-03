@@ -34,12 +34,13 @@ if not (target_machine.system() == 'sunos') and (c.get_id() == 'gcc' or c.get_id
       '-Wl,--gc-sections',
       language: 'c',
   )
-  #if GCC less than 5.5.x, need to set gnu99 standard (CentOS7, RH7, possibly others)
+  #if GCC less than 5, need to set -std=gnu99 at minimum. gnu11 became the default in 5, 17 default in 7 or 8.
   #TODO: May be able to move to c11/gnu11 instead, but will need to do a lot of testing first
-  if c.get_id().contains('gcc')
+  #skipping sunos since this was a compatibility issue that was reported earlier. May be able to find a better way to handle this in the future.
+  if not (target_machine.system() == 'sunos') and c.get_id().contains('gcc')
     verStr = c.version().split('.')
-    if verStr.get(0).to_int() <= 5 or (verStr.get(0).to_int() == 5 and verStr.get(1).to_int() < 5)
-	add_global_arguments('-std=gnu99', language: 'c',)
+    if verStr.get(0).to_int() < 5
+        global_cpp_args += ['-std=gnu99']
     endif
   endif
   
