@@ -40,7 +40,7 @@ if not (target_machine.system() == 'sunos') and (c.get_id() == 'gcc' or c.get_id
   if not (target_machine.system() == 'sunos') and c.get_id().contains('gcc')
     verStr = c.version().split('.')
     if verStr.get(0).to_int() < 5
-        global_cpp_args += ['-std=gnu99']
+        add_global_arguments('-std=gnu99', language: 'c',)
     endif
   endif
   
