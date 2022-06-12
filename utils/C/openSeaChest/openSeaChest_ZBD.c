@@ -871,7 +871,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (close_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (close_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -919,7 +919,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (finish_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (finish_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -967,7 +967,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (open_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (open_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -1015,7 +1015,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (reset_Write_Pointer(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (reset_Write_Pointer(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
