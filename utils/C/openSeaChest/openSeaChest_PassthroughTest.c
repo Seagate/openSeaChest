@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.1.4";
+const char *buildVersion = "1.1.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -6199,6 +6199,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
     uint8_t scsiDataBytes[512] = { 0 };//used by each command
 
     scsiStatus blah;
+    memset(&blah, 0, sizeof(scsiStatus));
     if (SUCCESS == scsi_Test_Unit_Ready(device, &blah))
     {
         scsiCmds->testUnitReady = true;
@@ -7803,11 +7804,9 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("Use the --%s option to force a retest of pass-through hacks already known.\n", "forceRetest");
             return SUCCESS;
         }
-        if (inputs->forceRetest)
-        {
-            //Need to clear out the hacks or incorrect results may be found since they will be used while testing.
-            memset(&inputs->device->drive_info.passThroughHacks, 0, sizeof(passthroughHacks));
-        }
+        //Need to clear out the hacks or incorrect results may be found since they will be used while testing.
+        memset(&inputs->device->drive_info.passThroughHacks, 0, sizeof(passthroughHacks));
+
         //2. Check what things the device reports for SCSI capabilities, SAT VPD page, etc. Emit warnings for pages that are missing that were expected
         printf("Checking standard SCSI inquiry data, VPD pages, and some mode pages\n");
         printf("to understand device capabilities. Only commands specified in translator\n");
@@ -8335,6 +8334,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         #endif
         if (scsiInformation.vpdData.gotBlockLimitsVPDPage)
         {
+            //TODO:Check if we hit the maximum in our test: MAX_SCSI_SECTORS_TO_TEST
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (scsiInformation.vpdData.blockLimitsData.maximumXferLen * inputs->device->drive_info.deviceBlockSize))
             {
                 printf("%" PRIu8 "\tThe maximum transfer length is less than was reported by the block limits VPD page!\n", recommendationCounter);
