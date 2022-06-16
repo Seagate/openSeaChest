@@ -405,7 +405,7 @@ void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense)
     return;
 }
 
-void print_Apache_2_0_License()
+static void print_Apache_2_0_License(void)
 {
     printf("===========================================================================\n");
     printf("mbedtls - An open source, portable, easy to use, readable and flexible SSL\n");
@@ -599,7 +599,7 @@ void print_Apache_2_0_License()
     return;
 }
 
-void print_Zlib_License()
+static void print_Zlib_License(void)
 {
     printf("zlib.h -- interface of the 'zlib' general purpose compression library version\n");
     printf("1.2.8, April 28th, 2013\n\n");
@@ -630,7 +630,7 @@ void print_Zlib_License()
 }
 
 #if defined (_WIN32)
-static void print_Win_Getopt_Licenses()
+static void print_Win_Getopt_Licenses(void)
 {
     printf("===========================================================================\n");
     printf("wingetopt - getopt library for Windows compilers\n\n");
@@ -692,7 +692,7 @@ static void print_Win_Getopt_Licenses()
 #endif//_WIN32
 
 #if defined (__FreeBSD__)
-static void print_FreeBSD_License()
+static void print_FreeBSD_License(void)
 {
     printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
     printf("Redistribution and use in source and binary forms, with or without\n");
@@ -723,7 +723,7 @@ static void print_FreeBSD_License()
 #endif //__FreeBSD__
 
 #if defined(__GLIBC__)
-static void print_GNU_LGPL_License()
+static void print_GNU_LGPL_License(void)
 {
     printf("===========================================================================\n");
     printf("glibc (GNU libc)\n\n");
@@ -885,7 +885,7 @@ static void print_GNU_LGPL_License()
 #endif//__GLIBC__
 
 #if (USING_MUSL_LIBC)
-static void print_Musl_MIT_License()
+static void print_Musl_MIT_License(void)
 {
     printf("===========================================================================\n");
     printf("musl libc\n\n");
@@ -951,8 +951,3 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
     }
     return;
 }
-
-
-
-
-

@@ -19,7 +19,11 @@ warning_flags = [
 	'-Wlogical-op',
 	'-Wshift-overflow=2',
 	'-Wdouble-promotion',
-	'-Wformat-security'
+	'-Wformat-security',
+  '-Wold-style-definition',
+  '-Wstrict-prototypes',
+  '-Wmissing-declarations',
+  '-Wmissing-prototypes'
 ]
 
 add_project_arguments(c.get_supported_arguments(warning_flags), language : 'c')

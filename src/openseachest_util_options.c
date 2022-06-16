@@ -59,7 +59,7 @@ void print_Bug_Report_Email(bool shortHelp)
     }
 }
 
-void print_Elevated_Privileges_Text()
+void print_Elevated_Privileges_Text(void)
 {
     printf("WARNING: You must run with elevated privileges to communicate with devices in the system.");
 #if defined (_WIN32)
