@@ -41,13 +41,13 @@ const char *commandWindowType = "shell";
 #endif
 
 #if defined (ENABLE_CSMI)
-const char *csmiDeviceHandleName = "<csmi_device>";
+//static const char *csmiDeviceHandleName = "<csmi_device>";
 #if defined (_WIN32)
-const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
+static const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
 #else
-const char *csmiDeviceHandleExample = "<error\?\?\?>";
-#endif
-#endif
+static const char *csmiDeviceHandleExample = "<error\?\?\?>";
+#endif //_WIN32
+#endif //ENABLE_CSMI
 
 void print_Bug_Report_Email(bool shortHelp)
 {
@@ -154,8 +154,8 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     }
     printf(" Today: %s\tUser: %s\n", currentTime, userName);
     printf("==========================================================================================\n");
-    safe_Free(userName);
-    safe_Free(year);
+    safe_Free(userName)
+    safe_Free(year)
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -2990,9 +2990,9 @@ void free_Handle_List(char ***handleList, uint32_t listCount)
     {
         for (uint32_t handleIter = 0; handleIter < listCount; ++handleIter)
         {
-            safe_Free((*handleList)[handleIter]);
+            safe_Free((*handleList)[handleIter])
         }
-        safe_Free((*handleList));
+        safe_Free((*handleList))
     }
 }
 
