@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.1.3";
+const char *buildVersion = "3.1.4";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -1227,6 +1227,14 @@ void utility_Usage(bool shortUsage)
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\tUpdating firmware:\n");
+    printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware with deferred download and activating:\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware and specifying a firmware slot (NVMe)\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t  +\n");
+    printf("\t%s -d %s --%s --%s 2\n", util_name, deviceHandleExample, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, FIRMWARE_SLOT_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
