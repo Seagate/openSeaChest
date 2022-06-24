@@ -727,7 +727,7 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\t           and firmware combinations are supported.\n");
         printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         printf("\t\t             attribute's data. Full raw data interpretation only\n");
-        printf("\t\t             available on select devices.");
+        printf("\t\t             available on select devices.\n");
         printf("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }
