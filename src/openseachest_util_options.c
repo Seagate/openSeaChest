@@ -41,13 +41,13 @@ const char *commandWindowType = "shell";
 #endif
 
 #if defined (ENABLE_CSMI)
-const char *csmiDeviceHandleName = "<csmi_device>";
+//static const char *csmiDeviceHandleName = "<csmi_device>";
 #if defined (_WIN32)
-const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
+static const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
 #else
-const char *csmiDeviceHandleExample = "<error\?\?\?>";
-#endif
-#endif
+static const char *csmiDeviceHandleExample = "<error\?\?\?>";
+#endif //_WIN32
+#endif //ENABLE_CSMI
 
 void print_Bug_Report_Email(bool shortHelp)
 {
@@ -59,7 +59,7 @@ void print_Bug_Report_Email(bool shortHelp)
     }
 }
 
-void print_Elevated_Privileges_Text()
+void print_Elevated_Privileges_Text(void)
 {
     printf("WARNING: You must run with elevated privileges to communicate with devices in the system.");
 #if defined (_WIN32)
@@ -154,8 +154,8 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     }
     printf(" Today: %s\tUser: %s\n", currentTime, userName);
     printf("==========================================================================================\n");
-    safe_Free(userName);
-    safe_Free(year);
+    safe_Free(userName)
+    safe_Free(year)
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -727,7 +727,7 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\t           and firmware combinations are supported.\n");
         printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         printf("\t\t             attribute's data. Full raw data interpretation only\n");
-        printf("\t\t             available on select devices.");
+        printf("\t\t             available on select devices.\n");
         printf("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }
@@ -2152,6 +2152,9 @@ void print_Fast_Format_Help(bool shortHelp)
         printf("\t\t        logical sector size quickly. Media may or may not be\n");
         printf("\t\t        read accessible until a write has been performed to\n");
         printf("\t\t        the media.\n\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a fast format operation.\n\n");
     }
 }
 
@@ -2303,7 +2306,10 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\t         activity that would attempt to communicate with the device while this\n");
         printf("\t\t         operation is in progress\n");
         printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
-        printf("\t\t         all USB adapters can handle a 4k sector size.\n\n");
+        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
     }
 }
 
@@ -2984,9 +2990,9 @@ void free_Handle_List(char ***handleList, uint32_t listCount)
     {
         for (uint32_t handleIter = 0; handleIter < listCount; ++handleIter)
         {
-            safe_Free((*handleList)[handleIter]);
+            safe_Free((*handleList)[handleIter])
         }
-        safe_Free((*handleList));
+        safe_Free((*handleList))
     }
 }
 
@@ -3885,6 +3891,16 @@ void print_No_Time_Limit_Help(bool shortHelp)
         printf("\t\ttimeout. In some cases a good drive may need more time to\n");
         printf("\t\tcomplete the test due to other legitimate system activity.\n\n");
     }
+}
+
+void print_No_Banner_Help(bool shortHelp)
+{
+	printf("\t--%s\n", NO_BANNER_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option to suppress the text banner that displays each time\n");
+		printf("\t\topenSeaChest is run.\n\n");
+	}
 }
 
 void print_Show_Power_Telemetry_Help(bool shortHelp)

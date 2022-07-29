@@ -161,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,7 +170,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|Win32'">
@@ -180,7 +180,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -190,7 +190,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -200,7 +200,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -209,7 +209,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
@@ -219,7 +219,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -229,7 +229,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -241,7 +241,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -250,7 +250,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|Win32'">
@@ -262,7 +262,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -272,7 +272,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -284,7 +284,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -293,7 +293,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -305,7 +305,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\wingetopt\src\;..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\wingetopt\src\;..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -315,7 +315,7 @@
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2015\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2015\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2015\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\wingetopt\VS.2015\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

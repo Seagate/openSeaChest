@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.0.7";
+const char *buildVersion = "2.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -68,9 +68,11 @@ int32_t main(int argc, char *argv[])
     DEVICE_INFO_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
+    POSSIBLE_DATA_ERASE_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
+	NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
@@ -130,6 +132,7 @@ int32_t main(int argc, char *argv[])
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
+		NO_BANNER_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
         QUIET_LONG_OPT,
@@ -213,6 +216,10 @@ int32_t main(int argc, char *argv[])
                 if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
                 {
                     DATA_ERASE_FLAG = true;
+                }
+                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                {
+                    POSSIBLE_DATA_ERASE_FLAG = true;
                 }
                 else
                 {
@@ -1069,9 +1076,9 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < toolVerbosity)
+    if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -2286,7 +2293,7 @@ int32_t main(int argc, char *argv[])
                 {
                     localRange = deviceList[deviceIter].drive_info.deviceMaxLba - localStartLBA + 1;
                 }
-                if (DATA_ERASE_FLAG)
+                if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
                 {
                     switch (trim_Unmap_Range(&deviceList[deviceIter], localStartLBA, localRange))
                     {
@@ -2319,7 +2326,7 @@ int32_t main(int argc, char *argv[])
                         printf("\n");
                         printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                         printf("to the command line arguments to run a trim/unmap operation.\n\n");
-                        printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                        printf("e.g.: %s -d %s --%s 0 --%s %s\n\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                     }
                 }
             }
@@ -3070,6 +3077,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
+	print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);

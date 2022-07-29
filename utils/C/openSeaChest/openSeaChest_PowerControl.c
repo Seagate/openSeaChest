@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.1.9";
+const char *buildVersion = "3.1.10";
 
 ////////////////////////////
 //  functions to declare  //
@@ -69,6 +69,7 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
+	NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
@@ -128,6 +129,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
+		NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -785,9 +787,9 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < toolVerbosity)
+    if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -2631,6 +2633,11 @@ void utility_Usage(bool shortUsage)
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_EPC_SETTINGS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, IDLE_B_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s standby_z\n", util_name, deviceHandleExample, TRANSITION_POWER_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2653,6 +2660,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
+	print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);

@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.1.3";
+const char *buildVersion = "3.1.5";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -82,6 +82,7 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
@@ -130,6 +131,7 @@ int32_t main(int argc, char *argv[])
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
+        NO_BANNER_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
         QUIET_LONG_OPT,
@@ -392,7 +394,7 @@ int32_t main(int argc, char *argv[])
         printf("\n");
     }
 
-    if (VERBOSITY_QUIET < toolVerbosity)
+    if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
         openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
@@ -635,13 +637,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -695,13 +697,13 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -940,7 +942,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
                         {
-                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
+                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
                             /*
                             DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
                             /*/
@@ -994,6 +996,7 @@ int32_t main(int argc, char *argv[])
                         switch (ret)
                         {
                         case SUCCESS:
+                        case POWER_CYCLE_REQUIRED:
                             exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE);
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
@@ -1007,6 +1010,10 @@ int32_t main(int argc, char *argv[])
                                     printf("Activate Time         ");
                                     print_Time(dlOptions.activateFWTime);
                                 }
+                            }
+                            if (ret == POWER_CYCLE_REQUIRED)
+                            {
+                                printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                             {
@@ -1128,32 +1135,45 @@ int32_t main(int argc, char *argv[])
                     dlOptions.existingFirmwareImage = true;
                 }
                 dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
+                if (DOWNLOAD_FW_FLAG)
+                {
+                    //delay a second as this can help if running a download immediately followed by activate-TJE
+                    delay_Seconds(1);
+                }
                 start_Timer(&commandTimer);
                 ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                 stop_Timer(&commandTimer);
                 switch (ret)
                 {
                 case SUCCESS:
+                case POWER_CYCLE_REQUIRED:
                     exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED);
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Firmware activation successful\n");
-                        fill_Drive_Info_Data(&deviceList[deviceIter]);
-                        if (NEW_FW_MATCH_FLAG)
+                        if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
-                            {
-                                printf("Successfully validated firmware after download!\n");
-                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
-                            }
-                            else
-                            {
-                                printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
-                            }
+                            printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
                         }
                         else
                         {
-                            printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                            fill_Drive_Info_Data(&deviceList[deviceIter]);
+                            if (NEW_FW_MATCH_FLAG)
+                            {
+                                if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                                {
+                                    printf("Successfully validated firmware after download!\n");
+                                    printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                }
+                                else
+                                {
+                                    printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                                }
+                            }
+                            else
+                            {
+                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                            }
                         }
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
@@ -1225,6 +1245,14 @@ void utility_Usage(bool shortUsage)
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\tUpdating firmware:\n");
+    printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware with deferred download and activating:\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware and specifying a firmware slot (NVMe)\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t  +\n");
+    printf("\t%s -d %s --%s --%s 2\n", util_name, deviceHandleExample, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, FIRMWARE_SLOT_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1296,6 +1324,7 @@ void utility_Usage(bool shortUsage)
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
     print_New_Firmware_Revision_Match_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);

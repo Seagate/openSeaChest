@@ -334,7 +334,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -343,7 +343,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -353,7 +353,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -362,7 +362,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
@@ -372,7 +372,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -381,7 +381,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|Win32'">
@@ -391,7 +391,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -401,7 +401,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|ARM'">
@@ -411,7 +411,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -421,7 +421,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|ARM64'">
@@ -431,7 +431,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -441,7 +441,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -451,7 +451,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -460,7 +460,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|x64'">
@@ -470,7 +470,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -480,7 +480,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -492,7 +492,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -503,7 +503,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -515,7 +515,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -526,7 +526,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -538,7 +538,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -549,7 +549,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|Win32'">
@@ -561,7 +561,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -573,7 +573,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|ARM'">
@@ -585,7 +585,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -597,7 +597,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|ARM64'">
@@ -609,7 +609,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -621,7 +621,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -633,7 +633,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -644,7 +644,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|x64'">
@@ -656,7 +656,7 @@
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\opensea-transport\include;..\..\..\opensea-operations\include;..\..\..\include;..\..\..\opensea-common\include;..\..\..\wingetopt\src;..\..\..\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -668,7 +668,7 @@
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
       <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
