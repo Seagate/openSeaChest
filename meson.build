@@ -1,4 +1,5 @@
-project('openSeaChest', 'c', license: 'MPL-2.0', version: '2.0.2', default_options : ['warning_level=2'])
+project('openSeaChest', 'c', license: 'MPL-2.0', version: '22.6.24', default_options : ['warning_level=2'])
+#note: project version is year.month.day
 
 c = meson.get_compiler('c')
 
@@ -19,7 +20,11 @@ warning_flags = [
 	'-Wlogical-op',
 	'-Wshift-overflow=2',
 	'-Wdouble-promotion',
-	'-Wformat-security'
+	'-Wformat-security',
+  '-Wold-style-definition',
+  '-Wstrict-prototypes',
+  '-Wmissing-declarations',
+  '-Wmissing-prototypes'
 ]
 
 add_project_arguments(c.get_supported_arguments(warning_flags), language : 'c')

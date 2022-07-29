@@ -3,7 +3,7 @@
 
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices
 
-### Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+### Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
@@ -264,7 +264,7 @@ The newest online version of the openSeaChest Utilities documentation, open
 source usage and acknowledgement licenses, and our Linux USB Boot Maker FAQ can
 be found at: [https://github.com/Seagate/openSeaChest](https://github.com/Seagate/openSeaChest).
 
-Copyright (c) 2014-2021 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 ### License
 

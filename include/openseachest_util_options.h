@@ -1959,12 +1959,11 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
     //
     //-----------------------------------------------------------------------------
     void print_Bug_Report_Email(bool shortHelp);
 
-    void print_Elevated_Privileges_Text();
+    void print_Elevated_Privileges_Text(void);
 
     //-----------------------------------------------------------------------------
     //
@@ -1975,7 +1974,7 @@ extern "C"
     //  Entry:
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Final_newline(void);
@@ -1991,7 +1990,7 @@ extern "C"
     //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Scan_Help(bool shortHelp, const char *helpdeviceHandleExample);
@@ -2008,7 +2007,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Scan_Flags_Help(bool shortHelp);
@@ -2024,7 +2023,7 @@ extern "C"
     //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample);
@@ -2039,7 +2038,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Device_Information_Help(bool shortHelp);
@@ -2054,7 +2053,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Verbose_Help(bool shortHelp);
@@ -2070,7 +2069,7 @@ extern "C"
     //!   \param[in] utilName = a string that is the name of the utility
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Quiet_Help(bool shortHelp, const char *utilName);
@@ -2086,7 +2085,7 @@ extern "C"
     //!   \param[in] utilName = a string that is the name of the utility
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Version_Help(bool shortHelp, const char *utilName);
@@ -2101,7 +2100,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //--------------------------------------------]---------------------------------
     void print_Confirm_Help(bool shortHelp);
@@ -2116,7 +2115,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_License_Help(bool shortHelp);
@@ -2131,7 +2130,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Echo_Command_Line_Help(bool shortHelp);
@@ -2146,7 +2145,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Help_Help(bool shortHelp);
@@ -2162,7 +2161,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_OutputPath_Help(bool shortHelp);
@@ -2177,7 +2176,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Poll_Help(bool shortHelp);
@@ -2193,7 +2192,7 @@ extern "C"
     //!   \param[in] password = a string that is the password used by the utility for the erase. Typically this is the name of the utility
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_ATA_Security_Erase_Help(bool shortHelp, const char *password);
@@ -2208,7 +2207,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Erase_Range_Help(bool shortHelp);
@@ -2223,7 +2222,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Erase_Time_Help(bool shortHelp);
@@ -2239,7 +2238,7 @@ extern "C"
     //!   \param[in] utilName = a string that is the name of the utility
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName);
@@ -2255,7 +2254,7 @@ extern "C"
     //!   \param[in] utilName = a string that is the name of the utility
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Sanitize_Help(bool shortHelp, const char *utilName);
@@ -2270,7 +2269,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Writesame_Help(bool shortHelp);
@@ -2285,7 +2284,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Writesame_Range_Help(bool shortHelp);
@@ -2300,7 +2299,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Revert_Help(bool shortHelp);
@@ -2315,7 +2314,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_RevertSP_Help(bool shortHelp);
@@ -2331,7 +2330,7 @@ extern "C"
     //!   \param[in] testsTogetProgressFor = this is a string formatted as: "[test1 | test2 | ...]" that is a list of the operations that the utility supports getting progress for
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Progress_Help(bool shortHelp, char* testsTogetProgressFor);
@@ -2355,7 +2354,7 @@ extern "C"
     //!   \param toolName - name of the tool the exit codes are being printed for. Must be non-null.
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSpecificxitCode toolSpecificExitCodeList, const char * toolName);
@@ -2370,7 +2369,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_SMART_Check_Help(bool shortHelp);
@@ -2385,7 +2384,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Short_DST_Help(bool shortHelp);
@@ -2401,7 +2400,7 @@ extern "C"
     //!   \param[in] commandWindowType = string that represents the name of a command window type for the current OS
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType);
@@ -2418,7 +2417,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_SMART_Attributes_Help(bool shortHelp);
@@ -2433,7 +2432,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Abort_DST_Help(bool shortHelp);
@@ -2449,7 +2448,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_IDD_Help(bool shortHelp);
@@ -2464,7 +2463,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Check_Power_Mode_Help(bool shortHelp);
@@ -2479,7 +2478,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Spindown_Help(bool shortHelp);
@@ -2494,7 +2493,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_EnableDisableEPC_Help(bool shortHelp);
@@ -2509,7 +2508,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_Help(bool shortHelp);
@@ -2534,7 +2533,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_State_Help(bool shortHelp);
@@ -2549,7 +2548,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Short_Generic_Help(bool shortHelp);
@@ -2564,7 +2563,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_two_Minute_Test_Help(bool shortHelp);
@@ -2579,7 +2578,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Long_Generic_Help(bool shortHelp);
@@ -2594,7 +2593,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_User_Generic_Start_Help(bool shortHelp);
@@ -2609,7 +2608,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_User_Generic_Range_Help(bool shortHelp);
@@ -2624,7 +2623,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Error_Limit_Help(bool shortHelp);
@@ -2639,7 +2638,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Stop_On_Error_Help(bool shortHelp);
@@ -2654,7 +2653,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Repair_At_End_Help(bool shortHelp);
@@ -2669,7 +2668,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Repair_On_Fly_Help(bool shortHelp);
@@ -2684,7 +2683,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Time_Hours_Help(bool shortHelp);
@@ -2699,7 +2698,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Time_Minutes_Help(bool shortHelp);
@@ -2714,7 +2713,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Time_Seconds_Help(bool shortHelp);
@@ -2729,7 +2728,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Random_Read_Test_Help(bool shortHelp);
@@ -2744,7 +2743,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Butterfly_Read_Test_Help(bool shortHelp);
@@ -2759,7 +2758,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Overwrite_Help(bool shortHelp);
@@ -2774,7 +2773,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Overwrite_Range_Help(bool shortHelp);
@@ -2789,7 +2788,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Trim_Unmap_Help(bool shortHelp);
@@ -2804,7 +2803,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Trim_Unmap_Range_Help(bool shortHelp);
@@ -2819,7 +2818,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Show_Power_Consumption_Help(bool shortHelp);
@@ -2834,7 +2833,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Set_Power_Consumption_Help(bool shortHelp);
@@ -2849,7 +2848,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
@@ -3114,7 +3113,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Pull_Device_Statistics_Log_Help(bool shortHelp);
@@ -3129,7 +3128,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Pull_Informational_Exceptions_Log_Help(bool shortHelp);
@@ -3144,7 +3143,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Pull_Self_Test_Results_Log_Help(bool shortHelp);
@@ -3159,7 +3158,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Pull_Identify_Device_Data_Log_Help(bool shortHelp);
@@ -3174,7 +3173,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_Pull_SATA_Phy_Event_Counters_Log_Help(bool shortHelp);
@@ -3189,7 +3188,7 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //!
     //  Exit:
-    //!   \return VOID
+
     //
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);

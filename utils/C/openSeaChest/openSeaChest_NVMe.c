@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.7";
+const char *buildVersion = "2.0.8";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1580,7 +1580,7 @@ int32_t main(int argc, char *argv[])
 
         if (DOWNLOAD_FW_FLAG)
         {
-            FILE *firmwareFilePtr = NULL;
+            FILE* firmwareFilePtr = NULL;
             bool fileOpenedSuccessfully = true;//assume true in case of activate command
             if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
             {
@@ -1597,8 +1597,8 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
-                uint8_t *firmwareMem = C_CAST(uint8_t*, calloc(firmwareFileSize, sizeof(uint8_t)));
+                size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
+                uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
                     supportedDLModes supportedFWDLModes;
@@ -1609,8 +1609,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (!USER_SET_DOWNLOAD_MODE)
                         {
-                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
-                            //They said 6 months to a year from 8/30/16 - TJE
+                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
                             /*
                             DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
                             /*/
@@ -1629,7 +1628,7 @@ int32_t main(int argc, char *argv[])
                                     DOWNLOAD_FW_MODE = DL_FW_FULL;
                                 }
                             }
-                            //For now, setting deferred download as default for NVMe drives. 
+                            //For now, setting deferred download as default for NVMe drives.
                             if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
                             {
                                 DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
@@ -1637,7 +1636,7 @@ int32_t main(int argc, char *argv[])
                             //*/
                         }
                     }
-                    if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
+                    if (firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
                         firmwareUpdateData dlOptions;
                         seatimer_t commandTimer;
@@ -1654,6 +1653,7 @@ int32_t main(int argc, char *argv[])
                         {
                             dlOptions.segmentSize = 0;
                         }
+                        dlOptions.ignoreStatusOfFinalSegment = false;
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
@@ -1663,6 +1663,7 @@ int32_t main(int argc, char *argv[])
                         switch (ret)
                         {
                         case SUCCESS:
+                        case POWER_CYCLE_REQUIRED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Firmware Download successful\n");
@@ -1676,11 +1677,19 @@ int32_t main(int argc, char *argv[])
                                     print_Time(dlOptions.activateFWTime);
                                 }
                             }
+                            if (ret == POWER_CYCLE_REQUIRED)
+                            {
+                                printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
+                            }
                             if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Firmware download complete. Reboot or run the --%s command to finish installing the firmware.\n", ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    }
                                 }
                             }
                             else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
@@ -1688,6 +1697,10 @@ int32_t main(int argc, char *argv[])
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("This drive requires a full power cycle to activate the new code.\n");
+                                }
+                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                {
+                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             else
@@ -1710,6 +1723,10 @@ int32_t main(int argc, char *argv[])
                                     else
                                     {
                                         printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                    }
+                                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                    {
+                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
                             }
@@ -1738,7 +1755,7 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free(firmwareMem);
+                    safe_Free_aligned(firmwareMem)
                 }
                 else
                 {
@@ -1781,31 +1798,49 @@ int32_t main(int argc, char *argv[])
                 {
                     dlOptions.existingFirmwareImage = true;
                 }
+                dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
+                if (DOWNLOAD_FW_FLAG)
+                {
+                    //delay a second as this can help if running a download immediately followed by activate-TJE
+                    delay_Seconds(1);
+                }
                 start_Timer(&commandTimer);
                 ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                 stop_Timer(&commandTimer);
                 switch (ret)
                 {
                 case SUCCESS:
+                case POWER_CYCLE_REQUIRED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Firmware activation successful\n");
-                        fill_Drive_Info_Data(&deviceList[deviceIter]);
-                        if (NEW_FW_MATCH_FLAG)
+                        if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
-                            {
-                                printf("Successfully validated firmware after download!\n");
-                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
-                            }
-                            else
-                            {
-                                printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
-                            }
+                            printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
                         }
                         else
                         {
-                            printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                            fill_Drive_Info_Data(&deviceList[deviceIter]);
+                            if (NEW_FW_MATCH_FLAG)
+                            {
+                                if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
+                                {
+                                    printf("Successfully validated firmware after download!\n");
+                                    printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                                }
+                                else
+                                {
+                                    printf("Unable to verify firmware after download!, expected %s, but found %s\n", NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision);
+                                }
+                            }
+                            else
+                            {
+                                printf("New firmware version is %s\n", deviceList[deviceIter].drive_info.product_revision);
+                            }
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;

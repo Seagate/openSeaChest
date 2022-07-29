@@ -86,7 +86,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs);
 #define PT_DRIVE_HINT_LONG_OPT_STRING "ptDriveHint"
 #define PT_DRIVE_HINT_LONG_OPT { PT_DRIVE_HINT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-void print_Drive_Type_Hint_Help(bool shortHelp)
+static void print_Drive_Type_Hint_Help(bool shortHelp)
 {
     printf("\t--%s [ata | nvme]\n", PT_DRIVE_HINT_LONG_OPT_STRING);
     if (!shortHelp)
@@ -104,7 +104,7 @@ void print_Drive_Type_Hint_Help(bool shortHelp)
 #define PT_PTTYPE_HINT_LONG_OPT_STRING "ptTypeHint"
 #define PT_PTTYPE_HINT_LONG_OPT { PT_PTTYPE_HINT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-void print_Passthrough_Type_Hint_Help(bool shortHelp)
+static void print_Passthrough_Type_Hint_Help(bool shortHelp)
 {
     printf("\t--%s [sat | legacyATA]\n", PT_PTTYPE_HINT_LONG_OPT_STRING);
     if (!shortHelp)
@@ -128,7 +128,7 @@ void print_Passthrough_Type_Hint_Help(bool shortHelp)
 #define DISABLE_PT_TESTING_LONG_OPT_STRING "disablePassthroughTesting"
 #define DISABLE_PT_TESTING_LONG_OPT { DISABLE_PT_TESTING_LONG_OPT_STRING, no_argument, &DISABLE_PT_TESTING, 1 }
 
-void print_Disable_PT_Testing_Help(bool shortHelp)
+static void print_Disable_PT_Testing_Help(bool shortHelp)
 {
     printf("\t--%s\n", DISABLE_PT_TESTING_LONG_OPT_STRING);
     if (!shortHelp)
@@ -143,7 +143,7 @@ void print_Disable_PT_Testing_Help(bool shortHelp)
 #define ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING "enableLegacyATAPTTest"
 #define ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT { ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING, no_argument, &ENABLE_LEGACY_ATA_PT_TESTING, 1 }
 
-void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
+static void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
 {
     printf("\t--%s\n", ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING);
     if (!shortHelp)
@@ -172,7 +172,7 @@ void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
 #define ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING "enableHangCmdsTest"
 #define ENABLE_HANG_COMMANDS_TEST_LONG_OPT { ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
+static void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
 {
     printf("\t--%s [all | zlr | sctgpl | rrTdir]\n", ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING);
     if (!shortHelp)
@@ -197,7 +197,7 @@ void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
 #define FORCE_RETEST_LONG_OPT_STRING "forceRetest"
 #define FORCE_RETEST_LONG_OPT { FORCE_RETEST_LONG_OPT_STRING, no_argument, &FORCE_RETEST, 1 }
 
-void print_Force_Retest_Help(bool shortHelp)
+static void print_Force_Retest_Help(bool shortHelp)
 {
     printf("\t--%s\n", FORCE_RETEST_LONG_OPT_STRING);
     if (!shortHelp)
@@ -209,7 +209,7 @@ void print_Force_Retest_Help(bool shortHelp)
     }
 }
 
-void print_Run_Passthrough_Test_Help(bool shortHelp)
+static void print_Run_Passthrough_Test_Help(bool shortHelp)
 {
     printf("\t--%s\n", RUN_PASSTHROUGH_TEST_LONG_OPT_STRING);
     if (!shortHelp)
@@ -1053,7 +1053,7 @@ int32_t main(int argc, char *argv[])
     exit(exitCode);
 }
 
-int return_Response_Extend_Bit_Test(tDevice *device)
+static int return_Response_Extend_Bit_Test(tDevice *device)
 {
     int ret = NOT_SUPPORTED;
     //Do additional command testing to check if the extend bit is reported correctly or not.
@@ -1174,7 +1174,7 @@ int return_Response_Extend_Bit_Test(tDevice *device)
     return ret;
 }
 
-void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddress, uint32_t logSize)
+static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddress, uint32_t logSize)
 {
     uint8_t *log = C_CAST(uint8_t*, calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (log)
@@ -1324,12 +1324,14 @@ void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t logAddre
     }
 }
 
-void multi_Sector_PIO_Test_With_Read_Write(M_ATTR_UNUSED tDevice *device)
-{
-    return;
-}
+//TODO: Use this function to do a read and write test to compare results in different sectors.
+//      will only be needed if unable to use logs method below
+// static void multi_Sector_PIO_Test_With_Read_Write(M_ATTR_UNUSED tDevice *device)
+// {
+//     return;
+// }
 
-void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
+static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
 {
     printf("Checking multi-sector PIO command support\n");
     bool foundMultiSectorLogPage = false;
@@ -1502,7 +1504,7 @@ void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool smartLoggi
     return;
 }
 
-void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported)
+static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported)
 {
     //Attempt UDMA mode first
     uint64_t lba = 0;
@@ -1569,7 +1571,7 @@ void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smartSupport
     return;
 }
 
-void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
+static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLoggingSupported)
 {
     //Test check condition bit
     printf("Testing for check condition bit support on any command\n");
@@ -1690,7 +1692,7 @@ void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool smartLo
 }
 
 #include "sat_helper_func.h"
-void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported, bool testWithoutTDirAllowed)
+static void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartSupported, M_ATTR_UNUSED bool smartLoggingSupported, bool testWithoutTDirAllowed)
 {
     printf("Testing for support of Return Response Info protocol\n");
     //Test return response information - TODO: May need to try issuing some command before we do this test.
@@ -1973,7 +1975,7 @@ typedef struct _scsiDevInfo
 
 }scsiDevInformation, *ptrScsiDevInformation;
 
-void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n=========================\n");
@@ -3609,7 +3611,7 @@ void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     }
 }
 
-int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n====================\n");
@@ -3954,7 +3956,7 @@ int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     return SUCCESS;
 }
 
-int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     //Read capacity. Start with 10, then do 16. Emit warnings when 16 doesn't work and the scsi versions is greater than SPC2
     //If read capacity 10 comes back saying UINT32_MAX for capacity, warn that this mismatches the SCSI version reported.
@@ -4026,7 +4028,7 @@ int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo
     return SUCCESS;
 }
 
-int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
+static int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
 {
     int ret = SUCCESS;
     if (!use6Byte)
@@ -4085,7 +4087,7 @@ int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
     return ret;
 }
 
-int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageCode, bool sixByte, uint8_t **dataBuffer /*to allow for reallocation/resize if necessary to get the full page*/, uint32_t *dataBufferLength)
+static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageCode, bool sixByte, uint8_t **dataBuffer /*to allow for reallocation/resize if necessary to get the full page*/, uint32_t *dataBufferLength)
 {
     int ret = SUCCESS;
     memset(*dataBuffer, 0, *dataBufferLength);
@@ -4217,7 +4219,7 @@ int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageC
 }
 
 //TODO: Validate or check for default, changable, and saved values? Only checking current right now - TJE
-int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     bool successfullyReadAtLeastOnePage = false;
     bool use6Byte = false;
@@ -4785,7 +4787,7 @@ int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 }
 
 //TODO: we can clean up the loops in each case to most likely a single loop somewhere, but will need to figure out a method to save the data fields we care about...-TJE
-int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==========================\n");
@@ -6018,7 +6020,7 @@ typedef struct _scsiRWSupport
     bool nonZeroSectorCountRequired;
 }scsiRWSupport, *ptrScsiRWSupport;
 
-int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport rwSupport, bool testZeroLengthTransfersToo)
+static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport rwSupport, bool testZeroLengthTransfersToo)
 {
     if (!device || ! rwSupport)
     {
@@ -6144,7 +6146,7 @@ typedef struct _otherSCSICmdSupport
     bool testUnitReady;
 }otherSCSICmdSupport, *ptrOtherSCSICmdSupport;
 
-bool does_Sense_Data_Show_Invalid_OP(tDevice *device)
+static bool does_Sense_Data_Show_Invalid_OP(tDevice *device)
 {
     bool invalidOperationCode = false;
     senseDataFields senseFields;
@@ -6157,7 +6159,7 @@ bool does_Sense_Data_Show_Invalid_OP(tDevice *device)
     return invalidOperationCode;
 }
 
-bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice *device)
+static bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice *device)
 {
     bool invalidField = false;
     senseDataFields senseFields;
@@ -6170,20 +6172,20 @@ bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice *device)
     return invalidField;
 }
 
-bool does_Sense_Data_Show_Invalid_Field_In_Parameter_List(tDevice *device)
-{
-    bool invalidField = false;
-    senseDataFields senseFields;
-    memset(&senseFields, 0, sizeof(senseDataFields));
-    get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-    if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x26 && senseFields.scsiStatusCodes.ascq == 0x00)
-    {
-        invalidField = true;
-    }
-    return invalidField;
-}
+// static bool does_Sense_Data_Show_Invalid_Field_In_Parameter_List(tDevice *device)
+// {
+//     bool invalidField = false;
+//     senseDataFields senseFields;
+//     memset(&senseFields, 0, sizeof(senseDataFields));
+//     get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
+//     if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x26 && senseFields.scsiStatusCodes.ascq == 0x00)
+//     {
+//         invalidField = true;
+//     }
+//     return invalidField;
+// }
 
-int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
+static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
 {
     if (!device || !scsiCmds)
     {
@@ -6338,7 +6340,7 @@ int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
 }
 
 #include <math.h>
-int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGood)
+static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGood)
 {
     if (!device)
     {
@@ -6456,7 +6458,7 @@ int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGo
     return SUCCESS;
 }
 
-int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool sctSupported)
+static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool sctSupported)
 {
     if (!device)
     {
@@ -6534,7 +6536,7 @@ int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool s
     return NOT_SUPPORTED;
 }
 
-void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bool *smartLoggingSupported, bool *sctSupported)
+static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bool *smartLoggingSupported, bool *sctSupported)
 {
     uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
     uint16_t *ident_word = (uint16_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
@@ -6794,7 +6796,7 @@ void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bo
     return;
 }
 
-int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint8_t cdbSize)
+static int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint8_t cdbSize)
 {
     int ret = UNKNOWN;
     ataPassthroughCommand identify;
@@ -6866,7 +6868,7 @@ int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint
     return ret;
 }
 
-int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
+static int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
 {
     int ret = NOT_SUPPORTED;
     if (device->drive_info.ata_Options.generalPurposeLoggingSupported)
@@ -6891,7 +6893,7 @@ int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
     return ret;
 }
 
-bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
+static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n=====================================\n");
@@ -7260,7 +7262,7 @@ bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInformatio
     return satSupported;
 }
 
-bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
+static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInformation scsiInformation)
 {
     bool legacyATAPassthroughSupported = false;
     set_Console_Colors(true, HEADING_COLOR);
@@ -7406,7 +7408,7 @@ bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsiDevInfo
 
 #define THIRTY_TWO_KB UINT32_C(32768)
 #define MAX_SCSI_SECTORS_TO_TEST UINT32_C(4096)
-int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_t reportedOptimal)
+static int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_t reportedOptimal)
 {
     uint32_t maxTestSizeBlocks = MAX_SCSI_SECTORS_TO_TEST;
     if (reportedMax > 0)
@@ -7467,7 +7469,7 @@ int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_
 }
 
 
-int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uint32_t dataSize)
+static int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uint32_t dataSize)
 {
     int ret = SUCCESS;//assume success
     uint16_t sectors = 0;
@@ -7720,7 +7722,7 @@ int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uin
 }
 
 #define MAX_ATA_SECTORS_TO_TEST UINT32_C(4096)
-int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiReportedMax, uint32_t scsiReportedOptimal)
+static int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiReportedMax, uint32_t scsiReportedOptimal)
 {
     uint32_t maxTestSizeBlocks = MAX_ATA_SECTORS_TO_TEST;
     if (scsiReportedMax > 0)

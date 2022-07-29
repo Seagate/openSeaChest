@@ -31,7 +31,6 @@ extern "C"
     //!   \param showZlibLicesne = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
-    //!   \return VOID
     //
     //-----------------------------------------------------------------------------
     void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense);
@@ -47,7 +46,6 @@ extern "C"
     //!   \param showZlibLicesne = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
-    //!   \return VOID
     //
     //-----------------------------------------------------------------------------
     void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense);
