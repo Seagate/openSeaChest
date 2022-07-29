@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.0.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -899,7 +899,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_LOG_PULL_FLAG)
         {
-            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -961,7 +961,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_ERROR_HISTORY_PULL_FLAG)
         {
-            switch (pull_Generic_Error_History(&deviceList[deviceIter], C_CAST(uint8_t, GENERIC_ERROR_HISTORY_BUFFER_ID), PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_Generic_Error_History(&deviceList[deviceIter], C_CAST(uint8_t, GENERIC_ERROR_HISTORY_BUFFER_ID), PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -994,7 +994,7 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, 0))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
