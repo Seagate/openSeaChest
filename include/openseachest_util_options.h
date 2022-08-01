@@ -147,6 +147,12 @@ extern "C"
     #define TEST_UNIT_READY_LONG_OPT_STRING "testUnitReady"
     #define TEST_UNIT_READY_LONG_OPT { TEST_UNIT_READY_LONG_OPT_STRING, no_argument, &TEST_UNIT_READY_FLAG, goTrue }
 
+	#define FAST_DISCOVERY_FLAG fastDiscovery
+	#define FAST_DISCOVERY_VAR \
+		getOptBool FAST_DISCOVERY_FLAG = goFalse;
+	#define FAST_DISCOVERY_LONG_OPT_STRING "fastDiscovery"
+	#define FAST_DISCOVERY_LONG_OPT { FAST_DISCOVERY_LONG_OPT_STRING, no_argument, &FAST_DISCOVERY_FLAG, goTrue }
+
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
     #define ONLY_SEAGATE_LONG_OPT_STRING "onlySeagate"
@@ -2852,6 +2858,21 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
+
+	//-----------------------------------------------------------------------------
+	//
+	//  print_Fast_Discovery_Help()	
+	//
+	//! \brief   Description:  This function prints out the short or long help for the fast discovery option
+	//
+	//  Entry:
+	//!   \param[in] shortHelp = bool used to select when to print short or long help
+	//
+	//  Exit:
+	//!   \return VOID
+	//
+	//-----------------------------------------------------------------------------
+	void print_Fast_Discovery_Help(bool shortUsage);
 
     void print_Firmware_Download_Help(bool shortHelp);
 

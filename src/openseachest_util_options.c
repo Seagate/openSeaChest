@@ -1343,6 +1343,15 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
     }
 }
 
+void print_Fast_Discovery_Help(bool shortHelp)
+{
+	printf("\t--%s\n", FAST_DISCOVERY_LONG_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option  to issue a fast scan on the specified drive. \n\n");
+	}
+}
+
 void print_Firmware_Download_Help(bool shortHelp)
 {
     printf("\t--%s [firmware_filename]\n", DOWNLOAD_FW_LONG_OPT_STRING);
