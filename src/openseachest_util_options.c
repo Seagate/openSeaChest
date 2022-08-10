@@ -2038,7 +2038,11 @@ void print_Log_Mode_Help(bool shortHelp)
         printf("\t\t\traw - Pulls log & prints it to the\n");
         printf("\t\t\t      screen as stdout. (default)\n");
         printf("\t\t\tbin - Pulls log & saves it to\n");
-        printf("\t\t\t      a timestamped binary file.\n\n");
+        printf("\t\t\t      a timestamped binary file.\n");
+        printf("\t\t\tpipe - Pulls log, prints it to the\n");
+        printf("\t\t\t       screen as stdout & send the\n");
+        printf("\t\t\t       result to openSeaChest_LogParser.\n");
+        printf("\t\t\t       (available for FARM only)\n\n");
     }
 }
 

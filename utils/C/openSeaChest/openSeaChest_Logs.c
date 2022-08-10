@@ -93,7 +93,7 @@ int32_t main(int argc, char *argv[])
     GENERIC_LOG_VAR
     GENERIC_LOG_SUBPAGE_VAR
     GENERIC_ERROR_HISTORY_VARS
-    PULL_LOG_MODE_VARS
+    PULL_LOG_MODE_VAR
     FARM_VAR
     DST_LOG_VAR
     IDENTIFY_DEVICE_DATA_LOG_VAR
@@ -312,6 +312,15 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "bin") == 0)
                 {
                     PULL_LOG_MODE = PULL_LOG_BIN_FILE_MODE;
+                }
+                else if (strcmp(optarg, "pipe") == 0)
+                {
+                    PULL_LOG_MODE = PULL_LOG_PIPE_MODE;
+                    NO_BANNER_FLAG = true;
+                    if (!FARM_PULL_FLAG)
+                    {
+                        printf("Unsupported pipe feature for this log! \n");
+                    }
                 }
                 else
                 {
@@ -828,7 +837,10 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
+            {
+                printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            }     
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -994,12 +1006,15 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_MODE))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully pulled FARM log\n");
+                    if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
+                    {
+                        printf("Successfully pulled FARM log\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
