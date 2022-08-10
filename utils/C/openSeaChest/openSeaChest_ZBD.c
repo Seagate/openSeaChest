@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -72,6 +72,7 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+	FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -114,6 +115,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+		FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -578,6 +580,11 @@ int32_t main(int argc, char *argv[])
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
+
+	if (FAST_DISCOVERY_FLAG)
+	{
+		flags = FAST_SCAN;
+	}
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -1148,6 +1155,7 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
+	print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Close_Zone_Help(shortUsage);
     print_Finish_Zone_Help(shortUsage);
