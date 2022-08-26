@@ -129,6 +129,13 @@ ifeq ($(UNAME),FreeBSD)
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
+ifeq ($(UNAME),AIX)
+	LFLAGS += -lm -lodm
+	TCGLFLAGS += -lm -lodm
+	STRIPOPTS=
+	CFLAGS +=
+endif
+
 
 MACHINE := $(shell uname -m)
 
