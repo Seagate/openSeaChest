@@ -1573,6 +1573,13 @@ extern "C"
     #define FARM_LONG_OPT_STRING "farm"
     #define FARM_LONG_OPT { FARM_LONG_OPT_STRING, no_argument, &FARM_PULL_FLAG, goTrue }
 
+    //FARM Combined Log
+    #define FARM_COMBINED_FLAG  pullFarmCombinedLog
+    #define FARM_COMBINED_VAR \
+    getOptBool FARM_COMBINED_FLAG = goFalse;
+    #define FARM_COMBINED_LONG_OPT_STRING "farmCombined"
+    #define FARM_COMBINED_LONG_OPT { FARM_COMBINED_LONG_OPT_STRING, no_argument, &FARM_COMBINED_FLAG, goTrue }
+
     //DST Log (standard spec)
     #define DST_LOG_FLAG pullDSTLog
     #define DST_LOG_VAR \
@@ -3212,6 +3219,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
+
+    void print_FARM_Combined_Log_Help(bool shortUsage);
 
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 

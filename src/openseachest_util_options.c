@@ -3372,6 +3372,18 @@ void print_FARM_Log_Help(bool shortHelp)
     }
 }
 
+void print_FARM_Combined_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FARM_COMBINED_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPull the Seagate Combined Field Accessible Reliability Metrics (FARM)\n");
+        printf("\t\tLog from the specified drive. This log contains a combination of all\n");
+        printf("\t\tFARM Sub Log Pages in a single Log File.Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARMC<date and time>.FRMC\n\n");
+    }
+}
+
 void print_Show_SMART_Error_Log_Help(bool shortHelp)
 {
     printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
