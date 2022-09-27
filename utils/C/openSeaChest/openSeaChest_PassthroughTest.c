@@ -6400,7 +6400,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     device->drive_info.defaultTimeoutSeconds = 15;
 
     //now loop through 10 bad commands and check the timing and see if it got super slow
-    for (uint8_t counter = 0; counter < MAX_COMMANDS_TO_TRY && commandIter < MAX_COMMANDS_TO_TRY && ret != COMMAND_TIMEOUT; ++counter)
+    for (uint8_t counter = 0; counter < MAX_COMMANDS_TO_TRY && commandIter < MAX_COMMANDS_TO_TRY && ret != OS_COMMAND_TIMEOUT; ++counter)
     {
         ret = scsi_Mode_Sense_10(device, pageCode, 255, subpage, true, false, MPC_CURRENT_VALUES, dataBuffer);
         commandTimes[commandIter] = device->drive_info.lastCommandTimeNanoSeconds;
@@ -6432,7 +6432,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     printf("\tAverage return time from bad commands: %" PRIu64 " nanoseconds\n", averageFromBadCommands);
     printf("\tCommand time ratio (bad compared to good): %0.02f\n", xTimesHigher);
 
-    if (ret == COMMAND_TIMEOUT || xTimesHigher > 3.0)//2 is pretty bad, but not uncommon, so moved up to 3.0 to be a little conservative. Don't want or need to enable this on everything. - TJE
+    if (ret == OS_COMMAND_TIMEOUT || xTimesHigher > 3.0)//2 is pretty bad, but not uncommon, so moved up to 3.0 to be a little conservative. Don't want or need to enable this on everything. - TJE
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
