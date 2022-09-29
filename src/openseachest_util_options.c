@@ -36,6 +36,10 @@ const char *commandWindowType = "command";
 const char *deviceHandleExample = "/dev/rdsk/c?t?d?";
 const char *deviceHandleName = "<rdsk_device>";
 const char *commandWindowType = "shell";
+#elif defined (_AIX)
+const char *deviceHandleExample = "/dev/rhdisk?";
+const char *deviceHandleName = "<rhdisk_device>";
+const char *commandWindowType = "shell";
 #else
 #error "OS Not Defined or known"
 #endif
