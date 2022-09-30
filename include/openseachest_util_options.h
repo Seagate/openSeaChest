@@ -1306,7 +1306,7 @@ extern "C"
     #define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define PULL_LOG_MODE logMode
-    #define PULL_LOG_MODE_VAR eLogPullMode PULL_LOG_MODE = 0;
+    #define PULL_LOG_MODE_VAR eLogPullMode PULL_LOG_MODE = 1; //default as a binary file
     #define PULL_LOG_MODE_LONG_OPT_STRING "logMode"
     #define PULL_LOG_MODE_LONG_OPT { PULL_LOG_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
 

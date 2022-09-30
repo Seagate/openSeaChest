@@ -3367,8 +3367,8 @@ void print_FARM_Log_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tPull the Seagate Field Accessible Reliability Metrics (FARM)\n");
-        printf("\t\tLog from the specified drive.\n");
-        printf("\t\tUse --logMode to specify how FARM is pulled.\n\n");
+        printf("\t\tLog from the specified drive. Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin (as default)\n\n");
     }
 }
 
