@@ -397,6 +397,7 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
+	$(MAKE) -C ../../subprojects/wingetopt clean
 	$(MAKE) -C ../../subprojects/opensea-common/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-transport/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-operations/Make/gcc clean
