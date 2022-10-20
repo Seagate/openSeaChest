@@ -3384,6 +3384,19 @@ void print_FARM_Combined_Log_Help(bool shortHelp)
     }
 }
 
+void print_Sata_FARM_Copy_Type_Flag_Help(bool shortHelp)
+{
+    printf("\t--%s [ disc | flash ]\t(SATA Only)\n", SATA_FARM_COPY_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to provide copy type while extracting FARM copy type with --%s\n", FARM_COMBINED_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"disc\"\n");
+        printf("\t\t    disc - Pull Disc copy of SATA Farm logs.\n");
+        printf("\t\t    flash - Pull Flash copy of SATA Farm logs.\n");
+        printf("\n");
+    }
+}
+
 void print_Show_SMART_Error_Log_Help(bool shortHelp)
 {
     printf("\t--%s [ summary | comprehensive ]\t(SATA Only)\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);

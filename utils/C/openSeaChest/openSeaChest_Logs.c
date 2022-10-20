@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.2.0";
+const char *buildVersion = "2.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -98,6 +98,7 @@ int32_t main(int argc, char *argv[])
     PULL_LOG_MODE_VAR
     FARM_VAR
     FARM_COMBINED_VAR
+    SATA_FARM_COPY_TYPE_VARS
     DST_LOG_VAR
     IDENTIFY_DEVICE_DATA_LOG_VAR
     SATA_PHY_COUNTERS_LOG_VAR
@@ -154,6 +155,7 @@ int32_t main(int argc, char *argv[])
         PULL_LOG_MODE_LONG_OPT,
         FARM_LONG_OPT,
         FARM_COMBINED_LONG_OPT,
+        SATA_FARM_COPY_TYPE_LONG_OPT,
         DST_LOG_LONG_OPT,//standard spec log
         DEVICE_STATS_LOG_LONG_OPT,//standard spec log
         IDENTIFY_DEVICE_DATA_LOG_LONG_OPT,//standard ATA spec log
@@ -330,6 +332,22 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(PULL_LOG_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SATA_FARM_COPY_TYPE_LONG_OPT_STRING, strlen(SATA_FARM_COPY_TYPE_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp(optarg, "disc") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_DISC;
+                }
+                else if (strcmp(optarg, "flash") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_FLASH;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SATA_FARM_COPY_TYPE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -1048,7 +1066,7 @@ int32_t main(int argc, char *argv[])
         if (FARM_COMBINED_FLAG)
         {
             //PULL FARM Log containing all FARM sub Log pages
-            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
+            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SATA_FARM_COPY_TYPE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1291,6 +1309,7 @@ void utility_Usage(bool shortUsage)
     //SATA Only Options
     printf("\n\tSATA Only:\n\n");
     print_Pull_Identify_Device_Data_Log_Help(shortUsage);
+    print_Sata_FARM_Copy_Type_Flag_Help(shortUsage);
     print_Pull_SATA_Phy_Event_Counters_Log_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\n");

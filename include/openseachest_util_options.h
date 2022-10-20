@@ -1580,6 +1580,11 @@ extern "C"
     #define FARM_COMBINED_LONG_OPT_STRING "farmCombined"
     #define FARM_COMBINED_LONG_OPT { FARM_COMBINED_LONG_OPT_STRING, no_argument, &FARM_COMBINED_FLAG, goTrue }
 
+    #define SATA_FARM_COPY_TYPE_FLAG sataFarmCopyType
+    #define SATA_FARM_COPY_TYPE_VARS int SATA_FARM_COPY_TYPE_FLAG = 1; // 1 : Disc, 2: Flash (Default is Disc type)
+    #define SATA_FARM_COPY_TYPE_LONG_OPT_STRING "SATAFarmCopyType"
+    #define SATA_FARM_COPY_TYPE_LONG_OPT { SATA_FARM_COPY_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //DST Log (standard spec)
     #define DST_LOG_FLAG pullDSTLog
     #define DST_LOG_VAR \
@@ -3221,6 +3226,8 @@ extern "C"
     void print_FARM_Log_Help(bool shortHelp);
 
     void print_FARM_Combined_Log_Help(bool shortUsage);
+
+    void print_Sata_FARM_Copy_Type_Flag_Help(bool shortUsage);
 
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
