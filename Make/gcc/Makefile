@@ -25,20 +25,23 @@ LFLAGS ?= \
 	-Wall \
 	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
+	../../subprojects/wingetopt/lib/libwingetopt.a
 TCGLFLAGS ?= \
 	-Wall \
 	../../subprojects/SeaCTCGOperations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCGOperations.a \
 	../../subprojects/SeaCTCG/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libSeaCTCG.a \
 	../../subprojects/opensea-operations/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-operations.a \
 	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
-	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a
+	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
+	../../subprojects/wingetopt/lib/libwingetopt.a
 INC_DIR ?= \
 	-I../../subprojects/opensea-common/include \
 	-I../../subprojects/opensea-transport/include \
 	-I../../subprojects/opensea-transport/include/vendor \
 	-I../../include \
-	-I../../subprojects/opensea-operations/include
+	-I../../subprojects/opensea-operations/include \
+	-I../../subprojects/wingetopt/src
 
 UNAME := $(shell uname -s)
 
@@ -129,6 +132,13 @@ ifeq ($(UNAME),FreeBSD)
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
+ifeq ($(UNAME),AIX)
+	LFLAGS += -lm -lodm -lcfg
+	TCGLFLAGS += -lm -lodm -lcfg
+	STRIPOPTS=
+	CFLAGS +=
+endif
+
 
 MACHINE := $(shell uname -m)
 
@@ -139,68 +149,71 @@ ifeq ($(MACHINE), x86_64)
 endif
 
 #Files for the final binary
+EULA_SRC = ../../src/EULA.c
+UTIL_OPTS_SRC = ../../src/openseachest_util_options.c
 
 NVMEOUTFILE = openSeaChest_NVMe
-NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c ../../src/EULA.c ../../src/openseachest_util_options.c
+NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 NVMEOBJS = $(NVMESOURCES:.c=.o)
 
 ERASEOUTFILE = openSeaChest_Erase
-ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c ../../src/EULA.c ../../src/openseachest_util_options.c
+ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 ERASEOBJS = $(ERASESOURCES:.c=.o)
 
 SMARTOUTFILE = openSeaChest_SMART
-SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c ../../src/EULA.c ../../src/openseachest_util_options.c
+SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 SMARTOBJS = $(SMARTSOURCES:.c=.o)
 
 POWERCONTROLOUTFILE = openSeaChest_PowerControl
-POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c ../../src/EULA.c ../../src/openseachest_util_options.c
+POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 POWERCONTROLOBJS = $(POWERCONTROLSOURCES:.c=.o)
 
 GENERICTESTSOUTFILE = openSeaChest_GenericTests
-GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c ../../src/EULA.c ../../src/openseachest_util_options.c
+GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 GENERICTESTSOBJS = $(GENERICTESTSSOURCES:.c=.o)
 
 BASICSOUTFILE = openSeaChest_Basics
-BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c ../../src/EULA.c ../../src/openseachest_util_options.c
+BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 BASICSOBJS = $(BASICSSOURCES:.c=.o)
 
 SECURITYOUTFILE = openSeaChest_Security
-SECURITYSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Security.c ../../src/EULA.c ../../src/openseachest_util_options.c
+SECURITYSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Security.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 SECURITYOBJS = $(SECURITYSOURCES:.c=.o)
 
 CONFIGUREOUTFILE = openSeaChest_Configure
-CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c ../../src/EULA.c ../../src/openseachest_util_options.c
+CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 CONFIGUREOBJS = $(CONFIGURESOURCES:.c=.o)
 
 INFOOUTFILE = openSeaChest_Info
-INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c ../../src/EULA.c ../../src/openseachest_util_options.c
+INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 INFOOBJS = $(INFOSOURCES:.c=.o)
 
 ZBDOUTFILE = openSeaChest_ZBD
-ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c ../../src/EULA.c ../../src/openseachest_util_options.c
+ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 ZBDOBJS = $(ZBDSOURCES:.c=.o)
 
 FORMATOUTFILE = openSeaChest_FormatUnit
-FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c ../../src/EULA.c ../../src/openseachest_util_options.c
+FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 FORMATOBJS = $(FORMATSOURCES:.c=.o)
 
 LOGSOUTFILE = openSeaChest_Logs
-LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c ../../src/EULA.c ../../src/openseachest_util_options.c
+LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 LOGSOBJS = $(LOGSSOURCES:.c=.o)
 
 PASSTHROUGHTESTOUTFILE = openSeaChest_PassthroughTest
-PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c ../../src/EULA.c ../../src/openseachest_util_options.c
+PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 PASSTHROUGHTESTOBJS = $(PASSTHROUGHTESTSOURCES:.c=.o)
 
 RESERVATIONSOUTFILE = openSeaChest_Reservations
-RESERVATIONSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Reservations.c ../../src/EULA.c ../../src/openseachest_util_options.c
+RESERVATIONSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Reservations.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
 RESERVATIONSOBJS = $(RESERVATIONSSOURCES:.c=.o)
 
 FIRMWAREOUTFILE = openSeaChest_Firmware
 FIRMWARESOURCES = \
 	$(UTIL_SRC_DIR)/openSeaChest_Firmware.c \
-	../../src/EULA.c \
-	../../src/openseachest_util_options.c
+	$(EULA_SRC) \
+	$(UTIL_OPTS_SRC) \
+	
 FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
 
 USING_MUSL=0
@@ -235,7 +248,7 @@ debug: LOGSOUTFILE := $(LOGSOUTFILE)_dbg
 debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_dbg
 debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_dbg
 debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_dbg
-debug: mkoutputdir opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+debug: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-debug: CXXFLAGS += -g
 static-debug: CFLAGS += -g
@@ -257,11 +270,11 @@ static-debug: LOGSOUTFILE := $(LOGSOUTFILE)_static_dbg
 static-debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static_dbg
 static-debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static_dbg
 static-debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static_dbg
-static-debug: mkoutputdir opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-debug: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 release: CXXFLAGS += -O3
 release: CFLAGS += -O3
-release: mkoutputdir opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+release: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-release: LFLAGS += -static
 static-release: TCGLFLAGS += -static
@@ -282,11 +295,16 @@ static-release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static
 static-release: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static
 static-release: CXXFLAGS += -O3
 static-release: CFLAGS += -O3
-static-release: mkoutputdir opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-release: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 export CFLAGS
 export CXXFLAGS
 export PROJECT_DEFINES
+
+#wingetopt has a GNUMakefile that should be automatically found.
+#it has CMake and meson support too, which are preferred
+wingetopt:
+	$(MAKE) -C ../../subprojects/wingetopt
 
 opensea-libs:
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-common/Make/gcc
@@ -379,6 +397,7 @@ clean:
 
 clean_all: clean
 	rm -f *.o *.a
+	$(MAKE) -C ../../subprojects/wingetopt clean
 	$(MAKE) -C ../../subprojects/opensea-common/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-transport/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-operations/Make/gcc clean
