@@ -31,13 +31,14 @@
 //include the seachest util options for the device option, drive info option and a few other things that are needed.
 #include "openseachest_util_options.h"
 #include "logs.h"
+#include "farm_log.h"
 #include "drive_info.h"
 
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.1.0";
+const char *buildVersion = "2.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -96,6 +97,8 @@ int32_t main(int argc, char *argv[])
     GENERIC_ERROR_HISTORY_VARS
     PULL_LOG_MODE_VAR
     FARM_VAR
+    FARM_COMBINED_VAR
+    SATA_FARM_COPY_TYPE_VARS
     DST_LOG_VAR
     IDENTIFY_DEVICE_DATA_LOG_VAR
     SATA_PHY_COUNTERS_LOG_VAR
@@ -151,6 +154,8 @@ int32_t main(int argc, char *argv[])
         GENERIC_ERROR_HISTORY_LONG_OPT,
         PULL_LOG_MODE_LONG_OPT,
         FARM_LONG_OPT,
+        FARM_COMBINED_LONG_OPT,
+        SATA_FARM_COPY_TYPE_LONG_OPT,
         DST_LOG_LONG_OPT,//standard spec log
         DEVICE_STATS_LOG_LONG_OPT,//standard spec log
         IDENTIFY_DEVICE_DATA_LOG_LONG_OPT,//standard ATA spec log
@@ -327,6 +332,22 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(PULL_LOG_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SATA_FARM_COPY_TYPE_LONG_OPT_STRING, strlen(SATA_FARM_COPY_TYPE_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp(optarg, "disc") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_DISC;
+                }
+                else if (strcmp(optarg, "flash") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_FLASH;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SATA_FARM_COPY_TYPE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -573,6 +594,7 @@ int32_t main(int argc, char *argv[])
         || GENERIC_LOG_PULL_FLAG
         || GENERIC_ERROR_HISTORY_PULL_FLAG
         || FARM_PULL_FLAG
+        || FARM_COMBINED_FLAG
         || DST_LOG_FLAG
         || IDENTIFY_DEVICE_DATA_LOG_FLAG
         || SATA_PHY_COUNTERS_LOG_FLAG
@@ -1041,6 +1063,34 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (FARM_COMBINED_FLAG)
+        {
+            //PULL FARM Log containing all FARM sub Log pages
+            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SATA_FARM_COPY_TYPE_FLAG))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully pulled FARM Combined log\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("FARM Combined log not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to pull FARM Combined log\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (DST_LOG_FLAG)
         {
             switch (get_DST_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG))
@@ -1249,6 +1299,7 @@ void utility_Usage(bool shortUsage)
     printf("\n");
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
+    print_FARM_Combined_Log_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
@@ -1258,6 +1309,7 @@ void utility_Usage(bool shortUsage)
     //SATA Only Options
     printf("\n\tSATA Only:\n\n");
     print_Pull_Identify_Device_Data_Log_Help(shortUsage);
+    print_Sata_FARM_Copy_Type_Flag_Help(shortUsage);
     print_Pull_SATA_Phy_Event_Counters_Log_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\n");

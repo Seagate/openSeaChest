@@ -3371,8 +3371,33 @@ void print_FARM_Log_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tPull the Seagate Field Accessible Reliability Metrics (FARM)\n");
-        printf("\t\tLog from the specified drive.Saves the binary logs to the\n");
-        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin\n\n");
+        printf("\t\tLog from the specified drive. Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin (as default)\n\n");
+    }
+}
+
+void print_FARM_Combined_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FARM_COMBINED_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPull the Seagate Combined Field Accessible Reliability Metrics (FARM)\n");
+        printf("\t\tLog from the specified drive. This log contains a combination of all\n");
+        printf("\t\tFARM Sub Log Pages in a single Log File.Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARMC<date and time>.FRMC\n\n");
+    }
+}
+
+void print_Sata_FARM_Copy_Type_Flag_Help(bool shortHelp)
+{
+    printf("\t--%s [ disc | flash ]\t(SATA Only)\n", SATA_FARM_COPY_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to provide copy type while extracting FARM copy type with --%s\n", FARM_COMBINED_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"disc\"\n");
+        printf("\t\t    disc - Pull Disc copy of SATA Farm logs.\n");
+        printf("\t\t    flash - Pull Flash copy of SATA Farm logs.\n");
+        printf("\n");
     }
 }
 

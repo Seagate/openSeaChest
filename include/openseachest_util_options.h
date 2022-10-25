@@ -1306,7 +1306,7 @@ extern "C"
     #define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define PULL_LOG_MODE logMode
-    #define PULL_LOG_MODE_VAR eLogPullMode PULL_LOG_MODE = 0;
+    #define PULL_LOG_MODE_VAR eLogPullMode PULL_LOG_MODE = 1; //default as a binary file
     #define PULL_LOG_MODE_LONG_OPT_STRING "logMode"
     #define PULL_LOG_MODE_LONG_OPT { PULL_LOG_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -1572,6 +1572,18 @@ extern "C"
     getOptBool FARM_PULL_FLAG = goFalse;
     #define FARM_LONG_OPT_STRING "farm"
     #define FARM_LONG_OPT { FARM_LONG_OPT_STRING, no_argument, &FARM_PULL_FLAG, goTrue }
+
+    //FARM Combined Log
+    #define FARM_COMBINED_FLAG  pullFarmCombinedLog
+    #define FARM_COMBINED_VAR \
+    getOptBool FARM_COMBINED_FLAG = goFalse;
+    #define FARM_COMBINED_LONG_OPT_STRING "farmCombined"
+    #define FARM_COMBINED_LONG_OPT { FARM_COMBINED_LONG_OPT_STRING, no_argument, &FARM_COMBINED_FLAG, goTrue }
+
+    #define SATA_FARM_COPY_TYPE_FLAG sataFarmCopyType
+    #define SATA_FARM_COPY_TYPE_VARS int SATA_FARM_COPY_TYPE_FLAG = 1; // 1 : Disc, 2: Flash (Default is Disc type)
+    #define SATA_FARM_COPY_TYPE_LONG_OPT_STRING "SATAFarmCopyType"
+    #define SATA_FARM_COPY_TYPE_LONG_OPT { SATA_FARM_COPY_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //DST Log (standard spec)
     #define DST_LOG_FLAG pullDSTLog
@@ -3212,6 +3224,10 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
+
+    void print_FARM_Combined_Log_Help(bool shortUsage);
+
+    void print_Sata_FARM_Copy_Type_Flag_Help(bool shortUsage);
 
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
