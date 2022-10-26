@@ -22,6 +22,7 @@ jobs:
             cxx: "cl.exe",
             arch: "x64",
             publish_release: true,
+            meson_opts: "-Db_vscrt=static_from_buildtype",
             release_name: "win-x64",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -33,6 +34,7 @@ jobs:
             cxx: "cl.exe",
             arch: "x64_x86",
             publish_release: true,
+            meson_opts: "-Db_vscrt=static_from_buildtype",
             release_name: "win-x86",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -124,7 +126,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson==0.60.3 ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Packing release
