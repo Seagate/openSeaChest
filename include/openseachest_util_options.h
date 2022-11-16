@@ -750,6 +750,18 @@ extern "C"
     #define SWITCH_FW_LONG_OPT_STRING "switchFW"
     #define SWITCH_FW_LONG_OPT { SWITCH_FW_LONG_OPT_STRING, no_argument, &SWITCH_FW_FLAG, goTrue }
 
+    //nvme unique flag to force a specific commit action
+    #define FORCE_NVME_COMMIT_ACTION forceCommitAction
+    #define FORCE_NVME_COMMIT_ACTION_VAR uint8_t FORCE_NVME_COMMIT_ACTION = 0xFF;//something not possible to be valid
+    #define FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING "forceNVMeCA"
+    #define FORCE_NVME_COMMIT_ACTION_LONG_OPT { FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //nvme unique flag to disable issuing a reset after a firmware commit
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET forceDisableNVMeFWReset
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_VAR getOptBool FORCE_DISABLE_NVME_FW_COMMIT_RESET = goFalse;
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING "forceDisableNVMeFWReset"
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT { FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING, no_argument, &FORCE_DISABLE_NVME_FW_COMMIT_RESET, goTrue }
+
     //Win10 allow flexible use of Win10 api for any supported command to any device on any interface (removes strict requirement that the matching command to device type and interface type is required)
     #define WIN10_FLEXIBLE_API_USE_FLAG windows10AllowFlexibleUseOfWinFWDLAPI
     #define WIN10_FLEXIBLE_API_USE_VAR getOptBool WIN10_FLEXIBLE_API_USE_FLAG = goFalse;

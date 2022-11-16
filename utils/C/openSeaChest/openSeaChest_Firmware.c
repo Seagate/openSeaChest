@@ -111,6 +111,8 @@ int32_t main(int argc, char *argv[])
     ACTIVATE_DEFERRED_FW_VAR
     SWITCH_FW_VAR
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
+    FORCE_NVME_COMMIT_ACTION_VAR
+    FORCE_DISABLE_NVME_FW_COMMIT_RESET_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -168,6 +170,8 @@ int32_t main(int argc, char *argv[])
         WIN10_FWDL_FORCE_PT_LONG_OPT,
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
+        FORCE_NVME_COMMIT_ACTION_LONG_OPT,
+        FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -283,6 +287,19 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
                     }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING) == 0)
+            {
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input(optarg, &temp))
+                {
+                    FORCE_NVME_COMMIT_ACTION = C_CAST(uint8_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -558,6 +575,7 @@ int32_t main(int argc, char *argv[])
     {
         DEVICE_INFO_FLAG = goTrue;
     }
+
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
@@ -926,6 +944,22 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+#if defined (_WIN32)
+        if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE && (FORCE_NVME_COMMIT_ACTION != 0xFF || FORCE_DISABLE_NVME_FW_COMMIT_RESET))
+        {
+            //Check for open fabrics as this is possible there as well as USB adapters. Some will be able to support this
+            if (!(deviceList[deviceIter].os_info.openFabricsNVMePassthroughSupported
+                || deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_JMICRON
+                || deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_ASMEDIA)
+                )
+            {
+                printf("\nERROR: Forcing specific commit actions or disabling resets is not possible in Windows on this device.\n");
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                continue;
+            }
+        }
+#endif
+
         if (DOWNLOAD_FW_FLAG)
         {
             FILE *firmwareFilePtr = NULL;
@@ -1005,6 +1039,17 @@ int32_t main(int argc, char *argv[])
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
+                        if (FORCE_NVME_COMMIT_ACTION != 0xFF)
+                        {
+                            //forcing a specific commit action
+                            dlOptions.forceCommitAction = FORCE_NVME_COMMIT_ACTION;
+                            dlOptions.forceCommitActionValid = true;
+                        }
+                        if (FORCE_DISABLE_NVME_FW_COMMIT_RESET)
+                        {
+                            //disabling the reset after an NVMe commit
+                            dlOptions.disableResetAfterCommit = true;
+                        }
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                         stop_Timer(&commandTimer);
@@ -1150,6 +1195,17 @@ int32_t main(int argc, char *argv[])
                     dlOptions.existingFirmwareImage = true;
                 }
                 dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
+                if (FORCE_NVME_COMMIT_ACTION != 0xFF)
+                {
+                    //forcing a specific commit action
+                    dlOptions.forceCommitAction = FORCE_NVME_COMMIT_ACTION;
+                    dlOptions.forceCommitActionValid = true;
+                }
+                if (FORCE_DISABLE_NVME_FW_COMMIT_RESET)
+                {
+                    //disabling the reset after an NVMe commit
+                    dlOptions.disableResetAfterCommit = true;
+                }
                 if (DOWNLOAD_FW_FLAG)
                 {
                     //delay a second as this can help if running a download immediately followed by activate-TJE

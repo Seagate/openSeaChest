@@ -1424,6 +1424,38 @@ void print_Firmware_Switch_Help(bool shortHelp)
     }
 }
 
+void print_Force_NVMe_Commit_Action_Help(bool shortHelp)
+{
+    printf("\t--%s [ # ]\t(NVMe Only)\n", FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to force a specific commit action when\n");
+        printf("\t\tactivating firmware on an NVMe drive.\n");
+        printf("\t\tThe commit action can be specified in decimal or hexadecimal.\n");
+        printf("\t\tWARNING: This is not possible on most Windows nvme drivers.\n");
+        printf("\t\t         Recommend using a different OS if this is necessary.\n");
+        printf("\t\t         This utility will skip all activation when this option\n");
+        printf("\t\t         is present on an interface where this is not possible\n\n");
+    }
+}
+
+void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp)
+{
+    printf("\t--%s \t(NVMe Only)\n", FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to forcefully disable the reset to complete\n");
+        printf("\t\tactivating firmware on an NVMe drive that is performed by\n");
+        printf("\t\tdefault. This will happen automatically as required without\n");
+        printf("\t\tthis option for commit actions that require resets to complete\n");
+        printf("\t\tfirmware activation (ex: 001b or 010b)\n");
+        printf("\t\tWARNING: This is not possible on most Windows nvme drivers.\n");
+        printf("\t\t         Recommend using a different OS if this is necessary.\n");
+        printf("\t\t         This utility will skip all activation when this option\n");
+        printf("\t\t         is present on an interface where this is not possible\n\n");
+    }
+}
+
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
     printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
