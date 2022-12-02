@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.2.0";
+const char *buildVersion = "2.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -119,6 +119,7 @@ int32_t main(int argc, char *argv[])
 #endif
     DEVICE_STATISTICS_VAR
     NVME_HEALTH_VAR
+    LOWLEVEL_INFO_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -153,6 +154,7 @@ int32_t main(int argc, char *argv[])
         CONFIRM_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         SMART_CHECK_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
@@ -779,6 +781,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         || SMART_CHECK_FLAG
         || SMART_ATTRIBUTES_FLAG
         || SHORT_DST_FLAG
@@ -1082,6 +1085,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (SMART_INFO_FLAG)
@@ -2101,6 +2109,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Poll_Help(shortUsage);
     print_Progress_Help(shortUsage, "dst, idd");
     print_Scan_Help(shortUsage, deviceHandleExample);

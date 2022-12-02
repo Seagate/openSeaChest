@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.1.0";
+const char *buildVersion = "2.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -110,6 +110,7 @@ int32_t main(int argc, char *argv[])
     POLL_VAR
     PROGRESS_VAR
     SHOW_SUPPORTED_FORMATS_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -136,6 +137,7 @@ int32_t main(int argc, char *argv[])
 		FAST_DISCOVERY_LONG_OPT,
         POLL_LONG_OPT,
         PROGRESS_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         DOWNLOAD_FW_MODE_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -741,6 +743,7 @@ int32_t main(int argc, char *argv[])
 
     //check that we were given at least one test to perform...if not, set that we are dumping device information so we at least do something
     if (!(DEVICE_INFO_FLAG
+          || LOWLEVEL_INFO_FLAG
           || DOWNLOAD_FW_FLAG
           || ACTIVATE_DEFERRED_FW_FLAG
           || SWITCH_FW_FLAG
@@ -1009,6 +1012,11 @@ int32_t main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
@@ -2113,6 +2121,7 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here
 	print_Fast_Discovery_Help(shortUsage);

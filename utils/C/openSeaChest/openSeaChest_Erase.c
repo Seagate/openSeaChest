@@ -49,7 +49,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.3.0";
+const char *buildVersion = "3.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -146,6 +146,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     HIDE_LBA_COUNTER_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -188,6 +189,7 @@ int32_t main(int argc, char *argv[])
         HOURS_TIME_LONG_OPT,
         MINUTES_TIME_LONG_OPT,
         SECONDS_TIME_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific command line options --These should probably be cleaned up to macros like the ones above and remove the short options and replace with numbers.
         OVERWRITE_LONG_OPTS,
         TRIM_LONG_OPTS,
@@ -1344,6 +1346,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (SHOW_ERASE_SUPPORT_FLAG)
@@ -2585,6 +2592,7 @@ void utility_Usage(bool shortUsage)
     print_Display_LBA_Help(shortUsage);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Poll_Help(shortUsage);
     print_Progress_Help(shortUsage, "sanitize, format");
     print_Scan_Help(shortUsage, deviceHandleExample);

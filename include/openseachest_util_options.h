@@ -95,6 +95,11 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define LOWLEVEL_INFO_FLAG lowlevelInfo
+    #define LOWLEVEL_INFO_VAR getOptBool LOWLEVEL_INFO_FLAG = goFalse;
+    #define LOWLEVEL_INFO_LONG_OPT_STRING "llInfo"
+    #define LOWLEVEL_INFO_LONG_OPT { LOWLEVEL_INFO_LONG_OPT_STRING, no_argument, &LOWLEVEL_INFO_FLAG, goTrue }
+
     #define TCG_DEVICE_INFO_FLAG tcgDevInfo
     #define TCG_DEVICE_INFO_VAR getOptBool TCG_DEVICE_INFO_FLAG = goFalse;
     #define TCG_DEVICE_INFO_LONG_OPT_STRING "tcgInfo"
@@ -3348,6 +3353,8 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
     void print_NVME_Health_Help(bool shortHelp);
+
+    void print_Low_Level_Info_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

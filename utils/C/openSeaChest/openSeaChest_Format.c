@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.5.0";
+const char *buildVersion = "2.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -112,6 +112,7 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -148,6 +149,7 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         CONFIRM_LONG_OPT,
         POLL_LONG_OPT,
@@ -783,6 +785,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
@@ -1077,6 +1080,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -1903,6 +1911,7 @@ void utility_Usage(bool shortUsage)
     print_Display_LBA_Help(shortUsage);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Poll_Help(shortUsage);
     print_Progress_Help(shortUsage, "format | nvmformat | depop | repop");
     print_Scan_Help(shortUsage, deviceHandleExample);

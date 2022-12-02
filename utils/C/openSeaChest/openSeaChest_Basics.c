@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.4.0";
+const char *buildVersion = "3.5.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -128,6 +128,7 @@ int32_t main(int argc, char *argv[])
     HIDE_LBA_COUNTER_VAR
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
     SHOW_CONCURRENT_RANGES_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -162,6 +163,7 @@ int32_t main(int argc, char *argv[])
         PROGRESS_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         SMART_CHECK_LONG_OPT,
         SHORT_DST_LONG_OPT,
@@ -850,6 +852,7 @@ int32_t main(int argc, char *argv[])
         || (PROGRESS_CHAR != NULL)
         || DISPLAY_LBA_FLAG
         || SHOW_CONCURRENT_RANGES
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         ))
     {
@@ -1133,6 +1136,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -2255,6 +2263,7 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
