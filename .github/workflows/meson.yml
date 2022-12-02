@@ -119,6 +119,8 @@ jobs:
       shell: bash
 
     - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
     - name: Configuring and compiling with meson
       env:
