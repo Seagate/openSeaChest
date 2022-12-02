@@ -366,6 +366,15 @@ void print_Device_Information_Help(bool shortHelp)
     }
 }
 
+void print_Low_Level_Info_Help(bool shortHelp)
+{
+    printf("\t--%s\n", LOWLEVEL_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tDump low-level information about the device to assist with debugging.\n\n");
+    }
+}
+
 void print_Verbose_Help(bool shortHelp)
 {
     printf("\t-%c [0-4], --%s [0 | 1 | 2 | 3 | 4]\n", VERBOSE_SHORT_OPT, VERBOSE_LONG_OPT_STRING);

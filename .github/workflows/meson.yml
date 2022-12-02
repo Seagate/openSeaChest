@@ -78,7 +78,7 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -96,7 +96,7 @@ jobs:
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang')
       id: llvm-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: C:/Program Files/LLVM
         key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
@@ -118,7 +118,9 @@ jobs:
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
-    - uses: actions/setup-python@v1
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
     - name: Configuring and compiling with meson
       env:
@@ -138,7 +140,7 @@ jobs:
       shell: bash
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 

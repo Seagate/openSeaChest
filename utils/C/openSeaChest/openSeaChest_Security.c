@@ -46,7 +46,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.1.0";
+const char *buildVersion = "3.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -129,6 +129,7 @@ int32_t main(int argc, char *argv[])
     ATA_SECURITY_UNLOCK_OP_VAR
     ATA_SECURITY_DISABLE_OP_VAR
     ATA_SECURITY_FREEZELOCK_OP_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -161,6 +162,7 @@ int32_t main(int argc, char *argv[])
         CONFIRM_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
 #if !defined(DISABLE_TCG_SUPPORT)
         TCG_DEVICE_INFO_LONG_OPT,
@@ -899,6 +901,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
 #if !defined(DISABLE_TCG_SUPPORT)
         || TCG_DEVICE_INFO_FLAG
         //check for other tool specific options here
@@ -1201,6 +1204,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (ATA_SECURITY_INFO_OP)
@@ -1765,6 +1773,7 @@ void utility_Usage(bool shortUsage)
     print_Display_LBA_Help(shortUsage);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
