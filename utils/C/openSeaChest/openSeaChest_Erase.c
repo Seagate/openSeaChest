@@ -49,7 +49,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.4.0";
+const char *buildVersion = "3.4.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2554,6 +2554,21 @@ void utility_Usage(bool shortUsage)
     //example usage
     printf("\t%s --scan\n", util_name);
     printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s 1\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, HOURS_TIME_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s repeat:04ABCDEFh\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s\n", util_name, deviceHandleExample, WRITE_SAME_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000 --%s\n", util_name, deviceHandleExample, WRITE_SAME_LONG_OPT_STRING, WRITE_SAME_RANGE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --sanitize overwrite --%s\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING);//random, file:, increment, repeat
+    printf("\t%s -d %s --sanitize overwrite --%s --%s random\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --sanitize cryptoerase --%s\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enhanced\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enhanced --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s file:path/to/myFile.bin\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
