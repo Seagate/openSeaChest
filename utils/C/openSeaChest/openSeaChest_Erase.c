@@ -49,7 +49,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.4.1";
+const char *buildVersion = "3.4.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1564,6 +1564,13 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting to remove physical element. Please make sure security has unlocked the drive and try again.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1891,6 +1898,13 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
+                        case DEVICE_ACCESS_DENIED:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
@@ -1937,6 +1951,13 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1979,6 +2000,13 @@ int32_t main(int argc, char *argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("A Sanitize operation is already in progress, anti freezelock cannot be completed.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2088,6 +2116,13 @@ int32_t main(int argc, char *argv[])
                         printf("Format Unit Not Supported!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting Format Unit. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)

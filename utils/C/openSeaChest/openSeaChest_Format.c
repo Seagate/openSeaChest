@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.6.0";
+const char *buildVersion = "2.6.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1329,6 +1329,13 @@ int32_t main(int argc, char *argv[])
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting Format Unit. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -1465,6 +1472,13 @@ int32_t main(int argc, char *argv[])
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting Set Sector Size. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -1567,6 +1581,13 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting to remove physical element. Please make sure security has unlocked the drive and try again.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1628,6 +1649,13 @@ int32_t main(int argc, char *argv[])
                             printf("This operation is not supported on this drive.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting to repopulate physical elements. Please make sure security has unlocked the drive and try again.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1763,6 +1791,13 @@ int32_t main(int argc, char *argv[])
                         printf("NVM Format is not supported in this OS\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting NVM Format. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
