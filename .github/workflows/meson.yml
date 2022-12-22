@@ -104,7 +104,7 @@ jobs:
         key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
 
     - name: Downloading latest clang for Windows
-      if: ${{ !steps.cache-primes.outputs.cache-hit && startsWith(matrix.config.name, 'Windows Clang') }}
+      if: ${{ steps.llvm-cache.outputs.cache-hit != 'true' && startsWith(matrix.config.name, 'Windows Clang') }}
       run: |
         $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
         Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" ((Invoke-WebRequest -Headers $headers "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
@@ -120,10 +120,6 @@ jobs:
       run: |
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
-
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
 
     - name: Configuring and compiling with meson
       env:
