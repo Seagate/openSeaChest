@@ -1845,6 +1845,9 @@ void print_Phy_Speed_Help(bool shortHelp)
         printf("\n");
         printf("\t\tNOTE: SATA phy speed changes are only available on Seagate drives.\n");
         printf("\n");
+        printf("\t\tWARNING: Check the minimum phy speed supported by your adapter before\n");
+        printf("\t\t         using this option. A phy speed below the adapter's capability\n");
+        printf("\t\t         will result in the drive not being seen by the adapter or the OS.\n\n");
         printf("\t\tWARNING: Changing Phy speed may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
