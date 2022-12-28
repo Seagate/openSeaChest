@@ -46,7 +46,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.2.0";
+const char *buildVersion = "3.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -81,12 +81,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-	FAST_DISCOVERY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -144,7 +144,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -153,7 +153,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-		FAST_DISCOVERY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -644,7 +644,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -949,10 +949,10 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
-	if (FAST_DISCOVERY_FLAG)
-	{
-		flags = FAST_SCAN;
-	}
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -1001,13 +1001,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -1062,14 +1062,14 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
-		    }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
+            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1367,30 +1367,30 @@ int32_t main(int argc, char *argv[])
             }
             //TODO: Seagate HDD and SAS SSD only
             {
-				switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
-				{
-				case SUCCESS:
-					if (VERBOSITY_QUIET < toolVerbosity)
-					{
-						printf("Set IEEE1667 Port Successful!\n");
-					}
-					break;
-				case NOT_SUPPORTED:
-					if (VERBOSITY_QUIET < toolVerbosity)
-					{
-						printf("Set IEEE1667 Port is not supported on this device.\n");
-					}
-					exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-					break;
-				default:
-					if (VERBOSITY_QUIET < toolVerbosity)
-					{
-						printf("Set IEEE1667 Port Failure!\n");
-					}
-					exitCode = UTIL_EXIT_OPERATION_FAILURE;
-					break;
-				}
-			}
+                switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_IEEE_1667, IEEE1667_PORT_MODE_FLAG, TCG_PORT_AUTHENTICATION_SID, TCG_SID_FLAG, NULL))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Set IEEE1667 Port Successful!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Set IEEE1667 Port is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Set IEEE1667 Port Failure!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
         }
 
         if (DISABLE_DATA_LOCKING_FLAG)
@@ -1734,8 +1734,18 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_SECURITY_INFO_OP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enhanced\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s enhanced --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+#if defined ENABLE_ATA_SET_PASSWORD
+    printf("\t%s -d %s --%s --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+#endif //ENABLE_ATA_SET_PASSWORD
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1758,7 +1768,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -1778,7 +1788,7 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
-	print_Fast_Discovery_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
 #if !defined(DISABLE_TCG_SUPPORT)
     print_Disable_Data_Locking_Help(shortUsage);

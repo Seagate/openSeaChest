@@ -42,7 +42,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.5.0";
+const char *buildVersion = "3.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -81,10 +81,10 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAG_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-	FAST_DISCOVERY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -143,7 +143,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -152,7 +152,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-		FAST_DISCOVERY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -668,7 +668,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -882,10 +882,10 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
-	if (FAST_DISCOVERY_FLAG)
-	{
-		flags = FAST_SCAN;
-	}
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -2218,8 +2218,37 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SMART_CHECK_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, SHORT_DST_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ABORT_DST_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, TEST_UNIT_READY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s hybrid\n", util_name, deviceHandleExample, SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_CONCURRENT_RANGES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s on\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3 --%s 1\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING, SET_PHY_SAS_PHY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, READ_LOOK_AHEAD_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, READ_LOOK_AHEAD_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s firmwareFile.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s firmwareFile.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000\n", util_name, deviceHandleExample, DISPLAY_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s 1\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, HOURS_TIME_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, SET_MAX_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, RESTORE_MAX_LBA_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2247,7 +2276,7 @@ void utility_Usage(bool shortUsage)
     print_Time_Minutes_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_No_Time_Limit_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
     print_Time_Seconds_Help(shortUsage);
@@ -2267,7 +2296,7 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
-	print_Fast_Discovery_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Display_LBA_Help(shortUsage);
     print_Firmware_Activate_Help(shortUsage);

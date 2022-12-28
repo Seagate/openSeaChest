@@ -87,7 +87,7 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-	FAST_DISCOVERY_VAR
+    FAST_DISCOVERY_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
     //scan output flags
@@ -142,7 +142,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-		FAST_DISCOVERY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -613,10 +613,10 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
-	if (FAST_DISCOVERY_FLAG)
-	{
-		flags = FAST_SCAN;
-	}
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -1314,8 +1314,11 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_FWDL_SUPPORT_LONG_OPT_STRING);
     printf("\tUpdating firmware:\n");
     printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
     printf("\tUpdating firmware with deferred download and activating:\n");
@@ -1414,7 +1417,7 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
-	print_Fast_Discovery_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Firmware_Activate_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);

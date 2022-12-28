@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Sample";
-const char *buildVersion = "1.2.0";
+const char *buildVersion = "1.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -787,8 +787,10 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");

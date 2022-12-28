@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.3.0";
+const char *buildVersion = "2.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -74,12 +74,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-	FAST_DISCOVERY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -125,7 +125,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -135,7 +135,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-		FAST_DISCOVERY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -430,7 +430,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -630,10 +630,10 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
-	if (FAST_DISCOVERY_FLAG)
-	{
-		flags = FAST_SCAN;
-	}
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -682,13 +682,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -742,13 +742,13 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -1256,9 +1256,19 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
-    printf("\t%s -d %s --farm --outputPath logs\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s logs --%s pipe\n", util_name, deviceHandleExample, FARM_LONG_OPT_STRING, PATH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 64KiB --%s bin\n", util_name, deviceHandleExample, FARM_COMBINED_LONG_OPT_STRING, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_LOGS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s C6h\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0Dh --%s 01h --%s bin\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_ERROR_HISTORY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 30 --%s bin\n", util_name, deviceHandleExample, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1281,7 +1291,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_OutputPath_Help(shortUsage);
@@ -1303,7 +1313,7 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
-	print_Fast_Discovery_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     printf("\n");
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
@@ -1325,6 +1335,4 @@ void utility_Usage(bool shortUsage)
     print_Pull_Generic_Error_History_Help(shortUsage);
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);
     print_Pull_Generic_Logs_Subpage_Help(shortUsage);
-
-    
 }

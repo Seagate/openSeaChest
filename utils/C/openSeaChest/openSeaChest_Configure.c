@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.3.0";
+const char *buildVersion = "2.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -72,12 +72,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
-	FAST_DISCOVERY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -134,14 +134,14 @@ int32_t main(int argc, char *argv[])
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
         QUIET_LONG_OPT,
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
-		FAST_DISCOVERY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -1082,7 +1082,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -1305,10 +1305,10 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
-	if (FAST_DISCOVERY_FLAG)
-	{
-		flags = FAST_SCAN;
-	}
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -3068,8 +3068,36 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3 --%s 1\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING, SET_PHY_SAS_PHY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, READ_LOOK_AHEAD_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, NV_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s default\n", util_name, deviceHandleExample, SCT_WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, SCT_WRITE_CACHE_REORDER_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, FREE_FALL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s low\n", util_name, deviceHandleExample, LOW_CURRENT_SPINUP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, PUIS_FEATURE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, SSC_FEATURE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s on\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5s\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s all --%s 06h\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s cumulative --%s 02h --%s\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING, VOLATILE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0Ah\n", util_name, deviceHandleExample, SCSI_SHOW_MP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0Ah --%s saved\n", util_name, deviceHandleExample, SCSI_SHOW_MP_LONG_OPT_STRING, SCSI_SHOW_MP_MPC_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0Ah --%s classic\n", util_name, deviceHandleExample, SCSI_SHOW_MP_LONG_OPT_STRING, SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3Fh-FFh\n", util_name, deviceHandleExample, SCSI_MP_RESET_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3Fh-FFh\n", util_name, deviceHandleExample, SCSI_MP_SAVE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3Fh-FFh\n", util_name, deviceHandleExample, SCSI_MP_RESTORE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 08:2:2:1=0\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s file=modePageToChange.txt\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -3092,7 +3120,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -3111,7 +3139,7 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
-	print_Fast_Discovery_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
