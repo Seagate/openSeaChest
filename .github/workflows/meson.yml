@@ -72,6 +72,7 @@ jobs:
             cc: "clang",
             cxx: "clang++",
             publish_release: true,
+            create_package: true,
             release_name: "linux-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
@@ -112,7 +113,7 @@ jobs:
 
     - name: Escape backslash in branch name
       shell: bash
-      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
 
     - name: Setting release name
       env:
@@ -138,13 +139,38 @@ jobs:
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
       shell: bash
 
+    # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
+    - uses: actions/setup-go@v3
+      if: ${{ matrix.config.create_package }}
+      with:
+        go-version: 'stable'
+
+    - name: Create packages
+      if: ${{ matrix.config.create_package }}
+      working-directory: ${{ format('build/{0}', env.DESTDIR) }}
+      run: | # https://nfpm.goreleaser.com/install/
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.22.2
+        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
+          version=$(echo ${{ github.ref_name }} | tr -d 'v')
+          sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
+        fi
+        nfpm package -f ../../nfpm.yaml -p deb -t ..
+        nfpm package -f ../../nfpm.yaml -p rpm -t ..
+      shell: bash
+
     - name: Uploading artifacts
       uses: actions/upload-artifact@v3
       with:
-        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        path: |
+          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          build/*.deb
+          build/*.rpm
 
     - name: Publish release
       if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        files: |
+          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          build/*.deb
+          build/*.rpm
