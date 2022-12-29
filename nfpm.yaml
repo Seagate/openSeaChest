@@ -1,0 +1,22 @@
+name: "openseachest"
+arch: "amd64"
+platform: "linux"
+version: "22.07"
+version_schema: "none"
+section: "default"
+maintainer: "Seagate Technologies <opensource@seagate.com>"
+description: |
+  openSeaChest is a collection of comprehensive, easy-to-use command line
+  diagnostic tools and programming libraries for storage devices that help you
+  quickly determine the health and status of your storage product.
+vendor: "Seagate Technologies"
+homepage: "https://www.seagate.com"
+license: "MPL"
+contents:
+  - src: openSeaChest_*
+    dst: /opt/openSeaChest
+    file_info:
+      # Make sure that the mode is specified in octal, e.g. 0644 instead of 644.
+      mode: 0755
+  - src: man/man8/openSeaChest_*.8
+    dst: /opt/openSeaChest/man/man8/

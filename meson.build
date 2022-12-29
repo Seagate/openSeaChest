@@ -99,8 +99,6 @@ exe_src_map = {
 
 foreach p : get_option('tools')
   executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
-  if p not in ['NVMe', 'PassthroughTest', 'Security', 'ZBD'] # Blacklist tools without man pages
-    install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
-  endif
+  install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
 endforeach
 install_man('docs/man/man8/openSeaChest.8')
