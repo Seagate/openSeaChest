@@ -11,6 +11,7 @@ jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    container: ${{ matrix.config.image }}
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -71,9 +72,19 @@ jobs:
             os: ubuntu-latest,
             cc: "clang",
             cxx: "clang++",
+            release_name: "linux-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "Manylinux GCC",
+            os: ubuntu-latest,
+            image: "quay.io/pypa/manylinux2014_x86_64",
+            cc: "gcc",
+            cxx: "g++",
             publish_release: true,
             create_package: true,
-            release_name: "linux-x86_64",
+            release_name: "linux-x86_64-manylinux",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
@@ -110,6 +121,13 @@ jobs:
         $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
         Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" ((Invoke-WebRequest -Headers $headers "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
+
+    - name: Setup toolchain for Manylinux
+      if: ${{ matrix.config.image == 'quay.io/pypa/manylinux2014_x86_64' }}
+      shell: bash
+      run: |
+        if [[ ${{ matrix.config.cc }} == "clang" ]] ; then yum install -y clang compat-gcc-44 ; fi
+        echo "/opt/python/cp310-cp310/bin" >> $GITHUB_PATH
 
     - name: Escape backslash in branch name
       shell: bash
