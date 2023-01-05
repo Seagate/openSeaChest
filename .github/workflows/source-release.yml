@@ -1,0 +1,46 @@
+name: Create Complete Source Archive
+
+on:
+  push:
+    branches: [ feature/git_archive_all ]
+    tags: [ v* ]
+    
+jobs:
+  archive:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false # so that if one config fails, other won't be cancelled automatically
+      matrix:
+        config:
+        - {
+            name: "Windows",
+            os: windows-latest,
+            extension: ".zip"
+          }
+        - {
+            name: "Linux",
+            os: ubuntu-latest,
+            extension: ".tar.xz",
+          }
+    steps:  
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Create Source Archive
+      #if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
+      run: |
+        pip install git-archive-all
+        git-archive-all SourceCode_With_Submodules.${{ matrix.config.extension }}
+
+    - name: Upload Source Archive as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: SourceCode_With_Submodules.${{ matrix.config.extension }}
+
+    - name: Publish Source Archive to Release
+      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: SourceCode_With_Submodules.${{ matrix.config.extension }}
