@@ -19,12 +19,9 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include "getopt.h"
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
+#include "common.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "drive_info.h"
@@ -63,7 +60,7 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
@@ -1445,7 +1442,7 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
+                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
                 uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {

@@ -19,12 +19,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include "getopt.h"
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "common_public.h"
 #include "EULA.h"
 #include "operations.h"
@@ -591,6 +587,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+		|| LOWLEVEL_INFO_FLAG
         || LIST_LOGS_FLAG
         || LIST_ERROR_HISTORY_FLAG
         || GENERIC_LOG_PULL_FLAG

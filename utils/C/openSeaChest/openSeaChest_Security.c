@@ -18,12 +18,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include "getopt.h"
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "ata_helper.h" //for defined ATA security password size of 32bytes
 #include "openseachest_util_options.h"
