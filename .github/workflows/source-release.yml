@@ -2,7 +2,6 @@ name: Create Complete Source Archive
 
 on:
   push:
-    branches: [ feature/git_archive_all ]
     tags: [ v* ]
     
 jobs:
@@ -29,7 +28,6 @@ jobs:
         submodules: recursive
 
     - name: Create Source Archive
-      #if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
       run: |
         pip install git-archive-all
         git-archive-all SourceCode_With_Submodules.${{ matrix.config.extension }}
