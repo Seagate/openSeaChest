@@ -1,16 +1,16 @@
 name: "openseachest"
 arch: "amd64"
 platform: "linux"
-version: "22.07"
+version: "dev"
 version_schema: "none"
 section: "default"
-maintainer: "Seagate Technologies <opensource@seagate.com>"
+maintainer: "Seagate Technology <opensource@seagate.com>"
 description: |
   openSeaChest is a collection of comprehensive, easy-to-use command line
   diagnostic tools and programming libraries for storage devices that help you
   quickly determine the health and status of your storage product.
-vendor: "Seagate Technologies"
-homepage: "https://www.seagate.com"
+vendor: "Seagate Technology"
+homepage: "https://www.github.com/Seagate/openSeaChest"
 license: "MPL"
 contents:
   - src: openSeaChest_*

@@ -1,5 +1,4 @@
-project('openSeaChest', 'c', license: 'MPL-2.0', version: '22.6.24', default_options : ['warning_level=2'])
-#note: project version is year.month.day
+project('openSeaChest', 'c', license: 'MPL-2.0', default_options : ['warning_level=2'])
 
 c = meson.get_compiler('c')
 
