@@ -1,0 +1,11 @@
+#this file specifies some rules on specific files for line endings and more.
+#it also has a section on which files should NOT be part of an export (git archive) command.
+
+#List of files to NOT export:
+.git		export-ignore
+.github		export-ignore
+.cirrus.yml	export-ignore
+.whitesource	export-ignore
+.vscode		export-ignore
+.travis.yml	export-ignore
+
