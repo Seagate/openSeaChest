@@ -3368,6 +3368,10 @@ extern "C"
 
     void print_Low_Level_Info_Help(bool shortHelp);
 
+    void print_Force_NVMe_Commit_Action_Help(bool shortHelp);
+
+    void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp);
+
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
     typedef struct _deviceScanFlags
