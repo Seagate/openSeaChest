@@ -1087,7 +1087,7 @@ int32_t main(int argc, char *argv[])
                 uint64_t size = 0;
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
-                if ((nvme_Get_Log_Size(GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
+                if ((nvme_Get_Log_Size(&deviceList[deviceIter], GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
                 {
                     memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
                     if (NVME_LOG_ERROR_ID == GET_NVME_LOG_IDENTIFIER)
@@ -1318,17 +1318,17 @@ int32_t main(int argc, char *argv[])
 
                         if (TELEMETRY_DATA_AREA == 1)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea1;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea1);
                         }
 
                         if (TELEMETRY_DATA_AREA == 2)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea2;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea2);
                         }
 
                         if (TELEMETRY_DATA_AREA == 3)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea3;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea3);
                         }
 
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||

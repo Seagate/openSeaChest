@@ -459,6 +459,24 @@ extern "C"
     #define LEGACY_STANDBY_LONG_OPT_STRING "standby"
     #define LEGACY_STANDBY_LONG_OPT { LEGACY_STANDBY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //Add time delay between each log
+    #define DELAY_LOG_SEGMENT_FLAG delayLog
+    #define SET_TIME_DELAY delayTime
+    #define DELAY_LOG_SEGMENT_VARS \
+    bool DELAY_LOG_SEGMENT_FLAG = false;\
+    uint32_t SET_TIME_DELAY = 0;
+    #define DELAY_LOG_SEGMENT_LONG_OPT_STRING "delayLogSegment"
+    #define DELAY_LOG_SEGMENT_LONG_OPT { DELAY_LOG_SEGMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Add time delay between each IO
+    #define DELAY_CMD_SEGMENT_FLAG delayIO
+    #define SET_CMD_TIME_DELAY delayIOTime
+    #define DELAY_CMD_SEGMENT_VARS \
+    bool DELAY_CMD_SEGMENT_FLAG = false;\
+    uint32_t SET_CMD_TIME_DELAY = 0;
+    #define DELAY_CMD_SEGMENT_LONG_OPT_STRING "delayCMDSegment"
+    #define DELAY_CMD_SEGMENT_LONG_OPT { DELAY_CMD_SEGMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //Following is for NVMe Utilities.
     #define TRANSITION_POWER_STATE_TO transitionPowerState
     #define TRANSITION_POWER_STATE_VAR int32_t TRANSITION_POWER_STATE_TO = -1;
@@ -1579,9 +1597,15 @@ extern "C"
 
     //logTransferLength
     #define LOG_TRANSFER_LENGTH_BYTES logTransferLengthBytes
-    #define LOG_TRANSFER_LENGTH_BYTES_VAR uint32_t logTransferLengthBytes = 0;/*0 means that the library will decide.*/
+    #define LOG_TRANSFER_LENGTH_BYTES_VAR uint32_t LOG_TRANSFER_LENGTH_BYTES = 0;/*0 means that the library will decide.*/
     #define LOG_TRANSFER_LENGTH_LONG_OPT_STRING "logTransferLength"
     #define LOG_TRANSFER_LENGTH_LONG_OPT { LOG_TRANSFER_LENGTH_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //logLength
+    #define LOG_LENGTH_BYTES logLengthBytes
+    #define LOG_LENGTH_BYTES_VAR uint32_t LOG_LENGTH_BYTES = 0;/*0 means that the library will decide.*/
+    #define LOG_LENGTH_LONG_OPT_STRING "logLength"
+    #define LOG_LENGTH_LONG_OPT { LOG_LENGTH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //FARM Log
     #define FARM_PULL_FLAG pullFarmLog
@@ -3152,6 +3176,8 @@ extern "C"
 
     void print_Log_Transfer_Length_Help(bool shortHelp);
 
+    void print_Log_Length_Help(bool shortHelp);
+
     //-----------------------------------------------------------------------------
     //
     //  print_Pull_Device_Statistics_Log_Help()
@@ -3365,7 +3391,8 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
     void print_NVME_Health_Help(bool shortHelp);
-
+    void print_Delay_Log_Segment_Help(bool shortHelp);
+    void print_Delay_CMD_Segment_Help(bool shortHelp);
     void print_Low_Level_Info_Help(bool shortHelp);
 
     void print_Force_NVMe_Commit_Action_Help(bool shortHelp);

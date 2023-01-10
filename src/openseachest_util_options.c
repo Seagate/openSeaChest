@@ -2093,9 +2093,9 @@ void print_Log_Mode_Help(bool shortHelp)
         printf("\t\tSets the mode to pull the log. \n");
         printf("\t\tUse this option with --%s to set the desired mode\n", GENERIC_LOG_LONG_OPT_STRING);
         printf("\t\t\traw - Pulls log & prints it to the\n");
-        printf("\t\t\t      screen as stdout. (default)\n");
+        printf("\t\t\t      screen as stdout.\n");
         printf("\t\t\tbin - Pulls log & saves it to\n");
-        printf("\t\t\t      a timestamped binary file.\n");
+        printf("\t\t\t      a timestamped binary file. (default)\n");
         printf("\t\t\tpipe - Pulls log, prints it to the\n");
         printf("\t\t\t       screen as stdout & send the\n");
         printf("\t\t\t       result to openSeaChest_LogParser.\n");
@@ -3406,6 +3406,27 @@ void print_Log_Transfer_Length_Help(bool shortHelp)
         printf("\t\tATA drives must be given a value in 512B increments.\n");
         printf("\t\tWarning: Specifying a large size may result in\n");
         printf("\t\tfailures due to OS, driver, or HBA/bridge specific limitations.\n\n");
+    }
+}
+
+void print_Log_Length_Help(bool shortHelp)
+{
+    printf("\t--%s [length in bytes]\t(NVMe Only)\n", LOG_LENGTH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the total length of a log\n");
+        printf("\t\tto retrieve from a device. This is required for NVMe\n");
+        printf("\t\tlogs not part of the standards or not currently known\n");
+        printf("\t\tby this utility in order to retrieve all the data.\n");
+        printf("\t\tThe following post fixes are allowed for\n");
+        printf("\t\tspecifying a transfer length:\n");
+        printf("\t\t\tBLOCKS or SECTORS - used to specify a transfer length\n");
+        printf("\t\t\t\tin device in 512Byte blocks/sectors\n");
+        printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
+        printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
+        printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
+        printf("\t\t\tMiB - length in mebibytes (val * 1048576)\n");
+        printf("\n");
     }
 }
 

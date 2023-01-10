@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -106,6 +106,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOG_TRANSFER_LENGTH_BYTES_VAR
+    LOG_LENGTH_BYTES_VAR
     LOWLEVEL_INFO_VAR
 
     int  args = 0;
@@ -160,6 +161,7 @@ int32_t main(int argc, char *argv[])
         SATA_PHY_COUNTERS_LONG_OPT,//standard ATA spec log
         INFROMATIONAL_EXCEPTIONS_LONG_OPT,
         LOG_TRANSFER_LENGTH_LONG_OPT,
+        LOG_LENGTH_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -197,7 +199,7 @@ int32_t main(int argc, char *argv[])
             if (strncmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING, strlen(GENERIC_LOG_LONG_OPT_STRING)) == 0)
             {
                 uint64_t temp = 0;
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     GENERIC_LOG_PULL_FLAG = true;
                     GENERIC_LOG_DATA_SET = C_CAST(uint8_t, temp);
@@ -211,7 +213,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, strlen(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING)) == 0)
             {
                 uint64_t temp = 0;
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     //no need to do anything...this option requires that the page is also given
                     GENERIC_LOG_SUBPAGE_DATA_SET = C_CAST(uint8_t, temp);
@@ -224,7 +226,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, strlen(GENERIC_ERROR_HISTORY_LONG_OPT_STRING)) == 0)
             {
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &GENERIC_ERROR_HISTORY_BUFFER_ID) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &GENERIC_ERROR_HISTORY_BUFFER_ID))
                 {
                     GENERIC_ERROR_HISTORY_PULL_FLAG = true;
                 }
@@ -278,7 +280,51 @@ int32_t main(int argc, char *argv[])
                 }
                 LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
-            else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), 9)) == 0)
+            else if (strcmp(longopts[optionIndex].name, LOG_LENGTH_LONG_OPT_STRING) == 0)
+            {
+                //set the raw data length - but check the units first!
+                uint64_t multiplier = 1;
+                uint32_t optargInt = C_CAST(uint32_t, atoi(optarg));
+                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                {
+                    //they specified blocks. For log transfers this means a number of 512B sectors
+                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                }
+                else if (strstr(optarg, "KB"))
+                {
+                    multiplier = 1000;
+                }
+                else if (strstr(optarg, "KiB"))
+                {
+                    multiplier = 1024;
+                }
+                else if (strstr(optarg, "MB"))
+                {
+                    multiplier = 1000000;
+                }
+                else if (strstr(optarg, "MiB"))
+                {
+                    multiplier = 1048576;
+                }
+                else if (strstr(optarg, "GB"))
+                {
+                    multiplier = 1000000000;
+                }
+                else if (strstr(optarg, "GiB"))
+                {
+                    multiplier = 1073741824;
+                }
+                else if (strstr(optarg, "TB"))
+                {
+                    multiplier = 1000000000000;
+                }
+                else if (strstr(optarg, "TiB"))
+                {
+                    multiplier = 1099511627776;
+                }
+                LOG_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
+            }
+            else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, strlen(longopts[optionIndex].name)) == 0)
             {
                 OUTPUTPATH_PARSE
                 if (!os_Directory_Exists(OUTPUTPATH_FLAG))
@@ -944,7 +990,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_LOG_PULL_FLAG)
         {
-            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
+            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, LOG_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1316,6 +1362,7 @@ void utility_Usage(bool shortUsage)
     print_FARM_Log_Help(shortUsage);
     print_FARM_Combined_Log_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
+    print_Log_Length_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
     print_Pull_Generic_Logs_Help(shortUsage);
