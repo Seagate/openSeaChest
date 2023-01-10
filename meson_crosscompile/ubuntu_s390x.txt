@@ -1,0 +1,26 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_s390x.txt crossbuild_s390x
+#    ninja -C crossbuild_s390x
+
+
+[binaries]
+c = '/usr/bin/s390x-linux-gnu-gcc'
+ar = '/usr/s390x-linux-gnu/bin/ar'
+strip = '/usr/s390x-linux-gnu/bin/strip'
+pkgconfig = '/usr/bin/s390x-linux-gnu-pkg-config'
+ld = '/usr/bin/arm-linux/gnueabihf-ld'
+
+[properties]
+root = '/usr/s390x-linux-gnu'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 's390x'
+cpu = ''
+endian = 'big'

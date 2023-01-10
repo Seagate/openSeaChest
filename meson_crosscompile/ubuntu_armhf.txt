@@ -1,0 +1,25 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_armhf.txt crossbuild_armhf
+#    ninja -C crossbuild_armhf
+
+[binaries]
+c = '/usr/bin/arm-linux-gnueabihf-gcc'
+ar = '/usr/arm-linux-gnueabihf/bin/ar'
+strip = '/usr/arm-linux-gnueabihf/bin/strip'
+pkgconfig = '/usr/bin/arm-linux-gnueabihf-pkg-config'
+ld = '/usr/bin/arm-linux/gnueabihf-ld'
+
+[properties]
+root = '/usr/arm-linux-gnueabihf'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armv7'
+endian = 'little'

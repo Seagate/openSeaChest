@@ -1,0 +1,26 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_mipsisa64r6el.txt crossbuild_mipsisa64r6el
+#    ninja -C crossbuild_mipsisa64r6el
+
+
+[binaries]
+c = '/usr/bin/mipsisa64r6el-linux-gnuabi64-gcc'
+ar = '/usr/mipsisa64r6el-linux-gnuabi64/bin/ar'
+strip = '/usr/mipsisa64r6el-linux-gnuabi64/bin/strip'
+pkgconfig = '/usr/bin/mipsisa64r6el-linux-gnuabi64-pkg-config'
+ld = '/usr/bin/arm-linux/gnuabi64eabihf-ld'
+
+[properties]
+root = '/usr/mipsisa64r6el-linux-gnuabi64'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'mips64'
+cpu = 'mips64r6'
+endian = 'little'
