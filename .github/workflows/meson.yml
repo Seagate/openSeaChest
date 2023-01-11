@@ -160,6 +160,30 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
+        - {
+            name: "MUSL Cross Compile powerpc64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/powerpc64-linux-musl-cross.txt",
+            cross_compiler_arch: "powerpc64",
+            release_name: "linux-powerpc64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile powerpc64le",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/powerpc64le-linux-musl-cross.txt",
+            cross_compiler_arch: "powerpc64le",
+            release_name: "linux-powerpc64le-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
 
     steps:
     - uses: actions/checkout@v3
