@@ -88,6 +88,18 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
+        - {
+            name: "MUSL Cross Compile x86_64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/x86_64-linux-musl-cross.txt",
+            cross_compiler_arch: "x86_64",
+            release_name: "linux-x86_64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
 
     steps:
     - uses: actions/checkout@v3
@@ -100,6 +112,10 @@ jobs:
       with:
         arch: ${{ matrix.config.arch }}
 
+    - name: Setup for MUSL Cross Compilation
+      if: startsWith(matrix.config.name, 'MUSL Cross Compile')
+      run: |
+        ./meson_crosscompile/install_muslcc.sh -a ${{ maxtrix.config.cross_compiler_arch }}
 
     - name: Get latest LLVM version
       if: startsWith(matrix.config.name, 'Windows Clang')
