@@ -1,0 +1,37 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/powerpc-linux-musl-cross.txt crossbuild_powerpcmusl
+#    ninja -C crossbuild_powerpcmusl
+
+#NOTE: This script requires the musl cross compiler to be installed in /opt/muslcc
+#      the install_muslcc.sh script in this same directory will do this for you!
+
+
+[binaries]
+c = '/opt/muslcc/powerpc-linux-musl-cross/usr/bin/powerpc-linux-musl-gcc'
+ar = '/opt/muslcc/powerpc-linux-musl-cross/usr/bin/powerpc-linux-musl-gcc-ar'
+strip = '/opt/muslcc/powerpc-linux-musl-cross/usr/bin/powerpc-linux-musl-strip'
+pkgconfig = '/opt/muslcc/powerpc-linux-musl-cross/usr/bin/powerpc-linux-musl-pkg-config'
+ld = '/opt/muslcc/powerpc-linux-musl-cross/usr/bin/powerpc-linux-musl-ld'
+
+[properties]
+root = '/opt/muslcc/powerpc-linux-musl-cross/usr/powerpc-linux-musl'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'ppc'
+cpu = ''
+endian = 'big'
+
+[built-in options]
+#since this is the musl cross-compiler, we want to statically link the executable
+#This is MIT licensed and compatible to do. It will also make this super portable!
+#
+default_library='static'
+c_link_args='-static'
+libc_musl=true
