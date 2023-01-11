@@ -115,7 +115,7 @@ jobs:
     - name: Setup for MUSL Cross Compilation
       if: startsWith(matrix.config.name, 'MUSL Cross Compile')
       run: |
-        ./meson_crosscompile/install_muslcc.sh -a ${{ matrix.config.cross_compiler_arch }}
+        ./meson_crosscompile/install-muslcc.sh -a ${{ matrix.config.cross_compiler_arch }}
 
     - name: Get latest LLVM version
       if: startsWith(matrix.config.name, 'Windows Clang')
