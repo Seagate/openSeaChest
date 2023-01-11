@@ -100,6 +100,66 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
+        - {
+            name: "MUSL Cross Compile i686",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/i686-linux-musl-cross.txt",
+            cross_compiler_arch: "i686",
+            release_name: "linux-i686-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile aarch64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/aarch64-linux-musl-cross.txt",
+            cross_compiler_arch: "aarch64",
+            release_name: "linux-aarch64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv7l",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv7l-linux-musl-cross.txt",
+            cross_compiler_arch: "armv7l",
+            release_name: "linux-armv7l-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv6",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv6-linux-musl-cross.txt",
+            cross_compiler_arch: "armv6",
+            release_name: "linux-armv6-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv5l",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv5l-linux-musl-cross.txt",
+            cross_compiler_arch: "armv5l",
+            release_name: "linux-armv5l-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
 
     steps:
     - uses: actions/checkout@v3
