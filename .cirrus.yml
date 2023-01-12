@@ -8,10 +8,11 @@ task:
   submodules_script: git submodule update --init --recursive --progress
   release_script:
     - mkdir ./output
+    - branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
     - meson setup build -Dprefix=$(realpath ./output) -Dmandir=/man -Dbindir=$(realpath ./output) --buildtype=release
     - meson install -C build
     - cd ./output
-    - tar cvfJ ../"openSeaChest-$CIRRUS_BRANCH-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+    - tar cvfJ ../"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
     
