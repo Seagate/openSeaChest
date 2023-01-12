@@ -7,6 +7,7 @@ task:
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script:
+    - mkdir ./output
     - meson setup build -Dprefix=$(realpath ./output) -Dmandir=/man -Dbindir=$(realpath ./output) --buildtype=release
     - meson install -C build
     - cd ./output
