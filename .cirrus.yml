@@ -7,8 +7,13 @@ task:
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script:
-    - meson --buildtype=release builddir
-    - ninja -C builddir
+    - meson setup build -Dprefix=$(realpath ./output) -Dmandir=/man -Dbindir=$(realpath ./output) --buildtype=release
+    - meson install -C build
+    - cd ./output
+    - tar cvfJ ../"openSeaChest-$CIRRUS_BRANCH-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+  binaries_artifacts:
+    path: openSeaChest-*.tar.xz
+    
 
 task:
   name: windowsservercore:visualstudio2019
