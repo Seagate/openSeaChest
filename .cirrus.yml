@@ -7,14 +7,11 @@ task:
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script:
-    - echo $CIRRUS_WORKING_DIR
-    - echo $(pwd)
-    - mkdir ./output
     - branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
-    - meson setup build -Dprefix=$(realpath ./output) -Dmandir=/man -Dbindir=$(realpath ./output) --buildtype=release
+    - meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
     - meson install -C build
     - cd ./output
-    - tar cvfJ ../"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+    - tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
     
