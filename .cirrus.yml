@@ -10,7 +10,7 @@ task:
     - branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
     - meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
     - meson install -C build
-    - cd ./output
+    - cd $CIRRUS_WORKING_DIR/output
     - tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
