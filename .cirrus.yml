@@ -1,5 +1,7 @@
 task:
   name: FreeBSD
+  env:
+    GITHUB_TOKEN: ENCRYPTED[!afcf3c192704d2c5e1677e1003dc31f42e920963dfd6b4060b3df6e7ef6ecc68329c20777d8906d97028243c316fc4de!]
   freebsd_instance:
     matrix:
       image_family: freebsd-13-1
@@ -12,6 +14,7 @@ task:
     - meson install -C build
     - cd $CIRRUS_WORKING_DIR/output
     - tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+    - $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
     
