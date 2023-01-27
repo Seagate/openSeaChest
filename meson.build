@@ -27,7 +27,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wold-style-definition',
   '-Wstrict-prototypes',
   '-Wmissing-declarations',
-  '-Wmissing-prototypes'
+  '-Wmissing-prototypes',
+  '-Wchar-subscripts'
   ]
 elif c.get_id().contains('msvc')
   #See here for enabling/disabling msvc warnings:
