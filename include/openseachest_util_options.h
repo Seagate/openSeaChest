@@ -459,15 +459,6 @@ extern "C"
     #define LEGACY_STANDBY_LONG_OPT_STRING "standby"
     #define LEGACY_STANDBY_LONG_OPT { LEGACY_STANDBY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //Add time delay between each log
-    #define DELAY_LOG_SEGMENT_FLAG delayLog
-    #define SET_TIME_DELAY delayTime
-    #define DELAY_LOG_SEGMENT_VARS \
-    bool DELAY_LOG_SEGMENT_FLAG = false;\
-    uint32_t SET_TIME_DELAY = 0;
-    #define DELAY_LOG_SEGMENT_LONG_OPT_STRING "delayLogSegment"
-    #define DELAY_LOG_SEGMENT_LONG_OPT { DELAY_LOG_SEGMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
-
     //Add time delay between each IO
     #define DELAY_CMD_SEGMENT_FLAG delayIO
     #define SET_CMD_TIME_DELAY delayIOTime
@@ -3391,8 +3382,9 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
     void print_NVME_Health_Help(bool shortHelp);
-    void print_Delay_Log_Segment_Help(bool shortHelp);
+
     void print_Delay_CMD_Segment_Help(bool shortHelp);
+
     void print_Low_Level_Info_Help(bool shortHelp);
 
     void print_Force_NVMe_Commit_Action_Help(bool shortHelp);

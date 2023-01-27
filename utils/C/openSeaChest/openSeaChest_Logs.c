@@ -990,7 +990,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_LOG_PULL_FLAG)
         {
-            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, LOG_LENGTH_BYTES))
+            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, LOG_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1052,7 +1052,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_ERROR_HISTORY_PULL_FLAG)
         {
-            switch (pull_Generic_Error_History(&deviceList[deviceIter], C_CAST(uint8_t, GENERIC_ERROR_HISTORY_BUFFER_ID), PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0))
+            switch (pull_Generic_Error_History(&deviceList[deviceIter], C_CAST(uint8_t, GENERIC_ERROR_HISTORY_BUFFER_ID), PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1085,7 +1085,7 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, 0, PULL_LOG_MODE))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_MODE))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1116,7 +1116,7 @@ int32_t main(int argc, char *argv[])
         if (FARM_COMBINED_FLAG)
         {
             //PULL FARM Log containing all FARM sub Log pages
-            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SATA_FARM_COPY_TYPE_FLAG))
+            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, SATA_FARM_COPY_TYPE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
