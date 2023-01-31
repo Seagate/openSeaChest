@@ -342,7 +342,7 @@ void print_Scan_Flags_Help(bool shortHelp)
 
 void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 {
-    printf("\t-%c, --%s deviceHandle\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
+    printf("\t-%c, --%s [deviceHandle | all]\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with most commands to specify the device\n");
@@ -353,6 +353,9 @@ void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 #if defined (ENABLE_CSMI)
         printf("\t\tCSMI device handles can be specified as %s\n", csmiDeviceHandleExample);
 #endif
+        printf("\t\tTo run across all devices detected in the system, use the\n");
+        printf("\t\t\"all\" argument instead of a device handle.\n");
+        printf("\t\tExample: -%c all\n", DEVICE_SHORT_OPT);
         printf("\n");
     }
 }
