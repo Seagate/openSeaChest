@@ -15,6 +15,7 @@
 //  Included files  //
 //////////////////////
 #include "common.h"
+#include "common_platform.h"
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
@@ -39,13 +40,12 @@
 #include "trim_unmap.h"
 #include "drive_info.h"
 #include "format.h"
-#include "depopulate.h"
 #include "platform_helper.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.4.3";
+const char *buildVersion = "4.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -78,6 +78,7 @@ int32_t main(int argc, char *argv[])
     SAT_INFO_VAR
     DATA_ERASE_VAR
     POSSIBLE_DATA_ERASE_VAR
+    LOW_LEVEL_FORMAT_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
@@ -129,8 +130,6 @@ int32_t main(int argc, char *argv[])
     FAST_FORMAT_VAR
     SHOW_ERASE_SUPPORT_VAR
     PERFORM_FASTEST_ERASE_VAR
-    SHOW_PHYSICAL_ELEMENT_STATUS_VAR
-    REMOVE_PHYSICAL_ELEMENT_VAR
 
     //time flags
     HOURS_TIME_VAR
@@ -205,8 +204,6 @@ int32_t main(int argc, char *argv[])
         DISPLAY_LBA_LONG_OPT,
         PATTERN_LONG_OPT,
         HIDE_LBA_COUNTER_LONG_OPT,
-        SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
-        REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT,
         ATA_SECURITY_PASSWORD_LONG_OPT,
         ATA_SECURITY_USING_MASTER_PW_LONG_OPT,
@@ -250,13 +247,17 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
+                if (strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
+                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
+                }
+                else if (strcmp(optarg, LOW_LEVEL_FORMAT_ACCEPT_STRING) == 0)
+                {
+                    LOW_LEVEL_FORMAT_FLAG = true;
                 }
                 else
                 {
@@ -705,10 +706,6 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
-            {
-                REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, atoi(optarg));
-            }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
             PROGRESS_CHAR = optarg;
@@ -1059,8 +1056,6 @@ int32_t main(int argc, char *argv[])
         || PERFORM_FASTEST_ERASE_FLAG
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
-        || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG
-        || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
         ))
     {
         utility_Usage(true);
@@ -1212,6 +1207,47 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+
+    if ((FORMAT_UNIT_FLAG && FAST_FORMAT_FLAG)
+        )
+    {
+        //These options all do a low-level format that has a risk of leaving the drive inoperable if it is interrupted.
+        //Warn the user one last time and provide 30 seconds to cancel the operation
+        printf("Fast format unit will perform a low-level format that cannot\n");
+        printf("be interrupted once started. All background software should be stopped, any filesystems\n");
+        printf("that are currently mounted should first be unmounted in order to reduce the risk of\n");
+        printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
+        printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
+        printf("operations running in parallel without issuing a device reset.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n");
+        printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+        printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+        printf("\t\t         activity that would attempt to communicate with the device while this\n");
+        printf("\t\t         operation is in progress\n");
+        printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
+        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
+        //count down timer must go here
+        for (int8_t counter = 30; counter >= 0; --counter)
+        {
+            printf("\r%2d", counter);
+            delay_Seconds(UINT32_C(1));
+        }
+        printf("\n");
+    }
+
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
@@ -1399,54 +1435,6 @@ int32_t main(int argc, char *argv[])
             safe_Free_aligned(displaySector)
         }
 
-        if (SHOW_PHYSICAL_ELEMENT_STATUS_FLAG)
-        {
-            uint64_t depopTime = 0;
-            bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], &depopTime);
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING, util_name);
-            }
-            if (depopSupport)
-            {
-                uint32_t numberOfDescriptors = 0;
-                get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
-                if (numberOfDescriptors > 0)
-                {
-                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
-                    memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
-                    if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
-                    {
-                        show_Physical_Element_Descriptors(numberOfDescriptors, elementList, depopTime);
-                    }
-                    else
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Failed to get physical element status.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    }
-                }
-                else
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("No physical elements were found on this device.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-            }
-        }
-
         //check for fastest erase flag first since it may be used to set other flags for other erase methods
         if (PERFORM_FASTEST_ERASE_FLAG)
         {
@@ -1524,73 +1512,6 @@ int32_t main(int argc, char *argv[])
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to perform the quickest erase.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, PERFORM_FASTEST_ERASE_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                }
-            }
-        }
-
-        if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
-        {
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, util_name);
-            }
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
-            {
-                bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
-                if (depopSupport)
-                {
-                    //TODO: add an option to allow setting a requested MaxLBA? Lets wait to see if a customer wants that option before we add it - TJE
-                    switch (depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, 0))
-                    {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Successfully sent the remove physical element command!\n");
-                            printf("The device may take a long time before it is ready to accept all commands again.\n");
-                            printf("Use the --%s option to check if the depopulate is still in progress or complete.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
-                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                            {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
-                            }
-                        }
-                        break;
-                    case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("This operation is not supported on this drive or a bad element ID was given.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    case DEVICE_ACCESS_DENIED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Access Denied while attempting to remove physical element. Please make sure security has unlocked the drive and try again.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Failed to depopulate element %" PRIu32".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
-                }
-                else
-                {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a remove physical element command.\n\n");
-                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
@@ -2043,7 +1964,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Format Unit\n");
             }
-            if ((FAST_FORMAT_FLAG > 0 && POSSIBLE_DATA_ERASE_FLAG) || DATA_ERASE_FLAG)
+            if ((FAST_FORMAT_FLAG > 0 && LOW_LEVEL_FORMAT_FLAG) || DATA_ERASE_FLAG)
             {
                 bool currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
@@ -2137,9 +2058,21 @@ int32_t main(int argc, char *argv[])
                     if (FAST_FORMAT_FLAG > 0)
                     {
                         printf("\n");
-                        printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                         printf("to the command line arguments to run a format unit.\n\n");
-                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+                        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+                        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                        printf("\t\t         with multiple logical units or namespaces.\n");
+                        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2660,7 +2593,6 @@ void utility_Usage(bool shortUsage)
     #endif
     print_Time_Seconds_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
-    print_Show_Physical_Element_Status_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
     #endif
@@ -2685,7 +2617,6 @@ void utility_Usage(bool shortUsage)
     print_Revert_Help(shortUsage);
     print_RevertSP_Help(shortUsage);
     #endif
-    print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Sanitize_Help(shortUsage, util_name);
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);

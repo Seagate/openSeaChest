@@ -15,6 +15,7 @@
 //  Included files  //
 //////////////////////
 #include "common.h"
+#include "common_platform.h"
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
@@ -31,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.6.2";
+const char *buildVersion = "2.7.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -64,6 +65,7 @@ int32_t main(int argc, char *argv[])
     SAT_INFO_VAR
     DATA_ERASE_VAR
     POSSIBLE_DATA_ERASE_VAR
+    LOW_LEVEL_FORMAT_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
@@ -203,13 +205,17 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
+                if (strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
+                }
+                else if (strcmp(optarg, LOW_LEVEL_FORMAT_ACCEPT_STRING) == 0)
+                {
+                    LOW_LEVEL_FORMAT_FLAG = true;
                 }
                 else
                 {
@@ -945,6 +951,50 @@ int32_t main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+
+    if (SET_SECTOR_SIZE_FLAG
+        || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
+        || REPOPULATE_ELEMENTS_FLAG
+        || (FORMAT_UNIT_FLAG && FAST_FORMAT_FLAG)
+        )
+    {
+        //These options all do a low-level format that has a risk of leaving the drive inoperable if it is interrupted.
+        //Warn the user one last time and provide 30 seconds to cancel the operation
+        printf("One or more of the options provided will perform a low-level format that cannot\n");
+        printf("be interrupted once started. All background software should be stopped, any filesystems\n");
+        printf("that are currently mounted should first be unmounted in order to reduce the risk of\n");
+        printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
+        printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
+        printf("operations running in parallel without issuing a device reset.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n");
+        printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+        printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+        printf("\t\t         activity that would attempt to communicate with the device while this\n");
+        printf("\t\t         operation is in progress\n");
+        printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
+        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
+        //count down timer must go here
+        for (int8_t counter = 30; counter >= 0; --counter)
+        {
+            printf("\r%2d", counter);
+            delay_Seconds(UINT32_C(1));
+        }
+        printf("\n");
+    }
+
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
@@ -1242,7 +1292,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Format Unit\n");
             }
-            if (DATA_ERASE_FLAG || (FAST_FORMAT_FLAG > 0 && POSSIBLE_DATA_ERASE_FLAG))
+            if (DATA_ERASE_FLAG || (FAST_FORMAT_FLAG > 0 && LOW_LEVEL_FORMAT_FLAG))
             {
                 bool currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
@@ -1348,9 +1398,21 @@ int32_t main(int argc, char *argv[])
                     if (FAST_FORMAT_FLAG > 0)
                     {
                         printf("\n");
-                        printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                         printf("to the command line arguments to run a format unit.\n\n");
-                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+                        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+                        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                        printf("\t\t         with multiple logical units or namespaces.\n");
+                        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -1426,7 +1488,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_SECTOR_SIZE_FLAG)
         {
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
+            if (LOW_LEVEL_FORMAT_FLAG)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1525,25 +1587,34 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     printf("to the command line arguments to run a set sector size operation.\n\n");
-                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
-                    printf("WARNING: It is not recommended to do this on USB as not\n");
-                    printf("         all USB adapters can handle a 4k sector size.\n\n");
-                    printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
-                    printf("         it may cause the drive to become unusable. Stop all possible background\n");
-                    printf("         activity that would attempt to communicate with the device while this\n");
-                    printf("         operation is in progress\n\n");
+                    printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample, SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                    printf("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
+                    printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+                    printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                    printf("\t\t         drive inoperable! Use this at your own risk!\n");
+                    printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                    printf("\t\t         with multiple logical units or namespaces.\n");
+                    printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+                    printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+                    printf("\t\t         activity that would attempt to communicate with the device while this\n");
+                    printf("\t\t         operation is in progress\n");
+                    printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
+                    printf("\t\t         all USB adapters can handle a 4k sector size.\n");
                     printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                     printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                    printf("\t\t         and may prevent completion of a fast format operation.\n\n");
+                    printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
         }
 
         if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
         {
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
+            if (LOW_LEVEL_FORMAT_FLAG)
             {
                 bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
                 if (depopSupport)
@@ -1604,16 +1675,20 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     printf("to the command line arguments to run a remove physical element command.\n\n");
-                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                    printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+                    printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
         }
 
         if (REPOPULATE_ELEMENTS_FLAG)
         {
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
+            if (LOW_LEVEL_FORMAT_FLAG)
             {
                 bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], NULL);
                 if (repopSupport)
@@ -1673,9 +1748,13 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     printf("to the command line arguments to run a repopulate elements operation.\n\n");
-                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                    printf("\t\tThere is an additional risk when performing a repopulate elements as it low-level formats\n");
+                    printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+                    set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
         }

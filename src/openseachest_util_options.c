@@ -2186,7 +2186,11 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tSector size currently being used, otherwise enter a new sector\n");
         printf("\t\tsize to use upon format completion. This command will erase all\n");
         printf("\t\tdata on the drive. Combine this option with --%s to poll\n", POLL_LONG_OPT_STRING);
-        printf("\t\tfor progress until the format is complete.\n\n");
+        printf("\t\tfor progress until the format is complete.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tsupported/required sector sizes!\n\n");
         printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
 		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
@@ -2202,6 +2206,21 @@ void print_Fast_Format_Help(bool shortHelp)
     {
         printf("\t\tUse this option with the --%s option\n", FORMAT_UNIT_LONG_OPT_STRING);
         printf("\t\tto run a fast format.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tusing 4K native sectors before using this option!\n");
+        printf("\t\tSoftware RAID or individual/JBOD drive solutions will see no benefit as modern\n");
+        printf("\t\tfile systems and modern operating systems are already 4K aware even on\n");
+        printf("\t\t512 emulation drives. Modern operating systems already align file systems to 4K\n");
+        printf("\t\tboundaries required by these drives for optimal performance.\n");
+        printf("\t\tPerforming a sector size change is data destructive and has a risk that\n");
+        printf("\t\tthe adapter, driver, or operating system may not know how to communicate with\n");
+        printf("\t\tthe device once this has completed.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("\t\tAvailable fast format modes:\n");
         printf("\t\t    0 - This is a standard format unit command. All logical\n");
         printf("\t\t        blocks will be overwritten. This command will take a\n");
@@ -2216,9 +2235,15 @@ void print_Fast_Format_Help(bool shortHelp)
         printf("\t\t        logical sector size quickly. Media may or may not be\n");
         printf("\t\t        read accessible until a write has been performed to\n");
         printf("\t\t        the media.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a fast format operation.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
 
@@ -2352,17 +2377,32 @@ void print_Set_Sector_Size_Help(bool shortHelp)
     printf("\t--%s [new sector size]\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis option is only available for drives that support sector\n");
-        printf("\t\tsize changes. On SATA Drives, the set sector configuration\n");
-        printf("\t\tcommand must be supported. On SAS Drives, fast format must\n");
-        printf("\t\tbe supported. A format unit can be used instead of this\n");
-        printf("\t\toption to perform a long format and adjust sector size.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tusing 4K native sectors before using this option!\n");
+        printf("\t\tSoftware RAID or individual/JBOD drive solutions will see no benefit as modern\n");
+        printf("\t\tfile systems and modern operating systems are already 4K aware even on\n");
+        printf("\t\t512 emulation drives. Modern operating systems already align file systems to 4K\n");
+        printf("\t\tboundaries required by these drives for optimal performance.\n");
+        printf("\t\tPerforming a sector size change is data destructive and has a risk that\n");
+        printf("\t\tthe adapter, driver, or operating system may not know how to communicate with\n");
+        printf("\t\tthe device once this has completed.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tFor SATA Drives, the set sector configuration command must be supported.\n");
+        printf("\t\tOn SAS Drives, fast format must be supported to make these changes.\n\n");
         printf("\t\tUse the --%s option to see the sector\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
         printf("\t\tsizes the drive reports supporting. If this option\n");
         printf("\t\tdoesn't list anything, please consult your product manual.\n");
         printf("\t\tThis option should be used to quickly change between 5xxe and\n");
         printf("\t\t4xxx sector sizes. Using this option to change from 512 to 520\n");
         printf("\t\tor similar is not recommended at this time due to limited drive\n\t\tsupport\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
         printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n");
         printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
@@ -2374,6 +2414,7 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
         printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
 
@@ -3176,7 +3217,11 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
         printf("\t\tcapacity to a new point where the drive is still\n");
         printf("\t\tusable without the provided element #.\n");
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
-        printf("\t\tof the depopulation operation.\n\n");
+        printf("\t\tof the depopulation operation.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -3205,7 +3250,14 @@ void print_Repopulate_Elements_Help(bool shortHelp)
         printf("\t\tUse this option to repopulate any physical storage\n");
         printf("\t\telements that have been removed from use.\n");
         printf("\t\tA full disk overwrite is necessary before\n");
-        printf("\t\tthe drive is usable.\n\n");
+        printf("\t\tthe drive is usable.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a repopulate as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
+        printf("\n");
     }
 }
 
