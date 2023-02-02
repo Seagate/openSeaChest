@@ -5,7 +5,7 @@
 #openSeaChest. This script should be run after the tar.xz file is created by a successful build
 #The other major change is that this script is posix shell compliant instead of requiring bash
 
-if [ "$CIRRUS_RELEASE" = "" ]; then
+if [ "$CIRRUS_RELEASE" = "" ] && [ "$CIRRUS_TAG" = "" ]; then
   echo "Not a release. No need to deploy!"
   exit 0
 fi
@@ -16,6 +16,11 @@ if [ "$GITHUB_TOKEN" = "" ]; then
 fi
 
 branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
+if [ "$CIRRUS_TAG" != "" ]; then
+  branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
+elif [ "$CIRRUS_RELEASE" != "" ]; then
+  branchName=$(printf '%s' "$CIRRUS_RELEASE" | tr '/' '-')
+fi
 file_content_type="application/octet-stream"
 file_to_upload="$CIRRUS_WORKING_DIR/openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz"
 
@@ -23,7 +28,11 @@ if [ -f "$file_to_upload" ]; then
 
     echo "Uploading $file_to_upload..."
     name=$(basename "$file_to_upload")
-    url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
+    if [ "$CIRRUS_TAG" != "" ]; then
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_TAG/assets?name=$name"
+    else 
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
+    fi
     curl -X POST \
         --data-binary @"$file_to_upload" \
         --header "Authorization: token $GITHUB_TOKEN" \

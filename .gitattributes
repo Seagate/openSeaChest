@@ -9,3 +9,5 @@
 .vscode		export-ignore
 .travis.yml	export-ignore
 
+#force specific line endings:
+*.sh	eol=lf
