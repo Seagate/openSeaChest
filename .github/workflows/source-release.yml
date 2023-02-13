@@ -27,10 +27,21 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Escape backslash in branch name
+      shell: bash
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
+
+    - name: Setting release name
+      env:
+        ARCHIVENAME: ${{ format('openSeaChest-{0}', env.BRANCH_NAME) }}
+      run: |
+        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Create Source Archive
       run: |
         pip install git-archive-all
-        git-archive-all SourceCode_With_Submodules.${{ matrix.config.extension }}
+        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules.${{ matrix.config.extension }}
 
     - name: Upload Source Archive as Artifact
       uses: actions/upload-artifact@v3
