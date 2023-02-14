@@ -1461,12 +1461,14 @@ void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp)
 
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ auto | full | segmented | deferred | deferred+activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
         printf("\t\tto set the firmware download mode.\n");
         printf("\t\tSupported Modes:\n");
+        printf("\t\t\tauto - automatically determines the best mode to use to\n");
+        printf("\t\t\t       perform the firmware update.\n");
         printf("\t\t\tfull - performs a download in one large\n");
         printf("\t\t\t            transfer to the device.\n");
         printf("\t\t\tsegmented - downloads the firmware in multiple\n");
@@ -1474,8 +1476,15 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
         printf("\t\t\tdeferred - performs a segmented download to the\n");
         printf("\t\t\t           device, but does not activate the new\n");
         printf("\t\t\t           firmware until a powercycle or activate\n");
-        printf("\t\t\t           command is sent.\n\n");
-        printf("\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
+        printf("\t\t\t           command is sent.\n");
+        printf("\t\t\tdeferred+activate - performs a deferred download and\n");
+        printf("\t\t\t                    automatically acitvates it for you.\n");
+        printf("\t\t\t                    Similar to how a segmented download works\n");
+        printf("\t\t\t                    but uses a separate activate command. This\n");
+        printf("\t\t\t                    is the recommended mode that \"auto\" will\n");
+        printf("\t\t\t                    select when possible for maximum compatibility\n");
+        pritnf("\t\t\t                    with Windows 10 and later operating systems.\n");
+        printf("\n\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }

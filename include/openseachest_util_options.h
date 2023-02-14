@@ -743,7 +743,7 @@ extern "C"
     bool DOWNLOAD_FW_FLAG = false;\
     char firmwareFileName[FIRMWARE_FILE_NAME_MAX_LEN] = { 0 };\
     char *DOWNLOAD_FW_FILENAME_FLAG =  &firmwareFileName[0];\
-    int DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;/*3*/\
+    int DOWNLOAD_FW_MODE = 0xFF;/*automatic*/\
     bool USER_SET_DOWNLOAD_MODE = false;
     #define DOWNLOAD_FW_LONG_OPT_STRING "downloadFW"
     #define DOWNLOAD_FW_MODE_LONG_OPT_STRING "downloadMode"
