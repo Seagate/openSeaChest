@@ -1483,7 +1483,7 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
         printf("\t\t\t                    but uses a separate activate command. This\n");
         printf("\t\t\t                    is the recommended mode that \"auto\" will\n");
         printf("\t\t\t                    select when possible for maximum compatibility\n");
-        pritnf("\t\t\t                    with Windows 10 and later operating systems.\n");
+        printf("\t\t\t                    with Windows 10 and later operating systems.\n");
         printf("\n\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
