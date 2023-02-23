@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.0.0";
+const char *buildVersion = "4.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -130,7 +130,8 @@ int32_t main(int argc, char *argv[])
     FAST_FORMAT_VAR
     SHOW_ERASE_SUPPORT_VAR
     PERFORM_FASTEST_ERASE_VAR
-
+    NVM_FORMAT_VARS
+    NVM_FORMAT_OPTION_VARS
     //time flags
     HOURS_TIME_VAR
     MINUTES_TIME_VAR
@@ -209,6 +210,8 @@ int32_t main(int argc, char *argv[])
         ATA_SECURITY_USING_MASTER_PW_LONG_OPT,
         ATA_SECURITY_ERASE_OP_LONG_OPT,
         ATA_SECURITY_FORCE_SAT_LONG_OPT,
+        NVM_FORMAT_LONG_OPT,
+        NVM_FORMAT_OPTIONS_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
 
@@ -416,6 +419,99 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_FLAG = true;
+                if (strcmp(optarg, "current") != 0)
+                {
+                    uint64_t temp = 0;
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
+                    {
+                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_NSID_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "current") == 0)
+                {
+                    NVM_FORMAT_NSID = 0;//detect this below and insert the correct NSID for the current handle
+                }
+                else if (strcmp(optarg, "all") == 0)
+                {
+                    NVM_FORMAT_NSID = UINT32_MAX;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_NSID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "none") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_NO_SECURE_ERASE_REQUESTED;
+                }
+                else if (strcmp(optarg, "user") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                }
+                else if (strcmp(optarg, "crypto") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "beginning") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 0;
+                }
+                else if (strcmp(optarg, "end") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "xlba") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 0;
+                }
+                else if (strcmp(optarg, "separate") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
@@ -1041,7 +1137,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
-		|| LOWLEVEL_INFO_FLAG
+        || LOWLEVEL_INFO_FLAG
 #if !defined(DISABLE_TCG_SUPPORT)
         || TCG_REVERT_SP_FLAG
         || TCG_REVERT_FLAG
@@ -1056,6 +1152,7 @@ int32_t main(int argc, char *argv[])
         || PERFORM_FASTEST_ERASE_FLAG
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
+        || NVM_FORMAT_FLAG
         ))
     {
         utility_Usage(true);
@@ -1474,6 +1571,14 @@ int32_t main(int argc, char *argv[])
                 case ERASE_SANITIZE_CRYPTO:
                     sanitize = true;
                     sancryptoErase = true;
+                    break;
+                case ERASE_NVM_FORMAT_USER_SECURE_ERASE:
+                    NVM_FORMAT_FLAG = true;
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                    break;
+                case ERASE_NVM_FORMAT_CRYPTO_SECURE_ERASE:
+                    NVM_FORMAT_FLAG = true;
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
                     break;
                 case ERASE_ATA_SECURITY_ENHANCED:
                     ATA_SECURITY_ERASE_OP = true;
@@ -2085,6 +2190,142 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (NVM_FORMAT_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("NVM Format\n");
+            }
+            if (DATA_ERASE_FLAG)
+            {
+                runNVMFormatParameters nvmformatParameters;
+                memset(&nvmformatParameters, 0, sizeof(runNVMFormatParameters));
+                if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = true;
+                }
+                else if (/*NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 0 && */ NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM < 16)
+                {
+                    nvmformatParameters.formatNumberProvided = true;
+                    nvmformatParameters.formatNumber = C_CAST(uint8_t, NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM);
+                }
+                else
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = false;
+                    nvmformatParameters.newSize.newBlockSize = NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM;
+                }
+                if (NVM_FORMAT_METADATA_SIZE != UINT32_MAX && !nvmformatParameters.formatNumberProvided)
+                {
+                    nvmformatParameters.newSize.changeMetadataSize = true;
+                    nvmformatParameters.newSize.metadataSize = C_CAST(uint16_t, NVM_FORMAT_METADATA_SIZE);
+                }
+                if (NVM_FORMAT_NSID != UINT32_MAX)
+                {
+                    nvmformatParameters.currentNamespace = true;
+                }
+                nvmformatParameters.secureEraseSettings = NVM_FORMAT_SECURE_ERASE;
+                //PI
+                switch (NVM_FORMAT_PI_TYPE)
+                {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    nvmformatParameters.changeProtectionType = true;
+                    nvmformatParameters.protectionType = NVM_FORMAT_PI_TYPE;
+                    break;
+                default:
+                    break;
+                }
+                //PIL
+                switch (NVM_FORMAT_PI_LOCATION)
+                {
+                case 0:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = true;
+                    break;
+                case 1:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = false;
+                    break;
+                default:
+                    break;
+                }
+                //metadata settings
+                switch (NVM_FORMAT_METADATA_SETTING)
+                {
+                case 0:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = true;
+                    break;
+                case 1:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = false;
+                    break;
+                default:
+                    break;
+                }
+                int formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
+                switch (formatRet)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (POLL_FLAG)
+                        {
+                            printf("NVM Format was Successful!\n");
+                        }
+                        else
+                        {
+                            printf("NVM Format was started Successfully!\n");
+                            printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Not Supported or invalid option combination provided!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case OS_COMMAND_NOT_AVAILABLE:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format is not supported in this OS\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting NVM Format. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Failed!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a nvm format.\n\n");
+                    printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
+            }
+        }
+
         if (ATA_SECURITY_ERASE_OP)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -2459,6 +2700,14 @@ int32_t main(int argc, char *argv[])
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
+            else if (strcmp(progressTest, "NVMFORMAT") == 0)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Getting NVM Format Progress.\n");
+                }
+                result = show_Format_Unit_Progress(&deviceList[deviceIter]);
+            }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2538,6 +2787,10 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s file:path/to/myFile.bin\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 4096 --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2578,7 +2831,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);
     print_Poll_Help(shortUsage);
-    print_Progress_Help(shortUsage, "sanitize, format");
+    print_Progress_Help(shortUsage, "sanitize | format | nvmformat");
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
@@ -2629,4 +2882,12 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSAS Only:\n\t=========\n");
     print_Fast_Format_Help(shortUsage);
     print_Format_Unit_Help(shortUsage);
+    printf("\n\tNVMe Only:\n\t=========\n");
+    print_NVM_Format_Metadata_Setting_Help(shortUsage);
+    print_NVM_Format_Metadata_Size_Help(shortUsage);
+    print_NVM_Format_NSID_Help(shortUsage);
+    print_NVM_Format_PI_Type_Help(shortUsage);
+    print_NVM_Format_PIL_Help(shortUsage);
+    print_NVM_Format_Secure_Erase_Help(shortUsage);
+    print_NVM_Format_Help(shortUsage);
 }
