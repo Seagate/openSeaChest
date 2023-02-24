@@ -219,7 +219,6 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                USER_SET_DOWNLOAD_MODE = true;
                 DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
                 if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
                 {

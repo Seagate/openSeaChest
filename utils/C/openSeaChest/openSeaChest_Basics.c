@@ -39,7 +39,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.5.1";
+const char *buildVersion = "3.5.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -353,19 +353,31 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                USER_SET_DOWNLOAD_MODE = true;
-                DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                if (strncmp(optarg, "immediate", strlen(optarg)) == 0 || strncmp(optarg, "full", strlen(optarg)) == 0)
+                DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_FULL;
                 }
-                else if (strncmp(optarg, "segmented", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "segmented") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_SEGMENTED;
                 }
-                else if (strncmp(optarg, "deferred", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "deferred") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED;
+                }
+                //TODO: deferredselect and a way to get events: POA, HRA, and VSA
+                else if (strcmp(optarg, "deferred+activate") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED_PLUS_ACTIVATE;
+                }
+                else if (strcmp(optarg, "auto") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                }
+                else if (strcmp(optarg, "temp") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_TEMP;
                 }
                 else
                 {
@@ -1446,41 +1458,6 @@ int main(int argc, char *argv[])
                 uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    supportedDLModes supportedFWDLModes;
-                    memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
-                    supportedFWDLModes.size = sizeof(supportedDLModes);
-                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
-                    if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
-                    {
-                        if (!USER_SET_DOWNLOAD_MODE)
-                        {
-                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
-                            /*
-                            DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            /*/
-                            if (!supportedFWDLModes.deferred)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            else
-                            {
-                                if (supportedFWDLModes.segmented)
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                                }
-                                else
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
-                                }
-                            }
-                            //For now, setting deferred download as default for NVMe drives.
-                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            //*/
-                        }
-                    }
                     if (firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
                         firmwareUpdateData dlOptions;
@@ -1515,17 +1492,6 @@ int main(int argc, char *argv[])
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
-                                }
-                            }
-                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
-                            {
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("This drive requires a full power cycle to activate the new code.\n");
-                                }
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             else
@@ -1597,7 +1563,7 @@ int main(int argc, char *argv[])
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                 dlOptions.size = sizeof(firmwareUpdateData);
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
-                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
