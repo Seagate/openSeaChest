@@ -10,10 +10,10 @@ task:
   submodules_script: git submodule update --init --recursive --progress
   release_script: |
     branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
-    if [ "$CIRRUS_TAG" != "" ]; then
-      branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
-    elif [ "$CIRRUS_RELEASE" != "" ]; then
+    if [ "$CIRRUS_RELEASE" != "" ]; then
       branchName=$(printf '%s' "$CIRRUS_RELEASE" | tr '/' '-')
+    elif [ "$CIRRUS_TAG" != "" ]; then
+      branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
     fi
     meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
     meson install -C build

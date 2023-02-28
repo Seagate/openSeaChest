@@ -16,10 +16,10 @@ if [ "$GITHUB_TOKEN" = "" ]; then
 fi
 
 branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
-if [ "$CIRRUS_TAG" != "" ]; then
-  branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
-elif [ "$CIRRUS_RELEASE" != "" ]; then
+if [ "$CIRRUS_RELEASE" != "" ]; then
   branchName=$(printf '%s' "$CIRRUS_RELEASE" | tr '/' '-')
+elif [ "$CIRRUS_TAG" != "" ]; then
+  branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
 fi
 file_content_type="application/octet-stream"
 file_to_upload="$CIRRUS_WORKING_DIR/openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz"
@@ -28,10 +28,10 @@ if [ -f "$file_to_upload" ]; then
 
     echo "Uploading $file_to_upload..."
     name=$(basename "$file_to_upload")
-    if [ "$CIRRUS_TAG" != "" ]; then
-      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_TAG/assets?name=$name"
+    if [ "$CIRRUS_RELEASE" != "" ]; then
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
     else 
-      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_RELEASE/assets?name=$name"
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_TAG/assets?name=$name"
     fi
     curl -X POST \
         --data-binary @"$file_to_upload" \
