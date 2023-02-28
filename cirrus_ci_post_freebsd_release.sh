@@ -29,9 +29,9 @@ if [ -f "$file_to_upload" ]; then
     echo "Uploading $file_to_upload..."
     name=$(basename "$file_to_upload")
     if [ "$CIRRUS_TAG" != "" ]; then
-      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_TAG/assets?name=$name"
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_TAG/assets?name=$name"
     else 
-      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
+      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_RELEASE/assets?name=$name"
     fi
     curl -X POST \
         --data-binary @"$file_to_upload" \
