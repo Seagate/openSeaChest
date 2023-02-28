@@ -144,7 +144,7 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 incdir = include_directories('include')
 
 exe_src_map = {
-  'FormatUnit': 'Format'
+  'Format': 'Format'
 }
 
 foreach p : get_option('tools')
