@@ -37,6 +37,7 @@ if [ -f "$file_to_upload" ]; then
       url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
     else 
       #need to look up the release id to use for the upload since we do not have that right now-TJE
+      #https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#get-a-release-by-tag-name
       response=$(curl \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: token $GITHUB_TOKEN"\
