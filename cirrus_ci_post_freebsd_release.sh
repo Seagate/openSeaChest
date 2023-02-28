@@ -5,6 +5,11 @@
 #openSeaChest. This script should be run after the tar.xz file is created by a successful build
 #The other major change is that this script is posix shell compliant instead of requiring bash
 
+echo "Important script vars:"
+echo "   CIRRUS_RELEASE=$CIRRUS_RELEASE"
+echo "   CIRRUS_TAG=$CIRRUS_TAG"
+echo "   CIRRUS_BRANCH=$CIRRUS_BRANCH"
+
 if [ "$CIRRUS_RELEASE" = "" ] && [ "$CIRRUS_TAG" = "" ]; then
   echo "Not a release. No need to deploy!"
   exit 0
@@ -31,7 +36,21 @@ if [ -f "$file_to_upload" ]; then
     if [ "$CIRRUS_RELEASE" != "" ]; then
       url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$CIRRUS_RELEASE/assets?name=$name"
     else 
-      url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$CIRRUS_TAG/assets?name=$name"
+      #need to look up the release id to use for the upload since we do not have that right now-TJE
+      response=$(curl \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: token $GITHUB_TOKEN"\
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tags/$CIRRUS_TAG")
+
+      #get the ID from the response...this nasty command that follows seems to get it
+      id=$(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | cut -d= -f2)
+
+      if [ "$id" != "" ]; then
+        url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$id/assets?name=$name"
+      else
+        echo "Failed to get ID for uploading cirrus tag assets"
+      fi
     fi
     curl -X POST \
         --data-binary @"$file_to_upload" \
