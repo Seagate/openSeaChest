@@ -3346,8 +3346,6 @@ extern "C"
 
     void print_Force_Help(bool shortHelp);
 
-    void print_Seagate_Quick_Format_Help(bool shortHelp);
-
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
     void print_Show_Reservation_Capabilities(bool shortHelp);

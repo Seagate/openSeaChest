@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "2.7.0";
+const char *buildVersion = "3.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -101,7 +101,6 @@ int32_t main(int argc, char *argv[])
     REMOVE_PHYSICAL_ELEMENT_VAR
     REPOPULATE_ELEMENTS_VAR
     DEPOP_MAX_LBA_VAR
-    SEAGATE_SATA_QUICK_FORMAT_VARS
 
     NVM_FORMAT_VARS
     NVM_FORMAT_OPTION_VARS
@@ -166,7 +165,6 @@ int32_t main(int argc, char *argv[])
         DEPOP_MAX_LBA_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
-        SEAGATE_SATA_QUICK_FORMAT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -799,7 +797,6 @@ int32_t main(int argc, char *argv[])
         || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
         || REPOPULATE_ELEMENTS_FLAG
         || NVM_FORMAT_FLAG
-        || SEAGATE_SATA_QUICK_FORMAT
         ))
     {
         utility_Usage(true);
@@ -1425,67 +1422,6 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (SEAGATE_SATA_QUICK_FORMAT)
-        {
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
-            {
-                if (is_Seagate_Quick_Format_Supported(&deviceList[deviceIter]) || FORCE_FLAG)
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        if (FORCE_FLAG)
-                        {
-                            printf("WARNING: Forcing Seagate quick format command!\n");
-                        }
-                        else
-                        {
-                            printf("Sending Seagat quick format command\n");
-                        }
-                    }
-                    switch (seagate_Quick_Format(&deviceList[deviceIter]))
-                    {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("WARNING: Seagate Quick format completed successfully!\n");
-                            printf("         Reading LBAs after a quick format without a write may result in errors!\n");
-                            printf("         A full overwrite is strongly recommended!\n\n");
-                        }
-                        break;
-                    case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("This operation is not supported on this drive.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Failed to perform quick format\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
-                }
-                else
-                {
-                    printf("The Seagate quick format command is not supported on this device.\n");
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a quick format.\n\n");
-                    printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
-                }
-            }
-        }
-
         if (SET_SECTOR_SIZE_FLAG)
         {
             if (LOW_LEVEL_FORMAT_FLAG)
@@ -1546,36 +1482,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("For SCSI Drives, try a format unit operation\n");
-                        }
-                    }
-                    else if (deviceList[deviceIter].drive_info.drive_type == ATA_DRIVE)
-                    {
-                        if (is_Seagate_Quick_Format_Supported(&deviceList[deviceIter]))//This internally checks for Seagate and will only run if it is detected correctly. This should not be issued on non-Seagate products.
-                        {
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Attempting Seagate quick format to make sure drive is in a good state.\n");
-                            }
-                            switch (seagate_Quick_Format(&deviceList[deviceIter]))
-                            {
-                            case SUCCESS:
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("Seagate quick format completed. Please check drive information to see\n");
-                                    printf("the current sector size and retry setting the sector size if it is not\n");
-                                    printf("the intended size.\n\n");
-                                }
-                                break;
-                            default:
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("Seagate quick format could not complete. The drive may or may not be in\n");
-                                    printf("a good state. Try performing --%s again to ensure\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
-                                    printf("it is set to the intended sector size.\n\n");
-                                }
-                                break;
-                            }
+                            printf("For SCSI Drives, try a format unit operation to recover the device\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2067,8 +1974,6 @@ void utility_Usage(bool shortUsage)
     print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Repopulate_Elements_Help(shortUsage);
     print_Set_Sector_Size_Help(shortUsage);
-    printf("\n\tSATA Only:\n\t==========\n");
-    print_Seagate_Quick_Format_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
     //print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);
