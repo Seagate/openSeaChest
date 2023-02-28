@@ -47,7 +47,7 @@ if [ -f "$file_to_upload" ]; then
       id=$(echo "$response" | grep -m 1 "id.:" | grep -w id | tr : = | tr -cd '[[:alnum:]]=' | cut -d= -f2)
 
       if [ "$id" != "" ]; then
-        url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/tag/$id/assets?name=$name"
+        url_to_upload="https://uploads.github.com/repos/$CIRRUS_REPO_FULL_NAME/releases/$id/assets?name=$name"
       else
         echo "Failed to get ID for uploading cirrus tag assets"
       fi
