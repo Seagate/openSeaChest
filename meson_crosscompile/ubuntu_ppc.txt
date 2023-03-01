@@ -1,0 +1,26 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_ppc.txt crossbuild_ppc
+#    ninja -C crossbuild_ppc
+
+
+[binaries]
+c = '/usr/bin/powerpc-linux-gnu-gcc'
+ar = '/usr/powerpc-linux-gnu/bin/ar'
+strip = '/usr/powerpc-linux-gnu/bin/strip'
+pkgconfig = '/usr/bin/powerpc-linux-gnu-pkg-config'
+ld = '/usr/bin/powerpc-linux-gnu-ld'
+
+[properties]
+root = '/usr/powerpc-linux-gnu'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'ppc'
+cpu = ''
+endian = 'big'

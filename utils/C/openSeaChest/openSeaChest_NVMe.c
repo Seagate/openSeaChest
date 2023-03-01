@@ -17,12 +17,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include <math.h>
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -39,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.0.8";
+const char *buildVersion = "2.2.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -74,11 +70,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     DOWNLOAD_FW_VARS
     ACTIVATE_DEFERRED_FW_VAR
     SWITCH_FW_VAR
@@ -109,6 +106,7 @@ int32_t main(int argc, char *argv[])
     POLL_VAR
     PROGRESS_VAR
     SHOW_SUPPORTED_FORMATS_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -123,7 +121,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         //USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -132,8 +130,10 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         POLL_LONG_OPT,
         PROGRESS_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         DOWNLOAD_FW_MODE_LONG_OPT,
         DOWNLOAD_FW_LONG_OPT,
@@ -265,21 +265,33 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING) == 0)
+            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                USER_SET_DOWNLOAD_MODE = true;
-                DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                if (strncmp(optarg, "immediate", strlen(optarg)) == 0 || strncmp(optarg, "full", strlen(optarg)) == 0)
+                DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_FULL;
                 }
-                else if (strncmp(optarg, "segmented", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "segmented") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_SEGMENTED;
                 }
-                else if (strncmp(optarg, "deferred", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "deferred") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED;
+                }
+                //TODO: deferredselect and a way to get events: POA, HRA, and VSA
+                else if (strcmp(optarg, "deferred+activate") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED_PLUS_ACTIVATE;
+                }
+                else if (strcmp(optarg, "auto") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                }
+                else if (strcmp(optarg, "temp") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_TEMP;
                 }
                 else
                 {
@@ -591,7 +603,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -739,6 +751,7 @@ int32_t main(int argc, char *argv[])
 
     //check that we were given at least one test to perform...if not, set that we are dumping device information so we at least do something
     if (!(DEVICE_INFO_FLAG
+          || LOWLEVEL_INFO_FLAG
           || DOWNLOAD_FW_FLAG
           || ACTIVATE_DEFERRED_FW_FLAG
           || SWITCH_FW_FLAG
@@ -784,6 +797,11 @@ int32_t main(int argc, char *argv[])
         flags = DO_NOT_WAKE_DRIVE;
     }
 
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
@@ -814,13 +832,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -868,14 +886,14 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
-		    }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
+            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1004,6 +1022,11 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
+        }
+
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
@@ -1076,7 +1099,7 @@ int32_t main(int argc, char *argv[])
                 uint64_t size = 0;
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
-                if ((nvme_Get_Log_Size(GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
+                if ((nvme_Get_Log_Size(&deviceList[deviceIter], GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
                 {
                     memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
                     if (NVME_LOG_ERROR_ID == GET_NVME_LOG_IDENTIFIER)
@@ -1307,17 +1330,17 @@ int32_t main(int argc, char *argv[])
 
                         if (TELEMETRY_DATA_AREA == 1)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea1;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea1);
                         }
 
                         if (TELEMETRY_DATA_AREA == 2)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea2;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea2);
                         }
 
                         if (TELEMETRY_DATA_AREA == 3)
                         {
-                            fullSize = offset + 512 * teleHdr->teleDataArea3;
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea3);
                         }
 
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||
@@ -1601,41 +1624,6 @@ int32_t main(int argc, char *argv[])
                 uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    supportedDLModes supportedFWDLModes;
-                    memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
-                    supportedFWDLModes.size = sizeof(supportedDLModes);
-                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
-                    if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
-                    {
-                        if (!USER_SET_DOWNLOAD_MODE)
-                        {
-                            //This line is commented out since Muhammad and Billy want to wait a little longer before letting deferred be a default when supported.
-                            /*
-                            DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            /*/
-                            if (!supportedFWDLModes.deferred)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            else
-                            {
-                                if (supportedFWDLModes.segmented)
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                                }
-                                else
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
-                                }
-                            }
-                            //For now, setting deferred download as default for NVMe drives.
-                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            //*/
-                        }
-                    }
                     if (firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
                         firmwareUpdateData dlOptions;
@@ -1690,17 +1678,6 @@ int32_t main(int argc, char *argv[])
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
-                                }
-                            }
-                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
-                            {
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("This drive requires a full power cycle to activate the new code.\n");
-                                }
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             else
@@ -1789,7 +1766,7 @@ int32_t main(int argc, char *argv[])
                 memset(&commandTimer, 0, sizeof(seatimer_t));
                 dlOptions.size = sizeof(firmwareUpdateData);
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
-                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
@@ -2077,8 +2054,32 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\tUpdating firmware:\n");
+    printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware with deferred download and activating:\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+    printf("\tUpdating firmware and specifying a firmware slot (NVMe)\n");
+    printf("\t%s -d %s --%s file.bin --%s deferred\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t  +\n");
+    printf("\t%s -d %s --%s --%s 2\n", util_name, deviceHandleExample, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING, FIRMWARE_SLOT_LONG_OPT_STRING);
+    printf("\tFormatting an NVMe device:\n");
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 4096 --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
+    printf("\tChecking and changing power states:\n");
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
+    printf("\tPulling the Telemetry log:\n"); 
+    printf("\t%s -d %s --%s host\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s host, --%s 2 --%s bin\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING, TELEMETRY_DATA_AREA_LONG_OPT_STRING, OUTPUT_MODE_LONG_OPT_STRING);
+    //TODO: other log options/feature options
+
     //return codes
     printf("Return codes\n");
     printf("============\n");
@@ -2092,7 +2093,7 @@ void utility_Usage(bool shortUsage)
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
     print_New_Firmware_Revision_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -2106,8 +2107,10 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here
+    print_Fast_Discovery_Help(shortUsage);
     print_Firmware_Activate_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);

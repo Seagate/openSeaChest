@@ -18,7 +18,7 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
+#include "getopt.h"
 #elif defined (_WIN32)
 #include "getopt.h"
 #else
@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.1.5";
+const char *buildVersion = "1.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -262,11 +262,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -289,6 +290,7 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -305,13 +307,14 @@ int32_t main(int argc, char *argv[])
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
         QUIET_LONG_OPT,
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -319,6 +322,7 @@ int32_t main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -725,6 +729,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         || RUN_PASSTHROUGH_TEST_FLAG
         ))
@@ -753,6 +758,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     if (RUN_PASSTHROUGH_TEST_FLAG)
@@ -807,13 +817,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -867,14 +877,14 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
-		    }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
+            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1008,6 +1018,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -6393,7 +6408,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     device->drive_info.defaultTimeoutSeconds = 15;
 
     //now loop through 10 bad commands and check the timing and see if it got super slow
-    for (uint8_t counter = 0; counter < MAX_COMMANDS_TO_TRY && commandIter < MAX_COMMANDS_TO_TRY && ret != COMMAND_TIMEOUT; ++counter)
+    for (uint8_t counter = 0; counter < MAX_COMMANDS_TO_TRY && commandIter < MAX_COMMANDS_TO_TRY && ret != OS_COMMAND_TIMEOUT; ++counter)
     {
         ret = scsi_Mode_Sense_10(device, pageCode, 255, subpage, true, false, MPC_CURRENT_VALUES, dataBuffer);
         commandTimes[commandIter] = device->drive_info.lastCommandTimeNanoSeconds;
@@ -6425,7 +6440,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     printf("\tAverage return time from bad commands: %" PRIu64 " nanoseconds\n", averageFromBadCommands);
     printf("\tCommand time ratio (bad compared to good): %0.02f\n", xTimesHigher);
 
-    if (ret == COMMAND_TIMEOUT || xTimesHigher > 3.0)//2 is pretty bad, but not uncommon, so moved up to 3.0 to be a little conservative. Don't want or need to enable this on everything. - TJE
+    if (ret == OS_COMMAND_TIMEOUT || xTimesHigher > 3.0)//2 is pretty bad, but not uncommon, so moved up to 3.0 to be a little conservative. Don't want or need to enable this on everything. - TJE
     {
         //check just how much higher it is...if more than 2x higher, then there is an issue
         //Checking the last one because it is the most important. For this test, it should get much MUCH longer quickly and stay that way.
@@ -8420,8 +8435,17 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\tTypical use of this test tool usually requires running it twice:\n");
+    printf("\t1. %s -d %s --%s --%s ata --%s sat\n", util_name, deviceHandleExample, RUN_PASSTHROUGH_TEST_LONG_OPT_STRING, PT_DRIVE_HINT_LONG_OPT_STRING, PT_PTTYPE_HINT_LONG_OPT_STRING);
+    printf("\tEither reboot or power cycle the adapter between runs\n");
+    printf("\t2. %s -d %s --%s --%s ata --%s sat --%s all\n", util_name, deviceHandleExample, RUN_PASSTHROUGH_TEST_LONG_OPT_STRING, PT_DRIVE_HINT_LONG_OPT_STRING, PT_PTTYPE_HINT_LONG_OPT_STRING, ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING);
+    printf("\tLogs from each run should be collected to share with the openSeaChest developers.\n");
+    //TODO: another example for USB to NVMe adapters. There are a few other changes necessary to make them able to be specified directly.
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -8444,7 +8468,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -8458,13 +8482,14 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
-
+    print_Fast_Discovery_Help(shortUsage);
     print_Drive_Type_Hint_Help(shortUsage);
     print_Passthrough_Type_Hint_Help(shortUsage);
     print_Disable_PT_Testing_Help(shortUsage);

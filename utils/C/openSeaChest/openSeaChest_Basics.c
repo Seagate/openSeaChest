@@ -19,12 +19,9 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
+#include "common.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "drive_info.h"
@@ -42,7 +39,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.3.1";
+const char *buildVersion = "3.5.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -63,7 +60,7 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
@@ -81,9 +78,10 @@ int32_t main(int argc, char *argv[])
     SCAN_FLAG_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -127,6 +125,7 @@ int32_t main(int argc, char *argv[])
     HIDE_LBA_COUNTER_VAR
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
     SHOW_CONCURRENT_RANGES_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -141,7 +140,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -150,6 +149,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -160,6 +160,7 @@ int32_t main(int argc, char *argv[])
         PROGRESS_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         SMART_CHECK_LONG_OPT,
         SHORT_DST_LONG_OPT,
@@ -352,19 +353,31 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                USER_SET_DOWNLOAD_MODE = true;
-                DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                if (strncmp(optarg, "immediate", strlen(optarg)) == 0 || strncmp(optarg, "full", strlen(optarg)) == 0)
+                DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_FULL;
                 }
-                else if (strncmp(optarg, "segmented", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "segmented") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_SEGMENTED;
                 }
-                else if (strncmp(optarg, "deferred", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "deferred") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED;
+                }
+                //TODO: deferredselect and a way to get events: POA, HRA, and VSA
+                else if (strcmp(optarg, "deferred+activate") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED_PLUS_ACTIVATE;
+                }
+                else if (strcmp(optarg, "auto") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                }
+                else if (strcmp(optarg, "temp") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_TEMP;
                 }
                 else
                 {
@@ -664,7 +677,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -848,6 +861,7 @@ int32_t main(int argc, char *argv[])
         || (PROGRESS_CHAR != NULL)
         || DISPLAY_LBA_FLAG
         || SHOW_CONCURRENT_RANGES
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         ))
     {
@@ -875,6 +889,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -1126,6 +1145,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -1430,45 +1454,10 @@ int32_t main(int argc, char *argv[])
             }
             if (fileOpenedSuccessfully)
             {
-                size_t firmwareFileSize = get_File_Size(firmwareFilePtr);
+                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
                 uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    supportedDLModes supportedFWDLModes;
-                    memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
-                    supportedFWDLModes.size = sizeof(supportedDLModes);
-                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
-                    if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
-                    {
-                        if (!USER_SET_DOWNLOAD_MODE)
-                        {
-                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
-                            /*
-                            DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            /*/
-                            if (!supportedFWDLModes.deferred)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            else
-                            {
-                                if (supportedFWDLModes.segmented)
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                                }
-                                else
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
-                                }
-                            }
-                            //For now, setting deferred download as default for NVMe drives.
-                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            //*/
-                        }
-                    }
                     if (firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {
                         firmwareUpdateData dlOptions;
@@ -1503,17 +1492,6 @@ int32_t main(int argc, char *argv[])
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
-                                }
-                            }
-                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
-                            {
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("This drive requires a full power cycle to activate the new code.\n");
-                                }
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             else
@@ -1585,7 +1563,7 @@ int32_t main(int argc, char *argv[])
                 memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                 dlOptions.size = sizeof(firmwareUpdateData);
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
-                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
@@ -2203,8 +2181,37 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SMART_CHECK_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, SHORT_DST_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ABORT_DST_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, TEST_UNIT_READY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s hybrid\n", util_name, deviceHandleExample, SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_CONCURRENT_RANGES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s on\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 3 --%s 1\n", util_name, deviceHandleExample, SET_PHY_SPEED_LONG_OPT_STRING, SET_PHY_SAS_PHY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, READ_LOOK_AHEAD_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, READ_LOOK_AHEAD_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, WRITE_CACHE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s firmwareFile.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s firmwareFile.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000\n", util_name, deviceHandleExample, DISPLAY_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s 1\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, HOURS_TIME_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, SET_MAX_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, RESTORE_MAX_LBA_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2232,7 +2239,7 @@ void utility_Usage(bool shortUsage)
     print_Time_Minutes_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_No_Time_Limit_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
     print_Time_Seconds_Help(shortUsage);
@@ -2248,9 +2255,11 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
+    print_Fast_Discovery_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Display_LBA_Help(shortUsage);
     print_Firmware_Activate_Help(shortUsage);

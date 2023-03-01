@@ -37,7 +37,7 @@ jobs:
         shell: bash
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -69,7 +69,7 @@ jobs:
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 

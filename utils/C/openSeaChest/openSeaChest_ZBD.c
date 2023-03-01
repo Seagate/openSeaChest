@@ -18,12 +18,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -33,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -67,11 +63,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -91,6 +88,7 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -107,13 +105,14 @@ int32_t main(int argc, char *argv[])
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         VERSION_LONG_OPT,
         VERBOSE_LONG_OPT,
         QUIET_LONG_OPT,
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -121,6 +120,7 @@ int32_t main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         ZONE_ID_LONG_OPT,
         REPORT_ZONES_LONG_OPT,
@@ -384,7 +384,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -545,6 +545,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         || REPORT_ZONES_FLAG
         || CLOSE_ZONE_FLAG
@@ -577,6 +578,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -626,13 +632,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -686,14 +692,14 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
-		    }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
+            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -828,6 +834,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -1106,8 +1117,17 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s all\n", util_name, deviceHandleExample, REPORT_ZONES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s empty --%s 256\n", util_name, deviceHandleExample, REPORT_ZONES_LONG_OPT_STRING, MAX_ZONES_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 16\n", util_name, deviceHandleExample, OPEN_ZONE_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 16\n", util_name, deviceHandleExample, FINISH_ZONE_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 16\n", util_name, deviceHandleExample, CLOSE_ZONE_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 16\n", util_name, deviceHandleExample, RESET_WP_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s all\n", util_name, deviceHandleExample, RESET_WP_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING);
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1130,7 +1150,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -1144,10 +1164,12 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Close_Zone_Help(shortUsage);
     print_Finish_Zone_Help(shortUsage);

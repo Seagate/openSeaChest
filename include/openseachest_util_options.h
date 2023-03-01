@@ -95,6 +95,11 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define LOWLEVEL_INFO_FLAG lowlevelInfo
+    #define LOWLEVEL_INFO_VAR getOptBool LOWLEVEL_INFO_FLAG = goFalse;
+    #define LOWLEVEL_INFO_LONG_OPT_STRING "llInfo"
+    #define LOWLEVEL_INFO_LONG_OPT { LOWLEVEL_INFO_LONG_OPT_STRING, no_argument, &LOWLEVEL_INFO_FLAG, goTrue }
+
     #define TCG_DEVICE_INFO_FLAG tcgDevInfo
     #define TCG_DEVICE_INFO_VAR getOptBool TCG_DEVICE_INFO_FLAG = goFalse;
     #define TCG_DEVICE_INFO_LONG_OPT_STRING "tcgInfo"
@@ -146,6 +151,12 @@ extern "C"
     #define TEST_UNIT_READY_VAR getOptBool TEST_UNIT_READY_FLAG = goFalse;
     #define TEST_UNIT_READY_LONG_OPT_STRING "testUnitReady"
     #define TEST_UNIT_READY_LONG_OPT { TEST_UNIT_READY_LONG_OPT_STRING, no_argument, &TEST_UNIT_READY_FLAG, goTrue }
+
+	#define FAST_DISCOVERY_FLAG fastDiscovery
+	#define FAST_DISCOVERY_VAR \
+		getOptBool FAST_DISCOVERY_FLAG = goFalse;
+	#define FAST_DISCOVERY_LONG_OPT_STRING "fastDiscovery"
+	#define FAST_DISCOVERY_LONG_OPT { FAST_DISCOVERY_LONG_OPT_STRING, no_argument, &FAST_DISCOVERY_FLAG, goTrue }
 
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
@@ -228,6 +239,7 @@ extern "C"
 
     #define DATA_ERASE_ACCEPT_STRING "this-will-erase-data"
     #define POSSIBLE_DATA_ERASE_ACCEPT_STRING "this-may-erase-data"
+    #define LOW_LEVEL_FORMAT_ACCEPT_STRING "this-will-erase-data-and-may-render-the-drive-inoperable"
     #define LONG_TEST_ACCEPT_STRING "I-understand-this-command-will-take-a-long-time-to-complete"
     #define SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING "I-understand-this-command-may-erase-single-sectors-if-they-are-already-unreadable"
 
@@ -235,6 +247,8 @@ extern "C"
     #define POSSIBLE_DATA_ERASE_VAR bool POSSIBLE_DATA_ERASE_FLAG = false;
     #define DATA_ERASE_FLAG dataEraseAccepted
     #define DATA_ERASE_VAR bool DATA_ERASE_FLAG = false;
+    #define LOW_LEVEL_FORMAT_FLAG lowLevelFormatWarningAccepted
+    #define LOW_LEVEL_FORMAT_VAR bool LOW_LEVEL_FORMAT_FLAG = false;
     #define LONG_TEST_FLAG longOperationAccepted
     #define LONG_TEST_VAR bool LONG_TEST_FLAG = false;
     #define SINGLE_SECTOR_DATA_ERASE_FLAG singleSectorDataEraseAccepted
@@ -447,6 +461,15 @@ extern "C"
     int8_t LEGACY_STANDBY_STATE = POWER_MODE_STATE_ENABLE;/*assume enable unless given default or disable*/
     #define LEGACY_STANDBY_LONG_OPT_STRING "standby"
     #define LEGACY_STANDBY_LONG_OPT { LEGACY_STANDBY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Add time delay between each IO
+    #define DELAY_CMD_SEGMENT_FLAG delayIO
+    #define SET_CMD_TIME_DELAY delayIOTime
+    #define DELAY_CMD_SEGMENT_VARS \
+    bool DELAY_CMD_SEGMENT_FLAG = false;\
+    uint32_t SET_CMD_TIME_DELAY = 0;
+    #define DELAY_CMD_SEGMENT_LONG_OPT_STRING "delayCMDSegment"
+    #define DELAY_CMD_SEGMENT_LONG_OPT { DELAY_CMD_SEGMENT_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //Following is for NVMe Utilities.
     #define TRANSITION_POWER_STATE_TO transitionPowerState
@@ -715,13 +738,11 @@ extern "C"
     #define DOWNLOAD_FW_FLAG downloadFW
     #define DOWNLOAD_FW_FILENAME_FLAG downloadFWFilename
     #define DOWNLOAD_FW_MODE downloadMode
-    #define USER_SET_DOWNLOAD_MODE userSpecifiedDownloadMode
     #define DOWNLOAD_FW_VARS \
     bool DOWNLOAD_FW_FLAG = false;\
     char firmwareFileName[FIRMWARE_FILE_NAME_MAX_LEN] = { 0 };\
     char *DOWNLOAD_FW_FILENAME_FLAG =  &firmwareFileName[0];\
-    int DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;/*3*/\
-    bool USER_SET_DOWNLOAD_MODE = false;
+    int DOWNLOAD_FW_MODE = 0xFF;/*automatic*/
     #define DOWNLOAD_FW_LONG_OPT_STRING "downloadFW"
     #define DOWNLOAD_FW_MODE_LONG_OPT_STRING "downloadMode"
     #define DOWNLOAD_FW_LONG_OPT { DOWNLOAD_FW_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -738,6 +759,18 @@ extern "C"
     #define SWITCH_FW_VAR getOptBool SWITCH_FW_FLAG = goFalse;
     #define SWITCH_FW_LONG_OPT_STRING "switchFW"
     #define SWITCH_FW_LONG_OPT { SWITCH_FW_LONG_OPT_STRING, no_argument, &SWITCH_FW_FLAG, goTrue }
+
+    //nvme unique flag to force a specific commit action
+    #define FORCE_NVME_COMMIT_ACTION forceCommitAction
+    #define FORCE_NVME_COMMIT_ACTION_VAR uint8_t FORCE_NVME_COMMIT_ACTION = 0xFF;//something not possible to be valid
+    #define FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING "forceNVMeCA"
+    #define FORCE_NVME_COMMIT_ACTION_LONG_OPT { FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //nvme unique flag to disable issuing a reset after a firmware commit
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET forceDisableNVMeFWReset
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_VAR getOptBool FORCE_DISABLE_NVME_FW_COMMIT_RESET = goFalse;
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING "forceDisableNVMeFWReset"
+    #define FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT { FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING, no_argument, &FORCE_DISABLE_NVME_FW_COMMIT_RESET, goTrue }
 
     //Win10 allow flexible use of Win10 api for any supported command to any device on any interface (removes strict requirement that the matching command to device type and interface type is required)
     #define WIN10_FLEXIBLE_API_USE_FLAG windows10AllowFlexibleUseOfWinFWDLAPI
@@ -1300,10 +1333,9 @@ extern "C"
     #define GENERIC_LOG_SUBPAGE_LONG_OPT { GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define PULL_LOG_MODE logMode
+    #define PULL_LOG_MODE_VAR eLogPullMode PULL_LOG_MODE = 1; //default as a binary file
     #define PULL_LOG_MODE_LONG_OPT_STRING "logMode"
     #define PULL_LOG_MODE_LONG_OPT { PULL_LOG_MODE_LONG_OPT_STRING, required_argument, NULL, 0 }
-    #define PULL_LOG_MODE_VARS \
-        int PULL_LOG_MODE = 0;
 
     //Generic SCSI Error history stuff
     #define LIST_ERROR_HISTORY_FLAG listSupportedErrorHistoryBufferIDs
@@ -1557,9 +1589,15 @@ extern "C"
 
     //logTransferLength
     #define LOG_TRANSFER_LENGTH_BYTES logTransferLengthBytes
-    #define LOG_TRANSFER_LENGTH_BYTES_VAR uint32_t logTransferLengthBytes = 0;/*0 means that the library will decide.*/
+    #define LOG_TRANSFER_LENGTH_BYTES_VAR uint32_t LOG_TRANSFER_LENGTH_BYTES = 0;/*0 means that the library will decide.*/
     #define LOG_TRANSFER_LENGTH_LONG_OPT_STRING "logTransferLength"
     #define LOG_TRANSFER_LENGTH_LONG_OPT { LOG_TRANSFER_LENGTH_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //logLength
+    #define LOG_LENGTH_BYTES logLengthBytes
+    #define LOG_LENGTH_BYTES_VAR uint32_t LOG_LENGTH_BYTES = 0;/*0 means that the library will decide.*/
+    #define LOG_LENGTH_LONG_OPT_STRING "logLength"
+    #define LOG_LENGTH_LONG_OPT { LOG_LENGTH_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //FARM Log
     #define FARM_PULL_FLAG pullFarmLog
@@ -1567,6 +1605,18 @@ extern "C"
     getOptBool FARM_PULL_FLAG = goFalse;
     #define FARM_LONG_OPT_STRING "farm"
     #define FARM_LONG_OPT { FARM_LONG_OPT_STRING, no_argument, &FARM_PULL_FLAG, goTrue }
+
+    //FARM Combined Log
+    #define FARM_COMBINED_FLAG  pullFarmCombinedLog
+    #define FARM_COMBINED_VAR \
+    getOptBool FARM_COMBINED_FLAG = goFalse;
+    #define FARM_COMBINED_LONG_OPT_STRING "farmCombined"
+    #define FARM_COMBINED_LONG_OPT { FARM_COMBINED_LONG_OPT_STRING, no_argument, &FARM_COMBINED_FLAG, goTrue }
+
+    #define SATA_FARM_COPY_TYPE_FLAG sataFarmCopyType
+    #define SATA_FARM_COPY_TYPE_VARS int SATA_FARM_COPY_TYPE_FLAG = 1; // 1 : Disc, 2: Flash (Default is Disc type)
+    #define SATA_FARM_COPY_TYPE_LONG_OPT_STRING "SATAFarmCopyType"
+    #define SATA_FARM_COPY_TYPE_LONG_OPT { SATA_FARM_COPY_TYPE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     //DST Log (standard spec)
     #define DST_LOG_FLAG pullDSTLog
@@ -2853,6 +2903,21 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
 
+	//-----------------------------------------------------------------------------
+	//
+	//  print_Fast_Discovery_Help()	
+	//
+	//! \brief   Description:  This function prints out the short or long help for the fast discovery option
+	//
+	//  Entry:
+	//!   \param[in] shortHelp = bool used to select when to print short or long help
+	//
+	//  Exit:
+	//!   \return VOID
+	//
+	//-----------------------------------------------------------------------------
+	void print_Fast_Discovery_Help(bool shortUsage);
+
     void print_Firmware_Download_Help(bool shortHelp);
 
     void print_Firmware_Slot_Buffer_ID_Help(bool shortHelp);
@@ -3103,6 +3168,8 @@ extern "C"
 
     void print_Log_Transfer_Length_Help(bool shortHelp);
 
+    void print_Log_Length_Help(bool shortHelp);
+
     //-----------------------------------------------------------------------------
     //
     //  print_Pull_Device_Statistics_Log_Help()
@@ -3193,6 +3260,10 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
 
+    void print_FARM_Combined_Log_Help(bool shortUsage);
+
+    void print_Sata_FARM_Copy_Type_Flag_Help(bool shortUsage);
+
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
     void print_SMART_Error_Log_Format_Help(bool shortHelp);
@@ -3275,8 +3346,6 @@ extern "C"
 
     void print_Force_Help(bool shortHelp);
 
-    void print_Seagate_Quick_Format_Help(bool shortHelp);
-
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
     void print_Show_Reservation_Capabilities(bool shortHelp);
@@ -3312,6 +3381,14 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
     void print_NVME_Health_Help(bool shortHelp);
+
+    void print_Delay_CMD_Segment_Help(bool shortHelp);
+
+    void print_Low_Level_Info_Help(bool shortHelp);
+
+    void print_Force_NVMe_Commit_Action_Help(bool shortHelp);
+
+    void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

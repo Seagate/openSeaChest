@@ -15,15 +15,12 @@
 //  Included files  //
 //////////////////////
 #include "common.h"
+#include "common_platform.h"
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "ata_helper.h" //for defined ATA security password size of 32bytes
 #include "openseachest_util_options.h"
@@ -43,13 +40,12 @@
 #include "trim_unmap.h"
 #include "drive_info.h"
 #include "format.h"
-#include "depopulate.h"
 #include "platform_helper.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "3.2.0";
+const char *buildVersion = "4.1.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -82,14 +78,16 @@ int32_t main(int argc, char *argv[])
     SAT_INFO_VAR
     DATA_ERASE_VAR
     POSSIBLE_DATA_ERASE_VAR
+    LOW_LEVEL_FORMAT_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -132,9 +130,8 @@ int32_t main(int argc, char *argv[])
     FAST_FORMAT_VAR
     SHOW_ERASE_SUPPORT_VAR
     PERFORM_FASTEST_ERASE_VAR
-    SHOW_PHYSICAL_ELEMENT_STATUS_VAR
-    REMOVE_PHYSICAL_ELEMENT_VAR
-
+    NVM_FORMAT_VARS
+    NVM_FORMAT_OPTION_VARS
     //time flags
     HOURS_TIME_VAR
     MINUTES_TIME_VAR
@@ -145,6 +142,7 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     HIDE_LBA_COUNTER_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -159,7 +157,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -168,6 +166,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -186,6 +185,7 @@ int32_t main(int argc, char *argv[])
         HOURS_TIME_LONG_OPT,
         MINUTES_TIME_LONG_OPT,
         SECONDS_TIME_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific command line options --These should probably be cleaned up to macros like the ones above and remove the short options and replace with numbers.
         OVERWRITE_LONG_OPTS,
         TRIM_LONG_OPTS,
@@ -205,13 +205,13 @@ int32_t main(int argc, char *argv[])
         DISPLAY_LBA_LONG_OPT,
         PATTERN_LONG_OPT,
         HIDE_LBA_COUNTER_LONG_OPT,
-        SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
-        REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT,
         ATA_SECURITY_PASSWORD_LONG_OPT,
         ATA_SECURITY_USING_MASTER_PW_LONG_OPT,
         ATA_SECURITY_ERASE_OP_LONG_OPT,
         ATA_SECURITY_FORCE_SAT_LONG_OPT,
+        NVM_FORMAT_LONG_OPT,
+        NVM_FORMAT_OPTIONS_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
 
@@ -250,13 +250,17 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
+                if (strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
+                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
+                }
+                else if (strcmp(optarg, LOW_LEVEL_FORMAT_ACCEPT_STRING) == 0)
+                {
+                    LOW_LEVEL_FORMAT_FLAG = true;
                 }
                 else
                 {
@@ -415,6 +419,99 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_FLAG = true;
+                if (strcmp(optarg, "current") != 0)
+                {
+                    uint64_t temp = 0;
+                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
+                    {
+                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_NSID_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "current") == 0)
+                {
+                    NVM_FORMAT_NSID = 0;//detect this below and insert the correct NSID for the current handle
+                }
+                else if (strcmp(optarg, "all") == 0)
+                {
+                    NVM_FORMAT_NSID = UINT32_MAX;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_NSID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "none") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_NO_SECURE_ERASE_REQUESTED;
+                }
+                else if (strcmp(optarg, "user") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                }
+                else if (strcmp(optarg, "crypto") == 0)
+                {
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "beginning") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 0;
+                }
+                else if (strcmp(optarg, "end") == 0)
+                {
+                    NVM_FORMAT_PI_LOCATION = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
+            {
+                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
+            }
+            else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "xlba") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 0;
+                }
+                else if (strcmp(optarg, "separate") == 0)
+                {
+                    NVM_FORMAT_METADATA_SETTING = 1;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
@@ -705,10 +802,6 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
-            {
-                REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, atoi(optarg));
-            }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
             PROGRESS_CHAR = optarg;
@@ -791,7 +884,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -1044,6 +1137,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
 #if !defined(DISABLE_TCG_SUPPORT)
         || TCG_REVERT_SP_FLAG
         || TCG_REVERT_FLAG
@@ -1058,8 +1152,7 @@ int32_t main(int argc, char *argv[])
         || PERFORM_FASTEST_ERASE_FLAG
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
-        || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG
-        || REMOVE_PHYSICAL_ELEMENT_FLAG > 0
+        || NVM_FORMAT_FLAG
         ))
     {
         utility_Usage(true);
@@ -1086,6 +1179,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -1135,13 +1233,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -1195,17 +1293,58 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
-		    }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
+            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+
+    if ((FORMAT_UNIT_FLAG && FAST_FORMAT_FLAG)
+        )
+    {
+        //These options all do a low-level format that has a risk of leaving the drive inoperable if it is interrupted.
+        //Warn the user one last time and provide 30 seconds to cancel the operation
+        printf("Fast format unit will perform a low-level format that cannot\n");
+        printf("be interrupted once started. All background software should be stopped, any filesystems\n");
+        printf("that are currently mounted should first be unmounted in order to reduce the risk of\n");
+        printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
+        printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
+        printf("operations running in parallel without issuing a device reset.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n");
+        printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+        printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+        printf("\t\t         activity that would attempt to communicate with the device while this\n");
+        printf("\t\t         operation is in progress\n");
+        printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
+        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
+        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
+        //count down timer must go here
+        for (int8_t counter = 30; counter >= 0; --counter)
+        {
+            printf("\r%2d", counter);
+            delay_Seconds(UINT32_C(1));
+        }
+        printf("\n");
+    }
+
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
@@ -1339,6 +1478,11 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
+        }
+
         if (SHOW_ERASE_SUPPORT_FLAG)
         {
             uint32_t overwriteTimeMinutes = 0;
@@ -1388,54 +1532,6 @@ int32_t main(int argc, char *argv[])
             safe_Free_aligned(displaySector)
         }
 
-        if (SHOW_PHYSICAL_ELEMENT_STATUS_FLAG)
-        {
-            uint64_t depopTime = 0;
-            bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], &depopTime);
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING, util_name);
-            }
-            if (depopSupport)
-            {
-                uint32_t numberOfDescriptors = 0;
-                get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
-                if (numberOfDescriptors > 0)
-                {
-                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
-                    memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
-                    if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
-                    {
-                        show_Physical_Element_Descriptors(numberOfDescriptors, elementList, depopTime);
-                    }
-                    else
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Failed to get physical element status.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    }
-                }
-                else
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("No physical elements were found on this device.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
-                }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-            }
-        }
-
         //check for fastest erase flag first since it may be used to set other flags for other erase methods
         if (PERFORM_FASTEST_ERASE_FLAG)
         {
@@ -1476,6 +1572,14 @@ int32_t main(int argc, char *argv[])
                     sanitize = true;
                     sancryptoErase = true;
                     break;
+                case ERASE_NVM_FORMAT_USER_SECURE_ERASE:
+                    NVM_FORMAT_FLAG = true;
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                    break;
+                case ERASE_NVM_FORMAT_CRYPTO_SECURE_ERASE:
+                    NVM_FORMAT_FLAG = true;
+                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
+                    break;
                 case ERASE_ATA_SECURITY_ENHANCED:
                     ATA_SECURITY_ERASE_OP = true;
                     ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
@@ -1513,66 +1617,6 @@ int32_t main(int argc, char *argv[])
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
                     printf("to the command line arguments to perform the quickest erase.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample, PERFORM_FASTEST_ERASE_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                }
-            }
-        }
-
-        if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
-        {
-            if (VERBOSITY_QUIET < toolVerbosity)
-            {
-                printf("The --%s option is obsolete in %s. It has been moved to openSeaChest_Format.\n", REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, util_name);
-            }
-            if (POSSIBLE_DATA_ERASE_FLAG || DATA_ERASE_FLAG)
-            {
-                bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
-                if (depopSupport)
-                {
-                    //TODO: add an option to allow setting a requested MaxLBA? Lets wait to see if a customer wants that option before we add it - TJE
-                    switch (depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, 0))
-                    {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Successfully sent the remove physical element command!\n");
-                            printf("The device may take a long time before it is ready to accept all commands again.\n");
-                            printf("Use the --%s option to check if the depopulate is still in progress or complete.\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
-                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                            {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
-                            }
-                        }
-                        break;
-                    case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("This operation is not supported on this drive or a bad element ID was given.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Failed to depopulate element %" PRIu32".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
-                }
-                else
-                {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                }
-            }
-            else
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("\n");
-                    printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a remove physical element command.\n\n");
-                    printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
@@ -1877,6 +1921,13 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
+                        case DEVICE_ACCESS_DENIED:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
@@ -1920,6 +1971,13 @@ int32_t main(int argc, char *argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("A Sanitize operation is already in progress, freezelock cannot be completed.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1968,6 +2026,13 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
+                    case DEVICE_ACCESS_DENIED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -2004,7 +2069,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Format Unit\n");
             }
-            if ((FAST_FORMAT_FLAG > 0 && POSSIBLE_DATA_ERASE_FLAG) || DATA_ERASE_FLAG)
+            if ((FAST_FORMAT_FLAG > 0 && LOW_LEVEL_FORMAT_FLAG) || DATA_ERASE_FLAG)
             {
                 bool currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
@@ -2075,6 +2140,13 @@ int32_t main(int argc, char *argv[])
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting Format Unit. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -2091,9 +2163,21 @@ int32_t main(int argc, char *argv[])
                     if (FAST_FORMAT_FLAG > 0)
                     {
                         printf("\n");
-                        printf("You must add the flag:\n\"%s\" \n", POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
                         printf("to the command line arguments to run a format unit.\n\n");
-                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, POSSIBLE_DATA_ERASE_ACCEPT_STRING);
+                        printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+                        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+                        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+                        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                        printf("\t\t         with multiple logical units or namespaces.\n");
+                        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                        printf("\t\t         before using this option. Interruptions can be caused by these\n");
+                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2102,6 +2186,142 @@ int32_t main(int argc, char *argv[])
                         printf("to the command line arguments to run a format unit.\n\n");
                         printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                     }
+                }
+            }
+        }
+
+        if (NVM_FORMAT_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("NVM Format\n");
+            }
+            if (DATA_ERASE_FLAG)
+            {
+                runNVMFormatParameters nvmformatParameters;
+                memset(&nvmformatParameters, 0, sizeof(runNVMFormatParameters));
+                if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = true;
+                }
+                else if (/*NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 0 && */ NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM < 16)
+                {
+                    nvmformatParameters.formatNumberProvided = true;
+                    nvmformatParameters.formatNumber = C_CAST(uint8_t, NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM);
+                }
+                else
+                {
+                    nvmformatParameters.formatNumberProvided = false;
+                    nvmformatParameters.newSize.currentBlockSize = false;
+                    nvmformatParameters.newSize.newBlockSize = NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM;
+                }
+                if (NVM_FORMAT_METADATA_SIZE != UINT32_MAX && !nvmformatParameters.formatNumberProvided)
+                {
+                    nvmformatParameters.newSize.changeMetadataSize = true;
+                    nvmformatParameters.newSize.metadataSize = C_CAST(uint16_t, NVM_FORMAT_METADATA_SIZE);
+                }
+                if (NVM_FORMAT_NSID != UINT32_MAX)
+                {
+                    nvmformatParameters.currentNamespace = true;
+                }
+                nvmformatParameters.secureEraseSettings = NVM_FORMAT_SECURE_ERASE;
+                //PI
+                switch (NVM_FORMAT_PI_TYPE)
+                {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                    nvmformatParameters.changeProtectionType = true;
+                    nvmformatParameters.protectionType = NVM_FORMAT_PI_TYPE;
+                    break;
+                default:
+                    break;
+                }
+                //PIL
+                switch (NVM_FORMAT_PI_LOCATION)
+                {
+                case 0:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = true;
+                    break;
+                case 1:
+                    nvmformatParameters.protectionLocation.valid = true;
+                    nvmformatParameters.protectionLocation.first8Bytes = false;
+                    break;
+                default:
+                    break;
+                }
+                //metadata settings
+                switch (NVM_FORMAT_METADATA_SETTING)
+                {
+                case 0:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = true;
+                    break;
+                case 1:
+                    nvmformatParameters.metadataSettings.valid = true;
+                    nvmformatParameters.metadataSettings.metadataAsExtendedLBA = false;
+                    break;
+                default:
+                    break;
+                }
+                int formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
+                switch (formatRet)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (POLL_FLAG)
+                        {
+                            printf("NVM Format was Successful!\n");
+                        }
+                        else
+                        {
+                            printf("NVM Format was started Successfully!\n");
+                            printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Not Supported or invalid option combination provided!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case OS_COMMAND_NOT_AVAILABLE:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format is not supported in this OS\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting NVM Format. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("NVM Format Failed!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a nvm format.\n\n");
+                    printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
             }
         }
@@ -2480,6 +2700,14 @@ int32_t main(int argc, char *argv[])
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
+            else if (strcmp(progressTest, "NVMFORMAT") == 0)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Getting NVM Format Progress.\n");
+                }
+                result = show_Format_Unit_Progress(&deviceList[deviceIter]);
+            }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2538,8 +2766,31 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_ERASE_SUPPORT_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, PERFORM_FASTEST_ERASE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s 1\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, HOURS_TIME_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s repeat:04ABCDEFh\n", util_name, deviceHandleExample, OVERWRITE_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s\n", util_name, deviceHandleExample, WRITE_SAME_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000 --%s\n", util_name, deviceHandleExample, WRITE_SAME_LONG_OPT_STRING, WRITE_SAME_RANGE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --sanitize overwrite --%s\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING);//random, file:, increment, repeat
+    printf("\t%s -d %s --sanitize overwrite --%s --%s random\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --sanitize cryptoerase --%s\n", util_name, deviceHandleExample, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enhanced\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enhanced --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s file:path/to/myFile.bin\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, PATTERN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 4096 --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2563,7 +2814,7 @@ void utility_Usage(bool shortUsage)
     print_Hide_LBA_Counter_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -2578,14 +2829,16 @@ void utility_Usage(bool shortUsage)
     print_Display_LBA_Help(shortUsage);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Poll_Help(shortUsage);
-    print_Progress_Help(shortUsage, "sanitize, format");
+    print_Progress_Help(shortUsage, "sanitize | format | nvmformat");
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
+    print_Fast_Discovery_Help(shortUsage);
     print_Time_Hours_Help(shortUsage);
     print_Time_Minutes_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
@@ -2593,7 +2846,6 @@ void utility_Usage(bool shortUsage)
     #endif
     print_Time_Seconds_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
-    print_Show_Physical_Element_Status_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
     #endif
@@ -2618,7 +2870,6 @@ void utility_Usage(bool shortUsage)
     print_Revert_Help(shortUsage);
     print_RevertSP_Help(shortUsage);
     #endif
-    print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Sanitize_Help(shortUsage, util_name);
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
@@ -2631,4 +2882,12 @@ void utility_Usage(bool shortUsage)
     printf("\n\tSAS Only:\n\t=========\n");
     print_Fast_Format_Help(shortUsage);
     print_Format_Unit_Help(shortUsage);
+    printf("\n\tNVMe Only:\n\t=========\n");
+    print_NVM_Format_Metadata_Setting_Help(shortUsage);
+    print_NVM_Format_Metadata_Size_Help(shortUsage);
+    print_NVM_Format_NSID_Help(shortUsage);
+    print_NVM_Format_PI_Type_Help(shortUsage);
+    print_NVM_Format_PIL_Help(shortUsage);
+    print_NVM_Format_Secure_Erase_Help(shortUsage);
+    print_NVM_Format_Help(shortUsage);
 }

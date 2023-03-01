@@ -24,7 +24,7 @@ install -m 0755 openSeaChest_Basics  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChe
 install -m 0755 openSeaChest_Configure  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_Configure
 install -m 0755 openSeaChest_Erase  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_Erase
 install -m 0755 openSeaChest_Firmware  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_Firmware
-install -m 0755 openSeaChest_FormatUnit  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_FormatUnit
+install -m 0755 openSeaChest_Format  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_Format
 install -m 0755 openSeaChest_GenericTests  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_GenericTests
 install -m 0755 openSeaChest_NVMe  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_NVMe
 install -m 0755 openSeaChest_PowerControl  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_PowerControl
@@ -40,7 +40,7 @@ install -m 0755 openSeaChest_ZBD  $RPM_BUILD_ROOT/opt/OpenSeaChest/openSeaChest_
 /opt/OpenSeaChest/openSeaChest_Configure
 /opt/OpenSeaChest/openSeaChest_Erase
 /opt/OpenSeaChest/openSeaChest_Firmware
-/opt/OpenSeaChest/openSeaChest_FormatUnit
+/opt/OpenSeaChest/openSeaChest_Format
 /opt/OpenSeaChest/openSeaChest_GenericTests
 /opt/OpenSeaChest/openSeaChest_NVMe
 /opt/OpenSeaChest/openSeaChest_PowerControl

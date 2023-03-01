@@ -18,12 +18,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -33,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.1.5";
+const char *buildVersion = "3.4.0";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -87,6 +83,7 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
     //scan output flags
@@ -110,11 +107,14 @@ int32_t main(int argc, char *argv[])
     ACTIVATE_DEFERRED_FW_VAR
     SWITCH_FW_VAR
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
+    FORCE_NVME_COMMIT_ACTION_VAR
+    FORCE_DISABLE_NVME_FW_COMMIT_RESET_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -138,6 +138,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -150,6 +151,7 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         DOWNLOAD_FW_LONG_OPT,
         DOWNLOAD_FW_MODE_LONG_OPT,
@@ -164,6 +166,8 @@ int32_t main(int argc, char *argv[])
         WIN10_FWDL_FORCE_PT_LONG_OPT,
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
+        FORCE_NVME_COMMIT_ACTION_LONG_OPT,
+        FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -215,19 +219,31 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
             {
-                USER_SET_DOWNLOAD_MODE = true;
-                DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                if (strncmp(optarg, "immediate", strlen(optarg)) == 0 || strncmp(optarg, "full", strlen(optarg)) == 0)
+                DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_FULL;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_FULL;
                 }
-                else if (strncmp(optarg, "segmented", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "segmented") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_SEGMENTED;
                 }
-                else if (strncmp(optarg, "deferred", strlen(optarg)) == 0)
+                else if (strcmp(optarg, "deferred") == 0)
                 {
-                    DOWNLOAD_FW_MODE = DL_FW_DEFERRED;
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED;
+                }
+                //TODO: deferredselect and a way to get events: POA, HRA, and VSA
+                else if (strcmp(optarg, "deferred+activate") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_DEFERRED_PLUS_ACTIVATE;
+                }
+                else if (strcmp(optarg, "auto") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
+                }
+                else if (strcmp(optarg, "temp") == 0)
+                {
+                    DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_TEMP;
                 }
                 else
                 {
@@ -279,6 +295,19 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
                     }
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING) == 0)
+            {
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input(optarg, &temp))
+                {
+                    FORCE_NVME_COMMIT_ACTION = C_CAST(uint8_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -554,9 +583,11 @@ int32_t main(int argc, char *argv[])
     {
         DEVICE_INFO_FLAG = goTrue;
     }
+
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         || DOWNLOAD_FW_FLAG
         || SHOW_FWDL_SUPPORT_INFO_FLAG
@@ -588,6 +619,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -878,6 +914,11 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
+        }
+
         if (TEST_UNIT_READY_FLAG)
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
@@ -911,11 +952,27 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+#if defined (_WIN32)
+        if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE && (FORCE_NVME_COMMIT_ACTION != 0xFF || FORCE_DISABLE_NVME_FW_COMMIT_RESET))
+        {
+            //Check for open fabrics as this is possible there as well as USB adapters. Some will be able to support this
+            if (!(deviceList[deviceIter].os_info.openFabricsNVMePassthroughSupported
+                || deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_JMICRON
+                || deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_ASMEDIA)
+                )
+            {
+                printf("\nERROR: Forcing specific commit actions or disabling resets is not possible in Windows on this device.\n");
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                continue;
+            }
+        }
+#endif
+
         if (DOWNLOAD_FW_FLAG)
         {
             FILE *firmwareFilePtr = NULL;
             bool fileOpenedSuccessfully = true;//assume true in case of activate command
-            if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
+            if (DOWNLOAD_FW_MODE != FWDL_UPDATE_MODE_ACTIVATE)
             {
                 //open the file and send the download
                 if ((firmwareFilePtr = fopen(DOWNLOAD_FW_FILENAME_FLAG, "rb")) == NULL)
@@ -923,7 +980,7 @@ int32_t main(int argc, char *argv[])
                     fileOpenedSuccessfully = false;
                 }
             }
-            if (DOWNLOAD_FW_MODE == DL_FW_ACTIVATE)
+            if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_ACTIVATE)
             {
                 //this shouldn't fall into this code path anymore...
                 fileOpenedSuccessfully = false;
@@ -934,41 +991,6 @@ int32_t main(int argc, char *argv[])
                 uint8_t *firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    supportedDLModes supportedFWDLModes;
-                    memset(&supportedFWDLModes, 0, sizeof(supportedDLModes));
-                    supportedFWDLModes.size = sizeof(supportedDLModes);
-                    supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
-                    if (SUCCESS == get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes))
-                    {
-                        if (!USER_SET_DOWNLOAD_MODE)
-                        {
-                            //This line is commented out since M and B want to wait a little longer before letting deferred be a default when supported.
-                            /*
-                            DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            /*/
-                            if (!supportedFWDLModes.deferred)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            else
-                            {
-                                if (supportedFWDLModes.segmented)
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;
-                                }
-                                else
-                                {
-                                    DOWNLOAD_FW_MODE = DL_FW_FULL;
-                                }
-                            }
-                            //For now, setting deferred download as default for NVMe drives.
-                            if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE)
-                            {
-                                DOWNLOAD_FW_MODE = supportedFWDLModes.recommendedDownloadMode;
-                            }
-                            //*/
-                        }
-                    }
                     if(firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
                     {   
                         firmwareUpdateData dlOptions;
@@ -990,6 +1012,17 @@ int32_t main(int argc, char *argv[])
                         dlOptions.firmwareFileMem = firmwareMem;
                         dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
+                        if (FORCE_NVME_COMMIT_ACTION != 0xFF)
+                        {
+                            //forcing a specific commit action
+                            dlOptions.forceCommitAction = FORCE_NVME_COMMIT_ACTION;
+                            dlOptions.forceCommitActionValid = true;
+                        }
+                        if (FORCE_DISABLE_NVME_FW_COMMIT_RESET)
+                        {
+                            //disabling the reset after an NVMe commit
+                            dlOptions.disableResetAfterCommit = true;
+                        }
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                         stop_Timer(&commandTimer);
@@ -1005,7 +1038,7 @@ int32_t main(int argc, char *argv[])
                                 print_Time(get_Nano_Seconds(commandTimer));
                                 printf("Average time/segment ");
                                 print_Time(dlOptions.avgSegmentDlTime);
-                                if (DOWNLOAD_FW_MODE != DL_FW_DEFERRED)
+                                if (ret != POWER_CYCLE_REQUIRED && dlOptions.activateFWTime > 0)
                                 {
                                     printf("Activate Time         ");
                                     print_Time(dlOptions.activateFWTime);
@@ -1015,7 +1048,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
                             }
-                            if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                            if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
                                 exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1025,18 +1058,6 @@ int32_t main(int argc, char *argv[])
                                     {
                                         printf("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
-                                }
-                            }
-                            else if (supportedFWDLModes.seagateDeferredPowerCycleActivate && DOWNLOAD_FW_MODE == DL_FW_SEGMENTED)
-                            {
-                                exitCode = C_CAST(eUtilExitCodes, SEACHEST_FIRMWARE_EXIT_DEFERRED_DOWNLOAD_COMPLETED);
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("This drive requires a full power cycle to activate the new code.\n");
-                                }
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             else
@@ -1125,7 +1146,7 @@ int32_t main(int argc, char *argv[])
                 memset(&commandTimer, 0, sizeof(seatimer_t));
                 dlOptions.size = sizeof(firmwareUpdateData);
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
-                dlOptions.dlMode = DL_FW_ACTIVATE;
+                dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
                 dlOptions.firmwareFileMem = NULL;
                 dlOptions.firmwareMemoryLength = 0;
@@ -1135,6 +1156,17 @@ int32_t main(int argc, char *argv[])
                     dlOptions.existingFirmwareImage = true;
                 }
                 dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
+                if (FORCE_NVME_COMMIT_ACTION != 0xFF)
+                {
+                    //forcing a specific commit action
+                    dlOptions.forceCommitAction = FORCE_NVME_COMMIT_ACTION;
+                    dlOptions.forceCommitActionValid = true;
+                }
+                if (FORCE_DISABLE_NVME_FW_COMMIT_RESET)
+                {
+                    //disabling the reset after an NVMe commit
+                    dlOptions.disableResetAfterCommit = true;
+                }
                 if (DOWNLOAD_FW_FLAG)
                 {
                     //delay a second as this can help if running a download immediately followed by activate-TJE
@@ -1243,8 +1275,11 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_FWDL_SUPPORT_LONG_OPT_STRING);
     printf("\tUpdating firmware:\n");
     printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
     printf("\tUpdating firmware with deferred download and activating:\n");
@@ -1338,10 +1373,12 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Firmware_Activate_Help(shortUsage);
     print_Firmware_Download_Help(shortUsage);

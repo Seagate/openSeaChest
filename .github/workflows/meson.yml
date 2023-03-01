@@ -11,6 +11,7 @@ jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    container: ${{ matrix.config.image }}
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -22,6 +23,7 @@ jobs:
             cxx: "cl.exe",
             arch: "x64",
             publish_release: true,
+            meson_opts: "-Db_vscrt=static_from_buildtype",
             release_name: "win-x64",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -33,6 +35,7 @@ jobs:
             cxx: "cl.exe",
             arch: "x64_x86",
             publish_release: true,
+            meson_opts: "-Db_vscrt=static_from_buildtype",
             release_name: "win-x86",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -69,14 +72,121 @@ jobs:
             os: ubuntu-latest,
             cc: "clang",
             cxx: "clang++",
-            publish_release: true,
             release_name: "linux-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "Manylinux GCC",
+            os: ubuntu-latest,
+            image: "quay.io/pypa/manylinux2014_x86_64",
+            cc: "gcc",
+            cxx: "g++",
+            publish_release: true,
+            create_package: true,
+            release_name: "linux-x86_64-manylinux",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile x86_64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/x86_64-linux-musl-cross.txt",
+            cross_compiler_arch: "x86_64",
+            release_name: "linux-x86_64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile i686",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/i686-linux-musl-cross.txt",
+            cross_compiler_arch: "i686",
+            release_name: "linux-i686-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile aarch64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/aarch64-linux-musl-cross.txt",
+            cross_compiler_arch: "aarch64",
+            release_name: "linux-aarch64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv7l",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv7l-linux-musl-cross.txt",
+            cross_compiler_arch: "armv7l",
+            release_name: "linux-armv7l-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv6",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv6-linux-musl-cross.txt",
+            cross_compiler_arch: "armv6",
+            release_name: "linux-armv6-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile armv5l",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/armv5l-linux-musl-cross.txt",
+            cross_compiler_arch: "armv5l",
+            release_name: "linux-armv5l-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile powerpc64",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/powerpc64-linux-musl-cross.txt",
+            cross_compiler_arch: "powerpc64",
+            release_name: "linux-powerpc64-portable",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "MUSL Cross Compile powerpc64le",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            meson_opts: "--cross-file=./meson_crosscompile/powerpc64le-linux-musl-cross.txt",
+            cross_compiler_arch: "powerpc64le",
+            release_name: "linux-powerpc64le-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: recursive
 
@@ -86,28 +196,42 @@ jobs:
       with:
         arch: ${{ matrix.config.arch }}
 
+    - name: Setup for MUSL Cross Compilation
+      if: startsWith(matrix.config.name, 'MUSL Cross Compile')
+      run: |
+        sudo ./meson_crosscompile/install-muslcc.sh -a ${{ matrix.config.cross_compiler_arch }}
 
     - name: Get latest LLVM version
       if: startsWith(matrix.config.name, 'Windows Clang')
-      run: echo "LLVM_RELID=$((Invoke-WebRequest 'https://api.github.com/repos/llvm/llvm-project/releases/latest').Content | ConvertFrom-Json | Select-Object -ExpandProperty id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      run: |
+        $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
+        echo "LLVM_RELID=$((Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest').Content | ConvertFrom-Json | Select-Object -ExpandProperty id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang')
       id: llvm-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: C:/Program Files/LLVM
         key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
 
     - name: Downloading latest clang for Windows
-      if: ${{ !steps.cache-primes.outputs.cache-hit && startsWith(matrix.config.name, 'Windows Clang') }}
+      if: ${{ steps.llvm-cache.outputs.cache-hit != 'true' && startsWith(matrix.config.name, 'Windows Clang') }}
       run: |
-        Invoke-WebRequest -OutFile "LLVM.exe" ((Invoke-WebRequest "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
+        $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
+        Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" ((Invoke-WebRequest -Headers $headers "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
+
+    - name: Setup toolchain for Manylinux
+      if: ${{ matrix.config.image == 'quay.io/pypa/manylinux2014_x86_64' }}
+      shell: bash
+      run: |
+        if [[ ${{ matrix.config.cc }} == "clang" ]] ; then yum install -y clang compat-gcc-44 ; fi
+        echo "/opt/python/cp310-cp310/bin" >> $GITHUB_PATH
 
     - name: Escape backslash in branch name
       shell: bash
-      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
 
     - name: Setting release name
       env:
@@ -116,15 +240,13 @@ jobs:
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
-    - uses: actions/setup-python@v1
-
     - name: Configuring and compiling with meson
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson==0.60.3 ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Packing release
@@ -135,13 +257,40 @@ jobs:
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
       shell: bash
 
-    - name: Uploading artifacts
-      uses: actions/upload-artifact@v2
+    # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
+    - uses: actions/setup-go@v3
+      if: ${{ matrix.config.create_package }}
       with:
-        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        go-version: 'stable'
+
+    - name: Create packages
+      if: ${{ matrix.config.create_package }}
+      working-directory: ${{ format('build/{0}', env.DESTDIR) }}
+      run: | # https://nfpm.goreleaser.com/install/
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.22.2
+        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
+          version=$(echo ${{ github.ref_name }} | tr -d 'v')
+        else
+          version=$(printf "%s-dev" $(date +'%y.%m.%d'))
+        fi
+        sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
+        nfpm package -f ../../nfpm.yaml -p deb -t ..
+        nfpm package -f ../../nfpm.yaml -p rpm -t ..
+      shell: bash
+
+    - name: Uploading artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        path: |
+          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          build/*.deb
+          build/*.rpm
 
     - name: Publish release
       if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        files: |
+          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          build/*.deb
+          build/*.rpm

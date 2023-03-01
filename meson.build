@@ -1,14 +1,17 @@
-project('openSeaChest', 'c', license: 'MPL-2.0', version: '22.6.24', default_options : ['warning_level=2'])
-#note: project version is year.month.day
+project('openSeaChest', 'c', license: 'MPL-2.0', default_options : ['warning_level=2'])
 
 c = meson.get_compiler('c')
 
-#TODO: Add -Wcast-align=strict and fix these issues to help ensure better portability
-#NOTE: -Wsign-conversion can be useful while debugging, but there are numerous places this shows up
-#      and it is not useful, so only add it while debugging.
-warning_flags = [
-#	'-Wcast-align=strict',
-#	'-Wsign-conversion',
+
+warning_flags = [ ]
+
+if c.get_id().contains('gcc') or c.get_id().contains('clang')
+  #TODO: Add -Wcast-align=strict and fix these issues to help ensure better portability
+  #NOTE: -Wsign-conversion can be useful while debugging, but there are numerous places this shows up
+  #      and it is not useful, so only add it while debugging.
+  warning_flags = [
+  #	'-Wcast-align=strict',
+  #	'-Wsign-conversion',
 	'-Wshadow=compatible-local',
 	'-Wvla',
 	'-Wfloat-equal',
@@ -24,8 +27,55 @@ warning_flags = [
   '-Wold-style-definition',
   '-Wstrict-prototypes',
   '-Wmissing-declarations',
-  '-Wmissing-prototypes'
-]
+  '-Wmissing-prototypes',
+  '-Wchar-subscripts'
+  ]
+elif c.get_id().contains('msvc')
+  #See here for enabling/disabling msvc warnings:
+  #https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level?view=msvc-170
+  #warnings off by default: https://learn.microsoft.com/en-us/cpp/preprocessor/compiler-warnings-that-are-off-by-default?view=msvc-170
+  warning_flags = [
+    #Turn off the following warnings. If using /wall in Windows, many of these show all over the Windows API
+    #This is likely not an issue with meson, but matching VS project files for now
+    '/wd4214', # nonstandard extension used : bit field types other than int
+    '/wd4201', # nonstandard extension used : nameless struct/union
+    '/wd4668', # 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
+    '/wd4820', # 'bytes' bytes padding added after construct 'member_name'
+    '/wd4710', # 'function' : function not inlined
+    #'/wd4255', # 'function' : no function prototype given: converting '()' to '(void)' #NOTE: Only needed for /Wall, otherwise enabling can be good-TJE
+    '/wd5045', # Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+    '/wd4711', # function 'function' selected for inline expansion
+    '/wd4324', # 'struct_name' : structure was padded due to __declspec(align())
+    '/wd4221', # nonstandard extension used : 'identifier' : cannot be initialized using address of automatic variable
+    '/wd4204', # nonstandard extension used : non-constant aggregate initializer
+    '/wd4061', # enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label
+    '/wd5105', # macro expansion producing 'defined' has undefined behavior
+    '/wd4746', # volatile access of '<expression>' is subject to /volatile:[iso|ms] setting; consider using __iso_volatile_load/store intrinsic functions.
+    #Turn on the following warnings to make the output more useful or like GCC/clang
+    '/w14255', # 'function' : no function prototype given: converting '()' to '(void)'
+    '/w14062', # enumerator 'identifier' in switch of enum 'enumeration' is not handled
+    '/w14101', # 'identifier' : unreferenced local variable
+    '/w14189', # 'identifier' : local variable is initialized but not referenced
+    '/w15031', # #pragma warning(pop): likely mismatch, popping warning state pushed in different file
+    '/w15032', # detected #pragma warning(push) with no corresponding #pragma warning(pop)
+    '/w15262', # implicit fall-through occurs here; are you missing a break statement? Use [[fallthrough]] when a break statement is intentionally omitted between cases
+    #Treat the following as errors
+    '/we4837', # trigraph detected: '??character' replaced by 'character'
+    '/we4628', # digraphs not supported with -Ze. Character sequence 'digraph' not interpreted as alternate token for 'char'
+    '/we4289', # nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
+  ]
+  #TODO: check compiler version to handle warnings that were off by default in earlier versions
+  #ex: C4431 (level 4)	missing type specifier - int assumed. Note: C no longer supports default-int
+  #    This was off by default in compilers before VS2012.
+elif c.get_id().contains('xlc')
+  #This section is for IBM's xlc compiler and warning options it may need.
+  #NOTE: xlcclang should be handled above
+  #See following links: 
+  #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=reference-supported-xl-compiler-options-by-different-invocations
+  #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=end-mapping-legacy-xl-compiler-options-gcc-options
+  #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=reference-individual-xl-compiler-option-descriptions
+  warning_flags = []
+endif
 
 add_project_arguments(c.get_supported_arguments(warning_flags), language : 'c')
 
@@ -68,12 +118,14 @@ common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
 os_deps = []
 
+#The wingetopt has been amended to build on any system openSeaChest supports.
+#This was done as AIX did not have getopt_long so this was done.
+#Additionally, it made sense to keep the same implementation between OSs so it is now used for getopt_long support.
+wingetopt = subproject('wingetopt', default_options: 'default_library=static')
+wingetopt_dep = wingetopt.get_variable('wingetopt_dep')
+os_deps += [wingetopt_dep]
+
 if target_machine.system() == 'windows'
-  if not c.has_header('getopt.h')
-    wingetopt = subproject('wingetopt', default_options: 'default_library=static')
-    wingetopt_dep = wingetopt.get_variable('wingetopt_dep')
-    os_deps += [wingetopt_dep]
-  endif
   windows = import('windows')
   resources = windows.compile_resources('openSeaChest.rc')
   common_sources += [resources]
@@ -92,13 +144,11 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 incdir = include_directories('include')
 
 exe_src_map = {
-  'FormatUnit': 'Format'
+  'Format': 'Format'
 }
 
 foreach p : get_option('tools')
   executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
-  if p not in ['NVMe', 'PassthroughTest', 'Security', 'ZBD'] # Blacklist tools without man pages
-    install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
-  endif
+  install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
 endforeach
 install_man('docs/man/man8/openSeaChest.8')

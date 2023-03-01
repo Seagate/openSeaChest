@@ -36,6 +36,10 @@ const char *commandWindowType = "command";
 const char *deviceHandleExample = "/dev/rdsk/c?t?d?";
 const char *deviceHandleName = "<rdsk_device>";
 const char *commandWindowType = "shell";
+#elif defined (_AIX)
+const char *deviceHandleExample = "/dev/rhdisk?";
+const char *deviceHandleName = "<rhdisk_device>";
+const char *commandWindowType = "shell";
 #else
 #error "OS Not Defined or known"
 #endif
@@ -338,7 +342,7 @@ void print_Scan_Flags_Help(bool shortHelp)
 
 void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 {
-    printf("\t-%c, --%s deviceHandle\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
+    printf("\t-%c, --%s [deviceHandle | all]\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with most commands to specify the device\n");
@@ -349,6 +353,9 @@ void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 #if defined (ENABLE_CSMI)
         printf("\t\tCSMI device handles can be specified as %s\n", csmiDeviceHandleExample);
 #endif
+        printf("\t\tTo run across all devices detected in the system, use the\n");
+        printf("\t\t\"all\" argument instead of a device handle.\n");
+        printf("\t\tExample: -%c all\n", DEVICE_SHORT_OPT);
         printf("\n");
     }
 }
@@ -359,6 +366,15 @@ void print_Device_Information_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tShow information and features for the storage device\n\n");
+    }
+}
+
+void print_Low_Level_Info_Help(bool shortHelp)
+{
+    printf("\t--%s\n", LOWLEVEL_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tDump low-level information about the device to assist with debugging.\n\n");
     }
 }
 
@@ -1343,6 +1359,15 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
     }
 }
 
+void print_Fast_Discovery_Help(bool shortHelp)
+{
+	printf("\t--%s\n", FAST_DISCOVERY_LONG_OPT_STRING);
+	if (!shortHelp)
+	{
+		printf("\t\tUse this option  to issue a fast scan on the specified drive. \n\n");
+	}
+}
+
 void print_Firmware_Download_Help(bool shortHelp)
 {
     printf("\t--%s [firmware_filename]\n", DOWNLOAD_FW_LONG_OPT_STRING);
@@ -1402,14 +1427,48 @@ void print_Firmware_Switch_Help(bool shortHelp)
     }
 }
 
+void print_Force_NVMe_Commit_Action_Help(bool shortHelp)
+{
+    printf("\t--%s [ # ]\t(NVMe Only)\n", FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to force a specific commit action when\n");
+        printf("\t\tactivating firmware on an NVMe drive.\n");
+        printf("\t\tThe commit action can be specified in decimal or hexadecimal.\n");
+        printf("\t\tWARNING: This is not possible on most Windows nvme drivers.\n");
+        printf("\t\t         Recommend using a different OS if this is necessary.\n");
+        printf("\t\t         This utility will skip all activation when this option\n");
+        printf("\t\t         is present on an interface where this is not possible\n\n");
+    }
+}
+
+void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp)
+{
+    printf("\t--%s \t(NVMe Only)\n", FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to forcefully disable the reset to complete\n");
+        printf("\t\tactivating firmware on an NVMe drive that is performed by\n");
+        printf("\t\tdefault. This will happen automatically as required without\n");
+        printf("\t\tthis option for commit actions that require resets to complete\n");
+        printf("\t\tfirmware activation (ex: 001b or 010b)\n");
+        printf("\t\tWARNING: This is not possible on most Windows nvme drivers.\n");
+        printf("\t\t         Recommend using a different OS if this is necessary.\n");
+        printf("\t\t         This utility will skip all activation when this option\n");
+        printf("\t\t         is present on an interface where this is not possible\n\n");
+    }
+}
+
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ auto | full | segmented | deferred | deferred+activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
         printf("\t\tto set the firmware download mode.\n");
         printf("\t\tSupported Modes:\n");
+        printf("\t\t\tauto - automatically determines the best mode to use to\n");
+        printf("\t\t\t       perform the firmware update.\n");
         printf("\t\t\tfull - performs a download in one large\n");
         printf("\t\t\t            transfer to the device.\n");
         printf("\t\t\tsegmented - downloads the firmware in multiple\n");
@@ -1417,8 +1476,15 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
         printf("\t\t\tdeferred - performs a segmented download to the\n");
         printf("\t\t\t           device, but does not activate the new\n");
         printf("\t\t\t           firmware until a powercycle or activate\n");
-        printf("\t\t\t           command is sent.\n\n");
-        printf("\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
+        printf("\t\t\t           command is sent.\n");
+        printf("\t\t\tdeferred+activate - performs a deferred download and\n");
+        printf("\t\t\t                    automatically acitvates it for you.\n");
+        printf("\t\t\t                    Similar to how a segmented download works\n");
+        printf("\t\t\t                    but uses a separate activate command. This\n");
+        printf("\t\t\t                    is the recommended mode that \"auto\" will\n");
+        printf("\t\t\t                    select when possible for maximum compatibility\n");
+        printf("\t\t\t                    with Windows 10 and later operating systems.\n");
+        printf("\n\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
@@ -1791,6 +1857,9 @@ void print_Phy_Speed_Help(bool shortHelp)
         printf("\n");
         printf("\t\tNOTE: SATA phy speed changes are only available on Seagate drives.\n");
         printf("\n");
+        printf("\t\tWARNING: Check the minimum phy speed supported by your adapter before\n");
+        printf("\t\t         using this option. A phy speed below the adapter's capability\n");
+        printf("\t\t         will result in the drive not being seen by the adapter or the OS.\n\n");
         printf("\t\tWARNING: Changing Phy speed may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -2036,9 +2105,13 @@ void print_Log_Mode_Help(bool shortHelp)
         printf("\t\tSets the mode to pull the log. \n");
         printf("\t\tUse this option with --%s to set the desired mode\n", GENERIC_LOG_LONG_OPT_STRING);
         printf("\t\t\traw - Pulls log & prints it to the\n");
-        printf("\t\t\t      screen as stdout. (default)\n");
+        printf("\t\t\t      screen as stdout.\n");
         printf("\t\t\tbin - Pulls log & saves it to\n");
-        printf("\t\t\t      a timestamped binary file.\n\n");
+        printf("\t\t\t      a timestamped binary file. (default)\n");
+        printf("\t\t\tpipe - Pulls log, prints it to the\n");
+        printf("\t\t\t       screen as stdout & send the\n");
+        printf("\t\t\t       result to openSeaChest_LogParser.\n");
+        printf("\t\t\t       (available for FARM only)\n\n");
     }
 }
 
@@ -2122,7 +2195,11 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tSector size currently being used, otherwise enter a new sector\n");
         printf("\t\tsize to use upon format completion. This command will erase all\n");
         printf("\t\tdata on the drive. Combine this option with --%s to poll\n", POLL_LONG_OPT_STRING);
-        printf("\t\tfor progress until the format is complete.\n\n");
+        printf("\t\tfor progress until the format is complete.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tsupported/required sector sizes!\n\n");
         printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
 		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
@@ -2138,6 +2215,21 @@ void print_Fast_Format_Help(bool shortHelp)
     {
         printf("\t\tUse this option with the --%s option\n", FORMAT_UNIT_LONG_OPT_STRING);
         printf("\t\tto run a fast format.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tusing 4K native sectors before using this option!\n");
+        printf("\t\tSoftware RAID or individual/JBOD drive solutions will see no benefit as modern\n");
+        printf("\t\tfile systems and modern operating systems are already 4K aware even on\n");
+        printf("\t\t512 emulation drives. Modern operating systems already align file systems to 4K\n");
+        printf("\t\tboundaries required by these drives for optimal performance.\n");
+        printf("\t\tPerforming a sector size change is data destructive and has a risk that\n");
+        printf("\t\tthe adapter, driver, or operating system may not know how to communicate with\n");
+        printf("\t\tthe device once this has completed.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("\t\tAvailable fast format modes:\n");
         printf("\t\t    0 - This is a standard format unit command. All logical\n");
         printf("\t\t        blocks will be overwritten. This command will take a\n");
@@ -2152,9 +2244,15 @@ void print_Fast_Format_Help(bool shortHelp)
         printf("\t\t        logical sector size quickly. Media may or may not be\n");
         printf("\t\t        read accessible until a write has been performed to\n");
         printf("\t\t        the media.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
+        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a fast format operation.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
 
@@ -2288,17 +2386,32 @@ void print_Set_Sector_Size_Help(bool shortHelp)
     printf("\t--%s [new sector size]\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tThis option is only available for drives that support sector\n");
-        printf("\t\tsize changes. On SATA Drives, the set sector configuration\n");
-        printf("\t\tcommand must be supported. On SAS Drives, fast format must\n");
-        printf("\t\tbe supported. A format unit can be used instead of this\n");
-        printf("\t\toption to perform a long format and adjust sector size.\n");
+        printf("\t\tChanging sector sizes is intended for supported Seagate products\n");
+        printf("\t\tused in some hardware RAID configurations. Please consult your\n");
+        printf("\t\thardware RAID documentation for information about compatibility and\n");
+        printf("\t\tusing 4K native sectors before using this option!\n");
+        printf("\t\tSoftware RAID or individual/JBOD drive solutions will see no benefit as modern\n");
+        printf("\t\tfile systems and modern operating systems are already 4K aware even on\n");
+        printf("\t\t512 emulation drives. Modern operating systems already align file systems to 4K\n");
+        printf("\t\tboundaries required by these drives for optimal performance.\n");
+        printf("\t\tPerforming a sector size change is data destructive and has a risk that\n");
+        printf("\t\tthe adapter, driver, or operating system may not know how to communicate with\n");
+        printf("\t\tthe device once this has completed.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
+        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tFor SATA Drives, the set sector configuration command must be supported.\n");
+        printf("\t\tOn SAS Drives, fast format must be supported to make these changes.\n\n");
         printf("\t\tUse the --%s option to see the sector\n", SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
         printf("\t\tsizes the drive reports supporting. If this option\n");
         printf("\t\tdoesn't list anything, please consult your product manual.\n");
         printf("\t\tThis option should be used to quickly change between 5xxe and\n");
         printf("\t\t4xxx sector sizes. Using this option to change from 512 to 520\n");
         printf("\t\tor similar is not recommended at this time due to limited drive\n\t\tsupport\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        printf("\t\t         drive inoperable! Use this at your own risk!\n");
         printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n");
         printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
@@ -2310,31 +2423,7 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
         printf("\t\t         and may prevent completion of a sector size change.\n\n");
-    }
-}
-
-void print_Seagate_Quick_Format_Help(bool shortHelp)
-{
-    printf("\t--%s (SATA Only) (Seagate Only)\n", SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tThis option performs a quick format of a Seagate SATA drive.\n");
-        printf("\t\tThe purpose of this is to help bring a drive out of a bad state\n");
-        printf("\t\twhen an operation such as Fast Format (--%s) or\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
-        printf("\t\tdepopulation/repopulation is interrupted by the host when the drive\n");
-        printf("\t\twas still processing the command. Once this command completes, these\n");
-        printf("\t\toperations can be retried if the quick format completes successfully.\n");
-        printf("\t\tBe aware that this option may erase data and the drive may not be\n");
-        printf("\t\tcompletely readable until is has been written again. It is strongly\n");
-        printf("\t\trecommended that a full overwrite is performed after this is complete\n");
-        printf("\t\tto ensure the drive operates without and further errors during reads.\n");
-        printf("\t\tThis operation may succeed or it may fail depending on the state of the\n");
-        printf("\t\tdrive when this is run.\n");
-        printf("\t\tNOTE: You can use the --%s option to attempt to force this command if\n", FORCE_LONG_OPT_STRING);
-        printf("\t\t      the tool returns \"Not supported\" errors, but it may still fail\n");
-        printf("\t\t      to issue the command.\n");
-        printf("\t\tNOTE: For SAS products, retrying a fast format is the best thing to try,\n");
-        printf("\t\t      but if that does not work, a full format may be required.\n\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
 
@@ -3112,7 +3201,11 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
         printf("\t\tcapacity to a new point where the drive is still\n");
         printf("\t\tusable without the provided element #.\n");
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
-        printf("\t\tof the depopulation operation.\n\n");
+        printf("\t\tof the depopulation operation.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -3141,7 +3234,14 @@ void print_Repopulate_Elements_Help(bool shortHelp)
         printf("\t\tUse this option to repopulate any physical storage\n");
         printf("\t\telements that have been removed from use.\n");
         printf("\t\tA full disk overwrite is necessary before\n");
-        printf("\t\tthe drive is usable.\n\n");
+        printf("\t\tthe drive is usable.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a repopulate as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
+        printf("\n");
     }
 }
 
@@ -3348,14 +3448,60 @@ void print_Log_Transfer_Length_Help(bool shortHelp)
     }
 }
 
+void print_Log_Length_Help(bool shortHelp)
+{
+    printf("\t--%s [length in bytes]\t(NVMe Only)\n", LOG_LENGTH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the total length of a log\n");
+        printf("\t\tto retrieve from a device. This is required for NVMe\n");
+        printf("\t\tlogs not part of the standards or not currently known\n");
+        printf("\t\tby this utility in order to retrieve all the data.\n");
+        printf("\t\tThe following post fixes are allowed for\n");
+        printf("\t\tspecifying a transfer length:\n");
+        printf("\t\t\tBLOCKS or SECTORS - used to specify a transfer length\n");
+        printf("\t\t\t\tin device in 512Byte blocks/sectors\n");
+        printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
+        printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
+        printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
+        printf("\t\t\tMiB - length in mebibytes (val * 1048576)\n");
+        printf("\n");
+    }
+}
+
 void print_FARM_Log_Help(bool shortHelp)
 {
     printf("\t--%s\n", FARM_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tPull the Seagate Field Accessible Reliability Metrics (FARM)\n");
-        printf("\t\tLog from the specified drive.Saves the binary logs to the\n");
-        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin\n\n");
+        printf("\t\tLog from the specified drive. Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARM<date and time>.bin (as default)\n\n");
+    }
+}
+
+void print_FARM_Combined_Log_Help(bool shortHelp)
+{
+    printf("\t--%s\n", FARM_COMBINED_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tPull the Seagate Combined Field Accessible Reliability Metrics (FARM)\n");
+        printf("\t\tLog from the specified drive. This log contains a combination of all\n");
+        printf("\t\tFARM Sub Log Pages in a single Log File.Saves the binary logs to the\n");
+        printf("\t\tcurrent directory as <serialnumber>FARMC<date and time>.FRMC\n\n");
+    }
+}
+
+void print_Sata_FARM_Copy_Type_Flag_Help(bool shortHelp)
+{
+    printf("\t--%s [ disc | flash ]\t(SATA Only)\n", SATA_FARM_COPY_TYPE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to provide copy type while extracting FARM copy type with --%s\n", FARM_COMBINED_LONG_OPT_STRING);
+        printf("\t\toption. The default mode is \"disc\"\n");
+        printf("\t\t    disc - Pull Disc copy of SATA Farm logs.\n");
+        printf("\t\t    flash - Pull Flash copy of SATA Farm logs.\n");
+        printf("\n");
     }
 }
 

@@ -1,0 +1,26 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_mips.txt crossbuild_mips
+#    ninja -C crossbuild_mips
+
+
+[binaries]
+c = '/usr/bin/mips-linux-gnu-gcc'
+ar = '/usr/mips-linux-gnu/bin/ar'
+strip = '/usr/mips-linux-gnu/bin/strip'
+pkgconfig = '/usr/bin/mips-linux-gnu-pkg-config'
+ld = '/usr/bin/arm-linux/gnueabihf-ld'
+
+[properties]
+root = '/usr/mips-linux-gnu'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'mips'
+cpu = ''
+endian = 'big'

@@ -1,0 +1,26 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#NOTE: This may work with debian as well.
+#example usage of this file:
+#    meson --buildtype=release --cross-file=./meson_crosscompile/ubuntu_mips64.txt crossbuild_mips64
+#    ninja -C crossbuild_mips64
+
+
+[binaries]
+c = '/usr/bin/mips64-linux-gnuabi64-gcc'
+ar = '/usr/mips64-linux-gnuabi64/bin/ar'
+strip = '/usr/mips64-linux-gnuabi64/bin/strip'
+pkgconfig = '/usr/bin/mips64-linux-gnuabi64-pkg-config'
+ld = '/usr/bin/arm-linux/gnueabihf-ld'
+
+[properties]
+root = '/usr/mips64-linux-gnuabi64'
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'linux'
+cpu_family = 'mips64'
+cpu = ''
+endian = 'big'

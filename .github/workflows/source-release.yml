@@ -1,0 +1,55 @@
+name: Create Complete Source Archive
+
+on:
+  push:
+    tags: [ v* ]
+    
+jobs:
+  archive:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false # so that if one config fails, other won't be cancelled automatically
+      matrix:
+        config:
+        - {
+            name: "Windows",
+            os: windows-latest,
+            extension: ".zip"
+          }
+        - {
+            name: "Linux",
+            os: ubuntu-latest,
+            extension: ".tar.xz",
+          }
+    steps:  
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Escape backslash in branch name
+      shell: bash
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
+
+    - name: Setting release name
+      env:
+        ARCHIVENAME: ${{ format('openSeaChest-{0}', env.BRANCH_NAME) }}
+      run: |
+        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create Source Archive
+      run: |
+        pip install git-archive-all
+        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules.${{ matrix.config.extension }}
+
+    - name: Upload Source Archive as Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: SourceCode_With_Submodules.${{ matrix.config.extension }}
+
+    - name: Publish Source Archive to Release
+      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: SourceCode_With_Submodules.${{ matrix.config.extension }}

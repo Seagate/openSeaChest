@@ -18,12 +18,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -32,7 +28,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Sample";
-const char *buildVersion = "1.0.2";
+const char *buildVersion = "1.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -72,6 +68,7 @@ int32_t main(int argc, char *argv[])
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+	FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -86,6 +83,7 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -109,6 +107,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+		FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -116,6 +115,7 @@ int32_t main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -456,6 +456,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         ))
     {
@@ -484,6 +485,11 @@ int32_t main(int argc, char *argv[])
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
+
+	if (FAST_DISCOVERY_FLAG)
+	{
+		flags = FAST_SCAN;
+	}
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
@@ -735,6 +741,11 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
+        }
+
         if (TEST_UNIT_READY_FLAG)
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
@@ -772,8 +783,10 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -810,10 +823,12 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
+	print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
 

@@ -1,14 +1,28 @@
 task:
   name: FreeBSD
+  env:
+    GITHUB_TOKEN: ENCRYPTED[!afcf3c192704d2c5e1677e1003dc31f42e920963dfd6b4060b3df6e7ef6ecc68329c20777d8906d97028243c316fc4de!]
   freebsd_instance:
     matrix:
-      image_family: freebsd-13-0
+      image_family: freebsd-13-1
       image_family: freebsd-12-3
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
-  release_script:
-    - meson --buildtype=release builddir
-    - ninja -C builddir
+  release_script: |
+    branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
+    if [ "$CIRRUS_RELEASE" != "" ]; then
+      branchName=$(printf '%s' "$CIRRUS_RELEASE" | tr '/' '-')
+    elif [ "$CIRRUS_TAG" != "" ]; then
+      branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
+    fi
+    meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
+    meson install -C build
+    cd $CIRRUS_WORKING_DIR/output
+    tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+    $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
+  binaries_artifacts:
+    path: openSeaChest-*.tar.xz
+    
 
 task:
   name: windowsservercore:visualstudio2019

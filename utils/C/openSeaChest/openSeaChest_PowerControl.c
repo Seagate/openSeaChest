@@ -18,12 +18,8 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -35,7 +31,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.1.10";
+const char *buildVersion = "3.3.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -69,11 +65,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -115,6 +112,7 @@ int32_t main(int argc, char *argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    LOWLEVEL_INFO_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -129,7 +127,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -138,6 +136,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -149,6 +148,7 @@ int32_t main(int argc, char *argv[])
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
+        LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         CHECK_POWER_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
@@ -341,20 +341,20 @@ int32_t main(int argc, char *argv[])
                 {
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = true;
-					POWER_BALANCE_MODE = POWER_BAL_ENABLE;
+                    POWER_BALANCE_MODE = POWER_BAL_ENABLE;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
                     SEAGATE_POWER_BALANCE_FLAG = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
-					POWER_BALANCE_MODE = POWER_BAL_DISABLE;
-				}
-				else if (strcmp(optarg, "limited") == 0)
-				{
-					SEAGATE_POWER_BALANCE_FLAG = true;
-					SEAGATE_POWER_BALANCE_LIMITED_FLAG = true;
-					POWER_BALANCE_MODE = POWER_BAL_LIMITED;
-				}
+                    POWER_BALANCE_MODE = POWER_BAL_DISABLE;
+                }
+                else if (strcmp(optarg, "limited") == 0)
+                {
+                    SEAGATE_POWER_BALANCE_FLAG = true;
+                    SEAGATE_POWER_BALANCE_LIMITED_FLAG = true;
+                    POWER_BALANCE_MODE = POWER_BAL_LIMITED;
+                }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SEAGATE_POWER_BALANCE_LONG_OPT_STRING, optarg);
@@ -789,7 +789,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -950,6 +950,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
         || CHECK_POWER_FLAG
         || SPIN_DOWN_FLAG
@@ -1009,6 +1010,11 @@ int32_t main(int argc, char *argv[])
         )
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -1260,6 +1266,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -2153,11 +2164,11 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully enabled Seagate Power Balance!\n");
                         }
-						else if (SEAGATE_POWER_BALANCE_LIMITED_FLAG)
-						{
-							printf("Successfully limited Seagate Power Balance!\n");
-						}
-						else
+                        else if (SEAGATE_POWER_BALANCE_LIMITED_FLAG)
+                        {
+                            printf("Successfully limited Seagate Power Balance!\n");
+                        }
+                        else
                         {
                             printf("Successfully disabled Seagate Power Balance!\n");
                         }
@@ -2631,13 +2642,28 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_EPC_SETTINGS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5000\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING);
     printf("\t%s -d %s --%s disable\n", util_name, deviceHandleExample, IDLE_B_LONG_OPT_STRING);
     printf("\t%s -d %s --%s standby_z\n", util_name, deviceHandleExample, TRANSITION_POWER_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 120 --%s 12\n", util_name, deviceHandleExample, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, EPC_ENABLED_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 15000\n", util_name, deviceHandleExample, LEGACY_STANDBY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000\n", util_name, deviceHandleExample, LEGACY_IDLE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_APM_LEVEL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 128\n", util_name, deviceHandleExample, SET_APM_LEVEL_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 12\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s lowest\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -2660,7 +2686,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_Quiet_Help(shortUsage, util_name);
@@ -2674,10 +2700,12 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
+    print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Check_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);

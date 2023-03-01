@@ -933,7 +933,7 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
             #pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
         #endif
     #endif
-#elif defined (__sun)
+#elif defined (__sun) || defined (_AIX)
     //TODO: Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
 	#error Please update #if for system library licenses!

@@ -19,25 +19,22 @@
 #include <ctype.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
-#include <getopt.h>
-#elif defined (_WIN32)
-#include "getopt.h"
-#else
-#error "OS Not Defined or known"
 #endif
+#include "getopt.h"
 #include "common_public.h"
 #include "EULA.h"
 #include "operations.h"
 //include the seachest util options for the device option, drive info option and a few other things that are needed.
 #include "openseachest_util_options.h"
 #include "logs.h"
+#include "farm_log.h"
 #include "drive_info.h"
 
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Logs";
-const char *buildVersion = "2.0.3";
+const char *buildVersion = "2.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -73,11 +70,12 @@ int32_t main(int argc, char *argv[])
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
     SCAN_FLAG_VAR
-	NO_BANNER_VAR
+    NO_BANNER_VAR
     AGRESSIVE_SCAN_FLAG_VAR
     SHOW_BANNER_VAR
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
+    FAST_DISCOVERY_VAR
     MODEL_MATCH_VARS
     FW_MATCH_VARS
     CHILD_MODEL_MATCH_VARS
@@ -93,8 +91,10 @@ int32_t main(int argc, char *argv[])
     GENERIC_LOG_VAR
     GENERIC_LOG_SUBPAGE_VAR
     GENERIC_ERROR_HISTORY_VARS
-    PULL_LOG_MODE_VARS
+    PULL_LOG_MODE_VAR
     FARM_VAR
+    FARM_COMBINED_VAR
+    SATA_FARM_COPY_TYPE_VARS
     DST_LOG_VAR
     IDENTIFY_DEVICE_DATA_LOG_VAR
     SATA_PHY_COUNTERS_LOG_VAR
@@ -106,6 +106,8 @@ int32_t main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOG_TRANSFER_LENGTH_BYTES_VAR
+    LOG_LENGTH_BYTES_VAR
+    LOWLEVEL_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -120,7 +122,7 @@ int32_t main(int argc, char *argv[])
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
-		NO_BANNER_OPT,
+        NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
         VERSION_LONG_OPT,
@@ -130,6 +132,7 @@ int32_t main(int argc, char *argv[])
         LICENSE_LONG_OPT,
         ECHO_COMMAND_LIN_LONG_OPT,
         TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
         ONLY_SEAGATE_LONG_OPT,
         MODEL_MATCH_LONG_OPT,
         FW_MATCH_LONG_OPT,
@@ -137,6 +140,7 @@ int32_t main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
 #if defined (ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -149,12 +153,15 @@ int32_t main(int argc, char *argv[])
         GENERIC_ERROR_HISTORY_LONG_OPT,
         PULL_LOG_MODE_LONG_OPT,
         FARM_LONG_OPT,
+        FARM_COMBINED_LONG_OPT,
+        SATA_FARM_COPY_TYPE_LONG_OPT,
         DST_LOG_LONG_OPT,//standard spec log
         DEVICE_STATS_LOG_LONG_OPT,//standard spec log
         IDENTIFY_DEVICE_DATA_LOG_LONG_OPT,//standard ATA spec log
         SATA_PHY_COUNTERS_LONG_OPT,//standard ATA spec log
         INFROMATIONAL_EXCEPTIONS_LONG_OPT,
         LOG_TRANSFER_LENGTH_LONG_OPT,
+        LOG_LENGTH_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -192,7 +199,7 @@ int32_t main(int argc, char *argv[])
             if (strncmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING, strlen(GENERIC_LOG_LONG_OPT_STRING)) == 0)
             {
                 uint64_t temp = 0;
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     GENERIC_LOG_PULL_FLAG = true;
                     GENERIC_LOG_DATA_SET = C_CAST(uint8_t, temp);
@@ -206,7 +213,7 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, strlen(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING)) == 0)
             {
                 uint64_t temp = 0;
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &temp) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
                 {
                     //no need to do anything...this option requires that the page is also given
                     GENERIC_LOG_SUBPAGE_DATA_SET = C_CAST(uint8_t, temp);
@@ -219,7 +226,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, strlen(GENERIC_ERROR_HISTORY_LONG_OPT_STRING)) == 0)
             {
-                if ( get_And_Validate_Integer_Input((const char *) optarg, &GENERIC_ERROR_HISTORY_BUFFER_ID) )
+                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &GENERIC_ERROR_HISTORY_BUFFER_ID))
                 {
                     GENERIC_ERROR_HISTORY_PULL_FLAG = true;
                 }
@@ -273,7 +280,51 @@ int32_t main(int argc, char *argv[])
                 }
                 LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
-            else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), 9)) == 0)
+            else if (strcmp(longopts[optionIndex].name, LOG_LENGTH_LONG_OPT_STRING) == 0)
+            {
+                //set the raw data length - but check the units first!
+                uint64_t multiplier = 1;
+                uint32_t optargInt = C_CAST(uint32_t, atoi(optarg));
+                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                {
+                    //they specified blocks. For log transfers this means a number of 512B sectors
+                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                }
+                else if (strstr(optarg, "KB"))
+                {
+                    multiplier = 1000;
+                }
+                else if (strstr(optarg, "KiB"))
+                {
+                    multiplier = 1024;
+                }
+                else if (strstr(optarg, "MB"))
+                {
+                    multiplier = 1000000;
+                }
+                else if (strstr(optarg, "MiB"))
+                {
+                    multiplier = 1048576;
+                }
+                else if (strstr(optarg, "GB"))
+                {
+                    multiplier = 1000000000;
+                }
+                else if (strstr(optarg, "GiB"))
+                {
+                    multiplier = 1073741824;
+                }
+                else if (strstr(optarg, "TB"))
+                {
+                    multiplier = 1000000000000;
+                }
+                else if (strstr(optarg, "TiB"))
+                {
+                    multiplier = 1099511627776;
+                }
+                LOG_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
+            }
+            else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, strlen(longopts[optionIndex].name)) == 0)
             {
                 OUTPUTPATH_PARSE
                 if (!os_Directory_Exists(OUTPUTPATH_FLAG))
@@ -313,9 +364,34 @@ int32_t main(int argc, char *argv[])
                 {
                     PULL_LOG_MODE = PULL_LOG_BIN_FILE_MODE;
                 }
+                else if (strcmp(optarg, "pipe") == 0)
+                {
+                    PULL_LOG_MODE = PULL_LOG_PIPE_MODE;
+                    NO_BANNER_FLAG = true;
+                    if (!FARM_PULL_FLAG)
+                    {
+                        printf("Unsupported pipe feature for this log! \n");
+                    }
+                }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(PULL_LOG_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SATA_FARM_COPY_TYPE_LONG_OPT_STRING, strlen(SATA_FARM_COPY_TYPE_LONG_OPT_STRING)) == 0)
+            {
+                if (strcmp(optarg, "disc") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_DISC;
+                }
+                else if (strcmp(optarg, "flash") == 0)
+                {
+                    SATA_FARM_COPY_TYPE_FLAG = SATA_FARM_COPY_TYPE_FLASH;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SATA_FARM_COPY_TYPE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -396,7 +472,7 @@ int32_t main(int argc, char *argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-		openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -557,11 +633,13 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+		|| LOWLEVEL_INFO_FLAG
         || LIST_LOGS_FLAG
         || LIST_ERROR_HISTORY_FLAG
         || GENERIC_LOG_PULL_FLAG
         || GENERIC_ERROR_HISTORY_PULL_FLAG
         || FARM_PULL_FLAG
+        || FARM_COMBINED_FLAG
         || DST_LOG_FLAG
         || IDENTIFY_DEVICE_DATA_LOG_FLAG
         || SATA_PHY_COUNTERS_LOG_FLAG
@@ -593,6 +671,11 @@ int32_t main(int argc, char *argv[])
     if (TEST_UNIT_READY_FLAG)
     {
         flags = DO_NOT_WAKE_DRIVE;
+    }
+
+    if (FAST_DISCOVERY_FLAG)
+    {
+        flags = FAST_SCAN;
     }
 
     //set flags that can be passed down in get device regarding forcing specific ATA modes.
@@ -642,13 +725,13 @@ int32_t main(int argc, char *argv[])
                     printf("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -702,13 +785,13 @@ int32_t main(int argc, char *argv[])
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-		        {
-		            exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-		        }
-		        else
-		        {
-		            exit(UTIL_EXIT_OPERATION_FAILURE);
-		        }
+                {
+                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                }
             }
         }
     }
@@ -828,7 +911,10 @@ int32_t main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
+            {
+                printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            }     
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -842,6 +928,11 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
+        }
+
+        if (LOWLEVEL_INFO_FLAG)
+        {
+            print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
         if (TEST_UNIT_READY_FLAG)
@@ -899,7 +990,7 @@ int32_t main(int argc, char *argv[])
 
         if (GENERIC_LOG_PULL_FLAG)
         {
-            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES))
+            switch (pull_Generic_Log(&deviceList[deviceIter], GENERIC_LOG_DATA_SET, GENERIC_LOG_SUBPAGE_DATA_SET, PULL_LOG_MODE, OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, LOG_LENGTH_BYTES))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -994,12 +1085,15 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS))
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_MODE))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully pulled FARM log\n");
+                    if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
+                    {
+                        printf("Successfully pulled FARM log\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1013,6 +1107,34 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to pull FARM log\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (FARM_COMBINED_FLAG)
+        {
+            //PULL FARM Log containing all FARM sub Log pages
+            switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, SATA_FARM_COPY_TYPE_FLAG))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully pulled FARM Combined log\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("FARM Combined log not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to pull FARM Combined log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1177,9 +1299,19 @@ void utility_Usage(bool shortUsage)
     printf("Examples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
-    printf("\t%s -d %s --farm --outputPath logs\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s logs --%s pipe\n", util_name, deviceHandleExample, FARM_LONG_OPT_STRING, PATH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 64KiB --%s bin\n", util_name, deviceHandleExample, FARM_COMBINED_LONG_OPT_STRING, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_LOGS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s C6h\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0Dh --%s 01h --%s bin\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_ERROR_HISTORY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 30 --%s bin\n", util_name, deviceHandleExample, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1202,7 +1334,7 @@ void utility_Usage(bool shortUsage)
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
     print_Model_Match_Help(shortUsage);
-	print_No_Banner_Help(shortUsage);
+    print_No_Banner_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_Only_Seagate_Help(shortUsage);
     print_OutputPath_Help(shortUsage);
@@ -1217,16 +1349,20 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
+    print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     //multiple interfaces
+    print_Fast_Discovery_Help(shortUsage);
     printf("\n");
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
+    print_FARM_Combined_Log_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
+    print_Log_Length_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
     print_Pull_Generic_Logs_Help(shortUsage);
@@ -1235,6 +1371,7 @@ void utility_Usage(bool shortUsage)
     //SATA Only Options
     printf("\n\tSATA Only:\n\n");
     print_Pull_Identify_Device_Data_Log_Help(shortUsage);
+    print_Sata_FARM_Copy_Type_Flag_Help(shortUsage);
     print_Pull_SATA_Phy_Event_Counters_Log_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\n");
@@ -1242,6 +1379,4 @@ void utility_Usage(bool shortUsage)
     print_Pull_Generic_Error_History_Help(shortUsage);
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);
     print_Pull_Generic_Logs_Subpage_Help(shortUsage);
-
-    
 }
