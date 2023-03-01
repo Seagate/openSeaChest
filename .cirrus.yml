@@ -8,13 +8,18 @@ task:
       image_family: freebsd-12-3
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
-  release_script:
-    - branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
-    - meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
-    - meson install -C build
-    - cd $CIRRUS_WORKING_DIR/output
-    - tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
-    - $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
+  release_script: |
+    branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')
+    if [ "$CIRRUS_RELEASE" != "" ]; then
+      branchName=$(printf '%s' "$CIRRUS_RELEASE" | tr '/' '-')
+    elif [ "$CIRRUS_TAG" != "" ]; then
+      branchName=$(printf '%s' "$CIRRUS_TAG" | tr '/' '-')
+    fi
+    meson setup build -Dprefix=$CIRRUS_WORKING_DIR/output -Dmandir=$CIRRUS_WORKING_DIR/output/man -Dbindir=$CIRRUS_WORKING_DIR/output --buildtype=release
+    meson install -C build
+    cd $CIRRUS_WORKING_DIR/output
+    tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
+    $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
     

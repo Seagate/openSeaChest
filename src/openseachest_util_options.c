@@ -1461,12 +1461,14 @@ void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp)
 
 void print_Firmware_Download_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s [ full | segmented | deferred ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ auto | full | segmented | deferred | deferred+activate ]\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option\n", DOWNLOAD_FW_LONG_OPT_STRING);
         printf("\t\tto set the firmware download mode.\n");
         printf("\t\tSupported Modes:\n");
+        printf("\t\t\tauto - automatically determines the best mode to use to\n");
+        printf("\t\t\t       perform the firmware update.\n");
         printf("\t\t\tfull - performs a download in one large\n");
         printf("\t\t\t            transfer to the device.\n");
         printf("\t\t\tsegmented - downloads the firmware in multiple\n");
@@ -1474,8 +1476,15 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
         printf("\t\t\tdeferred - performs a segmented download to the\n");
         printf("\t\t\t           device, but does not activate the new\n");
         printf("\t\t\t           firmware until a powercycle or activate\n");
-        printf("\t\t\t           command is sent.\n\n");
-        printf("\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
+        printf("\t\t\t           command is sent.\n");
+        printf("\t\t\tdeferred+activate - performs a deferred download and\n");
+        printf("\t\t\t                    automatically acitvates it for you.\n");
+        printf("\t\t\t                    Similar to how a segmented download works\n");
+        printf("\t\t\t                    but uses a separate activate command. This\n");
+        printf("\t\t\t                    is the recommended mode that \"auto\" will\n");
+        printf("\t\t\t                    select when possible for maximum compatibility\n");
+        printf("\t\t\t                    with Windows 10 and later operating systems.\n");
+        printf("\n\t\tWARNING: Firmware Updates may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
@@ -2415,31 +2424,6 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
         printf("\t\t         and may prevent completion of a sector size change.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-    }
-}
-
-void print_Seagate_Quick_Format_Help(bool shortHelp)
-{
-    printf("\t--%s (SATA Only) (Seagate Only)\n", SEAGATE_SATA_QUICK_FORMAT_LONG_OPT_STRING);
-    if (!shortHelp)
-    {
-        printf("\t\tThis option performs a quick format of a Seagate SATA drive.\n");
-        printf("\t\tThe purpose of this is to help bring a drive out of a bad state\n");
-        printf("\t\twhen an operation such as Fast Format (--%s) or\n", SET_SECTOR_SIZE_LONG_OPT_STRING);
-        printf("\t\tdepopulation/repopulation is interrupted by the host when the drive\n");
-        printf("\t\twas still processing the command. Once this command completes, these\n");
-        printf("\t\toperations can be retried if the quick format completes successfully.\n");
-        printf("\t\tBe aware that this option may erase data and the drive may not be\n");
-        printf("\t\tcompletely readable until is has been written again. It is strongly\n");
-        printf("\t\trecommended that a full overwrite is performed after this is complete\n");
-        printf("\t\tto ensure the drive operates without and further errors during reads.\n");
-        printf("\t\tThis operation may succeed or it may fail depending on the state of the\n");
-        printf("\t\tdrive when this is run.\n");
-        printf("\t\tNOTE: You can use the --%s option to attempt to force this command if\n", FORCE_LONG_OPT_STRING);
-        printf("\t\t      the tool returns \"Not supported\" errors, but it may still fail\n");
-        printf("\t\t      to issue the command.\n");
-        printf("\t\tNOTE: For SAS products, retrying a fast format is the best thing to try,\n");
-        printf("\t\t      but if that does not work, a full format may be required.\n\n");
     }
 }
 

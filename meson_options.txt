@@ -3,7 +3,7 @@ option('tools', type : 'array', choices : [
   'Configure',
   'Erase',
   'Firmware',
-  'FormatUnit',
+  'Format',
   'GenericTests',
   'Info',
   'Logs',

@@ -738,13 +738,11 @@ extern "C"
     #define DOWNLOAD_FW_FLAG downloadFW
     #define DOWNLOAD_FW_FILENAME_FLAG downloadFWFilename
     #define DOWNLOAD_FW_MODE downloadMode
-    #define USER_SET_DOWNLOAD_MODE userSpecifiedDownloadMode
     #define DOWNLOAD_FW_VARS \
     bool DOWNLOAD_FW_FLAG = false;\
     char firmwareFileName[FIRMWARE_FILE_NAME_MAX_LEN] = { 0 };\
     char *DOWNLOAD_FW_FILENAME_FLAG =  &firmwareFileName[0];\
-    int DOWNLOAD_FW_MODE = DL_FW_SEGMENTED;/*3*/\
-    bool USER_SET_DOWNLOAD_MODE = false;
+    int DOWNLOAD_FW_MODE = 0xFF;/*automatic*/
     #define DOWNLOAD_FW_LONG_OPT_STRING "downloadFW"
     #define DOWNLOAD_FW_MODE_LONG_OPT_STRING "downloadMode"
     #define DOWNLOAD_FW_LONG_OPT { DOWNLOAD_FW_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -3347,8 +3345,6 @@ extern "C"
     void print_Telemetry_Data_Set_Help(bool shortHelp);
 
     void print_Force_Help(bool shortHelp);
-
-    void print_Seagate_Quick_Format_Help(bool shortHelp);
 
     void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp);
 
