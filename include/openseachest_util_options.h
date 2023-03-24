@@ -95,6 +95,11 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define PARTITION_INFO_FLAG showPartitionInfo
+    #define PARTITION_INFO_VAR getOptBool PARTITION_INFO_FLAG = goFalse;
+    #define PARTITION_INFO_LONG_OPT_STRING "partitionInfo"
+    #define PARTITION_INFO_LONG_OPT { PARTITION_INFO_LONG_OPT_STRING, no_argument, &PARTITION_INFO_FLAG, goTrue }
+
     #define LOWLEVEL_INFO_FLAG lowlevelInfo
     #define LOWLEVEL_INFO_VAR getOptBool LOWLEVEL_INFO_FLAG = goFalse;
     #define LOWLEVEL_INFO_LONG_OPT_STRING "llInfo"
