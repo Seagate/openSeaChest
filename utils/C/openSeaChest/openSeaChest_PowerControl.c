@@ -31,7 +31,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.3.1";
+const char *buildVersion = "3.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -246,43 +246,43 @@ int32_t main(int argc, char *argv[])
             {
                 TRANSITION_POWER_MODE_FLAG = true;
                 //set the power mode
-                if (strncmp(POWER_STATE_ACTIVE_STRING, optarg, strlen(optarg)) == 0)
+                if (strcmp(POWER_STATE_ACTIVE_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_ACTIVE;
                 }
-                else if (strncmp(POWER_STATE_IDLE_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE;
                 }
-                else if (strncmp(POWER_STATE_IDLE_UNLOAD_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_UNLOAD_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_UNLOAD;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY;
                 }
-                else if (strncmp(POWER_STATE_IDLE_A_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_A_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_A;
                 }
-                else if (strncmp(POWER_STATE_IDLE_B_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_B_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_B;
                 }
-                else if (strncmp(POWER_STATE_IDLE_C_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_C_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_C;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_Y_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_Y_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Y;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_Z_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_Z_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Z;
                 }
-                else if (strncmp(POWER_STATE_SLEEP_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_SLEEP_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_SLEEP;
                 }
@@ -979,7 +979,7 @@ int32_t main(int argc, char *argv[])
         || STANDBY_Y_POWER_MODE_FLAG
         || LEGACY_IDLE_POWER_MODE_FLAG
         || LEGACY_STANDBY_POWER_MODE_FLAG
-        || (TRANSITION_POWER_STATE_TO > 0)
+        || (TRANSITION_POWER_STATE_TO >= 0)
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         ))
@@ -1006,7 +1006,7 @@ int32_t main(int argc, char *argv[])
     version.size = sizeof(tDevice);
 
     if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
-        || (TRANSITION_POWER_STATE_TO > 0)
+        || (TRANSITION_POWER_STATE_TO >= 0)
         )
     {
         flags = DO_NOT_WAKE_DRIVE;
