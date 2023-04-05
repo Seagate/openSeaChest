@@ -31,7 +31,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.3.2";
+const char *buildVersion = "3.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -107,6 +107,7 @@ int32_t main(int argc, char *argv[])
     LEGACY_STANDBY_POWER_MODE_VARS
     SHOW_POWER_TELEMETRY_VAR
     REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS
+    SHOW_NVM_POWER_STATES_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -151,6 +152,7 @@ int32_t main(int argc, char *argv[])
         LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         CHECK_POWER_LONG_OPT,
+        SHOW_NVM_POWER_STATES_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         EPC_ENABLED_LONG_OPT,
         TRANSITION_POWER_MODE_LONG_OPT,
@@ -982,6 +984,7 @@ int32_t main(int argc, char *argv[])
         || (TRANSITION_POWER_STATE_TO >= 0)
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
+        || SHOW_NVM_POWER_STATES
         ))
     {
         utility_Usage(true);
@@ -1412,6 +1415,32 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_NVM_POWER_STATES)
+        {
+            nvmeSupportedPowerStates ps;
+            memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
+            switch(get_NVMe_Power_States(&deviceList[deviceIter], &ps))
+            {
+            case SUCCESS:
+                print_NVM_Power_States(&ps);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing NVM power states is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Could not read NVM power states from the device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2653,6 +2682,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s standby_z\n", util_name, deviceHandleExample, TRANSITION_POWER_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 120 --%s 12\n", util_name, deviceHandleExample, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
@@ -2740,5 +2770,6 @@ void utility_Usage(bool shortUsage)
     print_Show_Power_Consumption_Help(shortUsage);
     //NVMe Only
     printf("\n\tNVMe Only:\n\t=========\n");
+    print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }

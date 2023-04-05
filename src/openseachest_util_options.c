@@ -1038,7 +1038,21 @@ void print_Transition_Power_State_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to transition to a specific power state.\n");
-        printf("\t\tHINT:\n\t\t  Use --%s to show number of supported states\n\n", DEVICE_INFO_LONG_OPT_STRING);
+        printf("\t\tWARNING: Transitioning the drive to a non-operational power state\n");
+        printf("\t\t         may make the device stop responding. The operating system\n");
+        printf("\t\t         may or may not block this transition. It is recommended\n");
+        printf("\t\t         to only use this option for operational power states\n");
+        printf("\t\tHINT:\n\t\t  Use --%s to view the supported states\n", SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
+        
+    }
+}
+
+void print_Show_NVM_Power_States_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display a device's supported power states.\n");
     }
 }
 
