@@ -1070,6 +1070,7 @@ void utility_Usage(bool shortUsage)
 #endif
     print_Device_Statistics_Help(shortUsage);
     print_Show_Concurrent_Position_Ranges_Help(shortUsage);
+    print_Partition_Info_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_SMART_Attributes_Help(shortUsage);

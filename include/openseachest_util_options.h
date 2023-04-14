@@ -3387,13 +3387,13 @@ extern "C"
 
     void print_NVME_Health_Help(bool shortHelp);
 
-    void print_Delay_CMD_Segment_Help(bool shortHelp);
-
     void print_Low_Level_Info_Help(bool shortHelp);
 
     void print_Force_NVMe_Commit_Action_Help(bool shortHelp);
 
     void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp);
+
+    void print_Partition_Info_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
