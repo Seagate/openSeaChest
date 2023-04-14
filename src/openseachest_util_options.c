@@ -16,28 +16,28 @@
 
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
-const char *deviceHandleExample = "vmhba1";
+const char *deviceHandleExample = "vmhba<#>";
 const char *deviceHandleName = "<deviceHandle>";
 const char *commandWindowType = "terminal";
 #else
-const char *deviceHandleExample = "/dev/sg?";
+const char *deviceHandleExample = "/dev/sg<#>";
 const char *deviceHandleName = "<sg_device>";
 const char *commandWindowType = "terminal";
 #endif
 #elif defined (__FreeBSD__)
-const char *deviceHandleExample = "/dev/da?";
+const char *deviceHandleExample = "/dev/da<#>";
 const char *deviceHandleName = "<da_device>";
 const char *commandWindowType = "shell";
 #elif defined (_WIN32)
-const char *deviceHandleExample = "PD?";
+const char *deviceHandleExample = "PD<#>";
 const char *deviceHandleName = "<physical_device>";
 const char *commandWindowType = "command";
 #elif defined (__sun)
-const char *deviceHandleExample = "/dev/rdsk/c?t?d?";
+const char *deviceHandleExample = "/dev/rdsk/c<#>t<#>d<#>";
 const char *deviceHandleName = "<rdsk_device>";
 const char *commandWindowType = "shell";
 #elif defined (_AIX)
-const char *deviceHandleExample = "/dev/rhdisk?";
+const char *deviceHandleExample = "/dev/rhdisk<#>";
 const char *deviceHandleName = "<rhdisk_device>";
 const char *commandWindowType = "shell";
 #else
@@ -47,9 +47,9 @@ const char *commandWindowType = "shell";
 #if defined (ENABLE_CSMI)
 //static const char *csmiDeviceHandleName = "<csmi_device>";
 #if defined (_WIN32)
-static const char *csmiDeviceHandleExample = "csmi\?:\?:?:?";
+static const char *csmiDeviceHandleExample = "csmi<#>:<#>:<#>:<#>";
 #else
-static const char *csmiDeviceHandleExample = "<error\?\?\?>";
+static const char *csmiDeviceHandleExample = "<error<#><#><#>>";
 #endif //_WIN32
 #endif //ENABLE_CSMI
 
@@ -348,7 +348,7 @@ void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
         printf("\t\tUse this option with most commands to specify the device\n");
         printf("\t\thandle on which to perform an operation. Example: %s\n", helpdeviceHandleExample);
 #if defined(_WIN32)
-        printf("\t\tA handle can also be specified as \\\\.\\PhysicalDrive?\n");
+        printf("\t\tA handle can also be specified as \\\\.\\PhysicalDrive<#>\n");
 #endif
 #if defined (ENABLE_CSMI)
         printf("\t\tCSMI device handles can be specified as %s\n", csmiDeviceHandleExample);
@@ -356,6 +356,11 @@ void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
         printf("\t\tTo run across all devices detected in the system, use the\n");
         printf("\t\t\"all\" argument instead of a device handle.\n");
         printf("\t\tExample: -%c all\n", DEVICE_SHORT_OPT);
+        printf("\t\tNOTE: The \"all\" argument is handled by running the\n");
+        printf("\t\t      specified options on each drive detected in the\n");
+        printf("\t\t      OS sequentially. For parallel operations, please\n");
+        printf("\t\t      use a script opening a separate instance for each\n");
+        printf("\t\t      device handle.\n");
         printf("\n");
     }
 }
@@ -589,7 +594,7 @@ void print_Writesame_Help(bool shortHelp)
 
 void print_Writesame_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [range]\n", WRITE_SAME_RANGE_LONG_OPT_STRING);
+    printf("\t--%s [range in # of LBAs]\n", WRITE_SAME_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tSpecify a range to writesame to. Use this option with the\n");
@@ -1033,7 +1038,21 @@ void print_Transition_Power_State_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to transition to a specific power state.\n");
-        printf("\t\tHINT:\n\t\t  Use --%s to show number of supported states\n\n", DEVICE_INFO_LONG_OPT_STRING);
+        printf("\t\tWARNING: Transitioning the drive to a non-operational power state\n");
+        printf("\t\t         may make the device stop responding. The operating system\n");
+        printf("\t\t         may or may not block this transition. It is recommended\n");
+        printf("\t\t         to only use this option for operational power states\n");
+        printf("\t\tHINT:\n\t\t  Use --%s to view the supported states\n", SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
+        
+    }
+}
+
+void print_Show_NVM_Power_States_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display a device's supported power states.\n");
     }
 }
 
@@ -1156,7 +1175,7 @@ void print_User_Generic_Start_Help(bool shortHelp)
 
 void print_User_Generic_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [range]\n", USER_GENERIC_LONG_OPT_RANGE_STRING);
+    printf("\t--%s [range in # of LBAs]\n", USER_GENERIC_LONG_OPT_RANGE_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the range for a \n");
@@ -1284,10 +1303,10 @@ void print_Overwrite_Help(bool shortHelp)
 
 void print_Overwrite_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [range]\n", OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t--%s [range in # of LBAs]\n", OVERWRITE_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse with option with the overwrite option to\n");
+        printf("\t\tUse with the overwrite option (--%s) to\n", OVERWRITE_LONG_OPT_STRING);
         printf("\t\terase a range of LBAs on the selected drive.\n\n");
     }
 }
@@ -1305,12 +1324,12 @@ void print_Trim_Unmap_Help(bool shortHelp)
 
 void print_Trim_Unmap_Range_Help(bool shortHelp)
 {
-    printf("\t--%s or --%s [range]\n", TRIM_RANGE_LONG_OPT_STRING, UNMAP_RANGE_LONG_OPT_STRING);
+    printf("\t--%s or --%s [range in # of LBAs]\n", TRIM_RANGE_LONG_OPT_STRING, UNMAP_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse one of these options to specify a range to trim\n");
         printf("\t\tor unmap on a drive. A starting point must be specified\n");
-        printf("\t\twith the --trim/--unmap option.\n\n");
+        printf("\t\twith the --%s/--%s option.\n\n", TRIM_LONG_OPT_STRING, UNMAP_RANGE_LONG_OPT_STRING);
     }
 }
 

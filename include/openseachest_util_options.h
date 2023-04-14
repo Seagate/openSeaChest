@@ -482,6 +482,11 @@ extern "C"
     #define TRANSITION_POWER_STATE_LONG_OPT_STRING "transitionPowerState"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    #define SHOW_NVM_POWER_STATES showNVMPowerStates
+    #define SHOW_NVM_POWER_STATES_VAR getOptBool SHOW_NVM_POWER_STATES = goFalse;
+    #define SHOW_NVM_POWER_STATES_LONG_OPT_STRING "showNVMPowerStates"
+    #define SHOW_NVM_POWER_STATES_LONG_OPT { SHOW_NVM_POWER_STATES_LONG_OPT_STRING, no_argument, &SHOW_NVM_POWER_STATES, goTrue }
+
     #define GET_NVME_LOG_IDENTIFIER nvmeGetLogPage
     #define GET_NVME_LOG_VAR uint8_t GET_NVME_LOG_IDENTIFIER = 0;
     #define GET_NVME_LOG_LONG_OPT_STRING "getNvmeLogPage"
@@ -2592,6 +2597,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_State_Help(bool shortHelp);
+
+    void print_Show_NVM_Power_States_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
