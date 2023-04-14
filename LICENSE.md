@@ -1,5 +1,9 @@
-Mozilla Public License Version 2.0
-==================================
+# OpenSeaChest Licensing
+
+OpenSeaChest is licensed under the Mozilla Public License 2.0
+Some files/libraries used have additional licenses described below.
+
+## Mozilla Public License Version 2.0
 
 ### 1. Definitions
 
@@ -80,7 +84,6 @@ Mozilla Public License Version 2.0
     fifty percent (50%) of the outstanding shares or beneficial
     ownership of such entity.
 
-
 ### 2. License Grants and Conditions
 
 #### 2.1. Grants
@@ -148,7 +151,6 @@ equivalents.
 Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted
 in Section 2.1.
 
-
 ### 3. Responsibilities
 
 #### 3.1. Distribution of Source Form
@@ -210,7 +212,6 @@ indemnity or liability terms You offer. You may include additional
 disclaimers of warranty and limitations of liability specific to any
 jurisdiction.
 
-
 ### 4. Inability to Comply Due to Statute or Regulation
 
 If it is impossible for You to comply with any of the terms of this
@@ -222,7 +223,6 @@ be placed in a text file included with all distributions of the Covered
 Software under this License. Except to the extent prohibited by statute
 or regulation, such description must be sufficiently detailed for a
 recipient of ordinary skill to be able to understand it.
-
 
 ### 5. Termination
 
@@ -251,7 +251,6 @@ You by any and all Contributors for the Covered Software under Section
 end user license agreements (excluding distributors and resellers) which
 have been validly granted by You or Your distributors under this License
 prior to termination shall survive termination.
-
 
 ### 6. Disclaimer of Warranty
 
@@ -285,7 +284,6 @@ prior to termination shall survive termination.
 > incidental or consequential damages, so this exclusion and
 > limitation may not apply to You.
 
-
 ### 8. Litigation
 
 Any litigation relating to this License may be brought only in the
@@ -295,7 +293,6 @@ jurisdiction, without reference to its conflict-of-law provisions.
 Nothing in this Section shall prevent a party's ability to bring
 cross-claims or counter-claims.
 
-
 ### 9. Miscellaneous
 
 This License represents the complete agreement concerning the subject
@@ -304,7 +301,6 @@ unenforceable, such provision shall be reformed only to the extent
 necessary to make it enforceable. Any law or regulation which provides
 that the language of a contract shall be construed against the drafter
 shall not be used to construe this License against a Contributor.
-
 
 ### 10. Versions of the License
 
@@ -353,3 +349,106 @@ You may add additional accurate notices of copyright ownership.
 
     This Source Code Form is "Incompatible With Secondary Licenses", as
     defined by the Mozilla Public License, v. 2.0.
+
+## Wingetopt Library
+
+OpenSeaChest uses the wingetopt library to provide command line parsing in all configurations
+
+### AUTHORS
+
+* Todd C. Miller <Todd.Miller@courtesan.com>
+* The NetBSD Foundation, Inc.
+* Alexei Kasatkin is the author of trivial CMakeLists.txt, build script itself is Public Domain
+
+### LICENSE
+
+    Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>
+    
+    Permission to use, copy, modify, and distribute this software for any
+    purpose with or without fee is hereby granted, provided that the above
+    copyright notice and this permission notice appear in all copies.
+    
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    
+    Sponsored in part by the Defense Advanced Research Projects
+    Agency (DARPA) and Air Force Research Laboratory, Air Force
+    Materiel Command, USAF, under agreement number F39502-99-1-0512.
+
+***
+
+    Copyright (c) 2000 The NetBSD Foundation, Inc.
+    All rights reserved.
+    
+    This code is derived from software contributed to The NetBSD Foundation
+    by Dieter Baron and Thomas Klausner.
+    
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+    
+    THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
+    ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+    TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+    PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
+    BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+## Open Fabrics NVMe IOCTL (Windows Only)
+
+In Windows builds, the open fabrics NVMe IOCTL support is included under the following license
+
+### OFNVME License
+
+  Copyright (c) 2011-2012
+
+    Integrated Device Technology, Inc.                                      
+    Intel Corporation                                                       
+    LSI Corporation                                                         
+
+  All rights reserved.
+
+ ***
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+    1. Redistributions of source code must retain the above copyright       
+       notice, this list of conditions and the following disclaimer.        
+                                                                            
+    2. Redistributions in binary form must reproduce the above copyright    
+       notice, this list of conditions and the following disclaimer in the  
+       documentation and/or other materials provided with the distribution. 
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+  THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT,INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  The views and conclusions contained in the software and documentation
+  are those of the authors and should not be interpreted as representing
+  official policies, either expressed or implied, of Intel Corporation,
+  Integrated Device Technology Inc., or Sandforce Corporation.

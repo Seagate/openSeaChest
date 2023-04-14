@@ -911,12 +911,63 @@ static void print_Musl_MIT_License(void)
 }
 #endif //USING_MUSL_LIBC
 
+#if defined (_WIN32)
+//TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+//      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+static void print_Open_Fabrics_NVMe_IOCTL_License(void)
+{
+    printf("===========================================================================\n");
+    printf("open fabrics NVMe IOCTL\n\n");
+    printf("Copyright (c) 2011-2012                                                  \n");
+    printf("                                                                         \n");
+    printf("  Integrated Device Technology, Inc.                                     \n");
+    printf("  Intel Corporation                                                      \n");
+    printf("  LSI Corporation                                                        \n");
+    printf("                                                                         \n");
+    printf("All rights reserved.                                                     \n");
+    printf("                                                                         \n");
+    printf("*************************************************************************\n");
+    printf("                                                                         \n");
+    printf("Redistribution and use in source and binary forms, with or without       \n");
+    printf("modification, are permitted provided that the following conditions are   \n");
+    printf("met:                                                                     \n");
+    printf("                                                                         \n");
+    printf("  1. Redistributions of source code must retain the above copyright      \n");
+    printf("     notice, this list of conditions and the following disclaimer.       \n");
+    printf("                                                                         \n");
+    printf("  2. Redistributions in binary form must reproduce the above copyright   \n");
+    printf("     notice, this list of conditions and the following disclaimer in the \n");
+    printf("     documentation and/or other materials provided with the distribution.\n");
+    printf("                                                                         \n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS  \n");
+    printf("IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,\n");
+    printf("THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR   \n");
+    printf("PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR        \n");
+    printf("CONTRIBUTORS BE LIABLE FOR ANY DIRECT,INDIRECT, INCIDENTAL, SPECIAL,     \n");
+    printf("EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,      \n");
+    printf("PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR       \n");
+    printf("PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF   \n");
+    printf("LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING     \n");
+    printf("NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS       \n");
+    printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.             \n");
+    printf("                                                                         \n");
+    printf("The views and conclusions contained in the software and documentation    \n");
+    printf("are those of the authors and should not be interpreted as representing   \n");
+    printf("official policies, either expressed or implied, of Intel Corporation,    \n");
+    printf("Integrated Device Technology Inc., or Sandforce Corporation.             \n");
+    printf("\n");
+    return;
+}
+#endif //_WIN32
+
 void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
 {
     //show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should be changed to portable-getopt or something in the future.-TJE
     print_Win_Getopt_Licenses();
 #if defined (_WIN32)
-    //nothing specific to do here
+    //TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+    //      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+    print_Open_Fabrics_NVMe_IOCTL_License();
 #elif defined (__FreeBSD__)
     print_FreeBSD_License();
 #elif defined (__linux__)
