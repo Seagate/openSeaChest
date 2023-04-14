@@ -95,6 +95,11 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define PARTITION_INFO_FLAG showPartitionInfo
+    #define PARTITION_INFO_VAR getOptBool PARTITION_INFO_FLAG = goFalse;
+    #define PARTITION_INFO_LONG_OPT_STRING "partitionInfo"
+    #define PARTITION_INFO_LONG_OPT { PARTITION_INFO_LONG_OPT_STRING, no_argument, &PARTITION_INFO_FLAG, goTrue }
+
     #define LOWLEVEL_INFO_FLAG lowlevelInfo
     #define LOWLEVEL_INFO_VAR getOptBool LOWLEVEL_INFO_FLAG = goFalse;
     #define LOWLEVEL_INFO_LONG_OPT_STRING "llInfo"
@@ -2042,7 +2047,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
+    //!   \param[in] helpdeviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
 
@@ -2075,7 +2080,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
+    //!   \param[in] helpdeviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
 
@@ -2452,7 +2457,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] commandWindowType = string that represents the name of a command window type for the current OS
+    //!   \param[in] helpcommandWindowType = string that represents the name of a command window type for the current OS
     //
     //  Exit:
 
@@ -2905,7 +2910,6 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-
     //
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
@@ -2917,10 +2921,9 @@ extern "C"
 	//! \brief   Description:  This function prints out the short or long help for the fast discovery option
 	//
 	//  Entry:
-	//!   \param[in] shortHelp = bool used to select when to print short or long help
+	//!   \param[in] shortUsage = bool used to select when to print short or long help
 	//
 	//  Exit:
-	//!   \return VOID
 	//
 	//-----------------------------------------------------------------------------
 	void print_Fast_Discovery_Help(bool shortUsage);
@@ -3389,13 +3392,13 @@ extern "C"
 
     void print_NVME_Health_Help(bool shortHelp);
 
-    void print_Delay_CMD_Segment_Help(bool shortHelp);
-
     void print_Low_Level_Info_Help(bool shortHelp);
 
     void print_Force_NVMe_Commit_Action_Help(bool shortHelp);
 
     void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp);
+
+    void print_Partition_Info_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

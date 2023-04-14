@@ -629,7 +629,6 @@ static void print_Zlib_License(void)
     return;
 }
 
-#if defined (_WIN32)
 static void print_Win_Getopt_Licenses(void)
 {
     printf("===========================================================================\n");
@@ -689,7 +688,6 @@ static void print_Win_Getopt_Licenses(void)
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
     return;
 }
-#endif//_WIN32
 
 #if defined (__FreeBSD__)
 static void print_FreeBSD_License(void)
@@ -884,7 +882,7 @@ static void print_GNU_LGPL_License(void)
 }
 #endif//__GLIBC__
 
-#if (USING_MUSL_LIBC)
+#if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
 static void print_Musl_MIT_License(void)
 {
     printf("===========================================================================\n");
@@ -915,9 +913,10 @@ static void print_Musl_MIT_License(void)
 
 void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
 {
-#if defined(_WIN32)
-    //show this license for the getopt parser in windows
+    //show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should be changed to portable-getopt or something in the future.-TJE
     print_Win_Getopt_Licenses();
+#if defined (_WIN32)
+    //nothing specific to do here
 #elif defined (__FreeBSD__)
     print_FreeBSD_License();
 #elif defined (__linux__)
@@ -925,7 +924,7 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
         //in other 'nix systems, we need to show this since we are using gnu libc
         print_GNU_LGPL_License();
     #else
-        #if (USING_MUSL_LIBC)
+        #if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
             print_Musl_MIT_License();
         #else
             //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other

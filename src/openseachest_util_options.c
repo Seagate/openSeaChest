@@ -4325,3 +4325,13 @@ void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
     }
 }
 
+void print_Partition_Info_Help(bool shortHelp)
+{
+    printf("\t--%s\n", PARTITION_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to look for a partition table and dump\n");
+        printf("\t\tthe list of partitions on a given disk.\n");
+        printf("\t\tCurrently only MBR and GPT partition tables are supported.\n\n");
+    }
+}

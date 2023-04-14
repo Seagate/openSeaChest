@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -64,7 +64,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_INFO_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
-    POSSIBLE_DATA_ERASE_VAR
+    //POSSIBLE_DATA_ERASE_VAR
     LOW_LEVEL_FORMAT_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
@@ -207,10 +207,10 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
+                /*else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
-                }
+                }*/
                 else if (strcmp(optarg, LOW_LEVEL_FORMAT_ACCEPT_STRING) == 0)
                 {
                     LOW_LEVEL_FORMAT_FLAG = true;

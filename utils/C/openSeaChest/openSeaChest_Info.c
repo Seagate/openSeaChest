@@ -30,11 +30,12 @@
 #if defined (ENABLE_CSMI)
 #include "csmi_helper_func.h"
 #endif
+#include "partition_info.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Info";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.5.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -94,6 +95,7 @@ int32_t main(int argc, char *argv[])
 #endif
     SHOW_CONCURRENT_RANGES_VAR
     LOWLEVEL_INFO_VAR
+    PARTITION_INFO_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -136,6 +138,7 @@ int32_t main(int argc, char *argv[])
         CSMI_INFO_LONG_OPT,
 #endif
         SHOW_CONCURRENT_RANGES_LONG_OPT,
+        PARTITION_INFO_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -556,6 +559,7 @@ int32_t main(int argc, char *argv[])
         || CSMI_INFO_FLAG
 #endif
         || SHOW_CONCURRENT_RANGES
+        || PARTITION_INFO_FLAG
         ))
     {
         utility_Usage(true);
@@ -845,6 +849,24 @@ int32_t main(int argc, char *argv[])
             print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
+        if (PARTITION_INFO_FLAG)
+        {
+            ptrPartitionInfo partInfo = get_Partition_Info(&deviceList[deviceIter]);
+            if (partInfo)
+            {
+                print_Partition_Info(partInfo);
+                partInfo = delete_Partition_Info(partInfo);
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: failed to read partition information from the device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
 #if defined (ENABLE_CSMI)
         if (CSMI_INFO_FLAG)
         {
@@ -1048,6 +1070,7 @@ void utility_Usage(bool shortUsage)
 #endif
     print_Device_Statistics_Help(shortUsage);
     print_Show_Concurrent_Position_Ranges_Help(shortUsage);
+    print_Partition_Info_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_SMART_Attributes_Help(shortUsage);
