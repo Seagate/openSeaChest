@@ -1154,7 +1154,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Error: Unknown/Unsupported output mode %" PRIu8 "\n", OUTPUT_MODE_IDENTIFIER);
+                                    printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }

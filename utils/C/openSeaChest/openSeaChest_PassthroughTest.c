@@ -2661,7 +2661,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 if (designatorLength < 18)
                                 {
                                     set_Console_Colors(true, WARNING_COLOR);
-                                    printf("WARNING: Designator length should be 18B, but got %" PRIu8 "B\n", designatorLength);
+                                    printf("WARNING: Designator length should be 18B, but got %" PRIu16 "B\n", designatorLength);
                                     set_Console_Colors(true, DEFAULT);
                                 }
                                 for (uint16_t uuidOffset = designatorOffset; uuidOffset < (designatorLength + 4); ++uuidOffset)
@@ -2719,7 +2719,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -2777,7 +2777,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0238)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SAT! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0238, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SAT! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0238, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -2919,7 +2919,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0E)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0E, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0E, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -3200,7 +3200,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 } 
                 else
@@ -3349,7 +3349,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -3486,7 +3486,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0004)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0004, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0004, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else

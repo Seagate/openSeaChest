@@ -28,7 +28,7 @@ extern "C"
     //
     //  Entry:
     //!   \param showApacheLicense = set to non-zero value to print out the Apache 2.0 license (needed if using mbedtls/encryption - fwdl config file)
-    //!   \param showZlibLicesne = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
+    //!   \param showZlibLicense = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
     //
@@ -43,7 +43,7 @@ extern "C"
     //
     //  Entry:
     //!   \param showApacheLicense = set to non-zero value to print out the Apache 2.0 license (needed if using mbedtls/encryption - fwdl config file)
-    //!   \param showZlibLicesne = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
+    //!   \param showZlibLicense = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
     //
