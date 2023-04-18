@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.3.1";
+const char *buildVersion = "1.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1363,7 +1363,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
             //If this worked right away, then everything is working as expected and no hacks are necesssary
             //If not, try setting the multiple mode to the highest supported by the drive, then try again and see if that changes the behavior.
             //    If the behavior changed and worked, then we know multisector PIO is possible up to the maximum multiple mode configuration
-            for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
+            for (uint16_t iter = ATA_LOG_HOST_SPECIFIC_80H * 2; iter < 512 && iter <= ATA_LOG_HOST_SPECIFIC_9FH * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
                 logAddress = C_CAST(uint8_t, iter / 2);
@@ -1387,10 +1387,18 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                         {
                             safe_Free_aligned(log)
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not compliant with multisector PIO commands\n");
-                            if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte1(device->drive_info.IdentifyData.ata.Word047) == 0x80 && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
+                            if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
                             {
+                                uint8_t drqBlocksToSet = M_Byte0(device->drive_info.IdentifyData.ata.Word047);
+                                uint8_t currentDRQblocks = M_Byte0(device->drive_info.IdentifyData.ata.Word059);//todo, bit 8 is a validity bit
+                                if (device->drive_info.IdentifyData.ata.Word059 & BIT8 && currentDRQblocks == drqBlocksToSet)
+                                {
+                                    //already at the max multiple mode supported, so don't bother setting it, this has already been tested for now.
+                                    //Instead, try changing this to a value of 1 to see if changing this to a different value works around the failure seen so far.
+                                    drqBlocksToSet = 1;
+                                }
                                 printf("Retrying after changing the multiple mode.\n");
-                                if (SUCCESS == ata_Set_Multiple_Mode(device, M_Byte0(device->drive_info.IdentifyData.ata.Word047)))
+                                if (SUCCESS == ata_Set_Multiple_Mode(device, drqBlocksToSet))
                                 {
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
@@ -1403,7 +1411,13 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                                 else
                                 {
                                     printf("Unable to set the multiple mode. Aborting multi-sector PIO test\n");
+                                    //restore the multiple mode back to what the adapter originally configured to be safe that it's in a good state.
+                                    ata_Set_Multiple_Mode(device, currentDRQblocks);
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
+                                    set_Console_Colors(true, LIKELY_HACK_COLOR);
+                                    printf("HACK FOUND: SPIO\n");
+                                    set_Console_Colors(true, DEFAULT);
+                                    device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 }
                             }
                             else if (device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
@@ -1592,8 +1606,9 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
     printf("Testing for check condition bit support on any command\n");
     device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = true;
     //try identify first...if this doesn't even work, then we know this doesn't work
-    int satRet = ata_Identify(device, (uint8_t *)&device->drive_info.IdentifyData.ata.Word000, 512);
-    if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+    uint8_t identifyData[512] = { 0 };
+    int satRet = ata_Identify(device, identifyData, 512);
+    if ((SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet) && !is_Empty(identifyData, 512))
     {
         bool testedGPL = false, testedSMART = false;
         bool gotValidRTFRsGPL = false, gotValidRTFRsSMART = false;
@@ -1673,7 +1688,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
                 else
                 {
                     set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: CHKDB\n");
+                    printf("HACK FOUND: CHKE\n");
                     set_Console_Colors(true, DEFAULT);
                     device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty = true;
                 }
@@ -1682,6 +1697,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
     }
     else
     {
+        device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = false;
         //test a non-data command to make sure check condition bit DOES work
         uint8_t pm = 0;
         if (SUCCESS == ata_Check_Power_Mode(device, &pm))
@@ -6983,7 +6999,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         bool tpsiuIdentifySuccess = false;
         inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
         satRet = ata_Identify(inputs->device, identifyData, 512);
-        if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+        if ((SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet) && !is_Empty(identifyData, 512))
         {
             tpsiuIdentifySuccess = true;
             inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
@@ -7118,6 +7134,13 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 printf("HACK FOUND: SPIO\n");
                 set_Console_Colors(true, DEFAULT);
             }
+        }
+        else
+        {
+            set_Console_Colors(true, LIKELY_HACK_COLOR);
+            printf("HACK FOUND: SPIO\n");
+            set_Console_Colors(true, DEFAULT);
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly;
         }
 
         //In next tests, need to make sure we actually get response information that makes sense.
@@ -8228,6 +8251,12 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition)
                 {
                     printf(" NCHK,");
+                }
+                if (!inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable &&
+                    !inputs->device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty &&
+                    !inputs->device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition)
+                {
+                    printf(" CHKND,");
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)
