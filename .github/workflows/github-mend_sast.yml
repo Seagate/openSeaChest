@@ -2,7 +2,7 @@ name: SAST
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master, develop, release/*, feature/*, hotfix/* ]
 
 jobs:
   mend-sast:
