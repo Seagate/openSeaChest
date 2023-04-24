@@ -14,7 +14,9 @@ jobs:
       MEND_SAST_SERVER_URL: https://saas.mend.io/sast/
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
       # Download CLI
       - name: Download CLI
         run: curl -LJO https://downloads-sast.mend.io/sast-cli/linux/mendsastcli && chmod +x mendsastcli
