@@ -1,0 +1,23 @@
+name: SAST
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  mend-sast:
+    name: Mend-SAST
+    runs-on: ubuntu-latest
+    env:
+      MEND_SAST_ORGANIZATION: ${{secrets.MEND_SAST_ORGANIZATION}}
+      MEND_SAST_API_TOKEN: ${{secrets.MEND_SAST_API_TOKEN}}
+      MEND_SAST_SERVER_URL: https://saas.mend.io/sast/
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      # Download CLI
+      - name: Download CLI
+        run: curl -LJO https://downloads-sast.mend.io/sast-cli/linux/mendsastcli && chmod +x mendsastcli
+      # Run CLI
+      - name: Run Mend-SAST
+        run: ./mendsastcli --dir ./ --name=${{github.event.repository.name}}-${{github.ref_name}}-${{github.sha}} --app=${{github.event.repository.name}} --baseline=true
