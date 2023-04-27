@@ -2896,7 +2896,7 @@ void print_Report_Zones_Help(bool shortHelp)
         printf("\t\t*offline - show only offline zones\n");
         printf("\t\t*resetRecommended - show only zones that have the reset recommended bit set\n");
         printf("\t\t*nonSeqResourceAvailable - show only zones with a non sequential access resource available\n");
-        printf("\t\t*allNonWp - show all non-write pointer zones.\n\n");
+        printf("\t\t*allNonWP - show all non-write pointer zones.\n\n");
     }
 }
 
