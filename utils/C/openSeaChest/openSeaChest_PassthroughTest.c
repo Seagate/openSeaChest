@@ -6553,22 +6553,10 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
 
 static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bool *smartLoggingSupported, bool *sctSupported)
 {
-    uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    uint16_t *ident_word = (uint16_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    memcpy(inputs->device->drive_info.bridge_info.childDriveMN, &ident_word[27], MODEL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveMN[MODEL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveSN, &ident_word[10], SERIAL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveSN[SERIAL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveFW, &ident_word[23], 8);
-    inputs->device->drive_info.bridge_info.childDriveFW[FW_REV_LEN] = '\0';
-    //Byte swap due to endianess
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveMN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveSN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveFW);
-    //remove leading and trailing whitespace
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveMN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveSN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveFW);
+    uint8_t *identifyData = C_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    uint16_t *ident_word = C_CAST(uint16_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    fill_ATA_Strings_From_Identify_Data(identifyData, inputs->device->drive_info.bridge_info.childDriveMN, inputs->device->drive_info.bridge_info.childDriveSN, inputs->device->drive_info.bridge_info.childDriveFW);
+
     //get the WWN
     inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108, \
         inputs->device->drive_info.IdentifyData.ata.Word109, \
