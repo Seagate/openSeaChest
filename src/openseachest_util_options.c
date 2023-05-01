@@ -2651,7 +2651,13 @@ void print_PUIS_Feature_Help(bool shortHelp)
         printf("\t\t(PUIS) feature on SATA drives. \n");
         printf("\t\tNote: If this is configured on the drive with a jumper, this\n");
         printf("\t\t      command will fail.\n");
-        printf("\t\tNote2: Not all products support this feature.\n\n");
+        printf("\t\tNote2: Not all products support this feature.\n");
+        printf("\t\tWARNING: Before enabling this feature on any SAS/SATA HBA,\n");
+        printf("\t\t         check the HBA documentation to see if this feature\n");
+        printf("\t\t         is supported by the HBA. Enabling this on an HBA that\n");
+        printf("\t\t         does not support this feature will cause the drive to\n");
+        printf("\t\t         stop showing up to the host OS or even in the HBA's\n");
+        printf("\t\t         firmware/BIOS/UEFI configuration.\n\n");
     }
 }
 
