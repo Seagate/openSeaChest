@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.3.1";
+const char *buildVersion = "1.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1254,7 +1254,6 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                                 {
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
-                                    safe_Free_aligned(log)
                                     multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
                                 }
                                 else
