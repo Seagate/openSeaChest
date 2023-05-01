@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.2.2";
+const char *buildVersion = "2.2.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -748,7 +748,11 @@ int32_t main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-
+    //need to make sure this is set when we are asked for SAT Info
+    if (SAT_INFO_FLAG)
+    {
+        DEVICE_INFO_FLAG = goTrue;
+    }
     //check that we were given at least one test to perform...if not, set that we are dumping device information so we at least do something
     if (!(DEVICE_INFO_FLAG
           || LOWLEVEL_INFO_FLAG
@@ -2108,6 +2112,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);
+    print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here
     print_Fast_Discovery_Help(shortUsage);

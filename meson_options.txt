@@ -16,3 +16,10 @@ option('tools', type : 'array', choices : [
 ])
 option('tcg', type : 'feature', value : 'disabled')
 option('libc_musl', type : 'boolean', value : 'false')
+#openSeaChest_Security can set the password, however this is not enabled by default
+#because enabling it may make the system unable to boot, the drive may not show up
+#in the OS if it DOES boot or if the drive it hotplugged in, or it may not be possible
+#for the user to enter the password they have set because the system, BIOS, or HBA has
+#sent the ATA security freeze-lock command to the drive.
+#if you really want to enable this option, you can do it, but you have been warned!
+option('atasecsetpass', type : 'feature', value : 'disabled')

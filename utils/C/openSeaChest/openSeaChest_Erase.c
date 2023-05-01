@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.1.0";
+const char *buildVersion = "4.1.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1347,6 +1347,7 @@ int32_t main(int argc, char *argv[])
 
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        bool eraseCompleted = false;
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
@@ -1659,6 +1660,7 @@ int32_t main(int argc, char *argv[])
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
+                    eraseCompleted = true;
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1745,6 +1747,10 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                    }
+                    if (didEraseHappen)
+                    {
+                        eraseCompleted = true;
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1879,6 +1885,10 @@ int32_t main(int argc, char *argv[])
                                 {
                                     printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
+                            }
+                            if (sanitizeCommandRun && POLL_FLAG)
+                            {
+                                eraseCompleted = true;
                             }
                             break;
                         case FAILURE:
@@ -2132,6 +2142,10 @@ int32_t main(int argc, char *argv[])
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
+                    if (POLL_FLAG)
+                    {
+                        eraseCompleted = true;
+                    }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2283,6 +2297,10 @@ int32_t main(int argc, char *argv[])
                             printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
                     }
+                    if (POLL_FLAG)
+                    {
+                        eraseCompleted = true;
+                    }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2347,6 +2365,7 @@ int32_t main(int argc, char *argv[])
                 switch (run_ATA_Security_Erase(&deviceList[deviceIter], ataSecureEraseType, ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
                 {
                 case SUCCESS:
+                    eraseCompleted = true;
                     break;
                 case NOT_SUPPORTED:
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -2430,6 +2449,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2507,6 +2527,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2598,6 +2619,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully overwrote LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2635,6 +2657,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 printf("Successfully overwrote LBAs!\n");
                             }
+                            eraseCompleted = true;
                             break;
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -2734,8 +2757,11 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-        //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
-        os_Update_File_System_Cache(&deviceList[deviceIter]);
+        if (eraseCompleted)
+        {
+            //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
+            os_Update_File_System_Cache(&deviceList[deviceIter]);
+        }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }

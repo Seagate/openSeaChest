@@ -29,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "2.2.1";
+const char *buildVersion = "2.2.2";
 
 ////////////////////////////
 //  functions to declare  //

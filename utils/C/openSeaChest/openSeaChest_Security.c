@@ -120,7 +120,7 @@ int32_t main(int argc, char *argv[])
     ATA_SECURITY_MASTER_PW_CAPABILITY_VAR
     ATA_SECURITY_MASTER_PW_ID_VAR
     ATA_SECURITY_SET_PASSWORD_OP_VAR
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     ATA_SECURITY_FORCE_SAT_VARS
     ATA_SECURITY_UNLOCK_OP_VAR
     ATA_SECURITY_DISABLE_OP_VAR
@@ -187,7 +187,7 @@ int32_t main(int argc, char *argv[])
         ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT,
         ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT,
         ATA_SECURITY_MASTER_PW_ID_LONG_OPT,
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
         ATA_SECURITY_UNLOCK_OP_LONG_OPT,
         ATA_SECURITY_DISABLE_OP_LONG_OPT,
         ATA_SECURITY_FREEZELOCK_OP_LONG_OPT,
@@ -447,7 +447,7 @@ int32_t main(int argc, char *argv[])
                 }
                 ATA_SECURITY_MASTER_PW_ID = C_CAST(uint16_t, masterIDOut);
             }
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
                 ATA_SECURITY_FORCE_SAT_VALID = true;
@@ -915,7 +915,7 @@ int32_t main(int argc, char *argv[])
         || ATA_SECURITY_UNLOCK_OP
 #if defined ENABLE_ATA_SET_PASSWORD
         || ATA_SECURITY_SET_PASSWORD_OP
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
         || ATA_SECURITY_ERASE_OP
        ))
     {
@@ -1615,7 +1615,7 @@ int32_t main(int argc, char *argv[])
             explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
 #if defined ENABLE_ATA_SET_PASSWORD
-        if(ATA_SECURITY_SET_PASSWORD_OP)
+        if (ATA_SECURITY_SET_PASSWORD_OP)
         {
             ataSecurityPassword ataPassword;
             memset(&ataPassword, 0, sizeof(ataSecurityPassword));
@@ -1641,7 +1641,7 @@ int32_t main(int argc, char *argv[])
             }
             explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
 
         if (ATA_SECURITY_ERASE_OP)
         {
@@ -1804,11 +1804,11 @@ void utility_Usage(bool shortUsage)
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Master_Password_Capability_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Freezelock_Help(shortUsage);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Master_Password_ID_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Password_Help(shortUsage);
     print_ATA_Security_Password_Type_Help(shortUsage);
     print_ATA_Security_Password_Modifications_Help(shortUsage);
@@ -1816,7 +1816,7 @@ void utility_Usage(bool shortUsage)
     print_Disable_ATA_Security_Password_Help(shortUsage, util_name);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Set_Password_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Unlock_Help(shortUsage);
 
     //data destructive commands - alphabetized
