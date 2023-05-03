@@ -745,6 +745,7 @@ extern "C"
 
     //download FW
     #define FIRMWARE_FILE_NAME_MAX_LEN 4096
+    #define FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR "%4096s"
     #define DOWNLOAD_FW_FLAG downloadFW
     #define DOWNLOAD_FW_FILENAME_FLAG downloadFWFilename
     #define DOWNLOAD_FW_MODE downloadMode
@@ -1830,9 +1831,10 @@ extern "C"
     #define SCSI_SET_MP_BIT setSCSIMPBit
     #define SCSI_SET_MP_FIELD_LEN_BITS setSCSIMPFieldLen
     #define SCSI_SET_MP_FIELD_VALUE setSCSIMPFieldVal
+    #define SCSI_SET_MP_SSCANF_FILE_FORMAT_STR "file=%4095s" //one less that total array size to make sure there is room without a warning for a null terminating character-TJE
     #define SCSI_SET_MP_VARS \
     bool SCSI_SET_MP_OP = false;\
-    char SCSI_SET_MP_FILENAME[OPENSEA_PATH_MAX * 2] = { 0 };\
+    char SCSI_SET_MP_FILENAME[4096] = { 0 };\
     uint8_t SCSI_SET_MP_PAGE_NUMBER = 0;\
     uint8_t SCSI_SET_MP_SUBPAGE_NUMBER = 0;\
     uint16_t SCSI_SET_MP_BYTE = 0;\
