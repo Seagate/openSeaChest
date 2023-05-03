@@ -3018,82 +3018,79 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         return 254;//one of the required parameters is missing. handleList is checked below...
     }
     /*get the number out of optarg to tack onto the device handle*/
-    if (NULL != optarg)
+    if (strcmp(optarg, "all") == 0)
     {
-        if (strcmp(optarg, "all") == 0)
+        /*this is a request to run on all drives.*/
+        *allDrives = true;
+    }
+    else
+    {
+        *userHandleProvided = true;
+#if defined(_WIN32)
+#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+        char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
+        char *deviceHandle = &windowsHandle[0];
+        char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
+        /*make sure the user gave us "PD" for the device handle...*/
+        if (_strnicmp(optarg, "PD", 2) == 0)
         {
-            /*this is a request to run on all drives.*/
-            *allDrives = true;
+            physicalDeviceNumber = strpbrk(optarg, "0123456789");
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+        }
+#if defined(ENABLE_CSMI)
+        else if (strncmp(optarg, "csmi", 4) == 0)
+        {
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+        }
+#endif
+        else if (strncmp(optarg, "\\\\.\\", 4) == 0)
+        {
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+        }
+        /*If we want to add another format for accepting a handle, then add an else-if here*/
+        else /*we have an invalid handle*/
+        {
+            printf("Error: %s is an invalid handle format for this tool.\n", optarg);
+            exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+        }
+#else
+        char *deviceHandle = optarg;
+#endif
+
+        ++(*deviceCount);/*increment this variable if we've made it this far.*/
+        /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
+        if (!*handleList)
+        {
+            /*allocate the list and add this handle to it.*/
+            *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
+            if (!*handleList)
+            {
+                perror("error allocating memory for handle list\n");
+                return 255;
+            }
         }
         else
         {
-            *userHandleProvided = true;
-#if defined(_WIN32)
-#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
-            char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
-            char *deviceHandle = &windowsHandle[0];
-            char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
-            /*make sure the user gave us "PD" for the device handle...*/
-            if (_strnicmp(optarg, "PD", 2) == 0)
+            /*list already allocated, so reallocate and add this next handle to it.*/
+            char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
+            if (!temp)
             {
-                physicalDeviceNumber = strpbrk(optarg, "0123456789");
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
-            }
-#if defined(ENABLE_CSMI)
-            else if (strncmp(optarg, "csmi", 4) == 0)
-            {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-            }
-#endif
-            else if (strncmp(optarg, "\\\\.\\", 4) == 0)
-            {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-            }
-            /*If we want to add another format for accepting a handle, then add an else-if here*/
-            else /*we have an invalid handle*/
-            {
-                printf("Error: %s is an invalid handle format for this tool.\n", optarg);
-                exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
-            }
-#else
-            char *deviceHandle = optarg;
-#endif
-
-            ++(*deviceCount);/*increment this variable if we've made it this far.*/
-            /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
-            if (!*handleList)
-            {
-                /*allocate the list and add this handle to it.*/
-                *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
-                if (!*handleList)
-                {
-                    perror("error allocating memory for handle list\n");
-                    return 255;
-                }
-            }
-            else
-            {
-                /*list already allocated, so reallocate and add this next handle to it.*/
-                char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
-                if (!temp)
-                {
-                    perror("error reallocating memory for handle list\n");
-                    return 255;
-                }
-                *handleList = temp;
-            }
-            /*the list has been allocated, now put the handle we've received into the list*/
-            /*start by allocating memory for the handle at the new list location*/
-            size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
-            (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
-            if (!(*handleList)[(*deviceCount) - 1])
-            {
-                perror("error allocating memory for adding device handle to list\n");
+                perror("error reallocating memory for handle list\n");
                 return 255;
             }
-            /*copy the handle into memory*/
-            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+            *handleList = temp;
         }
+        /*the list has been allocated, now put the handle we've received into the list*/
+        /*start by allocating memory for the handle at the new list location*/
+        size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
+        (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
+        if (!(*handleList)[(*deviceCount) - 1])
+        {
+            perror("error allocating memory for adding device handle to list\n");
+            return 255;
+        }
+        /*copy the handle into memory*/
+        snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
     }
     return 0;
 }
