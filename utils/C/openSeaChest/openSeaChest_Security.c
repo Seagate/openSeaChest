@@ -42,7 +42,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.2.1";
+const char *buildVersion = "3.2.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1588,6 +1588,7 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to unlock ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
         if(ATA_SECURITY_DISABLE_OP)
         {
@@ -1611,6 +1612,7 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to disable ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
 #if defined ENABLE_ATA_SET_PASSWORD
         if (ATA_SECURITY_SET_PASSWORD_OP)
@@ -1637,6 +1639,7 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to set ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
 #endif //ENABLE_ATA_SET_PASSWORD
 
@@ -1672,6 +1675,7 @@ int32_t main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
+                explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
             }
             else
             {

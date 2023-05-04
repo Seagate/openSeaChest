@@ -29,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "3.4.0";
+const char *buildVersion = "3.4.1";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -206,7 +206,7 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR, DOWNLOAD_FW_FILENAME_FLAG);
                 if (scanRet > 0 && scanRet != EOF)
                 {
                     DOWNLOAD_FW_FLAG = true;

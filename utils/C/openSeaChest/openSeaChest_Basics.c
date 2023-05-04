@@ -39,7 +39,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.5.2";
+const char *buildVersion = "3.5.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR, DOWNLOAD_FW_FILENAME_FLAG);
                 if (scanRet > 0 && scanRet != EOF)
                 {
                     DOWNLOAD_FW_FLAG = true;

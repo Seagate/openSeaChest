@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -744,7 +744,7 @@ int32_t main(int argc, char *argv[])
                 if (strncmp(optarg, "file", 4) == 0)
                 {
                     //format is file=filename.txt
-                    int sscanfRes = sscanf(optarg, "file=%s", SCSI_SET_MP_FILENAME);
+                    int sscanfRes = sscanf(optarg, SCSI_SET_MP_SSCANF_FILE_FORMAT_STR , SCSI_SET_MP_FILENAME);
                     if (sscanfRes < 1 || sscanfRes == EOF)
                     {
                         print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
