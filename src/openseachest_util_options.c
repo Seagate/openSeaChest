@@ -4338,3 +4338,136 @@ void print_Partition_Info_Help(bool shortHelp)
         printf("\t\tCurrently only MBR and GPT partition tables are supported.\n\n");
     }
 }
+
+void print_DCO_Restore_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_RESTORE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to restore device capabilities and features\n");
+        printf("\t\thidden by DCO back to factory defaults.\n");
+        printf("\t\tThis can only be used if DCO is not frozen and HPA has not\n");
+        printf("\t\tbeen used to reduce the maximum LBA already. Recommend restoring\n");
+        printf("\t\tthe max LBA prior to this option for best results.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_FreezeLock_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_FREEZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to issue the DCO freeze-lock command. Issuing\n");
+        printf("\t\tthis command will prevent the ability to modify available capabilities\n");
+        printf("\t\tor restore default capabilities until the device has been power cycled.\n\n");
+    }
+}
+
+void print_DCO_Identify_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_IDENTIFY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will list the capabilities that can be restricted with DCO.\n");
+        printf("\t\tRestricted capabilities are MWDMA and UDMA transfer modes, maximum LBA,\n");
+        printf("\t\tand some ATA features or commands.\n");
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Set_Max_LBA_Help(bool shortHelp)
+{
+    printf("\t--%s [new max LBA]\t(SATA Only)\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set a lower max/native max LBA using the DCO\n");
+        printf("\t\tfeature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Set_Max_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s [udma# | mwdma# | nodma]\t(SATA Only)\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set a different maximum supported DMA transfer mode\n");
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThe following arguments are available. Supported modes are set based on\n");
+        printf("\t\tthe provided maximum and all modes below the given maximum:\n");
+        printf("\t\t  %s - UDMA 6 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA6);
+        printf("\t\t  %s - UDMA 5 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA5);
+        printf("\t\t  %s - UDMA 4 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA4);
+        printf("\t\t  %s - UDMA 3 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA3);
+        printf("\t\t  %s - UDMA 2 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA2);
+        printf("\t\t  %s - UDMA 1 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA1);
+        printf("\t\t  %s - UDMA 0 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA0);
+        printf("\t\t  %s - MWDMA 2 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA2);
+        printf("\t\t  %s - MWDMA 1 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA1);
+        printf("\t\t  %s - MWDMA 0 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA0);
+        printf("\t\t  %s - No MWDMA or UDMA mode support listed in identify.\n", ATA_DCO_MODE_NODMA);
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Disable_Features_Help(bool shortHelp)
+{
+    printf("\t--%s [csv,list,of,features]\t(SATA Only)\n", ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to disable different ATA commands and features\n");
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThe following arguments are available. Specifying a feature that the drive\n");
+        printf("\t\tdoes not support restricting or does not support at all will not be\n");
+        printf("\t\tconsidered an error.\n");
+        printf("\t\tBelow is a full list of features that can be given with this option.\n");
+        printf("\t\tit is unlikely a drive will support restricting all of these features.\n");
+        printf("\t\t  %s - Write-Read-Verify feature\n", ATA_DCO_FEATURE_OPTION_WRV);
+        printf("\t\t  %s - SMART Conveyance self-test\n", ATA_DCO_FEATURE_OPTION_SMART_CONVEYANCE);
+        printf("\t\t  %s - SMART Seledtive self-test\n", ATA_DCO_FEATURE_OPTION_SMART_SELECTIVE);
+        printf("\t\t  %s - Forced Unit Access\n", ATA_DCO_FEATURE_OPTION_FUA);
+        printf("\t\t  %s - Time Limited Commands\n", ATA_DCO_FEATURE_OPTION_TLC);
+        printf("\t\t  %s - Streaming Feature set\n", ATA_DCO_FEATURE_OPTION_STREAMING);
+        printf("\t\t  %s - 48bit addressing\n", ATA_DCO_FEATURE_OPTION_48BIT);
+        printf("\t\t  %s - Host Protected Area (HPA)\n", ATA_DCO_FEATURE_OPTION_HPA);
+        printf("\t\t  %s - Automatic Accoustic Management\n", ATA_DCO_FEATURE_OPTION_AAM);
+        printf("\t\t  %s - Tagged Command Queuing (TCQ)\n", ATA_DCO_FEATURE_OPTION_TCQ);
+        printf("\t\t  %s - Power Up In Standby (PUIS)\n", ATA_DCO_FEATURE_OPTION_PUIS);
+        printf("\t\t  %s - ATA Security\n", ATA_DCO_FEATURE_OPTION_SECURITY);
+        printf("\t\t  %s - SMART Error Logging\n", ATA_DCO_FEATURE_OPTION_SMART_ERRORLOG);
+        printf("\t\t  %s - SMART Self-test\n", ATA_DCO_FEATURE_OPTION_SMART_SELF_TEST);
+        printf("\t\t  %s - SMART Feature set\n", ATA_DCO_FEATURE_OPTION_SMART_FEATURE);
+        printf("\t\t  %s - SATA Software Settings Preservation (SSP)\n", ATA_DCO_FEATURE_OPTION_SSP);
+        printf("\t\t  %s - SATA Asynchronous Notification\n", ATA_DCO_FEATURE_OPTION_ASYNC_NOTIFICATION);
+        printf("\t\t  %s - SATA Interface Power Management\n", ATA_DCO_FEATURE_OPTION_INTERFACE_POWER_MGMT);
+        printf("\t\t  %s - SATA Non-Zero Buffer Offsets\n", ATA_DCO_FEATURE_OPTION_NZ_BUFF);
+        printf("\t\t  %s - SATA Native Command Queuing (NCQ)\n", ATA_DCO_FEATURE_OPTION_NCQ);
+        printf("\t\t  %s - Non-Volatile Cache (NVCache)\n", ATA_DCO_FEATURE_OPTION_NVCACHE);
+        printf("\t\t  %s - NVCache Power Management\n", ATA_DCO_FEATURE_OPTION_NVC_PM);
+        printf("\t\t  %s - Write Uncorrectable Ext\n", ATA_DCO_FEATURE_OPTION_WUE);
+        printf("\t\t  %s - Trusted Computing Group\n", ATA_DCO_FEATURE_OPTION_TCG);
+        printf("\t\t  %s - Free-fall Control\n", ATA_DCO_FEATURE_OPTION_FREE_FALL);
+        printf("\t\t  %s - Data Set Management\n", ATA_DCO_FEATURE_OPTION_DSM);
+        printf("\t\t  %s - TRIM (Data Set Management)\n", ATA_DCO_FEATURE_OPTION_TRIM);
+        printf("\t\t  %s - Extended Power Conditions\n", ATA_DCO_FEATURE_OPTION_EPC);
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
