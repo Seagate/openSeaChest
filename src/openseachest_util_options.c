@@ -2651,7 +2651,13 @@ void print_PUIS_Feature_Help(bool shortHelp)
         printf("\t\t(PUIS) feature on SATA drives. \n");
         printf("\t\tNote: If this is configured on the drive with a jumper, this\n");
         printf("\t\t      command will fail.\n");
-        printf("\t\tNote2: Not all products support this feature.\n\n");
+        printf("\t\tNote2: Not all products support this feature.\n");
+        printf("\t\tWARNING: Before enabling this feature on any SAS/SATA HBA,\n");
+        printf("\t\t         check the HBA documentation to see if this feature\n");
+        printf("\t\t         is supported by the HBA. Enabling this on an HBA that\n");
+        printf("\t\t         does not support this feature will cause the drive to\n");
+        printf("\t\t         stop showing up to the host OS or even in the HBA's\n");
+        printf("\t\t         firmware/BIOS/UEFI configuration.\n\n");
     }
 }
 
@@ -2896,7 +2902,7 @@ void print_Report_Zones_Help(bool shortHelp)
         printf("\t\t*offline - show only offline zones\n");
         printf("\t\t*resetRecommended - show only zones that have the reset recommended bit set\n");
         printf("\t\t*nonSeqResourceAvailable - show only zones with a non sequential access resource available\n");
-        printf("\t\t*allNonWp - show all non-write pointer zones.\n\n");
+        printf("\t\t*allNonWP - show all non-write pointer zones.\n\n");
     }
 }
 
@@ -3012,82 +3018,79 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         return 254;//one of the required parameters is missing. handleList is checked below...
     }
     /*get the number out of optarg to tack onto the device handle*/
-    if (NULL != optarg)
+    if (strcmp(optarg, "all") == 0)
     {
-        if (strcmp(optarg, "all") == 0)
+        /*this is a request to run on all drives.*/
+        *allDrives = true;
+    }
+    else
+    {
+        *userHandleProvided = true;
+#if defined(_WIN32)
+#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+        char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
+        char *deviceHandle = &windowsHandle[0];
+        char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
+        /*make sure the user gave us "PD" for the device handle...*/
+        if (_strnicmp(optarg, "PD", 2) == 0)
         {
-            /*this is a request to run on all drives.*/
-            *allDrives = true;
+            physicalDeviceNumber = strpbrk(optarg, "0123456789");
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+        }
+#if defined(ENABLE_CSMI)
+        else if (strncmp(optarg, "csmi", 4) == 0)
+        {
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+        }
+#endif
+        else if (strncmp(optarg, "\\\\.\\", 4) == 0)
+        {
+            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+        }
+        /*If we want to add another format for accepting a handle, then add an else-if here*/
+        else /*we have an invalid handle*/
+        {
+            printf("Error: %s is an invalid handle format for this tool.\n", optarg);
+            exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+        }
+#else
+        char *deviceHandle = optarg;
+#endif
+
+        ++(*deviceCount);/*increment this variable if we've made it this far.*/
+        /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
+        if (!*handleList)
+        {
+            /*allocate the list and add this handle to it.*/
+            *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
+            if (!*handleList)
+            {
+                perror("error allocating memory for handle list\n");
+                return 255;
+            }
         }
         else
         {
-            *userHandleProvided = true;
-#if defined(_WIN32)
-#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
-            char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
-            char *deviceHandle = &windowsHandle[0];
-            char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
-            /*make sure the user gave us "PD" for the device handle...*/
-            if (_strnicmp(optarg, "PD", 2) == 0)
+            /*list already allocated, so reallocate and add this next handle to it.*/
+            char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
+            if (!temp)
             {
-                physicalDeviceNumber = strpbrk(optarg, "0123456789");
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
-            }
-#if defined(ENABLE_CSMI)
-            else if (strncmp(optarg, "csmi", 4) == 0)
-            {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-            }
-#endif
-            else if (strncmp(optarg, "\\\\.\\", 4) == 0)
-            {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-            }
-            /*If we want to add another format for accepting a handle, then add an else-if here*/
-            else /*we have an invalid handle*/
-            {
-                printf("Error: %s is an invalid handle format for this tool.\n", optarg);
-                exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
-            }
-#else
-            char *deviceHandle = optarg;
-#endif
-
-            ++(*deviceCount);/*increment this variable if we've made it this far.*/
-            /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
-            if (!*handleList)
-            {
-                /*allocate the list and add this handle to it.*/
-                *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
-                if (!*handleList)
-                {
-                    perror("error allocating memory for handle list\n");
-                    return 255;
-                }
-            }
-            else
-            {
-                /*list already allocated, so reallocate and add this next handle to it.*/
-                char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
-                if (!temp)
-                {
-                    perror("error reallocating memory for handle list\n");
-                    return 255;
-                }
-                *handleList = temp;
-            }
-            /*the list has been allocated, now put the handle we've received into the list*/
-            /*start by allocating memory for the handle at the new list location*/
-            size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
-            (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
-            if (!(*handleList)[(*deviceCount) - 1])
-            {
-                perror("error allocating memory for adding device handle to list\n");
+                perror("error reallocating memory for handle list\n");
                 return 255;
             }
-            /*copy the handle into memory*/
-            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+            *handleList = temp;
         }
+        /*the list has been allocated, now put the handle we've received into the list*/
+        /*start by allocating memory for the handle at the new list location*/
+        size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
+        (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
+        if (!(*handleList)[(*deviceCount) - 1])
+        {
+            perror("error allocating memory for adding device handle to list\n");
+            return 255;
+        }
+        /*copy the handle into memory*/
+        snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
     }
     return 0;
 }
@@ -4333,5 +4336,138 @@ void print_Partition_Info_Help(bool shortHelp)
         printf("\t\tUse this option to look for a partition table and dump\n");
         printf("\t\tthe list of partitions on a given disk.\n");
         printf("\t\tCurrently only MBR and GPT partition tables are supported.\n\n");
+    }
+}
+
+void print_DCO_Restore_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_RESTORE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to restore device capabilities and features\n");
+        printf("\t\thidden by DCO back to factory defaults.\n");
+        printf("\t\tThis can only be used if DCO is not frozen and HPA has not\n");
+        printf("\t\tbeen used to reduce the maximum LBA already. Recommend restoring\n");
+        printf("\t\tthe max LBA prior to this option for best results.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_FreezeLock_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_FREEZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to issue the DCO freeze-lock command. Issuing\n");
+        printf("\t\tthis command will prevent the ability to modify available capabilities\n");
+        printf("\t\tor restore default capabilities until the device has been power cycled.\n\n");
+    }
+}
+
+void print_DCO_Identify_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", ATA_DCO_IDENTIFY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will list the capabilities that can be restricted with DCO.\n");
+        printf("\t\tRestricted capabilities are MWDMA and UDMA transfer modes, maximum LBA,\n");
+        printf("\t\tand some ATA features or commands.\n");
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Set_Max_LBA_Help(bool shortHelp)
+{
+    printf("\t--%s [new max LBA]\t(SATA Only)\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set a lower max/native max LBA using the DCO\n");
+        printf("\t\tfeature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Set_Max_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s [udma# | mwdma# | nodma]\t(SATA Only)\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set a different maximum supported DMA transfer mode\n");
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThe following arguments are available. Supported modes are set based on\n");
+        printf("\t\tthe provided maximum and all modes below the given maximum:\n");
+        printf("\t\t  %s - UDMA 6 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA6);
+        printf("\t\t  %s - UDMA 5 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA5);
+        printf("\t\t  %s - UDMA 4 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA4);
+        printf("\t\t  %s - UDMA 3 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA3);
+        printf("\t\t  %s - UDMA 2 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA2);
+        printf("\t\t  %s - UDMA 1 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA1);
+        printf("\t\t  %s - UDMA 0 and lower, including all MWDMA modes\n", ATA_DCO_MODE_UDMA0);
+        printf("\t\t  %s - MWDMA 2 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA2);
+        printf("\t\t  %s - MWDMA 1 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA1);
+        printf("\t\t  %s - MWDMA 0 and lower; No UDMA support\n", ATA_DCO_MODE_MWDMA0);
+        printf("\t\t  %s - No MWDMA or UDMA mode support listed in identify.\n", ATA_DCO_MODE_NODMA);
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
+    }
+}
+
+void print_DCO_Disable_Features_Help(bool shortHelp)
+{
+    printf("\t--%s [csv,list,of,features]\t(SATA Only)\n", ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to disable different ATA commands and features\n");
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
+        printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
+        printf("\t\tThe following arguments are available. Specifying a feature that the drive\n");
+        printf("\t\tdoes not support restricting or does not support at all will not be\n");
+        printf("\t\tconsidered an error.\n");
+        printf("\t\tBelow is a full list of features that can be given with this option.\n");
+        printf("\t\tit is unlikely a drive will support restricting all of these features.\n");
+        printf("\t\t  %s - Write-Read-Verify feature\n", ATA_DCO_FEATURE_OPTION_WRV);
+        printf("\t\t  %s - SMART Conveyance self-test\n", ATA_DCO_FEATURE_OPTION_SMART_CONVEYANCE);
+        printf("\t\t  %s - SMART Seledtive self-test\n", ATA_DCO_FEATURE_OPTION_SMART_SELECTIVE);
+        printf("\t\t  %s - Forced Unit Access\n", ATA_DCO_FEATURE_OPTION_FUA);
+        printf("\t\t  %s - Time Limited Commands\n", ATA_DCO_FEATURE_OPTION_TLC);
+        printf("\t\t  %s - Streaming Feature set\n", ATA_DCO_FEATURE_OPTION_STREAMING);
+        printf("\t\t  %s - 48bit addressing\n", ATA_DCO_FEATURE_OPTION_48BIT);
+        printf("\t\t  %s - Host Protected Area (HPA)\n", ATA_DCO_FEATURE_OPTION_HPA);
+        printf("\t\t  %s - Automatic Accoustic Management\n", ATA_DCO_FEATURE_OPTION_AAM);
+        printf("\t\t  %s - Tagged Command Queuing (TCQ)\n", ATA_DCO_FEATURE_OPTION_TCQ);
+        printf("\t\t  %s - Power Up In Standby (PUIS)\n", ATA_DCO_FEATURE_OPTION_PUIS);
+        printf("\t\t  %s - ATA Security\n", ATA_DCO_FEATURE_OPTION_SECURITY);
+        printf("\t\t  %s - SMART Error Logging\n", ATA_DCO_FEATURE_OPTION_SMART_ERRORLOG);
+        printf("\t\t  %s - SMART Self-test\n", ATA_DCO_FEATURE_OPTION_SMART_SELF_TEST);
+        printf("\t\t  %s - SMART Feature set\n", ATA_DCO_FEATURE_OPTION_SMART_FEATURE);
+        printf("\t\t  %s - SATA Software Settings Preservation (SSP)\n", ATA_DCO_FEATURE_OPTION_SSP);
+        printf("\t\t  %s - SATA Asynchronous Notification\n", ATA_DCO_FEATURE_OPTION_ASYNC_NOTIFICATION);
+        printf("\t\t  %s - SATA Interface Power Management\n", ATA_DCO_FEATURE_OPTION_INTERFACE_POWER_MGMT);
+        printf("\t\t  %s - SATA Non-Zero Buffer Offsets\n", ATA_DCO_FEATURE_OPTION_NZ_BUFF);
+        printf("\t\t  %s - SATA Native Command Queuing (NCQ)\n", ATA_DCO_FEATURE_OPTION_NCQ);
+        printf("\t\t  %s - Non-Volatile Cache (NVCache)\n", ATA_DCO_FEATURE_OPTION_NVCACHE);
+        printf("\t\t  %s - NVCache Power Management\n", ATA_DCO_FEATURE_OPTION_NVC_PM);
+        printf("\t\t  %s - Write Uncorrectable Ext\n", ATA_DCO_FEATURE_OPTION_WUE);
+        printf("\t\t  %s - Trusted Computing Group\n", ATA_DCO_FEATURE_OPTION_TCG);
+        printf("\t\t  %s - Free-fall Control\n", ATA_DCO_FEATURE_OPTION_FREE_FALL);
+        printf("\t\t  %s - Data Set Management\n", ATA_DCO_FEATURE_OPTION_DSM);
+        printf("\t\t  %s - TRIM (Data Set Management)\n", ATA_DCO_FEATURE_OPTION_TRIM);
+        printf("\t\t  %s - Extended Power Conditions\n", ATA_DCO_FEATURE_OPTION_EPC);
+        printf("\t\tThis will not work if the device has been DCO frozen.\n");
+        printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
+        printf("\t\t      If DCO is frozen each time the system is rebooted, try a\n");
+        printf("\t\t      different system or add-in card to work around this.\n\n");
     }
 }
