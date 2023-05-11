@@ -497,8 +497,11 @@ extern "C"
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING "clearPciErr"
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, goTrue }
 
-    #define GET_FEATURES getFeatures
-    #define GET_FEATURES_VAR uint8_t GET_FEATURES = UINT8_MAX;
+    #define GET_FEATURES getFeaturesValue
+    #define GET_FEATURES_FLAG getFeaturesRequestedByUser
+    #define GET_FEATURES_VARS \
+        uint16_t GET_FEATURES = UINT16_MAX;\
+        bool GET_FEATURES_FLAG = false;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 

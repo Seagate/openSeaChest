@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.2.4";
+const char *buildVersion = "2.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -89,7 +89,7 @@ int32_t main(int argc, char *argv[])
     GET_TELEMETRY_VAR
     TELEMETRY_DATA_AREA_VAR
     OUTPUT_MODE_VAR
-    GET_FEATURES_VAR
+    GET_FEATURES_VARS
     NVME_TEMP_STATS_VAR
     NVME_PCI_STATS_VAR
     MODEL_MATCH_VARS
@@ -225,17 +225,20 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, GET_FEATURES_LONG_OPT_STRING) == 0)
             {
-                if (isdigit(optarg[0]))
+                uint64_t temp = 0;
+                GET_FEATURES_FLAG = true;
+                if (strncmp(optarg, "help", strlen(optarg)) == 0)
                 {
-                    GET_FEATURES = C_CAST(uint8_t, atoi(optarg));
-                }
-                else if (strncmp(optarg, "help", strlen(optarg)) == 0)
-                {
-                    GET_FEATURES = 0;
+                    nvme_Print_Feature_Identifiers_Help();
+                    exit(UTIL_EXIT_NO_ERROR);
                 }
                 else if (strncmp(optarg, "list", strlen(optarg)) == 0)
                 {
-                    GET_FEATURES = 0x0E;//Using a reserved value - Revisit later 
+                    GET_FEATURES = UINT16_MAX;//set a value higher than is possible to request to know it is invalid and requesting the list
+                }
+                else if (get_And_Validate_Integer_Input(optarg, &temp))
+                {
+                    GET_FEATURES = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -764,7 +767,7 @@ int32_t main(int argc, char *argv[])
           || (TRANSITION_POWER_STATE_TO >= 0)
           || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
           || (GET_TELEMETRY_IDENTIFIER > 0)
-          || (GET_FEATURES < UINT8_MAX)
+          || (GET_FEATURES_FLAG)
           || EXT_SMART_LOG_FLAG1
           || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
           || NVME_TEMP_STATS_FLAG
@@ -1072,26 +1075,36 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (GET_FEATURES < UINT8_MAX)
+        if (GET_FEATURES_FLAG)
         {
-            if (GET_FEATURES == 0) //help
-            {
-                nvme_Print_Feature_Identifiers_Help();
-            }
-            else if (GET_FEATURES == 0x0E) //List them all
+            if (GET_FEATURES > UINT8_MAX) //List them all
             {
                 nvme_Print_All_Feature_Identifiers(&deviceList[deviceIter], NVME_CURRENT_FEAT_SEL, false);
             }
             else
             {
                 //Get the feature
-                if (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES, NVME_CURRENT_FEAT_SEL) != SUCCESS)
+                switch (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES, NVME_CURRENT_FEAT_SEL))
                 {
+                case SUCCESS:
+                    break;
+                case NOT_SUPPORTED:
+                    //This should really only be a "device does not support this", but there are a lot of features we cannot parse details
+                    //for at this time, so for now this message is a bit more of a catch-all
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Either the requested feature is not supported by the device, or the\n");
+                        printf("utility is unable to show details about the request feature at this time.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("ERROR: failed to get details for feature id %d\n", GET_FEATURES);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
             }
         }
