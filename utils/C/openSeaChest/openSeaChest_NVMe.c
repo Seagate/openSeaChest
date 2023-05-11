@@ -1084,7 +1084,7 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //Get the feature
-                switch (nvme_Print_Feature_Details(&deviceList[deviceIter], GET_FEATURES, NVME_CURRENT_FEAT_SEL))
+                switch (nvme_Print_Feature_Details(&deviceList[deviceIter], C_CAST(uint8_t, GET_FEATURES), NVME_CURRENT_FEAT_SEL))
                 {
                 case SUCCESS:
                     break;
