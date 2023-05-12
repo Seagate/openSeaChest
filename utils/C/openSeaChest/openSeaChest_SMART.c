@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1170,6 +1170,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SMART Warning condition detected!\n");
+                    if (tripInfo.reasonStringLength > 0)
+                    {
+                        printf("\t%s\n", tripInfo.reasonString);
+                    }
                 }
             }
             else
