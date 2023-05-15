@@ -28,7 +28,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wstrict-prototypes',
   '-Wmissing-declarations',
   '-Wmissing-prototypes',
-  '-Wchar-subscripts'
+  '-Wchar-subscripts',
+  '-Wundef'
   ]
 elif c.get_id().contains('msvc')
   #See here for enabling/disabling msvc warnings:
@@ -39,7 +40,7 @@ elif c.get_id().contains('msvc')
     #This is likely not an issue with meson, but matching VS project files for now
     '/wd4214', # nonstandard extension used : bit field types other than int
     '/wd4201', # nonstandard extension used : nameless struct/union
-    '/wd4668', # 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'
+    '/wd4668', # 'symbol' is not defined as a preprocessor macro, replacing with '0' for 'directives'. While like -Wundef, this creates too many warnings in system headers to use
     '/wd4820', # 'bytes' bytes padding added after construct 'member_name'
     '/wd4710', # 'function' : function not inlined
     #'/wd4255', # 'function' : no function prototype given: converting '()' to '(void)' #NOTE: Only needed for /Wall, otherwise enabling can be good-TJE
@@ -103,6 +104,10 @@ endif
 
 if not get_option('tcg').enabled()
   add_project_arguments('-DDISABLE_TCG_SUPPORT', language : 'c')
+endif
+
+if get_option('atasecsetpass').enabled()
+  add_project_arguments('-DENABLE_ATA_SET_PASSWORD', language : 'c')
 endif
 
 if get_option('debug')

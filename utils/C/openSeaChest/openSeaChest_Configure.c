@@ -28,11 +28,12 @@
 #include "trim_unmap.h"
 #include "smart.h"
 #include "logs.h"
+#include "ata_device_config_overlay.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.4.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -115,6 +116,13 @@ int32_t main(int argc, char *argv[])
     SCSI_SET_MP_VARS
     LOWLEVEL_INFO_VAR
 
+    ATA_DCO_RESTORE_VAR
+    ATA_DCO_FREEZE_VAR
+    ATA_DCO_IDENTIFY_VAR
+    ATA_DCO_SETMAXLBA_VARS
+    ATA_DCO_SETMAXMODE_VARS
+    ATA_DCO_DISABLE_FEATURES_VARS
+
     int  args = 0;
     int argIndex = 0;
     int optionIndex = 0;
@@ -175,6 +183,12 @@ int32_t main(int argc, char *argv[])
         SCSI_SHOW_MP_LONG_OPTS,
         SCSI_RESET_LP_LONG_OPTS,
         SCSI_SET_MP_LONG_OPT,
+        ATA_DCO_RESTORE_LONG_OPT,
+        ATA_DCO_FREEZE_LONG_OPT,
+        ATA_DCO_IDENTIFY_LONG_OPT,
+        ATA_DCO_SETMAXLBA_LONG_OPT,
+        ATA_DCO_SETMAXMODE_LONG_OPT,
+        ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -744,7 +758,7 @@ int32_t main(int argc, char *argv[])
                 if (strncmp(optarg, "file", 4) == 0)
                 {
                     //format is file=filename.txt
-                    int sscanfRes = sscanf(optarg, "file=%s", SCSI_SET_MP_FILENAME);
+                    int sscanfRes = sscanf(optarg, SCSI_SET_MP_SSCANF_FILE_FORMAT_STR , SCSI_SET_MP_FILENAME);
                     if (sscanfRes < 1 || sscanfRes == EOF)
                     {
                         print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
@@ -941,6 +955,212 @@ int32_t main(int argc, char *argv[])
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_PAGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, ATA_DCO_SETMAXLBA_LONG_OPT_STRING) == 0)
+            {
+                uint64_t dcoMaxLBA = 0;
+                if (get_And_Validate_Integer_Input(optarg, &dcoMaxLBA))
+                {
+                    ATA_DCO_SETMAXLBA = true;
+                    ATA_DCO_SETMAXLBA_VALUE = dcoMaxLBA;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ATA_DCO_SETMAXLBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, ATA_DCO_SETMAXMODE_LONG_OPT_STRING) == 0)
+            {
+                ATA_DCO_SETMAXMODE = true;
+                if (strcmp(optarg, ATA_DCO_MODE_UDMA6) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 10;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA5) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 9;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA4) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 8;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA3) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 7;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA2) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 6;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA1) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 5;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_UDMA0) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 4;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_MWDMA2) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 3;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_MWDMA1) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 2;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_MWDMA0) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 1;
+                }
+                else if (strcmp(optarg, ATA_DCO_MODE_NODMA) == 0)
+                {
+                    ATA_DCO_SETMAXMODE_VALUE = 0;
+                }
+                else
+                {
+                    ATA_DCO_SETMAXMODE = false;
+                    print_Error_In_Cmd_Line_Args(ATA_DCO_SETMAXLBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING) == 0)
+            {
+                //this needs to parse a comma separated list of things to disable on the drive
+                char* dcoDisableFeatList = strdup(optarg);
+                if (dcoDisableFeatList)
+                {
+                    char* dcoFeatToken = strtok(dcoDisableFeatList, ",");
+                    ATA_DCO_DISABLE_FEATURES = true;
+                    while (dcoFeatToken)
+                    {
+                        if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_WRV) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT14;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SMART_CONVEYANCE) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT13;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SMART_SELECTIVE) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT12;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_FUA) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT11;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_TLC) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT10;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_STREAMING) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT9;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_48BIT) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT8;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_HPA) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT7;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_AAM) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT6;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_TCG) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT5;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_PUIS) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT4;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SECURITY) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT3;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SMART_ERRORLOG) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT2;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SMART_SELF_TEST) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT1;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SMART_FEATURE) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT0;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_SSP) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT20;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_ASYNC_NOTIFICATION) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT19;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_INTERFACE_POWER_MGMT) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT18;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_NZ_BUFF) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT17;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_NCQ) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT16;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_NVCACHE) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT47;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_NVC_PM) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT46;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_WUE) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT45;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_TCG) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT44;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_FREE_FALL) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT43;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_DSM) == 0 || strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_TRIM) == 0)
+                        {
+                            //allowing DSM or TRIM to work with a commonly known name from the spec to mean the same thing since these are directly related.-TJE
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT42;
+                        }
+                        else if (strcmp(dcoFeatToken, ATA_DCO_FEATURE_OPTION_EPC) == 0)
+                        {
+                            ATA_DCO_DISABLE_FEATURES_VALUE |= BIT41;
+                        }
+                        else
+                        {
+                            //error, unknown option
+                            safe_Free(dcoDisableFeatList)
+                            ATA_DCO_DISABLE_FEATURES = false;
+                            print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                        dcoFeatToken = strtok(NULL, ",");
+                    }
+                    safe_Free(dcoDisableFeatList)
+                }
+                else
+                {
+                    ATA_DCO_DISABLE_FEATURES = false;
+                    print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -1273,6 +1493,12 @@ int32_t main(int argc, char *argv[])
         || SCSI_SHOW_MP_OP
         || SCSI_RESET_LP_OP
         || SCSI_SET_MP_OP
+        || ATA_DCO_DISABLE_FEATURES
+        || ATA_DCO_SETMAXMODE
+        || ATA_DCO_SETMAXLBA
+        || ATA_DCO_IDENTIFY
+        || ATA_DCO_FREEZE
+        || ATA_DCO_RESTORE
         ))
     {
         utility_Usage(true);
@@ -1578,6 +1804,407 @@ int32_t main(int argc, char *argv[])
             {
                 //show the specific MPC value
                 show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, SCSI_SHOW_MP_MPC_VALUE, SCSI_SHOW_MP_BUFFER_MODE);
+            }
+        }
+
+        if (ATA_DCO_IDENTIFY)
+        {
+            dcoData dco;
+            memset(&dco, 0, sizeof(dcoData));
+            switch(dco_Identify(&deviceList[deviceIter], &dco))
+            {
+            case SUCCESS:
+                show_DCO_Identify_Data(&dco);
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO not supported by this device.\n");
+                }
+                break;
+            case FROZEN:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO is Frozen. Cannot identify.\n");
+                    printf("Device must be power cycled to clear freeze-lock.\n");
+                    printf("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    printf("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO Identify command for unknown reason.\n");
+                    printf("Device may be in DCO frozen state or command may be blocked by the OS/BIOS/driver.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (ATA_DCO_RESTORE)
+        {
+            switch (dco_Restore(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restored factory settings using DCO.\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO not supported by this device.\n");
+                }
+                break;
+            case FROZEN:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO is Frozen. Cannot restore DCO settings to factory.\n");
+                    printf("Device must be power cycled to clear freeze-lock.\n");
+                    printf("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    printf("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case ABORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO Restore command.\n");
+                    printf("DCO may already be in factory state (restored) or the\n");
+                    printf("device may have active HPA that must be\n");
+                    printf("disabled before DCO restore can be used.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO Restore command.\n");
+                    printf("Device may be in DCO frozen state or may have active HPA that must be\n");
+                    printf("disabled before DCO restore can be used.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE || ATA_DCO_SETMAXLBA)
+        {
+            dcoData dco;
+            memset(&dco, 0, sizeof(dcoData));
+            switch (dco_Identify(&deviceList[deviceIter], &dco))
+            {
+            case SUCCESS:
+                //change the features we want to disable, then issue the set command
+                if (ATA_DCO_SETMAXMODE)
+                {
+                    //turn all modes to false, then set which one should be the highest available and fall-through
+                    //setting all other lower modes
+                    dco.udma.udma0 = false;
+                    dco.udma.udma1 = false;
+                    dco.udma.udma2 = false;
+                    dco.udma.udma3 = false;
+                    dco.udma.udma4 = false;
+                    dco.udma.udma5 = false;
+                    dco.udma.udma6 = false;
+                    dco.mwdma.mwdma0 = false;
+                    dco.mwdma.mwdma1 = false;
+                    dco.mwdma.mwdma2 = false;
+                    //now go turn modes on to highest supported value
+                    switch(ATA_DCO_SETMAXMODE_VALUE)
+                    {
+                    case 10://udma6
+                        dco.udma.udma6 = true;
+                        M_FALLTHROUGH
+                    case 9://udma5
+                        dco.udma.udma5 = true;
+                        M_FALLTHROUGH
+                    case 8://udma4
+                        dco.udma.udma4 = true;
+                        M_FALLTHROUGH
+                    case 7://udma3
+                        dco.udma.udma3 = true;
+                        M_FALLTHROUGH
+                    case 6://udma2
+                        dco.udma.udma2 = true;
+                        M_FALLTHROUGH
+                    case 5://udma1
+                        dco.udma.udma1 = true;
+                        M_FALLTHROUGH
+                    case 4://udma0
+                        dco.udma.udma0 = true;
+                        M_FALLTHROUGH
+                    case 3://mwdma2
+                        dco.mwdma.mwdma2 = true;
+                        M_FALLTHROUGH
+                    case 2://mwdma1
+                        dco.mwdma.mwdma1 = true;
+                        M_FALLTHROUGH
+                    case 1://mwdma0
+                        dco.mwdma.mwdma0 = true;
+                        M_FALLTHROUGH
+                    case 0://no DMA modes at all
+                        break;
+                    }
+                }
+                if (ATA_DCO_SETMAXLBA)
+                {
+                    //change MaxLBA to requested value
+                    dco.maxLBA = ATA_DCO_SETMAXLBA_VALUE;
+                }
+                if (ATA_DCO_DISABLE_FEATURES)
+                {
+                    //change which features are allowed
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT14)
+                    {
+                        //wrv
+                        dco.feat1.writeReadVerify = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT13)
+                    {
+                        //smart conveyance self test
+                        dco.feat1.smartConveyanceSelfTest = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT12)
+                    {
+                        //smart selective self test
+                        dco.feat1.smartSelectiveSelfTest = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT11)
+                    {
+                        //force unit access
+                        dco.feat1.forceUnitAccess = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT10)
+                    {
+                        //tlc
+                        dco.feat1.timeLimitedCommands = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT9)
+                    {
+                        //streaming
+                        dco.feat1.streaming = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT8)
+                    {
+                        //48bit addressing;
+                        dco.feat1.fourtyEightBitAddress = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT7)
+                    {
+                        //HPA
+                        dco.feat1.hostProtectedArea = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT6)
+                    {
+                        //AAM
+                        dco.feat1.automaticAccousticManagement = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT5)
+                    {
+                        //TCQ
+                        dco.feat1.readWriteDMAQueued = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT4)
+                    {
+                        //PUIS
+                        dco.feat1.powerUpInStandby = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT3)
+                    {
+                        //ATA security
+                        dco.feat1.ATAsecurity = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT2)
+                    {
+                        //SMART error log;
+                        dco.feat1.smartErrorLog = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT1)
+                    {
+                        //smart self-test
+                        dco.feat1.smartSelfTest = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT0)
+                    {
+                        //smart feature;
+                        dco.feat1.smartFeature = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT20)
+                    {
+                        //sata ssp;
+                        dco.sataFeat.softwareSettingsPreservation = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT19)
+                    {
+                        //sata asynchronous notification
+                        dco.sataFeat.asynchronousNotification = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT18)
+                    {
+                        //sata interface power management
+                        dco.sataFeat.interfacePowerManagement = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT17)
+                    {
+                        //sata non-zero buffer offsets
+                        dco.sataFeat.nonZeroBufferOffsets = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT16)
+                    {
+                        //sata ncq
+                        dco.sataFeat.ncqFeature = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT47)
+                    {
+                        //nv cache
+                        dco.feat2.nvCache = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT46)
+                    {
+                        //nvcache power management
+                        dco.feat2.nvCachePowerManagement = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT45)
+                    {
+                        //write uncorrectable ext
+                        dco.feat2.writeUncorrectable = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT44)
+                    {
+                        //tcg
+                        dco.feat2.trustedComputing = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT43)
+                    {
+                        //freefall
+                        dco.feat2.freeFall = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT42)
+                    {
+                        //data set management (DSM) or (TRIM)
+                        dco.feat2.dataSetManagement = false;
+                    }
+                    if (ATA_DCO_DISABLE_FEATURES_VALUE & BIT41)
+                    {
+                        //extended power conditions (EPC)
+                        dco.feat2.extendedPowerConditions = false;
+                    }
+                }
+                switch (dco_Set(&deviceList[deviceIter], &dco))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully configured available features/modes/maxLBA using DCO.\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("DCO not supported by this device.\n");
+                    }
+                    break;
+                case FROZEN:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("DCO is Frozen. Cannot set DCO features.\n");
+                        printf("Device must be power cycled to clear freeze-lock.\n");
+                        printf("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                        printf("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                case ABORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed DCO set command.\n");
+                        printf("DCO set may already have been used to configure the device and\n");
+                        printf("a DCO restore settings may be required before making more modifications with DCO.\n");
+                        printf("Device may have active HPA that must be\n");
+                        printf("disabled before DCO set can be used.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed DCO set command.\n");
+                        printf("Device may be in DCO frozen state or may have active HPA that must be\n");
+                        printf("disabled before DCO set can be used.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+                break;
+            case NOT_SUPPORTED:
+            case FROZEN:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO is Frozen. Cannot set DCO features.\n");
+                    printf("Device must be power cycled to clear freeze-lock.\n");
+                    printf("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    printf("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case ABORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO identify command.\n");
+                    printf("Device may have active HPA that must be\n");
+                    printf("disabled before DCO identify can be used.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO identify command.\n");
+                    printf("Device may be in DCO frozen state or may have active HPA that must be\n");
+                    printf("disabled before DCO identify can be used.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (ATA_DCO_FREEZE)
+        {
+            switch (dco_Freeze_Lock(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully froze DCO command access.\n");
+                }
+                break;
+            case FROZEN:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO is already frozen.\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("DCO not supported by this device.\n");
+                }
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed DCO Freeze-lock command.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
 
@@ -2360,9 +2987,18 @@ int32_t main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
             {
             case SUCCESS:
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully set the max LBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
+                    printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2392,7 +3028,15 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored the max LBA\n");
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -3094,6 +3738,10 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 08:2:2:1=0\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
     printf("\t%s -d %s --%s file=modePageToChange.txt\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_IDENTIFY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_RESTORE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_FREEZE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728 --%s %s --%s hpa,puis,wrv\n", util_name, deviceHandleExample, ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_SETMAXMODE_LONG_OPT_STRING, ATA_DCO_MODE_UDMA4, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -3145,6 +3793,12 @@ void utility_Usage(bool shortUsage)
 
     //SATA Only Options
     printf("\n\tSATA Only:\n\t========\n");
+    print_DCO_FreezeLock_Help(shortUsage);
+    print_DCO_Identify_Help(shortUsage);
+    print_DCO_Restore_Help(shortUsage);
+    print_DCO_Set_Max_LBA_Help(shortUsage);
+    print_DCO_Set_Max_Mode_Help(shortUsage);
+    print_DCO_Disable_Features_Help(shortUsage);
     print_Free_Fall_Help(shortUsage);
     print_Low_Current_Spinup_Help(shortUsage);
     print_PUIS_Feature_Help(shortUsage);

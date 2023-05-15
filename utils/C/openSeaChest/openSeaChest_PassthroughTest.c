@@ -1254,7 +1254,6 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                                 {
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
-                                    safe_Free_aligned(log)
                                     multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
                                 }
                                 else
@@ -1369,16 +1368,17 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
+                    uint32_t allocedLogSize = C_CAST(uint32_t, logSize) * UINT32_C(512);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(allocedLogSize, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
-                        if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, logSize * 512, false, 0))
+                        if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, allocedLogSize, false, 0))
                         {
                             //now check if it's empty so we don't overwrite any data in it.
-                            if (is_Empty(log, logSize * 512))
+                            if (is_Empty(log, allocedLogSize))
                             {
                                 safe_Free_aligned(log)
-                                multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2), logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2), allocedLogSize);
                                 break;
                             }
                             safe_Free_aligned(log)
@@ -1462,16 +1462,17 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
+                    uint32_t allocedLogSize = C_CAST(uint32_t, logSize) * UINT32_C(512);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(allocedLogSize, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
-                        if (SUCCESS == ata_SMART_Read_Log(device, logAddress, log, logSize * 512))
+                        if (SUCCESS == ata_SMART_Read_Log(device, logAddress, log, allocedLogSize))
                         {
                             //now check if it's empty so we don't overwrite any data in it.
-                            if (is_Empty(log, logSize * 512))
+                            if (is_Empty(log, allocedLogSize))
                             {
                                 safe_Free_aligned(log)
-                                multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / 2), logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / 2), allocedLogSize);
                                 break;
                             }
                             safe_Free_aligned(log)
@@ -6569,22 +6570,10 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
 
 static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bool *smartLoggingSupported, bool *sctSupported)
 {
-    uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    uint16_t *ident_word = (uint16_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    memcpy(inputs->device->drive_info.bridge_info.childDriveMN, &ident_word[27], MODEL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveMN[MODEL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveSN, &ident_word[10], SERIAL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveSN[SERIAL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveFW, &ident_word[23], 8);
-    inputs->device->drive_info.bridge_info.childDriveFW[FW_REV_LEN] = '\0';
-    //Byte swap due to endianess
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveMN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveSN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveFW);
-    //remove leading and trailing whitespace
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveMN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveSN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveFW);
+    uint8_t *identifyData = C_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    uint16_t *ident_word = C_CAST(uint16_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    fill_ATA_Strings_From_Identify_Data(identifyData, inputs->device->drive_info.bridge_info.childDriveMN, inputs->device->drive_info.bridge_info.childDriveSN, inputs->device->drive_info.bridge_info.childDriveFW);
+
     //get the WWN
     inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108, \
         inputs->device->drive_info.IdentifyData.ata.Word109, \
