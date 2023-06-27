@@ -1064,7 +1064,7 @@ int32_t main(int argc, char *argv[])
                     perror("cannot allocate memory for zone descriptors");
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
-                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, 0, numberOfZones, zoneDescriptors);
+                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
                 switch (reportRet)
                 {
                 case SUCCESS:
