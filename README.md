@@ -178,14 +178,27 @@ openSeaChest project repository is maintained at
 
 Compiled binary versions of the openSeaChest utilities for various operating
 systems may be found at
-[https://github.com/Seagate/ToolBin/tree/master/openSeaChest](https://github.com/Seagate/ToolBin/tree/master/openSeaChest)
+[https://github.com/Seagate/ToolBin/tree/master/openSeaChest](https://github.com/Seagate/ToolBin/tree/master/openSeaChest) or in the
+releases section of this project.
 
 This collection of storage device utility software is branched (forked) off of
 an original utility collection called the `Seagate SeaChest Utilities` by Seagate
 Technology LLC.  The original SeaChest Utilities are still available at
-www.seagate.com or [https://github.com/Seagate/ToolBin/tree/master/SeaChest](https://github.com/Seagate/ToolBin/tree/master/SeaChest).
+[www.seagate.com](www.seagate.com) or [https://github.com/Seagate/ToolBin/tree/master/SeaChest](https://github.com/Seagate/ToolBin/tree/master/SeaChest).
 Binary versions are available for Linux or Windows, with the Windows versions
 signed by Seagate Technology LLC.
+
+#### Repository Availability
+
+With help from various community members across distributions, openSeaChest may be
+available from within your package manager.
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/openseachest.svg)](https://repology.org/project/openseachest/versions)
+
+Please be aware this list may not be complete.
+Seagate is happy to work with community members to help make openSeaChest available in
+other package repositories as well. Please reach out through an issue and we will
+do our best to help make it more available when possible.
 
 ### The libraries
 
@@ -218,6 +231,49 @@ or
 Note that cloning **_recursively_** is **_important_** as it clones all the necessary submodules.
 
 See [BUILDING.md](BUILDING.md) for more information about how to use git.
+
+#### Source Compatibility with various OSs
+
+OpenSeaChest strives to be made available on any platform and any processor. Support for platforms has been
+added upon request from customers and issues that are created on this repository.
+The following tables illustrate platform support that exists today, at least in source code form, and contains
+notes about other platforms that are not currently supported, but may be possible to support. The list may not be
+complete. Feel free to request other OS support as well, but it may require more research or development in order
+to support.
+Please create an issue to request support for these other platforms when you need it!
+
+##### SAS/SATA Compatibility
+
+| OS         | Supported? | Notes |
+|------------|------------|-------|
+| Windows    | Yes        | Windows vista and higher are supported |
+| Linux      | Yes        | libATA blocks ATA security commands be default. Can add kernel parameter to disable this block. Only SG_IO IOCTL support implemented for version 3 today. HDIO support is not available. Should work on any 2.6 and later kernel. Earlier kernels may work too, but has not been tested. |
+| FreeBSD    | Yes        | No known limitations at this time |
+| UEFI Shell | Yes, but not currently maintained | While source code support is largely maintained for UEFI, it has not been updated or built due to many significant limitations on shipping systems. Some do not include the ATA driver that can respond to passthrough requests, only a block driver is available to allow booting the system. We are happy to revive this and find a way to add CI for this upon request. |
+| Solaris    | Yes        | This column is for the Oracle release of Solaris. USCSI ioctl support is implemented for passthrough support. No known limitations at this time. |
+| Illumos    | Yes        | This column is for Illumos based distributions/openSolaris. Uses same USCSI ioctl as Solaris. No known limitations at this time. |
+| AIX        | Yes        | Support for SATA and SAS is available. Code was tested on version 7.1, but may work on earlier versions. Some flags may need adjusting for earlier systems. Build was completed using GCC available in AIX toolkit with gmake. Only rhdisk handles are supported. pdisk support is not known since IBM does not appear to provide information on passing requests through RAID with what is normally available. |
+| ESXI       | Yes        | Uses SG_IO v3 like Linux through compatibility layer. Requires complicated build system with special GCC build/VM from VMWare and some other development packges installed to compile. |
+| NetBSD     | No, but possible | |
+| OpenBSD    | No, but possible | |
+
+##### NVMe Compatibility
+
+| OS                | Supported? | Notes |
+|-------------------|------------|-------|
+| Windows 10 & later| Yes        | Microsoft driver has many limitations, but many are documented online. Sometimes need to use SCSI translation. |
+| Windows 8.1       | Limited    | Mostly limited to SCSI translation except for FW update. |
+| Windows 7         | Limited    | Entirely limited to SCSI translation |
+| Windows openFabrics compatible driver | Yes | Supported, but may be limited to what commands are allowed by the driver (at least in latest openSource code). Some vendor's NVMe drivers reuse the IOCTL for passthrough from this driver and may be supported. |
+| Linux             | Yes        | Using built-in kernel driver and IOCTLs |
+| FreeBSD           | Yes        |       |
+| UEFI Shell        | Yes, but not currently maintained | While source code support is largely maintained for UEFI, it has not been updated or built due to many significant limitations on shipping systems. Some systems do not include an NVMe driver that can respond to passthrough requests, only a block driver is available to allow booting the system.  We are happy to revive this and find a way to add CI for this upon request. |
+| Solaris           | No, but possible | This column is for the Oracle release of Solaris. Possible to support NVMe through UNVME ioctl. |
+| Illumos           | No, but possible | Been a while since last looked at, but appeared limited in what commands were available. |
+| AIX               | Yes, untested | Implemented according to header from AIX 7.2, but support has not been tested |
+| ESXI              | Yes        | Requires complicated build system with special GCC build/VM from VMWare and some other development packges installed to compile. |
+| NetBSD            | No, but possible | |
+| OpenBSD           | No, but possible | |
 
 ### Building
 
