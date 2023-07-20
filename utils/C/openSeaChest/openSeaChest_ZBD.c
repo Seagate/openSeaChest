@@ -94,7 +94,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
