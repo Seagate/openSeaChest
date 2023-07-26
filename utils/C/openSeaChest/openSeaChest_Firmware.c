@@ -434,7 +434,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(true, true);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)

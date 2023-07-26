@@ -27,13 +27,11 @@ extern "C"
     //! \brief   Description:  Print the EULA to the screen
     //
     //  Entry:
-    //!   \param showApacheLicense = set to non-zero value to print out the Apache 2.0 license (needed if using mbedtls/encryption - fwdl config file)
-    //!   \param showZlibLicense = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
     //
     //-----------------------------------------------------------------------------
-    void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense);
+    void print_EULA_To_Screen(void);
 
     //-----------------------------------------------------------------------------
     //
@@ -42,13 +40,11 @@ extern "C"
     //! \brief   Description:  Print the open source licenses to the screen
     //
     //  Entry:
-    //!   \param showApacheLicense = set to non-zero value to print out the Apache 2.0 license (needed if using mbedtls/encryption - fwdl config file)
-    //!   \param showZlibLicense = set to non-zero value to print out the ZLib license (needed if using zlib/compression - fwdl config file)
     //!
     //  Exit:
     //
     //-----------------------------------------------------------------------------
-    void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense);
+    void print_Open_Source_Licenses(void);
 
 
 #if defined (__cplusplus)
