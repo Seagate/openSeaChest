@@ -1329,6 +1329,7 @@ int32_t main(int argc, char *argv[])
                     cmdOpts.addr = logBuffer;
                     cmdOpts.dataLen = size;
                     cmdOpts.lid = GET_TELEMETRY_IDENTIFIER;
+                    cmdOpts.lsp = 0x01; // FDCHEST-282 Fix
                     cmdOpts.offset = offset;
 
                     rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
@@ -1373,6 +1374,7 @@ int32_t main(int argc, char *argv[])
                                 cmdOpts.addr = logBuffer;
                                 cmdOpts.dataLen = size;
                                 cmdOpts.lid = GET_TELEMETRY_IDENTIFIER;
+                                cmdOpts.lsp = 0x01; // FDCHEST-282 Fix
                                 cmdOpts.offset = offset;
 
                                 rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
@@ -1485,10 +1487,17 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
+			case NOT_SUPPORTED:
+				if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Printing Temperature Statistics data is not supported on this drive type.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get Error Information Log\n");
+                    printf("A failure occured while trying to get Temp Statistics Information Log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1502,10 +1511,17 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 //nothing to print here since if it was successful, the log will be printed to the screen
                 break;
+			case NOT_SUPPORTED:
+				if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Printing PCI Statistics data is not supported on this drive type.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get Error Information Log\n");
+                    printf("A failure occured while trying to get PCI Statistics Information Log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
