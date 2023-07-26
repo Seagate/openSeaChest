@@ -41,11 +41,18 @@
 #include "drive_info.h"
 #include "format.h"
 #include "platform_helper.h"
+#include "generic_tests.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.1.1";
+const char *buildVersion = "4.2.0";
+
+typedef enum _eSeaChestEraseExitCodes
+{
+    SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE, //Zero validation failure    
+    SEACHEST_ERASE_EXIT_MAX_ERROR //don't acutally use this, just for memory allocation below
+}eSeaChestEraseExitCodes;
 
 ////////////////////////////
 //  functions to declare  //
@@ -136,7 +143,7 @@ int32_t main(int argc, char *argv[])
     HOURS_TIME_VAR
     MINUTES_TIME_VAR
     SECONDS_TIME_VAR
-
+    ZERO_VERIFY_VARS
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -211,6 +218,7 @@ int32_t main(int argc, char *argv[])
         ATA_SECURITY_FORCE_SAT_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        ZERO_VERIFY_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -392,7 +400,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            #if !defined(DISABLE_TCG_SUPPORT)
+#if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
                 snprintf(TCG_SID_FLAG, TCG_SID_BUF_LEN, "%s", optarg);
@@ -401,7 +409,7 @@ int32_t main(int argc, char *argv[])
             {
                 snprintf(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
             }
-            #endif
+#endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_FLAG = true;
@@ -634,7 +642,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "zeropad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -643,7 +651,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "spacepad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -652,7 +660,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "fpad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -661,7 +669,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "leftAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -670,7 +678,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "rightAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -679,7 +687,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "uppercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -688,7 +696,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "lowercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -697,7 +705,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "invertcase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -764,7 +772,7 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        if(0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                        if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
                         {
                             printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
                             fclose(patternFile);
@@ -799,6 +807,23 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ZERO_VERIFY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ZERO_VERIFY_LONG_OPT_STRING))) == 0)
+            {
+                ZERO_VERIFY_FLAG = true;
+                if (strcmp(optarg, "full") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_FULL;
+                }
+                else if (strcmp(optarg, "quick") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_QUICK;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ZERO_VERIFY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             break;
@@ -1152,6 +1177,7 @@ int32_t main(int argc, char *argv[])
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
         || NVM_FORMAT_FLAG
+        || ZERO_VERIFY_FLAG
         ))
     {
         utility_Usage(true);
@@ -1786,6 +1812,34 @@ int32_t main(int argc, char *argv[])
             }
         }
 #endif
+
+        if (ZERO_VERIFY_FLAG)
+        {
+            ret = zero_Verify_Test(&deviceList[deviceIter], ZERO_VERIFY_MODE_FLAG, HIDE_LBA_COUNTER);
+            switch (ret)
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation Test passed.\n");
+                }
+                break;
+            case VALIDATION_FAILURE:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation failed.\n");
+                }
+                exitCode = SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Operation failure.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
 
         if (sanitize)
         {
@@ -2509,7 +2563,7 @@ int32_t main(int argc, char *argv[])
             }
             if (localStartLBA != UINT64_MAX)
             {
-                if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
+                if (localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
                 {
                     localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
                 }
@@ -2593,7 +2647,7 @@ int32_t main(int argc, char *argv[])
                             localRange = 1;
                         }
                     }
-                    if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
+                    if (localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
                     {
                         localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
                     }
@@ -2819,7 +2873,26 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    int totalErrorCodes = SEACHEST_ERASE_EXIT_MAX_ERROR - SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE;
+    ptrToolSpecificxitCode seachestEraseExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
+    //now set up all the exit codes and their meanings
+    if (seachestEraseExitCodes)
+    {
+        for (int exitIter = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE; exitIter < SEACHEST_ERASE_EXIT_MAX_ERROR; ++exitIter)
+        {
+            seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCode = exitIter;
+            switch (exitIter)
+            {
+            case SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE:
+                snprintf(seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                break;
+                //TODO: add more exit codes here!
+            default://We shouldn't ever hit the default case!
+                break;
+            }
+        }
+    }
+    print_SeaChest_Util_Exit_Codes(totalErrorCodes, seachestEraseExitCodes, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");
@@ -2874,6 +2947,8 @@ void utility_Usage(bool shortUsage)
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
     #endif
+    print_Zero_Verify_Help(shortUsage);
+
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);

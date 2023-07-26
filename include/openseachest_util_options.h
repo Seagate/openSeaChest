@@ -529,6 +529,14 @@ extern "C"
     #define TELEMETRY_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
     #define TELEMETRY_DATA_AREA_LONG_OPT { TELEMETRY_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    #define ZERO_VERIFY_FLAG runZeroVerify
+    #define ZERO_VERIFY_MODE_FLAG runZeroVerifyMode
+    #define ZERO_VERIFY_VARS \
+    bool ZERO_VERIFY_FLAG = false; \
+    int ZERO_VERIFY_MODE_FLAG = 0;      /*0 = full, 1 = quick*/
+    #define ZERO_VERIFY_LONG_OPT_STRING "zeroVerify"
+    #define ZERO_VERIFY_LONG_OPT { ZERO_VERIFY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
@@ -3474,7 +3482,10 @@ extern "C"
 
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
+    void print_Zero_Verify_Help(bool shortHelp);
     void print_NVME_Health_Help(bool shortHelp);
+
+    void print_Delay_CMD_Segment_Help(bool shortHelp);
 
     void print_Low_Level_Info_Help(bool shortHelp);
 

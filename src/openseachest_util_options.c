@@ -86,26 +86,26 @@ void print_Elevated_Privileges_Text(void)
     //TODO: handle the various linux/unix/unix-like OSs with more ifdefs here
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
-    printf("In ESXi, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In ESXi, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In ESXi, put sudo before the command. This may require inputting your login password.\n");
+    printf("In ESXi, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #else
-    printf("In Linux, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In Linux, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In Linux, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Linux, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
 #elif defined (__FreeBSD__)
-    printf("In FreeBSD, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In FreeBSD, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #elif defined (__sun)
-    printf("In Solaris, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In Solaris, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In Solaris, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #else //generic unix/unix-like case //TODO: Add more OS specific ifdefs to customize messages above
-    printf("In Linux/Unix, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In Linux/Unix, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
 #else //generic, who knows what OS this is case
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
-    printf("In Linux/Unix, put sudo before the SeaChest command. This may require inputting your login password.\n");
-    printf("In Linux/Unix, log in to a root terminal (su), then execute the SeaChest command. This requires the root password.\n");
+    printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
     return;
 }
@@ -2748,7 +2748,7 @@ void print_Show_DST_Log_Help(bool shortHelp)
 void print_Force_SCSI_Help(bool shortHelp)
 {
     printf("\t--%s\n", FORCE_SCSI_LONG_OPT_STRING);
-    if(!shortHelp)
+    if (!shortHelp)
     {
         printf("\t\tUsing this option will force the current drive to\n");
         printf("\t\tbe treated as a SCSI drive. Only SCSI commands will\n");
@@ -2759,7 +2759,7 @@ void print_Force_SCSI_Help(bool shortHelp)
 void print_Force_ATA_Help(bool shortHelp)
 {
     printf("\t--%s\n", FORCE_ATA_LONG_OPT_STRING);
-    if(!shortHelp)
+    if (!shortHelp)
     {
         printf("\t\tUsing this option will force the current drive to\n");
         printf("\t\tbe treated as a ATA drive. Only ATA commands will\n");
@@ -3018,79 +3018,82 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         return 254;//one of the required parameters is missing. handleList is checked below...
     }
     /*get the number out of optarg to tack onto the device handle*/
-    if (strcmp(optarg, "all") == 0)
+    if (NULL != optarg)
     {
-        /*this is a request to run on all drives.*/
-        *allDrives = true;
-    }
-    else
-    {
-        *userHandleProvided = true;
-#if defined(_WIN32)
-#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
-        char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
-        char *deviceHandle = &windowsHandle[0];
-        char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
-        /*make sure the user gave us "PD" for the device handle...*/
-        if (_strnicmp(optarg, "PD", 2) == 0)
+        if (strcmp(optarg, "all") == 0)
         {
-            physicalDeviceNumber = strpbrk(optarg, "0123456789");
-            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
-        }
-#if defined(ENABLE_CSMI)
-        else if (strncmp(optarg, "csmi", 4) == 0)
-        {
-            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-        }
-#endif
-        else if (strncmp(optarg, "\\\\.\\", 4) == 0)
-        {
-            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-        }
-        /*If we want to add another format for accepting a handle, then add an else-if here*/
-        else /*we have an invalid handle*/
-        {
-            printf("Error: %s is an invalid handle format for this tool.\n", optarg);
-            exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
-        }
-#else
-        char *deviceHandle = optarg;
-#endif
-
-        ++(*deviceCount);/*increment this variable if we've made it this far.*/
-        /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
-        if (!*handleList)
-        {
-            /*allocate the list and add this handle to it.*/
-            *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
-            if (!*handleList)
-            {
-                perror("error allocating memory for handle list\n");
-                return 255;
-            }
+            /*this is a request to run on all drives.*/
+            *allDrives = true;
         }
         else
         {
-            /*list already allocated, so reallocate and add this next handle to it.*/
-            char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
-            if (!temp)
-            {
-                perror("error reallocating memory for handle list\n");
-                return 255;
-            }
-            *handleList = temp;
-        }
-        /*the list has been allocated, now put the handle we've received into the list*/
-        /*start by allocating memory for the handle at the new list location*/
-        size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
-        (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
-        if (!(*handleList)[(*deviceCount) - 1])
-        {
-            perror("error allocating memory for adding device handle to list\n");
-            return 255;
-        }
-        /*copy the handle into memory*/
-        snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+            *userHandleProvided = true;
+#if defined(_WIN32)
+#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+	        char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
+	        char *deviceHandle = &windowsHandle[0];
+	        char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
+	        /*make sure the user gave us "PD" for the device handle...*/
+	        if (_strnicmp(optarg, "PD", 2) == 0)
+	        {
+	            physicalDeviceNumber = strpbrk(optarg, "0123456789");
+	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+	        }
+#if defined(ENABLE_CSMI)
+	        else if (strncmp(optarg, "csmi", 4) == 0)
+	        {
+	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+	        }
+#endif
+	        else if (strncmp(optarg, "\\\\.\\", 4) == 0)
+	        {
+	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+	        }
+	        /*If we want to add another format for accepting a handle, then add an else-if here*/
+	        else /*we have an invalid handle*/
+	        {
+	            printf("Error: %s is an invalid handle format for this tool.\n", optarg);
+	            exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+	        }
+#else
+	        char *deviceHandle = optarg;
+#endif
+
+	        ++(*deviceCount);/*increment this variable if we've made it this far.*/
+	        /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
+	        if (!*handleList)
+	        {
+	            /*allocate the list and add this handle to it.*/
+	            *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
+	            if (!*handleList)
+	            {
+	                perror("error allocating memory for handle list\n");
+	                return 255;
+	            }
+	        }
+	        else
+	        {
+	            /*list already allocated, so reallocate and add this next handle to it.*/
+	            char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
+	            if (!temp)
+	            {
+	                perror("error reallocating memory for handle list\n");
+	                return 255;
+	            }
+	            *handleList = temp;
+	        }
+	        /*the list has been allocated, now put the handle we've received into the list*/
+	        /*start by allocating memory for the handle at the new list location*/
+	        size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
+	        (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
+	        if (!(*handleList)[(*deviceCount) - 1])
+	        {
+	            perror("error allocating memory for adding device handle to list\n");
+	            return 255;
+	        }
+	        /*copy the handle into memory*/
+	        snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+		}
     }
     return 0;
 }
@@ -4328,6 +4331,21 @@ void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
     }
 }
 
+void print_Zero_Verify_Help(bool shortHelp)
+{
+    printf("\t--%s [full | quick]\n", ZERO_VERIFY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to verify drive content, whether it's set to zero or not.\n");
+        printf("\t\tThis operation will read user accessible address and validate if content at\n");
+        printf("\t\tthat address is zero or not.\n");
+        printf("\t\tValidation modes:\n");
+        printf("\t\t  full - Complete drive will be scanned for verification.\n");
+        printf("\t\t  quick - 0.1%% of total capacity will be scanned for ID and OD validation along with\n");
+        printf("\t\t          2 random addresses from 10000 equal size sections each.\n\n");
+    }
+}
+
 void print_Partition_Info_Help(bool shortHelp)
 {
     printf("\t--%s\n", PARTITION_INFO_LONG_OPT_STRING);
@@ -4471,3 +4489,4 @@ void print_DCO_Disable_Features_Help(bool shortHelp)
         printf("\t\t      different system or add-in card to work around this.\n\n");
     }
 }
+
