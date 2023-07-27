@@ -134,15 +134,30 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     char currentTime[CURRENT_TIME_STRING_MAX_LENGTH] = { 0 };
     struct tm utilTime;
     memset(&utilTime, 0, sizeof(struct tm));
+#if defined (ENABLE_READ_USERNAME)
     if (SUCCESS != get_Current_User_Name(&userName))
     {
 #define UNKNOWN_USER_NAME_MAX_LENGTH 36
         userName = C_CAST(char*, calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
-        if(userName)
+        if (userName)
         {
             snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
     }
+#else //!ENABLE_READ_USERNAME
+    if (is_Running_Elevated())
+    {
+#if defined (_WIN32)
+        userName = strdup("admin");
+#else //!_WIN32
+        userName = strdup("root");
+#endif //_WIN32
+    }
+    else
+    {
+        userName = strdup("current user");
+    }
+#endif //ENABLE_READ_USERNAME
     //char g_timeString[64] = { 0 };
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
