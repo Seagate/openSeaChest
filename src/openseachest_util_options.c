@@ -519,7 +519,7 @@ void print_Erase_Time_Help(bool shortHelp)
 void print_Sanitize_Help(bool shortHelp, const char *utilName)
 {
     printf("\t--%s [info | blockerase | cryptoerase |\n", SANITIZE_LONG_OPT_STRING);
-    printf("\t            overwrite | freezelock | antifreezelock]\n");
+    printf("\t            overwrite | freezelock | antifreezelock] \t(Purge)\n");
     if (!shortHelp)
     {
         printf("\t\tUse the info argument to show supported sanitize operations.\n");
@@ -581,7 +581,7 @@ void print_Poll_Help(bool shortHelp)
 
 void print_Writesame_Help(bool shortHelp)
 {
-    printf("\t--%s [starting LBA]\n", WRITE_SAME_LONG_OPT_STRING);
+    printf("\t--%s [starting LBA]\t (Clear)\n", WRITE_SAME_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tEnter a starting lba to begin a write same on to erase a range\n");
@@ -1306,7 +1306,7 @@ void print_Butterfly_Read_Test_Help(bool shortHelp)
 
 void print_Overwrite_Help(bool shortHelp)
 {
-    printf("\t--%s [starting LBA]\n", OVERWRITE_LONG_OPT_STRING);
+    printf("\t--%s [starting LBA]\t(Clear)\n", OVERWRITE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to start an overwrite erase at\n");
@@ -1318,7 +1318,7 @@ void print_Overwrite_Help(bool shortHelp)
 
 void print_Overwrite_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [range in # of LBAs]\n", OVERWRITE_RANGE_LONG_OPT_STRING);
+    printf("\t--%s [range in # of LBAs]\t(Clear)\n", OVERWRITE_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse with the overwrite option (--%s) to\n", OVERWRITE_LONG_OPT_STRING);
@@ -2221,7 +2221,7 @@ void print_Perform_Quickest_Erase_Help(bool shortHelp)
 
 void print_Format_Unit_Help(bool shortHelp)
 {
-    printf("\t--%s [current | new sector size]    (SAS Only)\n", FORMAT_UNIT_LONG_OPT_STRING);
+    printf("\t--%s [current | new sector size]\t(SAS Only)\t(Clear)\n", FORMAT_UNIT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will start a format unit operation on a SAS drive\n");
@@ -3608,11 +3608,11 @@ void print_FWDL_Force_Win_Passthrough_Help(bool shortHelp)
 
 void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
 {
-    printf("\t--%s [normal | enhanced]\t\t(SATA only)\n", ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
+    printf("\t--%s [normal | enhanced]\t(SATA only)\t(Clear | Purge)\n", ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse \"normal\" to start a standard ATA security erase\n");
-        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase.\n\n");
+        printf("\t\tUse \"normal\" to start a standard ATA security erase (Clear)\n");
+        printf("\t\tor \"enhanced\" to start an enhanced ATA security erase (Purge).\n\n");
         printf("\t\tATA Security Erase takes a very long time to complete at\n");
         printf("\t\tapproximately three (3) hours per Tera-byte (HDD). Some Seagate\n");
         printf("\t\tSED models will perform a quick cryptographic erase in enhanced\n");
@@ -3977,7 +3977,11 @@ void print_NVM_Format_Help(bool shortHelp)
         printf("\t\tsupported by the drive.\n");
         printf("\t\tThis command will erase all data on the drive.\n");
         printf("\t\tCombine this option with--%s to poll\n", POLL_LONG_OPT_STRING);
-        printf("\t\tfor progress until the format is complete.\n\n");
+        printf("\t\tfor progress until the format is complete.\n");
+        printf("\t\tA data sanitization compliant with IEEE 2883 Clear requires the --%s\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+        printf("\t\toption to be provided. Without this option the controller\n");
+        printf("\t\tmay not erase all user data and substitute returning zeroes\n");
+        printf("\t\tfor performance instead.\n\n");
     }
 }
 
@@ -3999,17 +4003,18 @@ void print_NVM_Format_NSID_Help(bool shortHelp)
 
 void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
 {
-    printf("\t--%s [none | user | crypto]\t(NVMe Only)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t--%s [none | user | crypto]\t(NVMe Only)\t(None | Clear, Possible Purge)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is used to specify the type of erase to perform\n");
         printf("\t\tduring an NVM format operation. All user data will be inaccessible\n");
         printf("\t\tupon completion of an NVM format, no matter the erase requested.\n");
         printf("\t\tOptions:\n");
-        printf("\t\t  none - no secure erase requested (previous data will not be accessible)\n");
-        printf("\t\t  user - requests all user data is erased by the device.\n");
+        printf("\t\t  none - no secure erase requested (previous data will not be accessible,\n");
+        printf("\t\t         however the media may not have been erased by the controller.)\n");
+        printf("\t\t  user - requests all user data is erased by the device. (Clear, Possible Purge)\n");
         printf("\t\t  crypto - requests a cryptographic erase of all user data. Note: this mode\n");
-        printf("\t\t    is not supported on all devices.\n\n");
+        printf("\t\t    is not supported on all devices. (Clear, Possible Purge)\n\n");
     }
 }
 

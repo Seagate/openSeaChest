@@ -2961,6 +2961,21 @@ void utility_Usage(bool shortUsage)
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
     printf("=========================\n");
+    printf("Data sanitization capabilities:\n");
+    printf("\tClear - All user addressable sectors will be overwritten. It is strongly\n");
+    printf("\t        recommended that Max LBA is restored (HPA/AMAC/DCO) prior to using\n");
+    printf("\t        this erase in order to make sure all possible user addressable\n");
+    printf("\t        sectors will be erased.\n");
+    printf("\tClear, Possible Purge - This erase meets clear criteria and might meet purge criteria,\n");
+    printf("\t        but this requires documentation from the device vendor and this software\n");
+    printf("\t        cannot determine if purge capability can be met. Consult the device\n");
+    printf("\t        manual or vendor to determine if purge capabilities can be met.\n");
+    printf("\tPurge - All user addressable sectors, reallocated sectors, and currently\n");
+    printf("\t        unaddressable user sectors will be overwritten/erased/crypto erased\n");
+    printf("This utility does not support clear/purge verification yet. All labels are written\n");
+    printf("according to the expectation that the device firmware will meet these capabilities\n");
+    printf("as defined in the appropriate standards from T10, T13, SATA-IO, and NVMexpress\n");
+    printf("=========================\n");
     //multiple interfaces
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
