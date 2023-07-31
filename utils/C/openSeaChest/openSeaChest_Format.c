@@ -1439,6 +1439,11 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                        printf("      background operations in order to ensure full functionality and reliability.\n");
+                        printf("      This background activity may take a long time and will prevent the drive from\n");
+                        printf("      entering power saving modes like idle or standby until these operations have\n");
+                        printf("      completed. These operations may take a very long time to complete.\n");
                     }
                     break;
                 case NOT_SUPPORTED:
