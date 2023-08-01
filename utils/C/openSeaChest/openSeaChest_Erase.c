@@ -42,11 +42,12 @@
 #include "format.h"
 #include "platform_helper.h"
 #include "generic_tests.h"
+#include "set_max_lba.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.2.0";
+const char *buildVersion = "4.3.0";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -150,6 +151,7 @@ int32_t main(int argc, char *argv[])
 #endif
     HIDE_LBA_COUNTER_VAR
     LOWLEVEL_INFO_VAR
+    ERASE_RESTORE_MAX_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -219,6 +221,7 @@ int32_t main(int argc, char *argv[])
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
         ZERO_VERIFY_LONG_OPT,
+        ERASE_RESTORE_MAX_PREP_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1647,6 +1650,86 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (ERASE_RESTORE_MAX_PREP)
+        {
+            bool doNotContinueToErase = true;
+            switch (restore_Max_LBA_For_Erase(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                doNotContinueToErase = false;//successfully restored so continuing onwards to erase is fine.
+                fill_Drive_Info_Data(&deviceList[deviceIter]);//refresh stale data
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
+                    printf("Successfully restored maxLBA to highest possible user addressable LBA!\n");
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
+                    printf("Continuing to erase!\n");
+                }
+                break;
+            case DEVICE_ACCESS_DENIED:
+            case FROZEN:
+            case ABORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Drive aborted the command to restore max LBA. The device may already be at maxLBA,\n");
+                    printf("the restore command may have been blocked, the feature may be locked/frozen\n");
+                    printf("or some other unknown reason caused the abort.\n");
+                    printf("Try power cycling the drive/system and try again or try a different system\n");
+                    printf("or method of attaching the drive to run this command.\n");
+                    printf("When a feature is \"frozen\" the drive must be power cycled to clear this condition.\n");
+                    printf("Some systems will issue the freeze commands on boot which is why changing which system\n");
+                    printf("is used or how the drive is attached to the system can get around this issue.\n");
+                    printf("If the device supports the HPA security extension feature, then changes to HPA may be\n");
+                    printf("blocked by the password set by this feature. You must either unlock the HPA security\n");
+                    printf("feature, or power cycle the drive to remove the password and lock.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring maxLBA does not appear to be supported on this device.\n");
+                    printf("If you believe this is an error, try changing how the device is\n");
+                    printf("attached to the system (move from USB to SATA or from SAS HBA to\n");
+                    printf("the motherboard) and try again.\n");
+                    printf("If this does not work, try another system.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case FAILURE:
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore max LBA. The device may already be at maxLBA, the restore\n");
+                    printf("command may have been blocked, or some other unknown reason caused the failure.\n");
+                    printf("Try power cycling the drive/system and try again or try a different system\n");
+                    printf("or method of attaching the drive to run this command.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+            if (doNotContinueToErase)
+            {
+                //continue the loop to any additional drives since they may pass
+                continue;
+            }
+        }
+
 #ifdef DISABLE_TCG_SUPPORT
 
 #else
@@ -2943,6 +3026,7 @@ void utility_Usage(bool shortUsage)
     print_TCG_PSID_Help(shortUsage);
     #endif
     print_Time_Seconds_Help(shortUsage);
+    print_Erase_Restore_Max_Prep_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);

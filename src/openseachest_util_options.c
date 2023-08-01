@@ -4346,6 +4346,30 @@ void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
     }
 }
 
+void print_Erase_Restore_Max_Prep_Help(bool shortHelp)
+{
+    printf("\t--%s\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will attempt to restore the max LBA to the highest\n");
+        printf("\t\tuser addressable sector prior to beginning a drive erasure.\n");
+        printf("\t\tIf any failure is encountered while restoring the maxLBA, then\n");
+        printf("\t\tan error will be indicated and the erase will not be started or\n");
+        printf("\t\tattempted until other user intervention can be completed.\n");
+        printf("\t\tIf a feature is frozen, locked, or has already been used during\n");
+        printf("\t\tthe current power cycle, then these things can cause a failure.\n");
+        printf("\t\tThe solution is to power cycle the drive, but in some cases it may\n");
+        printf("\t\tbe necessary to try a different computer or adapter as commands may\n");
+        printf("\t\tbe blocked by the system or automatically issued by the BIOS to lock\n");
+        printf("\t\taccess to capacity changing commands.\n");
+        printf("\t\tThis option will handle the ATA HPA (Host Protected Area), AMAC (Accessible\n");
+        printf("\t\tMax Address Configuration), HPA Security Extension, and DCO (Device\n");
+        printf("\t\tConfiguration Overlay) features in accordance with the specifications.\n");
+        printf("\t\tIf the restore completes without error, then the erase will proceed\n");
+        printf("\t\tand additional errors will only be in relation to those erasure methods.\n\n");
+    }
+}
+
 void print_Zero_Verify_Help(bool shortHelp)
 {
     printf("\t--%s [full | quick]\n", ZERO_VERIFY_LONG_OPT_STRING);

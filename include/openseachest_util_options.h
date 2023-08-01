@@ -537,6 +537,12 @@ extern "C"
     #define ZERO_VERIFY_LONG_OPT_STRING "zeroVerify"
     #define ZERO_VERIFY_LONG_OPT { ZERO_VERIFY_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //before erasing a drive, restore the max LBA to make sure all user accessible spaces will be erased.
+    #define ERASE_RESTORE_MAX_PREP eraseRestoreMaxLBAPrep
+    #define ERASE_RESTORE_MAX_VAR getOptBool ERASE_RESTORE_MAX_PREP = goFalse;
+    #define ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING "eraseRestoreMaxPrep"
+    #define ERASE_RESTORE_MAX_PREP_LONG_OPT { ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING, no_argument, &ERASE_RESTORE_MAX_PREP, goTrue }
+
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
     #define GENERIC_TEST_MODE_VAR int genericTestMode = 0; //0 = read, 1 = write, 2 = verify
@@ -3483,6 +3489,9 @@ extern "C"
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
     void print_Zero_Verify_Help(bool shortHelp);
+
+    void print_Erase_Restore_Max_Prep_Help(bool shortHelp);
+
     void print_NVME_Health_Help(bool shortHelp);
 
     void print_Delay_CMD_Segment_Help(bool shortHelp);
