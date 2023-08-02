@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.3.0";
+const char *buildVersion = "4.3.1";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -1181,6 +1181,7 @@ int32_t main(int argc, char *argv[])
         || DISPLAY_LBA_FLAG
         || NVM_FORMAT_FLAG
         || ZERO_VERIFY_FLAG
+        || ERASE_RESTORE_MAX_PREP
         ))
     {
         utility_Usage(true);
@@ -2953,6 +2954,8 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 4096 --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 0\n", util_name, deviceHandleExample, ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING, OVERWRITE_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
