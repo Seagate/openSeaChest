@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.3.1";
+const char *buildVersion = "4.3.2";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -1664,7 +1664,14 @@ int32_t main(int argc, char *argv[])
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
                     char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
-                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    if (deviceList[deviceIter].drive_info.interface_type == USB_INTERFACE && deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
+                    }
+                    else
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    }
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
                     capacity_Unit_Convert(&capacity, &capUnit);
