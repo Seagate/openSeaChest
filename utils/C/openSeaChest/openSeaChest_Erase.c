@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.3.2";
+const char *buildVersion = "4.3.3";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -1677,7 +1677,14 @@ int32_t main(int argc, char *argv[])
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored maxLBA to highest possible user addressable LBA!\n");
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
-                    printf("Continuing to erase!\n");
+                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter]))
+                    {
+                        printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                        printf("         If using a drive managed erase, this will not be an issue since the\n");
+                        printf("         drive firmware will handle this change properly.\n");
+                        printf("         If performing a manual overwrite, such as --%s, then a power cycle\n", OVERWRITE_LONG_OPT_STRING);
+                        printf("         is strongly recommended to make sure all writes complete without error.\n");
+                    }
                 }
                 break;
             case DEVICE_ACCESS_DENIED:
