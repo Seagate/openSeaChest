@@ -1845,14 +1845,16 @@ int32_t main(int argc, char *argv[])
 
         if (ATA_DCO_RESTORE)
         {
+            bool scsiAtaInSync = false;
             switch (dco_Restore(&deviceList[deviceIter]))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully restored factory settings using DCO.\n");
-                    if (is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
+                    if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
