@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.4.3";
+const char *buildVersion = "2.4.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2102,17 +2102,19 @@ int32_t main(int argc, char *argv[])
                         dco.feat2.extendedPowerConditions = false;
                     }
                 }
+                bool scsiAtaInSync = false;
                 switch (dco_Set(&deviceList[deviceIter], &dco))
                 {
                 case SUCCESS:
                     if (ATA_DCO_SETMAXLBA)
                     {
+                        scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                         fill_Drive_Info_Data(&deviceList[deviceIter]);
                     }
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully configured available features/modes/maxLBA using DCO.\n");
-                        if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
+                        if (!scsiAtaInSync)
                         {
                             printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                             printf("         A reboot is strongly recommended to make sure the system works without\n");
@@ -2996,6 +2998,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_MAX_LBA_FLAG)
         {
+            bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Setting MaxLBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
@@ -3003,6 +3006,7 @@ int32_t main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -3022,7 +3026,7 @@ int32_t main(int argc, char *argv[])
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
-                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
+                    if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
@@ -3048,6 +3052,7 @@ int32_t main(int argc, char *argv[])
         }
         if (RESTORE_MAX_LBA_FLAG)
         {
+            bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Restoring max LBA\n");
@@ -3055,6 +3060,7 @@ int32_t main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], 0, true))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -3074,7 +3080,7 @@ int32_t main(int argc, char *argv[])
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored the max LBA\n");
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
-                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
+                    if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
