@@ -1852,7 +1852,7 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully restored factory settings using DCO.\n");
-                    if (is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter]))
+                    if (is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
@@ -2112,7 +2112,7 @@ int32_t main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully configured available features/modes/maxLBA using DCO.\n");
-                        if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter]))
+                        if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
                         {
                             printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                             printf("         A reboot is strongly recommended to make sure the system works without\n");
@@ -3009,7 +3009,7 @@ int32_t main(int argc, char *argv[])
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
                     char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
-                    if (deviceList[deviceIter].drive_info.interface_type == USB_INTERFACE && deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
                     }
@@ -3022,7 +3022,7 @@ int32_t main(int argc, char *argv[])
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
-                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter]))
+                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
@@ -3061,7 +3061,7 @@ int32_t main(int argc, char *argv[])
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
                     char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
-                    if (deviceList[deviceIter].drive_info.interface_type == USB_INTERFACE && deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
                     }
@@ -3074,7 +3074,7 @@ int32_t main(int argc, char *argv[])
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored the max LBA\n");
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
-                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter]))
+                    if (!is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false))
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
                         printf("         A reboot is strongly recommended to make sure the system works without\n");
