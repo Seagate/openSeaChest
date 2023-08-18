@@ -30,7 +30,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_GenericTests";
-const char *buildVersion = "2.2.1";
+const char *buildVersion = "2.2.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1284,16 +1284,17 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //timed test
-                uint64_t timeInSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+                uint64_t timeInSeconds = C_CAST(uint64_t, SECONDS_TIME_FLAG) + (C_CAST(uint64_t, MINUTES_TIME_FLAG) * UINT64_C(60)) + (C_CAST(uint64_t, HOURS_TIME_FLAG) * UINT64_C(3600));
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    uint8_t days = 0, hours = 0, minutes = 0, seconds = 0;
+                    uint16_t days = 0;
+                    uint8_t hours = 0, minutes = 0, seconds = 0;
                     convert_Seconds_To_Displayable_Time(timeInSeconds, NULL, &days, &hours, &minutes, &seconds);
-                    printf("Starting user generic timed test at LBA %"PRIu64" for", USER_GENERIC_START_FLAG);
+                    printf("Starting user generic timed test at LBA %" PRIu64 " for", USER_GENERIC_START_FLAG);
                     print_Time_To_Screen(NULL, &days, &hours, &minutes, &seconds);
                     printf("\n");
                 }
-                if(ERROR_LIMIT_LOGICAL_COUNT)
+                if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
