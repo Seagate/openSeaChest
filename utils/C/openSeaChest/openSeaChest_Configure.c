@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.4.4";
+const char *buildVersion = "2.4.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1904,6 +1904,7 @@ int32_t main(int argc, char *argv[])
         if (ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE || ATA_DCO_SETMAXLBA)
         {
             dcoData dco;
+            bool scsiAtaInSync = false;
             memset(&dco, 0, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
@@ -2104,7 +2105,6 @@ int32_t main(int argc, char *argv[])
                         dco.feat2.extendedPowerConditions = false;
                     }
                 }
-                bool scsiAtaInSync = false;
                 switch (dco_Set(&deviceList[deviceIter], &dco))
                 {
                 case SUCCESS:

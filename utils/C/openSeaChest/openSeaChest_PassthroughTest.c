@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.3.2";
+const char *buildVersion = "1.3.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -7128,7 +7128,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             set_Console_Colors(true, LIKELY_HACK_COLOR);
             printf("HACK FOUND: SPIO\n");
             set_Console_Colors(true, DEFAULT);
-            inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly;
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
         }
 
         //In next tests, need to make sure we actually get response information that makes sense.
