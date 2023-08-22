@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.4.1";
+const char *buildVersion = "2.4.5";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1845,12 +1845,21 @@ int32_t main(int argc, char *argv[])
 
         if (ATA_DCO_RESTORE)
         {
+            bool scsiAtaInSync = false;
             switch (dco_Restore(&deviceList[deviceIter]))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully restored factory settings using DCO.\n");
+                    if (!scsiAtaInSync)
+                    {
+                        printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                        printf("         A reboot is strongly recommended to make sure the system works without\n");
+                        printf("         errors with the drive at its new capacity.\n\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -1895,6 +1904,7 @@ int32_t main(int argc, char *argv[])
         if (ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE || ATA_DCO_SETMAXLBA)
         {
             dcoData dco;
+            bool scsiAtaInSync = false;
             memset(&dco, 0, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
@@ -2098,9 +2108,20 @@ int32_t main(int argc, char *argv[])
                 switch (dco_Set(&deviceList[deviceIter], &dco))
                 {
                 case SUCCESS:
+                    if (ATA_DCO_SETMAXLBA)
+                    {
+                        scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
+                        fill_Drive_Info_Data(&deviceList[deviceIter]);
+                    }
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Successfully configured available features/modes/maxLBA using DCO.\n");
+                        if (!scsiAtaInSync)
+                        {
+                            printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                            printf("         A reboot is strongly recommended to make sure the system works without\n");
+                            printf("         errors with the drive at its new capacity.\n\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -2979,6 +3000,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_MAX_LBA_FLAG)
         {
+            bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Setting MaxLBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
@@ -2986,18 +3008,32 @@ int32_t main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
                     char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
-                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    if (deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
+                    }
+                    else
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    }
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
+                    if (!scsiAtaInSync)
+                    {
+                        printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                        printf("         A reboot is strongly recommended to make sure the system works without\n");
+                        printf("         errors with the drive at its new capacity.\n\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -3018,6 +3054,7 @@ int32_t main(int argc, char *argv[])
         }
         if (RESTORE_MAX_LBA_FLAG)
         {
+            bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Restoring max LBA\n");
@@ -3025,17 +3062,32 @@ int32_t main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], 0, true))
             {
             case SUCCESS:
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
                     char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
-                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    if (deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
+                    }
+                    else
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    }
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
                     capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored the max LBA\n");
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
+                    if (!scsiAtaInSync)
+                    {
+                        printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                        printf("         A reboot is strongly recommended to make sure the system works without\n");
+                        printf("         errors with the drive at its new capacity.\n\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:

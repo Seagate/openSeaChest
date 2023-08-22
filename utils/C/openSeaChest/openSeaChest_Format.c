@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.0.1";
+const char *buildVersion = "3.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1428,19 +1428,6 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Set Sector Size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
-                    printf("\nWARNING: It is not recommended to do this on USB enclosures as not\n");
-                    printf("         all USB adapters can handle a 4k sector size.\n");
-                    printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
-                    printf("         it may cause the drive to become unusable. Stop all possible background\n");
-                    printf("         activity that would attempt to communicate with the device while this\n");
-                    printf("         operation is in progress\n");
-                    printf("Press CTRL-C to cancel this operation before the timer runs out.\n");
-                    for (uint8_t timer = UINT8_C(30); timer > 0; --timer)
-                    {
-                        printf("\r %2" PRIu8, timer);
-                        delay_Seconds(UINT32_C(1));
-                    }
-                    printf("\r  0\n");
                 }
                 switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
                 {
@@ -1452,6 +1439,11 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                        printf("      background operations in order to ensure full functionality and reliability.\n");
+                        printf("      This background activity may take a long time and will prevent the drive from\n");
+                        printf("      entering power saving modes like idle or standby until these operations have\n");
+                        printf("      completed. These operations may take a very long time to complete.\n");
                     }
                     break;
                 case NOT_SUPPORTED:
