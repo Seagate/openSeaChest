@@ -4003,7 +4003,7 @@ void print_NVM_Format_NSID_Help(bool shortHelp)
 
 void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
 {
-    printf("\t--%s [none | user | crypto]\t(NVMe Only)\t(None | Clear, Possible Purge)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t--%s [none | user | crypto]\t(NVMe Only)\t(None | Clear | Clear, Possible Purge)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is used to specify the type of erase to perform\n");
@@ -4012,7 +4012,7 @@ void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
         printf("\t\tOptions:\n");
         printf("\t\t  none - no secure erase requested (previous data will not be accessible,\n");
         printf("\t\t         however the media may not have been erased by the controller.)\n");
-        printf("\t\t  user - requests all user data is erased by the device. (Clear, Possible Purge)\n");
+        printf("\t\t  user - requests all user data is erased by the device. (Clear)\n");
         printf("\t\t  crypto - requests a cryptographic erase of all user data. Note: this mode\n");
         printf("\t\t    is not supported on all devices. (Clear, Possible Purge)\n\n");
     }

@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.3.4";
+const char *buildVersion = "4.3.5";
 
 typedef enum _eSeaChestEraseExitCodes
 {
