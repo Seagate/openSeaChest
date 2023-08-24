@@ -619,11 +619,13 @@ void print_Writesame_Range_Help(bool shortHelp)
 
 void print_Revert_Help(bool shortHelp)
 {
-    printf("\t--%s\n", TCG_REVERT_LONG_OPT_STRING);
+    printf("\t--%s\t(Purge)\n", TCG_REVERT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis operation performs an Opal SSC spec Revert on the adminSP.\n");
         printf("\t\tThis operation is only available on Seagate TCG Opal drives.\n");
+        printf("\t\tRevert meets data sanitization purge capabilities to erase data\n");
+        printf("\t\tfor Opal, Opalite, and Ruby SSCs\n");
         printf("\t\tThe --%s flag can be provided to perform the revert with\n", TCG_PSID_LONG_OPT_STRING);
         printf("\t\tthe PSID authority in case of a lost password.\n");
         printf("\t\tThe --%s flag can be provided to perform the revert with SID.\n", TCG_SID_LONG_OPT_STRING);
@@ -641,11 +643,15 @@ void print_Revert_Help(bool shortHelp)
 
 void print_RevertSP_Help(bool shortHelp)
 {
-    printf("\t--%s\n", TCG_REVERT_SP_LONG_OPT_STRING);
+    printf("\t--%s\t(Purge)\n", TCG_REVERT_SP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis operation performs a revertSP on a Seagate SED drive\n");
         printf("\t\tin the adminSP with the PSID.\n");
+        printf("\t\tRevertSP meets data sanitization purge capabilities to erase data\n");
+        printf("\t\tfor Opal, Opalite, and Ruby SSCs\n");
+        printf("\t\tRevertSP also meets data sanitization purge capabilities to erase data\n");
+        printf("\t\ton Seagate TCG Enterprise SSC HDDs\n");
         printf("\t\tThe PSID must be provided using the --%s option.\n", TCG_PSID_LONG_OPT_STRING);
         printf("\t\tThis operation is available on all Seagate SED HDD drives and some SSDs.\n");
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
