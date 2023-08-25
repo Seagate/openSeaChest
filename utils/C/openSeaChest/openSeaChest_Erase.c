@@ -1345,6 +1345,11 @@ int32_t main(int argc, char *argv[])
         printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
         printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
         printf("operations running in parallel without issuing a device reset.\n");
+        printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
+        printf("configurable. It is recommended that a format change is done from a live/bootable\n");
+        printf("environment to reduce the risk of these interuptions. If the OS is unable to complete\n");
+        printf("certain commands for it's background polling of the device, it may trigger a device\n");
+        printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
         printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
         printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
@@ -1362,7 +1367,10 @@ int32_t main(int argc, char *argv[])
         printf("\t\t         all USB adapters can handle a 4k sector size.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n");
+        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
         //count down timer must go here
@@ -2343,7 +2351,10 @@ int32_t main(int argc, char *argv[])
                         printf("\t\t         with multiple logical units or namespaces.\n");
                         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        printf("\t\t         and may prevent completion of a sector size change.\n");
+                        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else

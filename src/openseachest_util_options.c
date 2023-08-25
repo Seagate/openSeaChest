@@ -2291,7 +2291,10 @@ void print_Fast_Format_Help(bool shortHelp)
         printf("\t\t         with multiple logical units or namespaces.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n");
+        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
@@ -2462,7 +2465,10 @@ void print_Set_Sector_Size_Help(bool shortHelp)
         printf("\t\t         all USB adapters can handle a 4k sector size.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n");
+        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
     }
 }
