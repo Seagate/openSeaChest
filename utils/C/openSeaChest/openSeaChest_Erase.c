@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.3.5";
+const char *buildVersion = "4.3.6";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -3074,6 +3074,27 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
+    printf("=========================\n");
+    printf("Data sanitization capabilities:\n");
+    printf("\tRecommendation - Restore the MaxLBA of the device prior to any erase in\n");
+    printf("\t                 order to allow the drive to erase all user addressable\n");
+    printf("\t                 sectors. For ATA devices this means restoring \n");
+    printf("\t                 HPA + DCO / AMAC to restore the maxLBA.\n");
+    printf("\t                 Restoring the MaxLBA also allows full verification of\n");
+    printf("\t                 all user addressable space on the device without a\n");
+    printf("\t                 limitation from a lower maxLBA.\n");
+    printf("\tClear - Logical techniques are applied to all addressable storage\n");
+    printf("\t        locations, protecting against simple, non-invasive data\n");
+    printf("\t        recovery techniques.\n");
+    printf("\tClear, Possible Purge - Cryptographic erase is a purge if the vendor\n");
+    printf("\t        implementation meets the requirements in IEEE 2883-2022.\n");
+    printf("\tPurge - Logical techniques that target user data, overprovisioning,\n");
+    printf("\t        unused space, and bad blocks rendering data recovery infeasible\n");
+    printf("\t        even with state-of-the-art laboratory techniques.\n");
+    printf("This utility does not support clear/purge verification yet. All labels are\n");
+    printf("written according to the expectation that the device firmware will meet\n");
+    printf("these capabilities as defined in the appropriate standards from T10, T13,\n");
+    printf("SATA - IO, and NVMexpress.\n");
     printf("=========================\n");
     //multiple interfaces
     print_Overwrite_Help(shortUsage);
