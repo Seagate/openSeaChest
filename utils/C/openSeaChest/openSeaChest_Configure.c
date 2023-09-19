@@ -2732,6 +2732,41 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO || SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO)
+        {
+            uint32_t minRcvTimeLmtMilliseconds = 0;
+            switch (sct_Get_Min_Recovery_Time_Limit(&deviceList[deviceIter], &minRcvTimeLmtMilliseconds))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (minRcvTimeLmtMilliseconds > 0)
+                    {
+                        printf("SCT error recovery control timer minimum supported value is %" PRIu32 "ms\n", minRcvTimeLmtMilliseconds);
+                    }
+                    else
+                    {
+                        printf("SCT error recovery control timer minimum supported value is not reported\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SCT error recovery control is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get SCT error recovery command timer minimum supported value!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO)
         {
             uint32_t timerValueMilliseconds = 0;
