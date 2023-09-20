@@ -503,6 +503,10 @@ int32_t main(int argc, char *argv[])
                 {
                     SCT_ERROR_RECOVERY_CONTROL_READ_INFO = true;
                 }
+                else if (strcmp(optarg, "default") == 0)
+                {
+                    SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT = true;
+                }
                 else
                 {
                     uint32_t multiplier = 100;//100 millisecond conversion
@@ -532,6 +536,10 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "info") == 0)
                 {
                     SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO = true;
+                }
+                else if (strcmp(optarg, "default") == 0)
+                {
+                    SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT = true;
                 }
                 else
                 {
@@ -1484,6 +1492,8 @@ int32_t main(int argc, char *argv[])
         || SCT_ERROR_RECOVERY_CONTROL_READ_INFO
         || SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER
         || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER
+        || SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT
+        || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT
         || FREE_FALL_FLAG
         || FREE_FALL_INFO
         || SCSI_MP_RESET_OP
@@ -2678,9 +2688,63 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT)
+        {
+            switch (sct_Restore_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restore SCT error recovery read command timer to default!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring SCT error recovery read command timer to default is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore SCT error recovery read command timer to default!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT)
+        {
+            switch (sct_Restore_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restore SCT error recovery write command timer to default!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring SCT error recovery write command timer to default is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore SCT error recovery write command timer to default!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER)
         {
-            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
+            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE, VOLATILE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2703,11 +2767,18 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
+            if (VOLATILE_FLAG == false && exitCode != UTIL_EXIT_NO_ERROR)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Please think of using --%s flag as workaround\n", VOLATILE_LONG_OPT_STRING);
+                }
+            }
         }
 
         if (SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER)
         {
-            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE))
+            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE, VOLATILE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2729,6 +2800,13 @@ int32_t main(int argc, char *argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            }
+            if (VOLATILE_FLAG == false && exitCode != UTIL_EXIT_NO_ERROR)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Please think of using --%s flag as workaround\n", VOLATILE_LONG_OPT_STRING);
+                }
             }
         }
 
@@ -2770,12 +2848,12 @@ int32_t main(int argc, char *argv[])
         if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO)
         {
             uint32_t timerValueMilliseconds = 0;
-            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds))
+            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds, true))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCT error recovery control read timer is set to %" PRIu32 "ms\n", timerValueMilliseconds);
+                    printf("SCT error recovery control read timer is %" PRIu32 "ms (volatile)\n", timerValueMilliseconds);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2788,22 +2866,48 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get SCT error recovery read command timer!\n");
+                    printf("Failed to get SCT error recovery read command timer (volatile)!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            }
+            if (exitCode == UTIL_EXIT_NO_ERROR)
+            {
+                switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds, false))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control read timer is %" PRIu32 "ms (non-volatile)\n", timerValueMilliseconds);
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get SCT error recovery read command timer (non-volatile)!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
         }
 
         if (SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO)
         {
             uint32_t timerValueMilliseconds = 0;
-            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds))
+            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds, true))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCT error recovery control write timer is set to %" PRIu32 "ms\n", timerValueMilliseconds);
+                    printf("SCT error recovery control write timer is %" PRIu32 "ms (volatile)\n", timerValueMilliseconds);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2816,10 +2920,36 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get SCT error recovery write command timer!\n");
+                    printf("Failed to get SCT error recovery write command timer (volatile)!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            }
+            if (exitCode == UTIL_EXIT_NO_ERROR)
+            {
+                switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds, false))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control write timer is %" PRIu32 "ms (non-volatile)\n", timerValueMilliseconds);
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get SCT error recovery write command timer (non-volatile)!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
         }
 
@@ -3812,7 +3942,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
     printf("\t%s -d %s --%s on\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5s\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING, VOLATILE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s all --%s 06h\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s cumulative --%s 02h --%s\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING, VOLATILE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 0Ah\n", util_name, deviceHandleExample, SCSI_SHOW_MP_LONG_OPT_STRING);
