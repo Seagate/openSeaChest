@@ -1,0 +1,73 @@
+Welcome to Seagate's openSeaChest_Erase diagnostic software.
+
+openSeaChest_Erase is a comprehensive command line tool that can be used to
+efficiently erase data on Seagate disk drives (this includes Seagate, Maxtor,
+Samsung and LaCie).
+
+NOTE: openSeaChest_Erase may not be fully functional on non-Seagate drives.
+
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
+
+This User Guide file contains important information about openSeaChest_Erase.
+Please read this entire file before using this software.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+If this is not your drive and the original owner has no claim of ownership to
+it or the data stored on it, then you may still be responsible for the data in
+your possession.   To protect yourself from potential liability and to protect
+the previous owner's privacy, you should remove all data by performing a data
+erasure on this drive.
+
+Be very careful because using openSeaChest_Erase will cause data loss. Seagate is
+not responsible for lost user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+NOTE: Windows 8, Windows Server 2012 and newer do not support the Sanitize
+command set.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Erase [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Erase --scan
+        sudo openSeaChest_Erase -d /dev/sg2 -i
+        sudo openSeaChest_Erase --device /dev/sg1 --sanitize info
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Erase [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Erase --scan
+        openSeaChest_Erase -d PD2 -i
+        openSeaChest_Erase --device PD1 --sanitize info
+

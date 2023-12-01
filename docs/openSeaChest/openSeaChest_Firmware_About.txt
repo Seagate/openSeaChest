@@ -1,0 +1,55 @@
+Welcome to Seagate's openSeaChest_Firmware diagnostic software.
+
+openSeaChest_Firmware is a comprehensive command line tool that can be used to
+update firmware, also known as microcode, on Seagate disk drives (this includes
+Seagate, Maxtor, Samsung and LaCie).
+
+Seagate products are run by firmware.  Having the latest firmware can improve
+performance and or reliability of your product.  Seagate recommends applying
+new firmware to enhance the performance and or reliability of your drive.  Like
+any software, firmware is improved over time and problems are also fixed.Ã‚Â 
+Every drive family has a couple of firmware releases during the life of the
+product.Ã‚Â  Please check in regularly to determine if new firmware is available
+for your drive.
+
+openSeaChest_Firmware allows for both single drive and sequential batch mode
+firmware download.
+
+NOTE: Windows severely restricts downloading firmware to SATA drives.  Please
+see the section below "Windows Restrictions Over SATA Firmware Downloads".
+openSeaChest_Firmware may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about openSeaChest_Firmware.
+Please read this entire file before using this software.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+Be very careful using openSeaChest_Firmware. Power failure during a firmware
+download will cause data loss. Never apply firmware to a drive unless you are
+certain that the firmware data file is specifically prepared for your drive.
+Seagate is not responsible for lost user data.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Firmware [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Firmware --scan
+        sudo openSeaChest_Firmware -d /dev/sg2 -i
+        sudo openSeaChest_Firmware -d /dev/sg2 --fwdlInfo
+        sudo openSeaChest_Firmware -d /dev/sg2 --downloadFW fwfilename
+        sudo openSeaChest_Firmware -d /dev/sg2 --fwdlConfig configfile.cfs
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Firmware [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Firmware --scan
+        openSeaChest_Firmware -d PD2 -i
+        openSeaChest_Firmware -d PD2 --fwdlInfo
+        openSeaChest_Firmware -d PD2 --fwdlConfig configfile.cfs
+

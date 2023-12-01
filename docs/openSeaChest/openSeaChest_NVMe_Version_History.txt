@@ -1,0 +1,97 @@
+===============
+Version History - openSeaChest_NVMe
+===============
+v0.0.2  14-Jul-2016  1_10_1 libraries.  openSeaChest_NVMe initial beta test
+                     release.  Branched from SeaChest_Basics v2.1.0.
+v0.0.3  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v1.0.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section,  --deviceInfo now gives Low Current Spinup
+                     status. Adds  --firmwareSlot/--fwBufferID, adds
+                     --fwdlSegSize, adds --getTelemetry,  adds
+                     --telemetryDataArea, adds showSupportedFormats, removes
+                     --formatUnit. Adds several new commands in support of NVMe
+                     format: --nvmFormat, --nvmFmtSecErase, --nvmFmtMS,
+                     --nvmFmtNSID, --nvmFmtPI, --nvmFmtPIL, --nvmFmtMetadataSet.
+v1.0.0  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     updated software SAT translator to use dataset management
+                     XL command, fixes for issuing vendor unique commands under
+                     Windows, improved fast format support detection, and
+                     refactored verbose output for NVMe commands.
+v1.1.0  21-Nov-2019  1_20_5 libraries. Added new exit code 9 = Need Elevated
+                     Privileges; sudo or run as administrator now required for
+                     all SeaChest and related tools. Rename --getLogPage to
+                     --getNvmeLogPage.
+v1.1.0  19-Feb-2020  1_21_30 libraries add printing the USB VID/PID in the
+                     device info; fix to sg helper to support large systems;
+                     many changes in support of dual actuators (example:
+                     warning that EPC settings affect multiple LUNs); overhaul
+                     to USB device detection and support, incorporating a new
+                     USB hacks and workarounds approach which uses a lookup
+                     table listing various USB bridge VIDs/PIDs and their
+                     specific issues; separate Seagate SAS SN and PCBA SN.
+v1.1.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
+v2.0.0  20-Nov-2020  Changed how scan-flags are parsed. CSMI rewrite and initial
+                     Intel RST NVMe support added. Numerous code quality improvements
+                     which fixed many potential bugs and memory leaks. Improved
+                     support for openfabrics NVMe drivers. Changed permissions
+                     detection to show warnings rather than errors. Removed obsolete
+                     CSMI and SAT 12B CDB options. CSMI handles now show as csmi:?:?:?
+                     Fixed a bug in generic NVMe log pull commands.
+v2.0.0  12-Feb-2021  opensea-transport code pulled in compatiblity fixes for Intel RST
+                     NVMe devices in configurations that are not RAID, but show up
+                     as RAID in the low-level OS code.
+v2.0.0  16-Jun-2021  Pulled in updates to opensea-libs which includes the following:
+                     Minor USB compatibility improvements and more products added
+                     to the list with their specific workarounds.
+                     Updated NVMe compatibility for FreeBSD 11.
+                     Support for detection and showing of concurrent positioning 
+                     (new multi-actuator support from the standards).
+v2.2.2  28-Feb-2023  Includes new --noBanner option and new fast discovery option
+                     that can be used in situations where super critical performance
+                     is required at a loss of information about a drive's capabilities.
+                     Help now has many more examples of the options in the tool.
+                     Fixed a few bugs in scan and device discovery that could cause
+                     a crash or the tool to list no devices found.
+                     Added option to dump low-level info to assist with debugging.
+                     Added date of manufacture info to the -i output when available.
+                     Fixed some big endian compatibility issues discovered on AIX.
+                     Automatic firmware update mode implemented for a better user 
+                     experience. This will do deferred download + activate for the best
+                     experience if a product supports this option, otherwise it will
+                     use segmented download. Also includes some options to override 
+                     the default nvme firmware update behavior as needed in special
+                     circumstances.
+                     Added --logLength option to specify an expected number of bytes
+                     when reading an NVMe log since it is not possible to determine
+                     this for all logs, especially vendor unique log pages.
+v2.2.2  27-Mar-2023  opensea-transport updated to fix CSMI scan duplicating devices 
+                     found in certain scenarios.
+v2.3.0  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
+                     Improved support for reading more NVMe feature info.
+                     Added interpretted output for host memory buffer feature.
+                     Fixed a bug pulling the Telemetry log.
+                     Stopped reading /etc/passwd file to show username in banner.
+                     Banner will now show either "admin"/"root" or "current user".
+                     Improved parsing of linux distro/release information from
+                     /etc/os-release file.
+                     Fixed a bug in byte swap string used to get ATA MN, SN, FW.
+                     Fixed a bug in getting/reporting power on hours as years, 
+                     days, hours, etc where days was being truncated.
+                     Fixed error reading NVMe features in Windows for drive info.
+                     Fixed SAS Date of manufacture in drive info.
+                     Added detection of HPA security feature.
+                     Added more SMART attributes definitions for Seagate HDDs & SSDs,
+                     and more definitions for Maxtor HDDs.
+                     Improved temperature detection from older HDDs with only
+                     SMART attribute 194 reporting current temperature.
+                     Added separate warning for SMART attributes below threshold that
+                     are not considered prefail/warranty attributes (aka failures).
+                     Fixed output of Seagate Airflow temperature SMART attribute.
+                     Added showing new capacity after changing Max LBA.
+                     Fixed possible segmentation fault when reading /etc/mtab in Linux.
+                     Workaround for some SAS drives on some HBAs reporting incorrect
+                     response to SAT A1h CDB.
+                     Fixed a bug in FreeBSD causing non-data ATA commands to report
+                     all zeroes instead of expected output in RTFRs.

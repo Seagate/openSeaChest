@@ -1,0 +1,74 @@
+Welcome to Seagate's openSeaChest_Format diagnostic software.
+
+Storage products which utilize the SAS, SCSI or Fibre Channel interfaces are
+able to perform a full low-level media format in the field.  These three
+storage interfaces use, in generic terms, the SCSI command set.  Unlike SATA,
+which is low-level formatted only at the factory, SCSI command devices are able
+to rescan the surface of the media while managing defective sectors (if any)
+and even change the drive sector size.  The SCSI Format Unit command offers
+many specialty options to accommodate a variety of conditions and to fine tune
+the procedure.
+
+Some RAID adapters, for example, use 520 byte sectors rather than the common
+512 size.  Because of this ability to change to a new sector size (also called
+block size), the resulting number of total sectors (Logical Block Addresses or
+LBAs) on a drive can vary and the actual final count is determined at the end
+of the format.  In simple terms, if the new sector size is twice a large as the
+previous format then the new count of sectors is half of what it was.
+
+The SCSI Format Unit command is a drive background command which means that
+once the command is accepted by the drive it then goes offline to manage the
+task with no overhead impact to the host system.  The drive will report
+formatting progress in 1% increments.
+
+Important note: Once a Format Unit command has begun on a device then it must
+be allowed to complete to be usable again.  If the format is interrupted then
+it will subsequently report a  corrupted format with Sense Key "03-31".  The
+only way to clear a corrupted format error is to start again and allow it to
+finish.
+
+        03h - Medium error. The command was terminated with a non-recoverable
+        error condition, probably caused by a flaw in the media or an error in
+        the recorded data.
+        31h - The media format is corrupted.
+
+Please see the section below "About the SCSI Format Unit Command" for
+additional information.
+
+NOTE: openSeaChest_Format may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about SeaChest_FormatUnit.
+Please read this entire file before using this software.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+If this is not your drive and the original owner has no claim of ownership to
+it or the data stored on it, then you may still be responsible for the data in
+your possession.   To protect yourself from potential liability and to protect
+the previous owner's privacy, you should remove all data by performing a data
+erasure on this drive.
+
+Be very careful because using openSeaChest_Format will cause data loss. Seagate
+is not responsible for lost user data.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Format [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Format --scan
+        sudo openSeaChest_Format -d /dev/sg2 -i
+        sudo openSeaChest_Format --device /dev/sg1 --showSupportedFormats
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Format [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Format --scan
+        openSeaChest_Format -d PD2 -i
+        openSeaChest_Format --device PD1 --showSupportedFormats
+

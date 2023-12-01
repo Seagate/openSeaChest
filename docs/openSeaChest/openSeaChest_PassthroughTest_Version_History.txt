@@ -1,0 +1,18 @@
+============================
+Version History - openSeaChest_PassthroughTest
+============================
+v0.0.1  07-Nov-2019  1_20_6 libraries.
+v0.1.0  26-Nov-2019  1_20_8 libraries
+v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
+v0.2.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.

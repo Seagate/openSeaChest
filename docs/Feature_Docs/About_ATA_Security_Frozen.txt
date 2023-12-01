@@ -1,0 +1,22 @@
+When drives are reported Security "Frozen" by SeaChest
+------------------------------------------------------
+Note:  Your system or the SeaChest software may report that a SATA password
+cannot be changed because it is "frozen". Many systems BIOS will automatically
+set the ATA SECURITY FREEZE LOCK command on all SATA drives at start up. The
+SECURITY FREEZE LOCK command prevents changes to all Security states until a
+following power-on reset or hardware reset. The purpose of the SECURITY FREEZE
+LOCK command is to prevent password setting attacks on the security system.
+
+The SeaChest --deviceInfo command will display something similar to this: "ATA
+Security Information: Supported, Frozen". To disable Freeze Lock, first check
+your BIOS SATA disk options to control the setting at start up. Otherwise, you
+might pause the boot up shortly after powering on the system and then
+temporarily remove the power to the security frozen drive (let it completely
+spin down). When the power is back on the drive it will start without being
+frozen.
+
+Windows systems may also decide not to recognize the drive if it is ATA
+Security Locked and it will not be listed by the SeaChest --scan command.  If
+the drive remains undetected in Windows, your alternative is to make a bootable
+USB flash drive and run SeaChest_Erase from the Linux operating system.
+
