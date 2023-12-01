@@ -10,6 +10,7 @@ option('tools', type : 'array', choices : [
   'NVMe',
   'PassthroughTest',
   'PowerControl',
+  'Reservations',
   'Security',
   'SMART',
   'ZBD'
