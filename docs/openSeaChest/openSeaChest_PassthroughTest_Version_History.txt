@@ -16,3 +16,27 @@ v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
                      Seagate SAS SN and PCBA SN.
 v0.2.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
                      command.
+v1.3.3  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
+                     Stopped reading /etc/passwd file to show username in banner.
+                     Banner will now show either "admin"/"root" or "current user".
+                     Improved parsing of linux distro/release information from
+                     /etc/os-release file.
+                     Fixed a bug in byte swap string used to get ATA MN, SN, FW.
+                     Fixed a bug in getting/reporting power on hours as years, 
+                     days, hours, etc where days was being truncated.
+                     Fixed error reading NVMe features in Windows for drive info.
+                     Fixed SAS Date of manufacture in drive info.
+                     Added detection of HPA security feature.
+                     Added more SMART attributes definitions for Seagate HDDs & SSDs,
+                     and more definitions for Maxtor HDDs.
+                     Improved temperature detection from older HDDs with only
+                     SMART attribute 194 reporting current temperature.
+                     Added separate warning for SMART attributes below threshold that
+                     are not considered prefail/warranty attributes (aka failures).
+                     Fixed output of Seagate Airflow temperature SMART attribute.
+                     Added showing new capacity after changing Max LBA.
+                     Fixed possible segmentation fault when reading /etc/mtab in Linux.
+                     Workaround for some SAS drives on some HBAs reporting incorrect
+                     response to SAT A1h CDB.
+                     Fixed a bug in FreeBSD causing non-data ATA commands to report
+                     all zeroes instead of expected output in RTFRs.

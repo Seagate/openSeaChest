@@ -1,24 +1,8 @@
 Welcome to Seagate's openSeaChest Logs diagnostic software.
 
-openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
-helps you quickly determine the health and status of your storage product. It
-includes several tests that will examine the physical media on your storage
-device.
-
-Many tests and commands are completely data safe, while others will change the
-drive (like firmware download or data erasure or setting the maximum capacity,
-etc).  Be careful using openSeaChest because some of the features, like the
-data erasure options, will cause data loss.   Some commands, like setting the
-maximum LBA, may cause existing data on the drive to become inaccessible.  Some
-commands, like disabling the read look ahead buffer, may affect the performance
-of the drive.  Seagate is not responsible for lost user data.
-
-openSeaChest diagnostics are command line utilities which are available for
-expert users.  These command line tools assume the user is knowledgeable about
-running software from the operating system command prompt. CLI tools are in the
-English language only and use "command line arguments" to define the various
-tasks and specific devices.  openSeaChest diagnostics are available for both
-Linux and Windows environments.
+openSeaChest_Logs is a comprehensive command line tool that can be used to
+extract device logs on Seagate disk drives (this includes Seagate, Maxtor,
+Samsung and LaCie).  
 
 Several binary logs are maintained on Seagate disk drives.  These logs are not
 stored in the user data area. Sometimes these logs are reviewed by Seagate
