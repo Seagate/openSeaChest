@@ -182,8 +182,6 @@ v3.4.0  27-Mar-2023  opensea-operations library updated to add automatic retry t
 v4.0.0  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      Fixed compatibility issue with PMC 8070 by using segmented
                      download instead of deferred download by default.
-                     New config file that uses json instead of old proprietary config
-                     file.
                      Stopped reading /etc/passwd file to show username in banner.
                      Banner will now show either "admin"/"root" or "current user".
                      Improved parsing of linux distro/release information from
