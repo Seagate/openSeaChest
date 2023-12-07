@@ -1,0 +1,72 @@
+Welcome to Seagate's openSeaChest Logs diagnostic software.
+
+openSeaChest_Logs is a comprehensive command line tool that can be used to
+extract device logs on Seagate disk drives (this includes Seagate, Maxtor,
+Samsung and LaCie).  
+
+Several binary logs are maintained on Seagate disk drives.  These logs are not
+stored in the user data area. Sometimes these logs are reviewed by Seagate
+engineers to help analyze event history on the device.  These binary data logs
+are saved to filenames using the drive's serial number and date-time.
+
+        Log Name:                                      Command Line Option:
+        Device Statistics Log                          --deviceStatisticsLog
+        Drive Self Test DST Log                        --selfTestLog
+        Field Accessible Reliability Metrics Log       --farm
+        Generic Standard (Host Specific) Logs          --pullLog [Log Number]
+        Identify Device Data Log                       --identifyDataLog
+        SATA Phy Event Counters Log                    --SATAPhyCntLog
+        SCSI Informational Exceptions Log              --infoExceptionsLog
+
+Seagate does not support unsolicited log retrieval review requests.
+
+This User Guide file contains important information about openSeaChest
+Logs.  Please read this entire file before using this software.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+NOTE: openSeaChest_Logs may not be fully functional on non-Seagate
+drives.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Logs [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Logs --scan
+        sudo openSeaChest_Logs -d /dev/sg2 -i
+        sudo openSeaChest_Logs -d /dev/sg1 --farm --outputPath logs
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Logs [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Logs --scan
+        openSeaChest_Logs -d PD0 -i
+        openSeaChest_Logs -d PD1 --farm --outputPath logs
+

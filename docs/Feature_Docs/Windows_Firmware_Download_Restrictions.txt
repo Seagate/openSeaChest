@@ -1,0 +1,22 @@
+Windows Restrictions Over SATA Firmware Downloads
+-------------------------------------------------
+You should not attempt downloading firmware to a SATA disk drive in the Windows
+operating system unless the drive supports the 'deferred' mode.  You define the
+mode with the SeaChest command line option '--downloadMode deferred'.  If
+the drive does not support deferred mode then the command will be aborted.
+Windows may not be so restrictive on secondary, non-boot SATA drives or SATA
+drives attached to host bus adapters (HBAs, controllers, USB, etc).
+
+If you force a primary SATA boot drive to download firmware in Windows using a
+different --downloadMode setting, then the result will likely be a BSOD (blue
+screen of death) system crash.  This is because the legacy SATA firmware
+download modes require the drive to spin down and then back up and the
+momentary disappearance of the drive causes the operating system to crash.
+Windows is actually protecting the system when it thinks the drive has stopped
+responding (see wikis about Ring 0 Protection).
+
+The 'deferred' mode does not spin down the drive.  Instead, the drive waits for
+a future reboot of the system and self-activates the firmware at that time.
+Other operating systems may utilize the SeaChest --activateFW command to
+trigger the switch to the new firmware version.
+

@@ -1,0 +1,85 @@
+Welcome to Seagate's openSeaChest_GenericTests diagnostic software.
+
+One of the fundamental units of data on a storage device like a disk drive is
+the sector.  In the case of a hard disk drive, a sector is a physical section
+of a circular magnetized track accessed by read write heads over the rotating
+media.  The original hard drive sectors are 512 bytes each.  If you take the
+number or logical sectors on a disk drive and multiply it by 512 you get the
+total capacity of the drive in bytes.  Since the mid-1990's the term sector has
+been replaced by an acronym synonym LBA, which stands for Logical Block
+Address.  All drives start with LBA 0 and count up to the full capacity of the
+drive.
+
+In the example above, the physical sector size is 512 bytes and logical sector
+size is also 512 bytes.  Beginning around the year 2010 disk drives have been
+manufactured with a physical sector size of 4096 bytes but the disk drive
+delivers these bytes in 8 logical sectors of 512 bytes.  The operating system
+expects 512 and is not concerned about the actual physical size.  These drives
+are said to have 512 byte emulation.  Beginning in 2014, some enterprise drives
+are manufactured with 4096 byte for both physical and logical block sizes.
+
+openSeaChest_GenericTests reads LBA and reports errors when an LBA is unreadable.
+
+It may be possible to repair a problem when a generic read test fails due to
+failure to read a particular sector (LBA).  You might consider the
+--repairOnFly, --repairAtEnd or (SeaChest_SMART) -dstAndClean command line
+options.  See the sections below "Sector Repair Commands" and "Bad LBA (Sector)
+Found" for more information on this subject.
+
+NOTE: openSeaChest_GenericTests may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about openSeaChest.
+Please read this entire file before using this software.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your Seagate storage
+product. It includes several tests that will examine the physical media on your
+Seagate, Samsung or Maxtor disk drive.
+
+Tests and commands which are completely data safe will run on any disk drive.
+Tests and commands which change the drive (like firmware download or data
+erasure or setting the maximum capacity, etc) are limited to Seagate disk
+drives (this includes Seagate, Maxtor, Samsung and LaCie). Be careful using
+openSeaChest because some of the features, like the data erasure options, will
+cause data loss. Seagate is not responsible for lost user data.
+
+Inner and outer diameter tests refer to the physical beginning and ending
+sections of a hard disk drive with rotating magnetic media.  In the case of SSD
+devices, these tests refer to the logical beginning and ending sections of the
+solid state drive.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_GenericTests [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_GenericTests --scan
+        sudo openSeaChest_GenericTests -d /dev/sg2 -i
+        sudo openSeaChest_GenericTests -d /dev/sg1 --twoMinuteGeneric
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_GenericTests [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_GenericTests --scan
+        openSeaChest_GenericTests -d PD0 -i
+        openSeaChest_GenericTests -d PD1 --twoMinuteGeneric
+

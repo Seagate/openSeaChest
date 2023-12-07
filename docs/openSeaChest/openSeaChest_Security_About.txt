@@ -1,0 +1,59 @@
+Welcome to Seagate's openSeaChest_Security diagnostic software.
+
+openSeaChest_Security is a comprehensive command line tool that can be used to
+configure, change or set various properties on Seagate disk drives (this
+includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
+data on the drive to become inaccessible.  Some commands may affect the
+performance of the drive.
+
+References are made to TCG (Trusted Computing Group), a standards organization
+formed to promote open standards for hardware-enabled security technologies.
+You can read about TCG at http://www.trustedcomputinggroup.org/ and
+https://en.wikipedia.org/wiki/Trusted_Computing_Group.
+
+NOTE: openSeaChest_Security may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about openSeaChest_Security.
+Please read this entire file before using this software.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+Be very careful using openSeaChest_Security. Power failure during a configuration
+change may cause data loss. Seagate is not responsible for lost user data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Security [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Security --scan
+        sudo openSeaChest_Security -d /dev/sg2 -i
+        sudo openSeaChest_Security --device /dev/sg1 --tcgInfo
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Security [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Security --scan
+        openSeaChest_Security -d PD2 -i
+        openSeaChest_Security --device PD1 --tcgInfo
+
