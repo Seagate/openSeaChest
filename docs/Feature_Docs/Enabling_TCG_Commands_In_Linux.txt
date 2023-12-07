@@ -1,0 +1,71 @@
+==============================
+Enabling TCG Commands In Linux
+==============================
+Abstract
+--------
+The SeaChest_Erase --revert and --revertSP commands require specific support be
+enabled in the Linux kernel.  This document describes the process to enable
+support for sending ATA Trusted Trusted Computing Group (TCG) commands in
+Linux. The focus is on how to do this through Ubuntu Linux 14.04LTS, however,
+the process should apply to other Linux's as well although others may vary
+slightly.
+
+Modifying The GRUB Configuration File (Ubuntu example used)
+-----------------------------------------------------------
+In order to make the change to allow TCG commands persist across reboots, you
+must modify the kernel boot parameters. In Ubuntu, this is accomplished by
+modifying the GRUB 2 configuration file. This section references the Grub2
+configuration documentation from the Ubuntu Community:
+https://help.ubuntu.com/community/Grub2/Setup#Configuring_GRUB_2
+
+Follow these steps to perform this modification in Ubuntu (other Linux's may be
+similar).
+
+1. You must modify the file /etc/default/grub. You can do this by running "sudo
+gedit /etc/default/grub"
+
+2. Once this file is open in the editor of your choice, add
+"libata.allow_tpm=1" to the line  that begins with "GRUB_CMDLINE_LINUX_DEFAULT"
+(or which ever line in grub is the one you use to boot your kernel, but this is
+the default).
+
+3. Close your editor
+
+4. Run the command "sudo update-grub" to apply your changes to the grub boot
+configuration (the file modified in these steps is a config file for the config
+file).
+
+5. Restart your computer to make this active
+
+Temporarily Enabling TCG Commands In Linux
+------------------------------------------
+You can temporarily enable TCG commands without modifying the kernel boot
+parameters. This can be accomplished by modifying the libata parameters file.
+Below is a sample script that can be run to do this.
+
+Sample Script:
+
+cd /sys/module/libata/parameters
+sudo chmod 644 allow_tpm
+echo 1 | sudo dd of=./allow_tpm
+sudo chmod 444 allow_tpm
+
+Tiny Core - Enabling TCG Commands
+------------------------------------------
+Follow these steps to enable TCG commands on a Tiny Core bootable USB flash
+drive.
+
+1. Leave the USB flash drive in after you run the Windows-based USB boot maker
+tool.
+
+2. Using a (Windows) text editor go to USB:/boot/syslinux.cfg and in there, add
+libata.allow_tpm=1 on the append line with the other kernel boot parameters.
+
+3. Using a (Windows) text editor go to USB:/EFI/boot/refind.conf and add
+libata.allow_tpm=1 on the options line with the other kernel boot parameters
+
+Alternate method:
+If Linux is already booted and you only want to temporarily enable TCG
+commands, you can change the contents of
+/sys/module/libata/parameters/allow_tpm from "0" to a "1".
+

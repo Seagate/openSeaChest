@@ -41,11 +41,19 @@
 #include "drive_info.h"
 #include "format.h"
 #include "platform_helper.h"
+#include "generic_tests.h"
+#include "set_max_lba.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.1.0";
+const char *buildVersion = "4.3.6";
+
+typedef enum _eSeaChestEraseExitCodes
+{
+    SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE, //Zero validation failure    
+    SEACHEST_ERASE_EXIT_MAX_ERROR //don't acutally use this, just for memory allocation below
+}eSeaChestEraseExitCodes;
 
 ////////////////////////////
 //  functions to declare  //
@@ -136,19 +144,19 @@ int32_t main(int argc, char *argv[])
     HOURS_TIME_VAR
     MINUTES_TIME_VAR
     SECONDS_TIME_VAR
-
+    ZERO_VERIFY_VARS
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
     HIDE_LBA_COUNTER_VAR
     LOWLEVEL_INFO_VAR
+    ERASE_RESTORE_MAX_VAR
 
     int  args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -212,6 +220,8 @@ int32_t main(int argc, char *argv[])
         ATA_SECURITY_FORCE_SAT_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        ZERO_VERIFY_LONG_OPT,
+        ERASE_RESTORE_MAX_PREP_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -393,7 +403,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            #if !defined(DISABLE_TCG_SUPPORT)
+#if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
                 snprintf(TCG_SID_FLAG, TCG_SID_BUF_LEN, "%s", optarg);
@@ -402,7 +412,7 @@ int32_t main(int argc, char *argv[])
             {
                 snprintf(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
             }
-            #endif
+#endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
                 FORMAT_UNIT_FLAG = true;
@@ -635,7 +645,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "zeropad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -644,7 +654,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "spacepad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -653,7 +663,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "fpad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -662,7 +672,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "leftAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -671,7 +681,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "rightAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -680,7 +690,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "uppercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -689,7 +699,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "lowercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -698,7 +708,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "invertcase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -765,7 +775,7 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        if(0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                        if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
                         {
                             printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
                             fclose(patternFile);
@@ -800,6 +810,23 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ZERO_VERIFY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ZERO_VERIFY_LONG_OPT_STRING))) == 0)
+            {
+                ZERO_VERIFY_FLAG = true;
+                if (strcmp(optarg, "full") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_FULL;
+                }
+                else if (strcmp(optarg, "quick") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_QUICK;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ZERO_VERIFY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             break;
@@ -894,7 +921,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -1153,6 +1180,8 @@ int32_t main(int argc, char *argv[])
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
         || NVM_FORMAT_FLAG
+        || ZERO_VERIFY_FLAG
+        || ERASE_RESTORE_MAX_PREP
         ))
     {
         utility_Usage(true);
@@ -1316,6 +1345,11 @@ int32_t main(int argc, char *argv[])
         printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
         printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
         printf("operations running in parallel without issuing a device reset.\n");
+        printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
+        printf("configurable. It is recommended that a format change is done from a live/bootable\n");
+        printf("environment to reduce the risk of these interuptions. If the OS is unable to complete\n");
+        printf("certain commands for it's background polling of the device, it may trigger a device\n");
+        printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
         printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
         printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
@@ -1333,7 +1367,10 @@ int32_t main(int argc, char *argv[])
         printf("\t\t         all USB adapters can handle a 4k sector size.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n");
+        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
         //count down timer must go here
@@ -1347,6 +1384,7 @@ int32_t main(int argc, char *argv[])
 
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        bool eraseCompleted = false;
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
@@ -1621,6 +1659,102 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (ERASE_RESTORE_MAX_PREP)
+        {
+            bool doNotContinueToErase = true;
+            bool scsiAtaInSync = false;
+            switch (restore_Max_LBA_For_Erase(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                doNotContinueToErase = false;//successfully restored so continuing onwards to erase is fine.
+                scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
+                fill_Drive_Info_Data(&deviceList[deviceIter]);//refresh stale data
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    if (deviceList[deviceIter].drive_info.bridge_info.isValid)
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
+                    }
+                    else
+                    {
+                        mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    }
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
+                    printf("Successfully restored maxLBA to highest possible user addressable LBA!\n");
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
+                    if (!scsiAtaInSync)
+                    {
+                        printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                        printf("         If using a drive managed erase, this will not be an issue since the\n");
+                        printf("         drive firmware will handle this change properly.\n");
+                        printf("         If performing a manual overwrite, such as --%s, then a power cycle\n", OVERWRITE_LONG_OPT_STRING);
+                        printf("         is strongly recommended to make sure all writes complete without error.\n");
+                    }
+                }
+                break;
+            case DEVICE_ACCESS_DENIED:
+            case FROZEN:
+            case ABORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Drive aborted the command to restore max LBA. The device may already be at maxLBA,\n");
+                    printf("the restore command may have been blocked, the feature may be locked/frozen\n");
+                    printf("or some other unknown reason caused the abort.\n");
+                    printf("Try power cycling the drive/system and try again or try a different system\n");
+                    printf("or method of attaching the drive to run this command.\n");
+                    printf("When a feature is \"frozen\" the drive must be power cycled to clear this condition.\n");
+                    printf("Some systems will issue the freeze commands on boot which is why changing which system\n");
+                    printf("is used or how the drive is attached to the system can get around this issue.\n");
+                    printf("If the device supports the HPA security extension feature, then changes to HPA may be\n");
+                    printf("blocked by the password set by this feature. You must either unlock the HPA security\n");
+                    printf("feature, or power cycle the drive to remove the password and lock.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring maxLBA does not appear to be supported on this device.\n");
+                    printf("If you believe this is an error, try changing how the device is\n");
+                    printf("attached to the system (move from USB to SATA or from SAS HBA to\n");
+                    printf("the motherboard) and try again.\n");
+                    printf("If this does not work, try another system.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case FAILURE:
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore max LBA. The device may already be at maxLBA, the restore\n");
+                    printf("command may have been blocked, or some other unknown reason caused the failure.\n");
+                    printf("Try power cycling the drive/system and try again or try a different system\n");
+                    printf("or method of attaching the drive to run this command.\n");
+                    printf("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                    printf("Erase will not be started while this is failing.\n\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+            if (doNotContinueToErase)
+            {
+                //continue the loop to any additional drives since they may pass
+                continue;
+            }
+        }
+
 #ifdef DISABLE_TCG_SUPPORT
 
 #else
@@ -1659,6 +1793,7 @@ int32_t main(int argc, char *argv[])
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
+                    eraseCompleted = true;
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1746,6 +1881,10 @@ int32_t main(int argc, char *argv[])
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
+                    if (didEraseHappen)
+                    {
+                        eraseCompleted = true;
+                    }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1781,6 +1920,34 @@ int32_t main(int argc, char *argv[])
             }
         }
 #endif
+
+        if (ZERO_VERIFY_FLAG)
+        {
+            ret = zero_Verify_Test(&deviceList[deviceIter], ZERO_VERIFY_MODE_FLAG, HIDE_LBA_COUNTER);
+            switch (ret)
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation Test passed.\n");
+                }
+                break;
+            case VALIDATION_FAILURE:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation failed.\n");
+                }
+                exitCode = SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Operation failure.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
 
         if (sanitize)
         {
@@ -1879,6 +2046,10 @@ int32_t main(int argc, char *argv[])
                                 {
                                     printf("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
+                            }
+                            if (sanitizeCommandRun && POLL_FLAG)
+                            {
+                                eraseCompleted = true;
                             }
                             break;
                         case FAILURE:
@@ -2132,6 +2303,10 @@ int32_t main(int argc, char *argv[])
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
+                    if (POLL_FLAG)
+                    {
+                        eraseCompleted = true;
+                    }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2176,7 +2351,10 @@ int32_t main(int argc, char *argv[])
                         printf("\t\t         with multiple logical units or namespaces.\n");
                         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        printf("\t\t         and may prevent completion of a sector size change.\n");
+                        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
@@ -2283,6 +2461,10 @@ int32_t main(int argc, char *argv[])
                             printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
                     }
+                    if (POLL_FLAG)
+                    {
+                        eraseCompleted = true;
+                    }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2347,6 +2529,7 @@ int32_t main(int argc, char *argv[])
                 switch (run_ATA_Security_Erase(&deviceList[deviceIter], ataSecureEraseType, ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
                 {
                 case SUCCESS:
+                    eraseCompleted = true;
                     break;
                 case NOT_SUPPORTED:
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -2430,6 +2613,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully erased LBAs %"PRIu64" to %"PRIu64" using write same\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2490,7 +2674,7 @@ int32_t main(int argc, char *argv[])
             }
             if (localStartLBA != UINT64_MAX)
             {
-                if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
+                if (localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
                 {
                     localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
                 }
@@ -2507,6 +2691,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2573,7 +2758,7 @@ int32_t main(int argc, char *argv[])
                             localRange = 1;
                         }
                     }
-                    if(localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
+                    if (localStartLBA > deviceList[deviceIter].drive_info.deviceMaxLba)
                     {
                         localStartLBA = deviceList[deviceIter].drive_info.deviceMaxLba;
                     }
@@ -2598,6 +2783,7 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("Successfully overwrote LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
                         }
+                        eraseCompleted = true;
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -2635,6 +2821,7 @@ int32_t main(int argc, char *argv[])
                             {
                                 printf("Successfully overwrote LBAs!\n");
                             }
+                            eraseCompleted = true;
                             break;
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -2734,8 +2921,11 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-        //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
-        os_Update_File_System_Cache(&deviceList[deviceIter]);
+        if (eraseCompleted)
+        {
+            //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
+            os_Update_File_System_Cache(&deviceList[deviceIter]);
+        }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
@@ -2791,10 +2981,31 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 4096 --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 0\n", util_name, deviceHandleExample, ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING, OVERWRITE_LONG_OPT_STRING);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    int totalErrorCodes = SEACHEST_ERASE_EXIT_MAX_ERROR - SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE;
+    ptrToolSpecificxitCode seachestEraseExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
+    //now set up all the exit codes and their meanings
+    if (seachestEraseExitCodes)
+    {
+        for (int exitIter = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE; exitIter < SEACHEST_ERASE_EXIT_MAX_ERROR; ++exitIter)
+        {
+            seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCode = exitIter;
+            switch (exitIter)
+            {
+            case SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE:
+                snprintf(seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                break;
+                //TODO: add more exit codes here!
+            default://We shouldn't ever hit the default case!
+                break;
+            }
+        }
+    }
+    print_SeaChest_Util_Exit_Codes(totalErrorCodes, seachestEraseExitCodes, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");
@@ -2845,10 +3056,13 @@ void utility_Usage(bool shortUsage)
     print_TCG_PSID_Help(shortUsage);
     #endif
     print_Time_Seconds_Help(shortUsage);
+    print_Erase_Restore_Max_Prep_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
     #endif
+    print_Zero_Verify_Help(shortUsage);
+
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);
@@ -2860,6 +3074,27 @@ void utility_Usage(bool shortUsage)
 
     //data destructive commands - alphabetized
     printf("\nData Destructive Commands\n");
+    printf("=========================\n");
+    printf("Data sanitization capabilities:\n");
+    printf("\tRecommendation - Restore the MaxLBA of the device prior to any erase in\n");
+    printf("\t                 order to allow the drive to erase all user addressable\n");
+    printf("\t                 sectors. For ATA devices this means restoring \n");
+    printf("\t                 HPA + DCO / AMAC to restore the maxLBA.\n");
+    printf("\t                 Restoring the MaxLBA also allows full verification of\n");
+    printf("\t                 all user addressable space on the device without a\n");
+    printf("\t                 limitation from a lower maxLBA.\n");
+    printf("\tClear - Logical techniques are applied to all addressable storage\n");
+    printf("\t        locations, protecting against simple, non-invasive data\n");
+    printf("\t        recovery techniques.\n");
+    printf("\tClear, Possible Purge - Cryptographic erase is a purge if the vendor\n");
+    printf("\t        implementation meets the requirements in IEEE 2883-2022.\n");
+    printf("\tPurge - Logical techniques that target user data, overprovisioning,\n");
+    printf("\t        unused space, and bad blocks rendering data recovery infeasible\n");
+    printf("\t        even with state-of-the-art laboratory techniques.\n");
+    printf("This utility does not support clear/purge verification yet. All labels are\n");
+    printf("written according to the expectation that the device firmware will meet\n");
+    printf("these capabilities as defined in the appropriate standards from T10, T13,\n");
+    printf("SATA - IO, and NVMexpress.\n");
     printf("=========================\n");
     //multiple interfaces
     print_Overwrite_Help(shortUsage);

@@ -39,7 +39,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.5.2";
+const char *buildVersion = "3.5.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -131,7 +131,6 @@ int main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -340,7 +339,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
             {
-                int scanRet = sscanf(optarg, "%s", DOWNLOAD_FW_FILENAME_FLAG);
+                int scanRet = sscanf(optarg, FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR, DOWNLOAD_FW_FILENAME_FLAG);
                 if (scanRet > 0 && scanRet != EOF)
                 {
                     DOWNLOAD_FW_FLAG = true;
@@ -687,7 +686,7 @@ int main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -2057,9 +2056,18 @@ int main(int argc, char *argv[])
             switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
             {
             case SUCCESS:
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully set the max LBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
+                    printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2089,7 +2097,15 @@ int main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
+                    double mCapacity = 0, capacity = 0;
+                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
+                    capacity = mCapacity;
+                    metric_Unit_Convert(&mCapacity, &mCapUnit);
+                    capacity_Unit_Convert(&capacity, &capUnit);
                     printf("Successfully restored the max LBA\n");
+                    printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                 }
                 break;
             case NOT_SUPPORTED:

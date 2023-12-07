@@ -1,0 +1,55 @@
+Welcome to Seagate's openSeaChest_ZBD diagnostic software.
+
+openSeaChest_ZBD is a comprehensive command line tool that can be used to
+configure, change or set various properties on Seagate disk drives (this
+includes Seagate, Maxtor, Samsung and LaCie).  Some commands may cause existing
+data on the drive to become inaccessible.  Some commands may affect the
+performance of the drive.
+
+Definition of SMR   white papers etc///  ..........??????
+
+SMR Specification///  ..........??????
+
+References are made to TCG (Trusted Computing Group), a standards organization
+formed to promote open standards for hardware-enabled security technologies.
+You can read about TCG at http://www.trustedcomputinggroup.org/ and
+https://en.wikipedia.org/wiki/Trusted_Computing_Group.
+
+NOTE: openSeaChest_ZBD may not be fully functional on non-Seagate drives.
+
+This User Guide file contains important information about openSeaChest_ZBD.
+Please read this entire file before using this software.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+Be very careful using openSeaChest_ZBD. Power failure during a configuration
+change may cause data loss. Seagate is not responsible for lost user data.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_ZBD [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_ZBD --scan
+        sudo openSeaChest_ZBD -d /dev/sg2 -i
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_ZBD [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_ZBD --scan
+        openSeaChest_ZBD -d PD0 -i
+

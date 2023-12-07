@@ -1,0 +1,85 @@
+Welcome to Seagate's openSeaChest_Info diagnostic software.
+
+Disk drives are constantly monitoring and analyzing their own performance,
+integrity and environment.  The current state of this technology is the result
+of more than 20 years of innovative Seagate engineering focused on self-testing.
+
+With the backing of personal computer manufacturers, the disk drive industry
+adopted an analysis system in the 1990's called Self Monitoring Analysis and
+Reporting Technology, or SMART. The idea then and today is to predict a failure
+before it happens. Various attributes are being monitored and measured against
+certain threshold limits. If any one attribute exceeds a threshold then a
+general SATA SMART Status test will change from Pass to Fail.
+
+Many computers automatically check SATA SMART Status when they start up which is
+when most people become aware of the issue. If still under warranty, then SMART
+Status FAIL is a valid condition for warranty replacement.
+
+You can use SeaChest_Basics or SeaChest_SMART software with --smartCheck to
+test the SATA SMART status of the drive.
+
+When a SMART Status test has a FAIL it is extremely important that you back up
+all of your important data. SMART Status FAIL is a near-term prediction of
+drive failure and the drive usually functions like normal. Unfortunately, there
+is no way to specifically predict when the failure will occur, so your best
+response is to back up your data as soon as possible.
+
+SMART attributes are also supplemented by SATA Device Statistics Notification
+(DSN) feature set, including a set of Device Statistics Notifications log
+pages.  This data provides further insight into a drive's performance and can
+be used to help measure its usage and potentially identify problem areas of
+concern.
+
+Likewise, SAS SCSI and FibreChannel interface products collect ongoing
+performance data and save this information in many different "vital data" and
+"log" pages, also call Vital Product Data (VPD). This data is similar and
+overlaps most of the same data collection categories as the SATA interface.
+
+openSeaChest does not interpret attributes or thresholds.  As a practical matter,
+the technology supporting SMART is constantly being improved.  Each new design
+incorporates improvements that increase the accuracy of the SMART prediction.
+As a matter of policy, Seagate does not publish attributes and thresholds.
+Seagate Support does not help to analyze SMART attributes.
+
+This User Guide file contains important information about openSeaChest_Info.
+Please read this entire file before using this software.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your Seagate storage
+product. It includes several tests that will examine the physical media on your
+Seagate, Samsung or Maxtor disk drive.
+
+Tests and commands which are completely data safe will run on any disk drive.
+Tests and commands which change the drive (like firmware download or data
+erasure or setting the maximum capacity, etc) are limited to Seagate disk
+drives (this includes Seagate, Maxtor, Samsung and LaCie). Be careful using
+openSeaChest because some of the features, like the data erasure options, will
+cause data loss. Seagate is not responsible for lost user data.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Info [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Info --scan
+        sudo openSeaChest_Info -d /dev/sg2 -i
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Info [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Info --scan
+        openSeaChest_Info -d PD0 -i
+

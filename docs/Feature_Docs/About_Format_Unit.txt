@@ -1,0 +1,46 @@
+==================================
+About the SCSI Format Unit Command
+==================================
+(from the Seagate SCSI Commands Reference Manual, 100293068 Rev. H July 2014)
+http://www.seagate.com/files/staticfiles/support/docs/manual/Interface%20manuals/100293068h.pdf
+
+The FORMAT UNIT command requests that the device server format the medium into
+application client accessible logical blocks as specified in the number of
+blocks and block length values received in the last mode parameter block
+descriptor in a MODE SELECT command. In addition, the device server may certify
+the medium and create control structures for the management of the medium and
+defects. The degree that the medium is altered by this command is
+vendor-specific.
+
+If a device server receives a FORMAT UNIT command before receiving a MODE
+SELECT command with a mode parameter block descriptor the device server shall
+use the number of blocks and block length at which the logical unit is
+currently formatted (i.e., no change is made to the number of blocks and the
+block length of the logical unit during the format operation).
+
+The simplest form of the FORMAT UNIT command (i.e., a FORMAT UNIT command with
+no parameter data) accomplishes medium formatting with little application
+client control over defect management. The device server implementation
+determines the degree of defect management that is to be performed. Additional
+forms of this command increase the application client's control over defect
+management.
+
+The application client may specify:
+  a) defect list(s) to be used;
+  b) defect locations;
+  c) that logical unit certification be enabled; and
+  d) exception handling in the event that defect lists are not accessible.
+
+While performing a format operation, the device server shall respond to
+commands attempting to enter into the task set except INQUIRY commands, REPORT
+LUNS commands, and REQUEST SENSE commands with CHECK CONDITION status with the
+sense key set to NOT READY and the additional sense code set to LOGICAL UNIT
+NOT READY, FORMAT IN PROGRESS. Handling of commands already in the task set is
+vendor-specific. If the device server receives an INQUIRY command, a REPORT
+LUNS commands, or a REQUEST SENSE command, then the device server shall process
+the command. The device server shall return data for an INQUIRY command based
+on the condition of the SCSI target device before beginning the FORMAT UNIT
+command (i.e., INQUIRY data shall not change until after successful completion
+of a format operation). The processing of commands in the task set when a
+FORMAT UNIT command is received is vendor specific.
+

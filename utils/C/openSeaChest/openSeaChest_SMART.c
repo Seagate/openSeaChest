@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.3.1";
+const char *buildVersion = "2.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -121,7 +121,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -626,7 +625,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -1170,6 +1169,10 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SMART Warning condition detected!\n");
+                    if (tripInfo.reasonStringLength > 0)
+                    {
+                        printf("\t%s\n", tripInfo.reasonString);
+                    }
                 }
             }
             else

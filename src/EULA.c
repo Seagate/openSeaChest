@@ -19,7 +19,7 @@
 
 #include "EULA.h"
 
-void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense)
+void print_EULA_To_Screen(void)
 {
     printf("BINARIES and SOURCE CODE files of the openSeaChest open source project have\n");
     printf("been made available to you under the Mozilla Public License 2.0 (MPL).  Mozilla\n");
@@ -401,235 +401,10 @@ void print_EULA_To_Screen(int showApacheLicense, int showZlibLicense)
 
     printf("  This Source Code Form is \"Incompatible With Secondary Licenses\", as\n");
     printf("  defined by the Mozilla Public License, v. 2.0.\n\n");
-    print_Open_Source_Licenses(showApacheLicense, showZlibLicense);
+    print_Open_Source_Licenses();
     return;
 }
 
-static void print_Apache_2_0_License(void)
-{
-    printf("===========================================================================\n");
-    printf("mbedtls - An open source, portable, easy to use, readable and flexible SSL\n");
-    printf("library https://tls.mbed.org\n\n");
-
-    printf("Modifications: -added DES & 3DES CFB cipher encryption and decryption support\n\n");
-
-    printf("         Apache License\n");
-    printf("   Version 2.0, January 2004\n");
-    printf("http://www.apache.org/licenses/\n\n");
-
-    printf("TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n");
-
-    printf("1. Definitions.\n\n");
-
-    printf("\"License\" shall mean the terms and conditions for use, reproduction, and\n");
-    printf("distribution as defined by Sections 1 through 9 of this document.\n\n");
-
-    printf("\"Licensor\" shall mean the copyright owner or entity authorized by the copyright\n");
-    printf("owner that is granting the License.\n\n");
-
-    printf("\"Legal Entity\" shall mean the union of the acting entity and all other entities\n");
-    printf("that control, are controlled by, or are under common control with that entity.\n");
-    printf("For the purposes of this definition, \"control\" means (i) the power, direct or\n");
-    printf("indirect, to cause the direction or management of such entity, whether by\n");
-    printf("contract or otherwise, or (ii) ownership of fifty percent (50) or more of the\n");
-    printf("outstanding shares, or (iii) beneficial ownership of such entity.\n\n");
-
-    printf("\"You\" (or \"Your\") shall mean an individual or Legal Entity exercising\n");
-    printf("permissions granted by this License.\n\n");
-
-    printf("\"Source\" form shall mean the preferred form for making modifications, including\n");
-    printf("but not limited to software source code, documentation source,and configuration\n");
-    printf("files.\n\n");
-
-    printf("\"Object\" form shall mean any form resulting from mechanical transformation or\n");
-    printf("translation of a Source form, including but not limited to compiled object\n");
-    printf("code, generated documentation, and conversions to other media types.\n\n");
-
-    printf("\"Work\" shall mean the work of authorship, whether in Source or Object form,\n");
-    printf("made available under the License, as indicated by a copyright notice that is\n");
-    printf("included in or attached to the work (an example is provided in the Appendix\n");
-    printf("below).\n\n");
-
-    printf("\"Derivative Works\" shall mean any work, whether in Source or Object form, that\n");
-    printf("is based on (or derived from) the Work and for which the editorial revisions,\n");
-    printf("annotations, elaborations, or other modifications represent, as a whole, an\n");
-    printf("original work of authorship. For the purposes of this License, Derivative Works\n");
-    printf("shall not include works that remain separable from, or merely link (or bind by\n");
-    printf("name) to the interfaces of, the Work and Derivative Works thereof.\n\n");
-
-    printf("\"Contribution\" shall mean any work of authorship, including the original\n");
-    printf("version of the Work and any modifications or additions to that Work or\n");
-    printf("Derivative Works thereof, that is intentionally submitted to Licensor for\n");
-    printf("inclusion in the Work by the copyright owner or by an individual or Legal\n");
-    printf("Entity authorized to submit on behalf of the copyright owner. For the purposes\n");
-    printf("of this definition, \"submitted\" means any form of electronic, verbal, or\n");
-    printf("written communication sent to the Licensor or its representatives, including\n");
-    printf("but not limited to communication on electronic mailing lists, source code\n");
-    printf("control systems, and issue tracking systems that are managed by, or on behalf\n");
-    printf("of, the Licensor for the purpose of discussing and improving the Work, but\n");
-    printf("excluding communication that is conspicuously marked or otherwise designated in\n");
-    printf("writing by the copyright owner as \"Not a Contribution.\"\n\n");
-
-    printf("\"Contributor\" shall mean Licensor and any individual or Legal Entity on behalf\n");
-    printf("of whom a Contribution has been received by Licensor and subsequently\n");
-    printf("incorporated within the Work.\n\n");
-
-    printf("2. Grant of Copyright License. Subject to the terms and conditions of this\n");
-    printf("License, each Contributor hereby grants to You a perpetual, worldwide,\n");
-    printf("non-exclusive, no-charge, royalty-free, irrevocable copyright license to\n");
-    printf("reproduce, prepare Derivative Works of, publicly display, publicly perform,\n");
-    printf("sublicense, and distribute the Work and such Derivative Works in Source or\n");
-    printf("Object form.\n\n");
-
-    printf("3. Grant of Patent License. Subject to the terms and conditions of this\n");
-    printf("License, each Contributor hereby grants to You a perpetual, worldwide,\n");
-    printf("non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this\n");
-    printf("section) patent license to make, have made, use, offer to sell, sell, import,\n");
-    printf("and otherwise transfer the Work, where such license applies only to those\n");
-    printf("patent claims licensable by such Contributor that are necessarily infringed by\n");
-    printf("their Contribution(s) alone or by combination of their Contribution(s) with the\n");
-    printf("Work to which such Contribution(s) was submitted. If You institute patent\n");
-    printf("litigation against any entity (including a cross-claim or counterclaim in a\n");
-    printf("lawsuit) alleging that the Work or a Contribution incorporated within the Work\n");
-    printf("constitutes direct or contributory patent infringement, then any patent\n");
-    printf("licenses granted to You under this License for that Work shall terminate as of\n");
-    printf("the date such litigation is filed.\n\n");
-
-    printf("4. Redistribution. You may reproduce and distribute copies of the Work or\n");
-    printf("Derivative Works thereof in any medium, with or without modifications, and in\n");
-    printf("Source or Object form, provided that You meet the following conditions:\n\n");
-
-    printf("(a) You must give any other recipients of the Work or Derivative Works a copy\n");
-    printf("of this License; and\n\n");
-
-    printf("(b) You must cause any modified files to carry prominent notices stating that\n");
-    printf("You changed the files; and\n\n");
-
-    printf("(c) You must retain, in the Source form of any Derivative Works that You\n");
-    printf("distribute, all copyright, patent, trademark, and attribution notices from the\n");
-    printf("Source form of the Work, excluding those notices that do not pertain to any\n");
-    printf("part of the Derivative Works; and\n\n");
-
-    printf("(d) If the Work includes a \"NOTICE\" text file as part of its distribution, then\n");
-    printf("any Derivative Works that You distribute must include a readable copy of the\n");
-    printf("attribution notices contained within such NOTICE file, excluding those notices\n");
-    printf("that do not pertain to any part of the Derivative Works, in at least one of the\n");
-    printf("following places: within a NOTICE text file distributed as part of the\n");
-    printf("Derivative Works; within the Source form or documentation, if provided along\n");
-    printf("with the Derivative Works; or, within a display generated by the Derivative\n");
-    printf("Works, if and wherever such third-party notices normally appear. The contents\n");
-    printf("of the NOTICE file are for informational purposes only and do not modify the\n");
-    printf("License. You may add Your own attribution notices within Derivative Works that\n");
-    printf("You distribute, alongside or as an addendum to the NOTICE text from the Work,\n");
-    printf("provided that such additional attribution notices cannot be construed as\n");
-    printf("modifying the License.\n\n");
-
-    printf("You may add Your own copyright statement to Your modifications and may provide\n");
-    printf("additional or different license terms and conditions for use, reproduction, or\n");
-    printf("distribution of Your modifications, or for any such Derivative Works as a\n");
-    printf("whole, provided Your use, reproduction, and distribution of the Work otherwise\n");
-    printf("complies with the conditions stated in this License.\n\n");
-
-    printf("5. Submission of Contributions. Unless You explicitly state otherwise, any\n");
-    printf("Contribution intentionally submitted for inclusion in the Work by You to the\n");
-    printf("Licensor shall be under the terms and conditions of this License, without any\n");
-    printf("additional terms or conditions. Notwithstanding the above, nothing herein shall\n");
-    printf("supersede or modify the terms of any separate license agreement you may have\n");
-    printf("executed with Licensor regarding such Contributions.\n\n");
-
-    printf("6. Trademarks. This License does not grant permission to use the trade names,\n");
-    printf("trademarks, service marks, or product names of the Licensor, except as required\n");
-    printf("for reasonable and customary use in describing the origin of the Work and\n");
-    printf("reproducing the content of the NOTICE file.\n\n");
-
-    printf("7. Disclaimer of Warranty. Unless required by applicable law or agreed to in\n");
-    printf("writing, Licensor provides the Work (and each Contributor provides its\n");
-    printf("Contributions) on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n");
-    printf("KIND, either express or implied, including, without limitation, any warranties\n");
-    printf("or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n");
-    printf("PARTICULAR PURPOSE. You are solely responsible for determining the\n");
-    printf("appropriateness of using or redistributing the Work and assume any risks\n");
-    printf("associated with Your exercise of permissions under this License.\n\n");
-
-    printf("8. Limitation of Liability. In no event and under no legal theory, whether in\n");
-    printf("tort (including negligence), contract, or otherwise, unless required by\n");
-    printf("applicable law (such as deliberate and grossly negligent acts) or agreed to in\n");
-    printf("writing, shall any Contributor be liable to You for damages, including any\n");
-    printf("direct, indirect, special, incidental, or consequential damages of any\n");
-    printf("character arising as a result of this License or out of the use or inability to\n");
-    printf("use the Work (including but not limited to damages for loss of goodwill, work\n");
-    printf("stoppage, computer failure or malfunction, or any and all other commercial\n");
-    printf("damages or losses), even if such Contributor has been advised of the\n");
-    printf("possibility of such damages.\n\n");
-
-    printf("9. Accepting Warranty or Additional Liability. While redistributing the Work or\n");
-    printf("Derivative Works thereof, You may choose to offer, and charge a fee for,\n");
-    printf("acceptance of support, warranty, indemnity, or other liability obligations\n");
-    printf("and/or rights consistent with this License. However, in accepting such\n");
-    printf("obligations, You may act only on Your own behalf and on Your sole\n");
-    printf("responsibility, not on behalf of any other Contributor, and only if You agree\n");
-    printf("to indemnify, defend, and hold each Contributor harmless for any liability\n");
-    printf("incurred by, or claims asserted against, such Contributor by reason of your\n");
-    printf("accepting any such warranty or additional liability.\n\n");
-
-    printf("END OF TERMS AND CONDITIONS\n\n");
-
-    printf("APPENDIX: How to apply the Apache License to your work.\n\n");
-
-    printf("To apply the Apache License to your work, attach the following boilerplate\n");
-    printf("notice, with the fields enclosed by brackets \"[]\" replaced with your own\n");
-    printf("identifying information. (Don't include the brackets!) The text should be\n");
-    printf("enclosed in the appropriate comment syntax for the file format. We also\n");
-    printf("recommend that a file or class name and description of purpose be included on\n");
-    printf("the same \"printed page\" as the copyright notice for easier identification\n");
-    printf("within third-party archives.\n\n");
-
-    printf("Copyright [yyyy] [name of copyright owner]\n\n");
-
-    printf("Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use\n");
-    printf("this file except in compliance with the License. You may obtain a copy of the\n");
-    printf("License at\n\n");
-
-    printf("http://www.apache.org/licenses/LICENSE-2.0\n\n");
-
-    printf("Unless required by applicable law or agreed to in writing, software distributed\n");
-    printf("under the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR\n");
-    printf("CONDITIONS OF ANY KIND, either express or implied. See the License for the\n");
-    printf("specific language governing permissions and limitations under the License.\n\n");
-    return;
-}
-
-static void print_Zlib_License(void)
-{
-    printf("zlib.h -- interface of the 'zlib' general purpose compression library version\n");
-    printf("1.2.8, April 28th, 2013\n\n");
-
-    printf("Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler\n\n");
-
-    printf("This software is provided 'as-is', without any express or implied warranty. In\n");
-    printf("no event will the authors be held liable for any damages arising from the use\n");
-    printf("of this software.\n\n");
-
-    printf("Permission is granted to anyone to use this software for any purpose, including\n");
-    printf("commercial applications, and to alter it and redistribute it freely, subject to\n");
-    printf("the following restrictions:\n\n");
-
-    printf("1. The origin of this software must not be misrepresented; you must not claim\n");
-    printf("that you wrote the original software. If you use this software in a product, an\n");
-    printf("acknowledgment in the product documentation would be appreciated but is not\n");
-    printf("required.\n\n");
-
-    printf("2. Altered source versions must be plainly marked as such, and must not be\n");
-    printf("misrepresented as being the original software.\n\n");
-
-    printf("3. This notice may not be removed or altered from any source distribution.\n\n");
-
-    printf("Jean-loup Gailly        Mark Adler jloup@gzip.org\n");
-    printf("madler@alumni.caltech.edu\n\n");
-    return;
-}
-
-#if defined (_WIN32)
 static void print_Win_Getopt_Licenses(void)
 {
     printf("===========================================================================\n");
@@ -689,7 +464,6 @@ static void print_Win_Getopt_Licenses(void)
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
     return;
 }
-#endif//_WIN32
 
 #if defined (__FreeBSD__)
 static void print_FreeBSD_License(void)
@@ -884,7 +658,7 @@ static void print_GNU_LGPL_License(void)
 }
 #endif//__GLIBC__
 
-#if (USING_MUSL_LIBC)
+#if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
 static void print_Musl_MIT_License(void)
 {
     printf("===========================================================================\n");
@@ -913,11 +687,63 @@ static void print_Musl_MIT_License(void)
 }
 #endif //USING_MUSL_LIBC
 
-void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
+#if defined (_WIN32)
+//TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+//      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+static void print_Open_Fabrics_NVMe_IOCTL_License(void)
 {
-#if defined(_WIN32)
-    //show this license for the getopt parser in windows
+    printf("===========================================================================\n");
+    printf("open fabrics NVMe IOCTL\n\n");
+    printf("Copyright (c) 2011-2012                                                  \n");
+    printf("                                                                         \n");
+    printf("  Integrated Device Technology, Inc.                                     \n");
+    printf("  Intel Corporation                                                      \n");
+    printf("  LSI Corporation                                                        \n");
+    printf("                                                                         \n");
+    printf("All rights reserved.                                                     \n");
+    printf("                                                                         \n");
+    printf("*************************************************************************\n");
+    printf("                                                                         \n");
+    printf("Redistribution and use in source and binary forms, with or without       \n");
+    printf("modification, are permitted provided that the following conditions are   \n");
+    printf("met:                                                                     \n");
+    printf("                                                                         \n");
+    printf("  1. Redistributions of source code must retain the above copyright      \n");
+    printf("     notice, this list of conditions and the following disclaimer.       \n");
+    printf("                                                                         \n");
+    printf("  2. Redistributions in binary form must reproduce the above copyright   \n");
+    printf("     notice, this list of conditions and the following disclaimer in the \n");
+    printf("     documentation and/or other materials provided with the distribution.\n");
+    printf("                                                                         \n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS  \n");
+    printf("IS\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,\n");
+    printf("THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR   \n");
+    printf("PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR        \n");
+    printf("CONTRIBUTORS BE LIABLE FOR ANY DIRECT,INDIRECT, INCIDENTAL, SPECIAL,     \n");
+    printf("EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,      \n");
+    printf("PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR       \n");
+    printf("PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF   \n");
+    printf("LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING     \n");
+    printf("NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS       \n");
+    printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.             \n");
+    printf("                                                                         \n");
+    printf("The views and conclusions contained in the software and documentation    \n");
+    printf("are those of the authors and should not be interpreted as representing   \n");
+    printf("official policies, either expressed or implied, of Intel Corporation,    \n");
+    printf("Integrated Device Technology Inc., or Sandforce Corporation.             \n");
+    printf("\n");
+    return;
+}
+#endif //_WIN32
+
+void print_Open_Source_Licenses(void)
+{
+    //show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should be changed to portable-getopt or something in the future.-TJE
     print_Win_Getopt_Licenses();
+#if defined (_WIN32)
+    //TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+    //      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+    print_Open_Fabrics_NVMe_IOCTL_License();
 #elif defined (__FreeBSD__)
     print_FreeBSD_License();
 #elif defined (__linux__)
@@ -925,7 +751,7 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
         //in other 'nix systems, we need to show this since we are using gnu libc
         print_GNU_LGPL_License();
     #else
-        #if (USING_MUSL_LIBC)
+        #if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
             print_Musl_MIT_License();
         #else
             //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
@@ -939,15 +765,5 @@ void print_Open_Source_Licenses(int showApacheLicense, int showZlibLicense)
 	#error Please update #if for system library licenses!
 #endif
     printf("===========================================================================\n\n");
-    if (showApacheLicense)
-    {
-        printf("===========================================================================\n\n");
-        print_Apache_2_0_License();
-    }
-    if (showZlibLicense)
-    {
-        printf("===========================================================================\n\n");
-        print_Zlib_License();
-    }
     return;
 }

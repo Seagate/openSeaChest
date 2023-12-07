@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.0.0";
+const char *buildVersion = "3.0.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -64,7 +64,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_INFO_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
-    POSSIBLE_DATA_ERASE_VAR
+    //POSSIBLE_DATA_ERASE_VAR
     LOW_LEVEL_FORMAT_VAR
     LICENSE_VAR
     ECHO_COMMAND_LINE_VAR
@@ -115,7 +115,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -207,10 +206,10 @@ int32_t main(int argc, char *argv[])
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
+                /*else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
-                }
+                }*/
                 else if (strcmp(optarg, LOW_LEVEL_FORMAT_ACCEPT_STRING) == 0)
                 {
                     LOW_LEVEL_FORMAT_FLAG = true;
@@ -634,7 +633,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -963,6 +962,11 @@ int32_t main(int argc, char *argv[])
         printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
         printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
         printf("operations running in parallel without issuing a device reset.\n");
+        printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
+        printf("configurable. It is recommended that a format change is done from a live/bootable\n");
+        printf("environment to reduce the risk of these interuptions. If the OS is unable to complete\n");
+        printf("certain commands for it's background polling of the device, it may trigger a device\n");
+        printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
         printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
         printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
@@ -980,7 +984,10 @@ int32_t main(int argc, char *argv[])
         printf("\t\t         all USB adapters can handle a 4k sector size.\n");
         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
         printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+        printf("\t\t         and may prevent completion of a sector size change.\n");
+        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
         //count down timer must go here
@@ -1363,6 +1370,22 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        if (FAST_FORMAT_FLAG > 0)
+                        {
+                            printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                            printf("      background operations in order to ensure full functionality and reliability.\n");
+                            printf("      This background activity may take a long time and will prevent the drive from\n");
+                            printf("      entering power saving modes like idle or standby until these operations have\n");
+                            printf("      completed. These operations may take a very long time to complete.\n");
+                            printf("      While EPC timers are suspended during this background operation, manual\n");
+                            printf("      transitions to lower power states is supported. Manually moving to a lower power\n");
+                            printf("      state will pause all background activity until the drive has become activate again\n");
+                            printf("      from a command such as a read or write. If forcing a transition\n");
+                            printf("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
+                            printf("      and is considered a special case that the drive firmware will allow it to continue\n");
+                            printf("      these background operations. All EPC timers will be honored once the\n");
+                            printf("      background activity is completed.\n\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1409,6 +1432,9 @@ int32_t main(int argc, char *argv[])
                         printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         printf("\t\t         before using this option. Interruptions can be caused by these\n");
                         printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
@@ -1429,19 +1455,6 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Set Sector Size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
-                    printf("\nWARNING: It is not recommended to do this on USB enclosures as not\n");
-                    printf("         all USB adapters can handle a 4k sector size.\n");
-                    printf("WARNING (SATA): Do not interrupt this operation once it has started or \n");
-                    printf("         it may cause the drive to become unusable. Stop all possible background\n");
-                    printf("         activity that would attempt to communicate with the device while this\n");
-                    printf("         operation is in progress\n");
-                    printf("Press CTRL-C to cancel this operation before the timer runs out.\n");
-                    for (uint8_t timer = UINT8_C(30); timer > 0; --timer)
-                    {
-                        printf("\r %2" PRIu8, timer);
-                        delay_Seconds(UINT32_C(1));
-                    }
-                    printf("\r  0\n");
                 }
                 switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
                 {
@@ -1453,6 +1466,20 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                        printf("      background operations in order to ensure full functionality and reliability.\n");
+                        printf("      This background activity may take a long time and will prevent the drive from\n");
+                        printf("      entering power saving modes like idle or standby until these operations have\n");
+                        printf("      completed. These operations may take a very long time to complete.\n");
+                        printf("      While EPC timers are suspended during this background operation, manual\n");
+                        printf("      transitions to lower power states is supported. Manually moving to a lower power\n"); 
+                        printf("      state will pause all background activity until the drive has become activate again\n");
+                        printf("      from a command such as a read or write. If forcing a transition\n");
+                        printf("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
+                        printf("      and is considered a special case that the drive firmware will allow it to continue\n");
+                        printf("      these background operations. All EPC timers will be honored once the\n");
+                        printf("      background activity is completed.\n\n");
+                        
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1513,7 +1540,10 @@ int32_t main(int argc, char *argv[])
                     printf("\t\t         all USB adapters can handle a 4k sector size.\n");
                     printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                     printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                    printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                    printf("\t\t         and may prevent completion of a sector size change.\n");
+                    printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                    printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                    printf("\t\t         triggering a device reset while reformating the drive.\n\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }

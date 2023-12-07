@@ -95,6 +95,11 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define PARTITION_INFO_FLAG showPartitionInfo
+    #define PARTITION_INFO_VAR getOptBool PARTITION_INFO_FLAG = goFalse;
+    #define PARTITION_INFO_LONG_OPT_STRING "partitionInfo"
+    #define PARTITION_INFO_LONG_OPT { PARTITION_INFO_LONG_OPT_STRING, no_argument, &PARTITION_INFO_FLAG, goTrue }
+
     #define LOWLEVEL_INFO_FLAG lowlevelInfo
     #define LOWLEVEL_INFO_VAR getOptBool LOWLEVEL_INFO_FLAG = goFalse;
     #define LOWLEVEL_INFO_LONG_OPT_STRING "llInfo"
@@ -477,6 +482,11 @@ extern "C"
     #define TRANSITION_POWER_STATE_LONG_OPT_STRING "transitionPowerState"
     #define TRANSITION_POWER_STATE_LONG_OPT { TRANSITION_POWER_STATE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    #define SHOW_NVM_POWER_STATES showNVMPowerStates
+    #define SHOW_NVM_POWER_STATES_VAR getOptBool SHOW_NVM_POWER_STATES = goFalse;
+    #define SHOW_NVM_POWER_STATES_LONG_OPT_STRING "showNVMPowerStates"
+    #define SHOW_NVM_POWER_STATES_LONG_OPT { SHOW_NVM_POWER_STATES_LONG_OPT_STRING, no_argument, &SHOW_NVM_POWER_STATES, goTrue }
+
     #define GET_NVME_LOG_IDENTIFIER nvmeGetLogPage
     #define GET_NVME_LOG_VAR uint8_t GET_NVME_LOG_IDENTIFIER = 0;
     #define GET_NVME_LOG_LONG_OPT_STRING "getNvmeLogPage"
@@ -487,8 +497,11 @@ extern "C"
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING "clearPciErr"
     #define CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT { CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING, no_argument, &CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG, goTrue }
 
-    #define GET_FEATURES getFeatures
-    #define GET_FEATURES_VAR uint8_t GET_FEATURES = UINT8_MAX;
+    #define GET_FEATURES getFeaturesValue
+    #define GET_FEATURES_FLAG getFeaturesRequestedByUser
+    #define GET_FEATURES_VARS \
+        uint16_t GET_FEATURES = UINT16_MAX;\
+        bool GET_FEATURES_FLAG = false;
     #define GET_FEATURES_LONG_OPT_STRING "getFeatures"
     #define GET_FEATURES_LONG_OPT { GET_FEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -515,6 +528,20 @@ extern "C"
     #define TELEMETRY_DATA_AREA_VAR uint8_t TELEMETRY_DATA_AREA = 3;
     #define TELEMETRY_DATA_AREA_LONG_OPT_STRING "telemetryDataArea"
     #define TELEMETRY_DATA_AREA_LONG_OPT { TELEMETRY_DATA_AREA_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ZERO_VERIFY_FLAG runZeroVerify
+    #define ZERO_VERIFY_MODE_FLAG runZeroVerifyMode
+    #define ZERO_VERIFY_VARS \
+    bool ZERO_VERIFY_FLAG = false; \
+    int ZERO_VERIFY_MODE_FLAG = 0;      /*0 = full, 1 = quick*/
+    #define ZERO_VERIFY_LONG_OPT_STRING "zeroVerify"
+    #define ZERO_VERIFY_LONG_OPT { ZERO_VERIFY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //before erasing a drive, restore the max LBA to make sure all user accessible spaces will be erased.
+    #define ERASE_RESTORE_MAX_PREP eraseRestoreMaxLBAPrep
+    #define ERASE_RESTORE_MAX_VAR getOptBool ERASE_RESTORE_MAX_PREP = goFalse;
+    #define ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING "eraseRestoreMaxPrep"
+    #define ERASE_RESTORE_MAX_PREP_LONG_OPT { ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING, no_argument, &ERASE_RESTORE_MAX_PREP, goTrue }
 
     //Generic read test options
     #define GENERIC_TEST_MODE_FLAG genericTestMode
@@ -735,6 +762,7 @@ extern "C"
 
     //download FW
     #define FIRMWARE_FILE_NAME_MAX_LEN 4096
+    #define FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR "%4096s"
     #define DOWNLOAD_FW_FLAG downloadFW
     #define DOWNLOAD_FW_FILENAME_FLAG downloadFWFilename
     #define DOWNLOAD_FW_MODE downloadMode
@@ -1024,14 +1052,18 @@ extern "C"
     #define SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE sctErrorRecoveryControlReadTimerValue
     #define SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER setSCTErrorRecoveryControlWriteTimer
     #define SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE sctErrorRecoveryControlWriteTimerValue
+    #define SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT resetSCTErrorRecoveryReadTimer
+    #define SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT resetSCTErrorRecoveryWriteTimer
     #define SCT_ERROR_RECOVERY_CONTROL_READ_VARS \
     bool SCT_ERROR_RECOVERY_CONTROL_READ_INFO = false;\
     bool SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = false;\
-    uint32_t SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = 0;
+    uint32_t SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = 0;\
+    bool SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT = false;
     #define SCT_ERROR_RECOVERY_CONTROL_WRITE_VARS \
     bool SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO = false;\
     bool SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = false;\
-    uint32_t SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = 0;
+    uint32_t SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = 0;\
+    bool SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT = false;
     #define SCT_ERROR_RECOVERY_CONTROL_VARS \
     SCT_ERROR_RECOVERY_CONTROL_READ_VARS \
     SCT_ERROR_RECOVERY_CONTROL_WRITE_VARS
@@ -1820,9 +1852,10 @@ extern "C"
     #define SCSI_SET_MP_BIT setSCSIMPBit
     #define SCSI_SET_MP_FIELD_LEN_BITS setSCSIMPFieldLen
     #define SCSI_SET_MP_FIELD_VALUE setSCSIMPFieldVal
+    #define SCSI_SET_MP_SSCANF_FILE_FORMAT_STR "file=%4095s" //one less that total array size to make sure there is room without a warning for a null terminating character-TJE
     #define SCSI_SET_MP_VARS \
     bool SCSI_SET_MP_OP = false;\
-    char SCSI_SET_MP_FILENAME[OPENSEA_PATH_MAX * 2] = { 0 };\
+    char SCSI_SET_MP_FILENAME[4096] = { 0 };\
     uint8_t SCSI_SET_MP_PAGE_NUMBER = 0;\
     uint8_t SCSI_SET_MP_SUBPAGE_NUMBER = 0;\
     uint16_t SCSI_SET_MP_BYTE = 0;\
@@ -1986,6 +2019,85 @@ extern "C"
     #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING "prPreemptAbort"
     #define PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT { PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING, no_argument, &PERSISTENT_RESERVATION_PREEMPT_ABORT, goTrue }
 
+    //ATA Device Configuration Overlay feature options
+    #define ATA_DCO_RESTORE ataDCORestoreSettingsToFactory
+    #define ATA_DCO_RESTORE_VAR getOptBool ATA_DCO_RESTORE = goFalse;
+    #define ATA_DCO_RESTORE_LONG_OPT_STRING "dcoRestore"
+    #define ATA_DCO_RESTORE_LONG_OPT { ATA_DCO_RESTORE_LONG_OPT_STRING, no_argument, &ATA_DCO_RESTORE, goTrue }
+
+    #define ATA_DCO_FREEZE ataDCOFreezeLock
+    #define ATA_DCO_FREEZE_VAR getOptBool ATA_DCO_FREEZE = goFalse;
+    #define ATA_DCO_FREEZE_LONG_OPT_STRING "dcoFreezeLock"
+    #define ATA_DCO_FREEZE_LONG_OPT { ATA_DCO_FREEZE_LONG_OPT_STRING, no_argument, &ATA_DCO_FREEZE, goTrue }
+
+    #define ATA_DCO_IDENTIFY ataDCOshowIdentify
+    #define ATA_DCO_IDENTIFY_VAR getOptBool ATA_DCO_IDENTIFY = goFalse;
+    #define ATA_DCO_IDENTIFY_LONG_OPT_STRING "dcoIdentify"
+    #define ATA_DCO_IDENTIFY_LONG_OPT { ATA_DCO_IDENTIFY_LONG_OPT_STRING, no_argument, &ATA_DCO_IDENTIFY, goTrue }
+
+    #define ATA_DCO_SETMAXLBA ataDCOSetMaxLBA
+    #define ATA_DCO_SETMAXLBA_VALUE ataDCONewMaxLBA
+    #define ATA_DCO_SETMAXLBA_VARS \
+    bool ATA_DCO_SETMAXLBA = false;\
+    uint64_t ATA_DCO_SETMAXLBA_VALUE = 0;
+    #define ATA_DCO_SETMAXLBA_LONG_OPT_STRING "dcoSetMaxLBA"
+    #define ATA_DCO_SETMAXLBA_LONG_OPT { ATA_DCO_SETMAXLBA_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //set highest reported DMA mode (MWDMA or UDMA #)
+    #define ATA_DCO_SETMAXMODE ataDCOSetMaxMode
+    #define ATA_DCO_SETMAXMODE_VALUE ataDCONewMaxMode
+    #define ATA_DCO_SETMAXMODE_VARS \
+    bool ATA_DCO_SETMAXMODE = false;\
+    uint8_t ATA_DCO_SETMAXMODE_VALUE = 0;//0 = disable all DMA modes. 1 = MWDMA0...4= UDMA0...10=UDMA6
+    #define ATA_DCO_SETMAXMODE_LONG_OPT_STRING "dcoSetMaxMode"
+    #define ATA_DCO_MODE_NODMA "nodma"
+    #define ATA_DCO_MODE_MWDMA0 "mwdma0"
+    #define ATA_DCO_MODE_MWDMA1 "mwdma1"
+    #define ATA_DCO_MODE_MWDMA2 "mwdma2"
+    #define ATA_DCO_MODE_UDMA0 "udma0"
+    #define ATA_DCO_MODE_UDMA1 "udma1"
+    #define ATA_DCO_MODE_UDMA2 "udma2"
+    #define ATA_DCO_MODE_UDMA3 "udma3"
+    #define ATA_DCO_MODE_UDMA4 "udma4"
+    #define ATA_DCO_MODE_UDMA5 "udma5"
+    #define ATA_DCO_MODE_UDMA6 "udma6"
+    #define ATA_DCO_SETMAXMODE_LONG_OPT { ATA_DCO_SETMAXMODE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define ATA_DCO_DISABLE_FEATURES ataDCODisableFeatures
+    #define ATA_DCO_DISABLE_FEATURES_VALUE ataDCOValueBitField
+    #define ATA_DCO_DISABLE_FEATURES_VARS \
+    bool ATA_DCO_DISABLE_FEATURES = false;\
+    uint64_t ATA_DCO_DISABLE_FEATURES_VALUE = 0; //word 0 = features 1, word 1 = sata features, word 2 = features 2 as a bit field matching bits from spec. IDK, seems easiest to manage
+    #define ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING   "dcoDisableFeat"
+    #define ATA_DCO_FEATURE_OPTION_WRV                  "wrv"
+    #define ATA_DCO_FEATURE_OPTION_SMART_CONVEYANCE     "smtCvSt"
+    #define ATA_DCO_FEATURE_OPTION_SMART_SELECTIVE      "smtSelSt"
+    #define ATA_DCO_FEATURE_OPTION_FUA                  "fua"
+    #define ATA_DCO_FEATURE_OPTION_TLC                  "tlc"
+    #define ATA_DCO_FEATURE_OPTION_STREAMING            "streaming"
+    #define ATA_DCO_FEATURE_OPTION_48BIT                "48b"
+    #define ATA_DCO_FEATURE_OPTION_HPA                  "hpa"
+    #define ATA_DCO_FEATURE_OPTION_AAM                  "aam"
+    #define ATA_DCO_FEATURE_OPTION_TCQ                  "tcq"
+    #define ATA_DCO_FEATURE_OPTION_PUIS                 "puis"
+    #define ATA_DCO_FEATURE_OPTION_SECURITY             "sec"
+    #define ATA_DCO_FEATURE_OPTION_SMART_ERRORLOG       "smtErrLog"
+    #define ATA_DCO_FEATURE_OPTION_SMART_SELF_TEST      "smtSt"
+    #define ATA_DCO_FEATURE_OPTION_SMART_FEATURE        "smart"
+    #define ATA_DCO_FEATURE_OPTION_SSP                  "ssp"
+    #define ATA_DCO_FEATURE_OPTION_ASYNC_NOTIFICATION   "asyncNot"
+    #define ATA_DCO_FEATURE_OPTION_INTERFACE_POWER_MGMT "ipm"
+    #define ATA_DCO_FEATURE_OPTION_NZ_BUFF              "nzBuff"
+    #define ATA_DCO_FEATURE_OPTION_NCQ                  "ncq"
+    #define ATA_DCO_FEATURE_OPTION_NVCACHE              "nvc"
+    #define ATA_DCO_FEATURE_OPTION_NVC_PM               "nvcpm"
+    #define ATA_DCO_FEATURE_OPTION_WUE                  "wue"
+    #define ATA_DCO_FEATURE_OPTION_TCG                  "tcg"
+    #define ATA_DCO_FEATURE_OPTION_FREE_FALL            "ffc"
+    #define ATA_DCO_FEATURE_OPTION_DSM                  "dsm"
+    #define ATA_DCO_FEATURE_OPTION_TRIM                 "trim"
+    #define ATA_DCO_FEATURE_OPTION_EPC                  "epc"
+    #define ATA_DCO_DISABLE_FEEATURES_LONG_OPT { ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
@@ -2037,7 +2149,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
+    //!   \param[in] helpdeviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
 
@@ -2070,7 +2182,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] deviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
+    //!   \param[in] helpdeviceHandleExample = a string that is an example of the device handle (used so that help printed out matches what is expected for a particular OS
     //!
     //  Exit:
 
@@ -2447,7 +2559,7 @@ extern "C"
     //
     //  Entry:
     //!   \param[in] shortHelp = bool used to select when to print short or long help
-    //!   \param[in] commandWindowType = string that represents the name of a command window type for the current OS
+    //!   \param[in] helpcommandWindowType = string that represents the name of a command window type for the current OS
     //
     //  Exit:
 
@@ -2587,6 +2699,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Transition_Power_State_Help(bool shortHelp);
+
+    void print_Show_NVM_Power_States_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
@@ -2898,7 +3012,6 @@ extern "C"
     //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
-
     //
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
@@ -2910,10 +3023,9 @@ extern "C"
 	//! \brief   Description:  This function prints out the short or long help for the fast discovery option
 	//
 	//  Entry:
-	//!   \param[in] shortHelp = bool used to select when to print short or long help
+	//!   \param[in] shortUsage = bool used to select when to print short or long help
 	//
 	//  Exit:
-	//!   \return VOID
 	//
 	//-----------------------------------------------------------------------------
 	void print_Fast_Discovery_Help(bool shortUsage);
@@ -3108,7 +3220,7 @@ extern "C"
     int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandleProvided, uint32_t *deviceCount, char ***handleList);
 
     //this call is to free the entire list of handles since they are all dynamically allocated.
-    void free_Handle_List(char ***handleList, uint32_t listCount);
+    void free_Handle_List(char*** handleList, uint32_t listCount);
 
 #if defined (ENABLE_CSMI)
     void print_CSMI_Force_Flags_Help(bool shortHelp);
@@ -3380,6 +3492,10 @@ extern "C"
 
     void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp);
 
+    void print_Zero_Verify_Help(bool shortHelp);
+
+    void print_Erase_Restore_Max_Prep_Help(bool shortHelp);
+
     void print_NVME_Health_Help(bool shortHelp);
 
     void print_Delay_CMD_Segment_Help(bool shortHelp);
@@ -3389,6 +3505,20 @@ extern "C"
     void print_Force_NVMe_Commit_Action_Help(bool shortHelp);
 
     void print_Force_NVMe_Disable_FW_Reset_Help(bool shortHelp);
+
+    void print_Partition_Info_Help(bool shortHelp);
+
+    void print_DCO_Restore_Help(bool shortHelp);
+
+    void print_DCO_FreezeLock_Help(bool shortHelp);
+
+    void print_DCO_Identify_Help(bool shortHelp);
+
+    void print_DCO_Set_Max_LBA_Help(bool shortHelp);
+
+    void print_DCO_Set_Max_Mode_Help(bool shortHelp);
+    
+    void print_DCO_Disable_Features_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

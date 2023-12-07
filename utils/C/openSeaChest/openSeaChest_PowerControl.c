@@ -31,7 +31,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.3.1";
+const char *buildVersion = "3.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -107,6 +107,7 @@ int32_t main(int argc, char *argv[])
     LEGACY_STANDBY_POWER_MODE_VARS
     SHOW_POWER_TELEMETRY_VAR
     REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS
+    SHOW_NVM_POWER_STATES_VAR
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -118,7 +119,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -151,6 +151,7 @@ int32_t main(int argc, char *argv[])
         LOWLEVEL_INFO_LONG_OPT,
         //tool specific options go here
         CHECK_POWER_LONG_OPT,
+        SHOW_NVM_POWER_STATES_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
         EPC_ENABLED_LONG_OPT,
         TRANSITION_POWER_MODE_LONG_OPT,
@@ -246,43 +247,43 @@ int32_t main(int argc, char *argv[])
             {
                 TRANSITION_POWER_MODE_FLAG = true;
                 //set the power mode
-                if (strncmp(POWER_STATE_ACTIVE_STRING, optarg, strlen(optarg)) == 0)
+                if (strcmp(POWER_STATE_ACTIVE_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_ACTIVE;
                 }
-                else if (strncmp(POWER_STATE_IDLE_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE;
                 }
-                else if (strncmp(POWER_STATE_IDLE_UNLOAD_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_UNLOAD_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_UNLOAD;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY;
                 }
-                else if (strncmp(POWER_STATE_IDLE_A_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_A_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_A;
                 }
-                else if (strncmp(POWER_STATE_IDLE_B_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_B_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_B;
                 }
-                else if (strncmp(POWER_STATE_IDLE_C_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_IDLE_C_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_IDLE_C;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_Y_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_Y_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Y;
                 }
-                else if (strncmp(POWER_STATE_STANDBY_Z_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_STANDBY_Z_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_STANDBY_Z;
                 }
-                else if (strncmp(POWER_STATE_SLEEP_STRING, optarg, strlen(optarg)) == 0)
+                else if (strcmp(POWER_STATE_SLEEP_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_SLEEP;
                 }
@@ -799,7 +800,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -979,9 +980,10 @@ int32_t main(int argc, char *argv[])
         || STANDBY_Y_POWER_MODE_FLAG
         || LEGACY_IDLE_POWER_MODE_FLAG
         || LEGACY_STANDBY_POWER_MODE_FLAG
-        || (TRANSITION_POWER_STATE_TO > 0)
+        || (TRANSITION_POWER_STATE_TO >= 0)
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
+        || SHOW_NVM_POWER_STATES
         ))
     {
         utility_Usage(true);
@@ -1006,7 +1008,7 @@ int32_t main(int argc, char *argv[])
     version.size = sizeof(tDevice);
 
     if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
-        || (TRANSITION_POWER_STATE_TO > 0)
+        || (TRANSITION_POWER_STATE_TO >= 0)
         )
     {
         flags = DO_NOT_WAKE_DRIVE;
@@ -1412,6 +1414,32 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_NVM_POWER_STATES)
+        {
+            nvmeSupportedPowerStates ps;
+            memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
+            switch(get_NVMe_Power_States(&deviceList[deviceIter], &ps))
+            {
+            case SUCCESS:
+                print_NVM_Power_States(&ps);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing NVM power states is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Could not read NVM power states from the device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2653,6 +2681,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s standby_z\n", util_name, deviceHandleExample, TRANSITION_POWER_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 120 --%s 12\n", util_name, deviceHandleExample, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
@@ -2740,5 +2769,6 @@ void utility_Usage(bool shortUsage)
     print_Show_Power_Consumption_Help(shortUsage);
     //NVMe Only
     printf("\n\tNVMe Only:\n\t=========\n");
+    print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }

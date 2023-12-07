@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.3.1";
+const char *buildVersion = "1.3.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -296,7 +296,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -576,7 +575,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -1254,7 +1253,6 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                                 {
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
-                                    safe_Free_aligned(log)
                                     multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
                                 }
                                 else
@@ -1363,22 +1361,23 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
             //If this worked right away, then everything is working as expected and no hacks are necesssary
             //If not, try setting the multiple mode to the highest supported by the drive, then try again and see if that changes the behavior.
             //    If the behavior changed and worked, then we know multisector PIO is possible up to the maximum multiple mode configuration
-            for (uint16_t iter = 0x80 * 2; iter < 512 && iter <= 0x9F * 2; iter += 2)
+            for (uint16_t iter = ATA_LOG_HOST_SPECIFIC_80H * 2; iter < 512 && iter <= ATA_LOG_HOST_SPECIFIC_9FH * 2; iter += 2)
             {
                 uint16_t logSize = M_BytesTo2ByteValue(logDir[iter + 1], logDir[iter]);
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
+                    uint32_t allocedLogSize = C_CAST(uint32_t, logSize) * UINT32_C(512);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(allocedLogSize, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
-                        if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, logSize * 512, false, 0))
+                        if (SUCCESS == ata_Read_Log_Ext(device, logAddress, 0, log, allocedLogSize, false, 0))
                         {
                             //now check if it's empty so we don't overwrite any data in it.
-                            if (is_Empty(log, logSize * 512))
+                            if (is_Empty(log, allocedLogSize))
                             {
                                 safe_Free_aligned(log)
-                                multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2), logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2), allocedLogSize);
                                 break;
                             }
                             safe_Free_aligned(log)
@@ -1387,10 +1386,18 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                         {
                             safe_Free_aligned(log)
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not compliant with multisector PIO commands\n");
-                            if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte1(device->drive_info.IdentifyData.ata.Word047) == 0x80 && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
+                            if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
                             {
+                                uint8_t drqBlocksToSet = M_Byte0(device->drive_info.IdentifyData.ata.Word047);
+                                uint8_t currentDRQblocks = M_Byte0(device->drive_info.IdentifyData.ata.Word059);//todo, bit 8 is a validity bit
+                                if (device->drive_info.IdentifyData.ata.Word059 & BIT8 && currentDRQblocks == drqBlocksToSet)
+                                {
+                                    //already at the max multiple mode supported, so don't bother setting it, this has already been tested for now.
+                                    //Instead, try changing this to a value of 1 to see if changing this to a different value works around the failure seen so far.
+                                    drqBlocksToSet = 1;
+                                }
                                 printf("Retrying after changing the multiple mode.\n");
-                                if (SUCCESS == ata_Set_Multiple_Mode(device, M_Byte0(device->drive_info.IdentifyData.ata.Word047)))
+                                if (SUCCESS == ata_Set_Multiple_Mode(device, drqBlocksToSet))
                                 {
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                                     //recursively call this function and try again
@@ -1403,7 +1410,13 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                                 else
                                 {
                                     printf("Unable to set the multiple mode. Aborting multi-sector PIO test\n");
+                                    //restore the multiple mode back to what the adapter originally configured to be safe that it's in a good state.
+                                    ata_Set_Multiple_Mode(device, currentDRQblocks);
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
+                                    set_Console_Colors(true, LIKELY_HACK_COLOR);
+                                    printf("HACK FOUND: SPIO\n");
+                                    set_Console_Colors(true, DEFAULT);
+                                    device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 }
                             }
                             else if (device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode)
@@ -1448,16 +1461,17 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                 logAddress = C_CAST(uint8_t, iter / 2);
                 if (logSize > 0)
                 {
-                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(logSize * 512, sizeof(uint8_t), device->os_info.minimumAlignment));
+                    uint32_t allocedLogSize = C_CAST(uint32_t, logSize) * UINT32_C(512);
+                    uint8_t *log = C_CAST(uint8_t *, calloc_aligned(allocedLogSize, sizeof(uint8_t), device->os_info.minimumAlignment));
                     if (log)
                     {
-                        if (SUCCESS == ata_SMART_Read_Log(device, logAddress, log, logSize * 512))
+                        if (SUCCESS == ata_SMART_Read_Log(device, logAddress, log, allocedLogSize))
                         {
                             //now check if it's empty so we don't overwrite any data in it.
-                            if (is_Empty(log, logSize * 512))
+                            if (is_Empty(log, allocedLogSize))
                             {
                                 safe_Free_aligned(log)
-                                multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / 2), logSize * 512);
+                                multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / 2), allocedLogSize);
                                 break;
                             }
                             safe_Free_aligned(log)
@@ -1592,8 +1606,9 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
     printf("Testing for check condition bit support on any command\n");
     device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = true;
     //try identify first...if this doesn't even work, then we know this doesn't work
-    int satRet = ata_Identify(device, (uint8_t *)&device->drive_info.IdentifyData.ata.Word000, 512);
-    if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+    uint8_t identifyData[512] = { 0 };
+    int satRet = ata_Identify(device, identifyData, 512);
+    if ((SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet) && !is_Empty(identifyData, 512))
     {
         bool testedGPL = false, testedSMART = false;
         bool gotValidRTFRsGPL = false, gotValidRTFRsSMART = false;
@@ -1673,7 +1688,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
                 else
                 {
                     set_Console_Colors(true, HACK_COLOR);
-                    printf("HACK FOUND: CHKDB\n");
+                    printf("HACK FOUND: CHKE\n");
                     set_Console_Colors(true, DEFAULT);
                     device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty = true;
                 }
@@ -1682,6 +1697,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
     }
     else
     {
+        device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = false;
         //test a non-data command to make sure check condition bit DOES work
         uint8_t pm = 0;
         if (SUCCESS == ata_Check_Power_Mode(device, &pm))
@@ -2661,7 +2677,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 if (designatorLength < 18)
                                 {
                                     set_Console_Colors(true, WARNING_COLOR);
-                                    printf("WARNING: Designator length should be 18B, but got %" PRIu8 "B\n", designatorLength);
+                                    printf("WARNING: Designator length should be 18B, but got %" PRIu16 "B\n", designatorLength);
                                     set_Console_Colors(true, DEFAULT);
                                 }
                                 for (uint16_t uuidOffset = designatorOffset; uuidOffset < (designatorLength + 4); ++uuidOffset)
@@ -2719,7 +2735,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -2777,7 +2793,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0238)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SAT! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0238, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SAT! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0238, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -2919,7 +2935,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0E)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0E, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0E, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -3200,7 +3216,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 } 
                 else
@@ -3349,7 +3365,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x003C)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x003C, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -3486,7 +3502,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 if (vpdPageLength < 0x0004)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
-                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX8 "h, but got %" PRIX8 "h\n", 0x0004, vpdPageLength);
+                    printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0004, vpdPageLength);
                     set_Console_Colors(true, DEFAULT);
                 }
                 else
@@ -6553,22 +6569,10 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
 
 static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSupported, bool *smartLoggingSupported, bool *sctSupported)
 {
-    uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    uint16_t *ident_word = (uint16_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    memcpy(inputs->device->drive_info.bridge_info.childDriveMN, &ident_word[27], MODEL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveMN[MODEL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveSN, &ident_word[10], SERIAL_NUM_LEN);
-    inputs->device->drive_info.bridge_info.childDriveSN[SERIAL_NUM_LEN] = '\0';
-    memcpy(inputs->device->drive_info.bridge_info.childDriveFW, &ident_word[23], 8);
-    inputs->device->drive_info.bridge_info.childDriveFW[FW_REV_LEN] = '\0';
-    //Byte swap due to endianess
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveMN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveSN);
-    byte_Swap_String(inputs->device->drive_info.bridge_info.childDriveFW);
-    //remove leading and trailing whitespace
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveMN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveSN);
-    remove_Leading_And_Trailing_Whitespace(inputs->device->drive_info.bridge_info.childDriveFW);
+    uint8_t *identifyData = C_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    uint16_t *ident_word = C_CAST(uint16_t*, &inputs->device->drive_info.IdentifyData.ata.Word000);
+    fill_ATA_Strings_From_Identify_Data(identifyData, inputs->device->drive_info.bridge_info.childDriveMN, inputs->device->drive_info.bridge_info.childDriveSN, inputs->device->drive_info.bridge_info.childDriveFW);
+
     //get the WWN
     inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(inputs->device->drive_info.IdentifyData.ata.Word108, \
         inputs->device->drive_info.IdentifyData.ata.Word109, \
@@ -6983,7 +6987,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         bool tpsiuIdentifySuccess = false;
         inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
         satRet = ata_Identify(inputs->device, identifyData, 512);
-        if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
+        if ((SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet) && !is_Empty(identifyData, 512))
         {
             tpsiuIdentifySuccess = true;
             inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
@@ -7118,6 +7122,13 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 printf("HACK FOUND: SPIO\n");
                 set_Console_Colors(true, DEFAULT);
             }
+        }
+        else
+        {
+            set_Console_Colors(true, LIKELY_HACK_COLOR);
+            printf("HACK FOUND: SPIO\n");
+            set_Console_Colors(true, DEFAULT);
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
         }
 
         //In next tests, need to make sure we actually get response information that makes sense.
@@ -8228,6 +8239,12 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 if (inputs->device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition)
                 {
                     printf(" NCHK,");
+                }
+                if (!inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable &&
+                    !inputs->device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty &&
+                    !inputs->device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition)
+                {
+                    printf(" CHKND,");
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseDMAInsteadOfUDMA)

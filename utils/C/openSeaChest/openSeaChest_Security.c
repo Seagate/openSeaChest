@@ -33,6 +33,7 @@
 #include "disable_data_locking.h"
 #endif
 #include "ata_Security.h"
+#include "generic_tests.h"
 
 //Uncomment this if we want the command line option to set an ATA security password.
 //This is currently removed because we may not be able to unlock it behind some devices due to poor implementation on SAT with ATA security active
@@ -42,7 +43,13 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.2.1";
+const char *buildVersion = "3.3.0";
+
+typedef enum _eSeaChestSecurityExitCodes
+{
+    SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE, //Zero validation failure    
+    SEACHEST_SECURITY_EXIT_MAX_ERROR //don't acutally use this, just for memory allocation below
+}eSeaChestSecurityExitCodes;
 
 ////////////////////////////
 //  functions to declare  //
@@ -94,6 +101,8 @@ int32_t main(int argc, char *argv[])
     //scan output flags
     SCAN_FLAGS_UTIL_VARS
     DISPLAY_LBA_VAR
+    HIDE_LBA_COUNTER_VAR
+    ZERO_VERIFY_VARS
 #if !defined(DISABLE_TCG_SUPPORT)
     TCG_DEVICE_INFO_VAR
     TCG_SID_VARS
@@ -120,7 +129,7 @@ int32_t main(int argc, char *argv[])
     ATA_SECURITY_MASTER_PW_CAPABILITY_VAR
     ATA_SECURITY_MASTER_PW_ID_VAR
     ATA_SECURITY_SET_PASSWORD_OP_VAR
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     ATA_SECURITY_FORCE_SAT_VARS
     ATA_SECURITY_UNLOCK_OP_VAR
     ATA_SECURITY_DISABLE_OP_VAR
@@ -131,7 +140,6 @@ int32_t main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -187,10 +195,12 @@ int32_t main(int argc, char *argv[])
         ATA_SECURITY_SET_PASSWORD_OP_LONG_OPT,
         ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT,
         ATA_SECURITY_MASTER_PW_ID_LONG_OPT,
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
         ATA_SECURITY_UNLOCK_OP_LONG_OPT,
         ATA_SECURITY_DISABLE_OP_LONG_OPT,
         ATA_SECURITY_FREEZELOCK_OP_LONG_OPT,
+        HIDE_LBA_COUNTER_LONG_OPT,
+        ZERO_VERIFY_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -291,7 +301,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "zeropad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -300,7 +310,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "spacepad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -309,7 +319,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "fpad") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.spacePadded || ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -318,7 +328,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "leftAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -327,7 +337,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "rightAlign") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.leftAligned)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -336,7 +346,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "uppercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -345,7 +355,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "lowercase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -354,7 +364,7 @@ int32_t main(int argc, char *argv[])
                 else if (strcmp(optarg, "invertcase") == 0)
                 {
                     ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase = true;
-                    if ( ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
+                    if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase || ATA_SECURITY_PASSWORD_MODIFICATIONS.forceUppercase)
                     {
                         //todo: print error saying invalid argument combination.
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -440,14 +450,14 @@ int32_t main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING))) == 0)
             {
                 uint64_t masterIDOut = 0;
-                if(!get_And_Validate_Integer_Input(optarg, &masterIDOut))
+                if (!get_And_Validate_Integer_Input(optarg, &masterIDOut))
                 {
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
                 ATA_SECURITY_MASTER_PW_ID = C_CAST(uint16_t, masterIDOut);
             }
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
                 ATA_SECURITY_FORCE_SAT_VALID = true;
@@ -524,6 +534,23 @@ int32_t main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(DISPLAY_LBA_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, ZERO_VERIFY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ZERO_VERIFY_LONG_OPT_STRING))) == 0)
+            {
+                ZERO_VERIFY_FLAG = true;
+                if (strcmp(optarg, "full") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_FULL;
+                }
+                else if (strcmp(optarg, "quick") == 0)
+                {
+                    ZERO_VERIFY_MODE_FLAG = ZERO_VERIFY_TYPE_QUICK;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ZERO_VERIFY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             break;
@@ -650,7 +677,7 @@ int32_t main(int argc, char *argv[])
 
     if (LICENSE_FLAG)
     {
-        print_EULA_To_Screen(false, false);
+        print_EULA_To_Screen();
     }
 
     if (SCAN_FLAG || AGRESSIVE_SCAN_FLAG)
@@ -915,9 +942,10 @@ int32_t main(int argc, char *argv[])
         || ATA_SECURITY_UNLOCK_OP
 #if defined ENABLE_ATA_SET_PASSWORD
         || ATA_SECURITY_SET_PASSWORD_OP
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
         || ATA_SECURITY_ERASE_OP
-       ))
+        || ZERO_VERIFY_FLAG
+        ))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1133,7 +1161,7 @@ int32_t main(int argc, char *argv[])
                 continue;
             }
         }
-        
+
         if (FORCE_SCSI_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1142,7 +1170,7 @@ int32_t main(int argc, char *argv[])
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
-        
+
         if (FORCE_ATA_FLAG)
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1227,6 +1255,34 @@ int32_t main(int argc, char *argv[])
         if (TEST_UNIT_READY_FLAG)
         {
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
+        }
+
+        if (ZERO_VERIFY_FLAG)
+        {
+            ret = zero_Verify_Test(&deviceList[deviceIter], ZERO_VERIFY_MODE_FLAG, HIDE_LBA_COUNTER);
+            switch (ret)
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation Test passed.\n");
+                }
+                break;
+            case VALIDATION_FAILURE:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Zero Validation failed.\n");
+                }
+                exitCode = SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Operation failure.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
         }
 
         if (DISPLAY_LBA_FLAG)
@@ -1566,14 +1622,14 @@ int32_t main(int argc, char *argv[])
         }
 #endif //#if !defined(DISABLE_TCG_SUPPORT)
 
-        if(ATA_SECURITY_UNLOCK_OP)
+        if (ATA_SECURITY_UNLOCK_OP)
         {
             ataSecurityPassword ataPassword;
             memset(&ataPassword, 0, sizeof(ataSecurityPassword));
             ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
             memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
             ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
-            switch(run_Unlock_ATA_Security(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
+            switch (run_Unlock_ATA_Security(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
                 printf("Successfully unlocked ATA security\n");
@@ -1588,15 +1644,16 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to unlock ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
-        if(ATA_SECURITY_DISABLE_OP)
+        if (ATA_SECURITY_DISABLE_OP)
         {
             ataSecurityPassword ataPassword;
             memset(&ataPassword, 0, sizeof(ataSecurityPassword));
             ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
             memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
             ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
-            switch(run_Disable_ATA_Security_Password(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
+            switch (run_Disable_ATA_Security_Password(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
                 printf("Successfully disabled ATA security password\n");
@@ -1611,9 +1668,10 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to disable ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
 #if defined ENABLE_ATA_SET_PASSWORD
-        if(ATA_SECURITY_SET_PASSWORD_OP)
+        if (ATA_SECURITY_SET_PASSWORD_OP)
         {
             ataSecurityPassword ataPassword;
             memset(&ataPassword, 0, sizeof(ataSecurityPassword));
@@ -1622,7 +1680,7 @@ int32_t main(int argc, char *argv[])
             ataPassword.masterPWIdentifier = ATA_SECURITY_MASTER_PW_ID;
             memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
             ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
-            switch(run_Set_ATA_Security_Password(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
+            switch (run_Set_ATA_Security_Password(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
                 printf("Successfully set ATA security password\n");
@@ -1637,8 +1695,9 @@ int32_t main(int argc, char *argv[])
                 printf("Failed to set ATA security.\n");
                 break;
             }
+            explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
         }
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
 
         if (ATA_SECURITY_ERASE_OP)
         {
@@ -1672,6 +1731,7 @@ int32_t main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
+                explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
             }
             else
             {
@@ -1685,9 +1745,9 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(ATA_SECURITY_FREEZELOCK_OP)
+        if (ATA_SECURITY_FREEZELOCK_OP)
         {
-            switch(run_Freeze_ATA_Security(&deviceList[deviceIter], ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
+            switch (run_Freeze_ATA_Security(&deviceList[deviceIter], ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
                 printf("Successfully froze ATA security\n");
@@ -1735,7 +1795,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_SECURITY_INFO_OP_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s enhanced\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s enhanced\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
     printf("\t%s -d %s --%s enhanced --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s AutoATAWindowsString12345678901 --%s user\n", util_name, deviceHandleExample, ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_LONG_OPT_STRING, ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
 #if defined ENABLE_ATA_SET_PASSWORD
@@ -1745,7 +1805,26 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    int totalErrorCodes = SEACHEST_SECURITY_EXIT_MAX_ERROR - SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE;
+    ptrToolSpecificxitCode seachestSecurityExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
+    //now set up all the exit codes and their meanings
+    if (seachestSecurityExitCodes)
+    {
+        for (int exitIter = UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE; exitIter < SEACHEST_SECURITY_EXIT_MAX_ERROR; ++exitIter)
+        {
+            seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCode = exitIter;
+            switch (exitIter)
+            {
+            case SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE:
+                snprintf(seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                break;
+                //TODO: add more exit codes here!
+            default://We shouldn't ever hit the default case!
+                break;
+            }
+        }
+    }
+    print_SeaChest_Util_Exit_Codes(totalErrorCodes, seachestSecurityExitCodes, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");
@@ -1795,16 +1874,17 @@ void utility_Usage(bool shortUsage)
     print_TCG_Info_Help(shortUsage);
     print_TCG_SID_Help(shortUsage);
 #endif
+    print_Zero_Verify_Help(shortUsage);
 
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Master_Password_Capability_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Freezelock_Help(shortUsage);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Master_Password_ID_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Password_Help(shortUsage);
     print_ATA_Security_Password_Type_Help(shortUsage);
     print_ATA_Security_Password_Modifications_Help(shortUsage);
@@ -1812,7 +1892,7 @@ void utility_Usage(bool shortUsage)
     print_Disable_ATA_Security_Password_Help(shortUsage, util_name);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Set_Password_Help(shortUsage);
-#endif
+#endif //ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Unlock_Help(shortUsage);
 
     //data destructive commands - alphabetized

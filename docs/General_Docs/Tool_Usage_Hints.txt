@@ -1,0 +1,94 @@
+================
+Tool Usage Hints
+================
+See Sample Output examples below.
+
+First, run the SeaChest -s option to determine what /dev/sg? or PD? device
+handle assignment lines up to your disk drive. This option will also show you
+other details about the drive including the current firmware revision.
+
+Linux:
+Vendor     Handle       Model Number       Serial Number     FwRev
+ATA        /dev/sg0     ST94813AS          3AA043KP          3.03
+SEAGATE    /dev/sg1     ST1000NM0011       ZAA15VAS          SN03
+
+Windows:
+Vendor     Handle   Model Number        Serial Number     FwRev
+IDE        PD0      ST94813AS           3AA043KP          3.03
+SEAGATE    PD1      ST1000NM0011        ZAA15VAS          SN03
+
+You can use SeaChest -s --onlySeagate to limit the display to just Seagate.
+
+All utility arguments will require you to identify the specific drive by
+providing the sg or PD device handle (-d, --device).
+
+Lin example, SeaChest_Basics -d /dev/sg1 --shortDST --poll
+Win example, SeaChest_Basics -d PD2 --shortDST --poll
+
+You may combine multiple tests with a single command line.  For example,
+in Linux, SeaChest_Basics -d /dev/sg0 -i --smartCheck runs both identify and
+SMART.  In Windows, SeaChest_Basics -d PD0 -i --smartCheck runs both
+identify and SMART.
+
+Multiple device handles can be given by adding -d /dev/sg# for each additional
+handle.  Devices are processed in sequential order.  For example, in Linux,
+SeaChest_Basics -d /dev/sg0 -d /dev/sg3 -i runs identify on these two
+devices.  In Windows, SeaChest_Basics -d PD0 -d PD3 -i runs identify on
+these two devices.
+
+Caution: All device handles may be specified.  However, great care should be
+taken to fully anticipate the consequences of running a command on all storage
+devices in a system.  For example, a command to erase data on all drives could
+be catastrophic or exactly what you want. The shortcut to select all devices is
+-d all.  Seagate is not responsible for lost user data.  Along with the
+designation for all devices, you can narrow the tasks to specific types of
+drives by using the --onlySeagate, --modelMatch and --onlyFW filters.
+
+If the task is an OFFLINE command like format unit or short DST, meaning that
+the drive works on the task in the background and the tool quickly returns to
+the command prompt (there is little or no I/O to the system), then you can
+expect the system to run normally. If the task has high I/O to the system like
+a sequential read of all sectors on the drive, then you can expect the system
+to slow down with each additional device.
+
+The discussion above is about starting SEQUENTIAL tests, or one after the
+other.  When the task does not return to the command prompt for a very long
+time, then you have a few options to run tests in PARALLEL, also called
+simultaneous, in other words all at the same time.  One way is to start
+different drives in different Terminal windows, if available.  There are other
+more sophisticated methods using parallel processing, for information about
+these methods please see the information at this link:
+https://github.com/Seagate/ToolBin/tree/master/SeaChest/parallel_testing
+
+Tests which take a very long time to complete or erase all user data on the
+drive will require a longer command line argument than indicated in the --help
+output to the screen.  This approach is taken to eliminate the possibility of
+accidental data loss or the commitment of long test times. The longer command
+arguments are similar to -I-understand-this-command-will-take-a-long-time or
+-I-understand-this-command-will-erase-all-data.
+
+Tests which alter the firmware or erase user data on the drive are limited to
+Seagate-only products which include Seagate, Maxtor, Samsung and LaCie.
+
+Advanced SAS installations may use dual ports.  These are listed as Port 0 and
+Port 1 on the device information report. When both ports are active, each one
+may have a unique /dev/sg designation.  The scan option may indicate that there
+are two drives in the system with the same serial number.  Dual port
+installations will also report two different Worldwide Numbers (WWN).
+
+Windows Only Usage
+==================
+All Windows version tools support finding CSMI devices and talking to them like
+you would a normal device.  The scan output will show all drives it detects
+ONCE. CSMI device handles have a structure like csmi:<controller>:<port>:<lun>.  
+If a drive has both a PD? and csmi:?:?:? handle, then SeaChest will show the PD
+handle instead of the CSMI handle.
+
+When drives are in a RAID, the PD device handle is usually not available and
+the CSMI handle may provide an alternate way to talk to the drive.  Just
+because a device has a CSMI handle doesn't mean it is part of a RAID.
+
+If you want to see both handles, add --scanFlags allowDuplicates to the command
+line.  If you don't want to see any CSMI devices, add --scanFlags ignoreCSMI to
+the command line.  SeaChest_Info -d csmi:?:?:? --csmiInfo is useful when
+troubleshooting CSMI device handles questions.

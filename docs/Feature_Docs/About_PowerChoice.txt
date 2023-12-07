@@ -1,0 +1,44 @@
+================================
+How PowerChoice Technology Works
+================================
+See the Seagate technology paper "Seagate' PowerChoice' Technology Provides
+Unprecedented Hard Drive Power Savings and Flexibility"
+http://www.seagate.com/files/docs/pdf/en-GB/whitepaper/tp608-powerchoice-tech-provides-gb.pdf
+
+Each individual power condition builds on the capabilities of the previous
+higher power condition in order to save incrementally more power. The specific
+energy-saving steps implemented for each power condition are as follows:
+
+Idle_A
+        - Disables most of the servo system, reduces processor and channel
+        power consumption
+        - Discs rotating at full speed (7,200 RPM)
+Idle_B
+        - Disables most of the servo system, reduces processor and channel
+        power consumption
+        - Heads are unloaded to drive ramp.
+        - Discs rotating at full speed (7,200 RPM)
+Idle_C/Standby_Y (SAS Only)
+        - Disables most of the servo system, reduces processor and channel
+        power consumption
+        - Heads are unloaded to drive ramp.
+        - Drive speed reduced to a lower RPM (reduced RPM)
+Standby_Z
+        - Heads are unloaded to drive ramp.
+        - Drive motor is spun down.
+        - Drive still responds to non-media access host commands.
+
+Flexibility is a key feature of PowerChoice technology, enabling commands from
+the host side to customize power condition settings and direct a drive into or
+out of power conditions as required. Two different options are available for
+the user to modify PowerChoice technology settings, depending on the interface
+used:
+
+SAS
+        Host-definable timers via mode pages
+        Immediate host-commanded power transitions via Start/Stop Unit (SSU)
+        command
+SATA
+        Host-definable timers via Set Features commands
+        Immediate host-commanded power transitions via Set Features commands
+

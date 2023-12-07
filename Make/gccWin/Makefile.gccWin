@@ -24,9 +24,9 @@ endif
 # example: BUILD_ALL = firmware   for just firmware
 # BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 ifneq (,$(findstring Linux,$(MYUNAME)))
-	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart zbd passthrough reservations 
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart security zbd passthrough reservations 
 else
-	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd passthrough reservations 
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart security zbd passthrough reservations 
 endif
 
 UTIL_SRC_DIR = ../../utils/C/openSeaChest
