@@ -685,6 +685,23 @@ void print_SMART_Check_Help(bool shortHelp)
     }
 }
 
+void print_SMART_Offline_Data_Collection_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", SHORT_DST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tExecute the SMART off-line data collection routine on an ATA drive.\n");
+        printf("\t\tThis will run for the amount of time the device specifies that this\n");
+        printf("\t\toperation will take to complete. Progress updates are not available\n");
+        printf("\t\twhile this is running. Some drives allow other commands to be processed\n");
+        printf("\t\tand some require no interruption while this routine completes.\n");
+        printf("\t\tThis routine does vendor unique activities to update the SMART data and\n");
+        printf("\t\tSMART attributes the device reports.\n");
+        printf("\t\tIf the SMART auto-off-line feature is supported and enabled, then this\n");
+        printf("\t\troutine is already running automatically in the background periodically.\n\n");
+    }
+}
+
 void print_Short_DST_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHORT_DST_LONG_OPT_STRING);
