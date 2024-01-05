@@ -277,6 +277,11 @@ extern "C"
     #define SHORT_DST_LONG_OPT_STRING "shortDST"
     #define SHORT_DST_LONG_OPT { SHORT_DST_LONG_OPT_STRING, no_argument, &SHORT_DST_FLAG, goTrue }
 
+    #define SMART_OFFLINE_SCAN_FLAG smartOfflineScan
+    #define SMART_OFFLINE_SCAN_VAR getOptBool SMART_OFFLINE_SCAN_FLAG = goFalse;
+    #define SMART_OFFLINE_SCAN_LONG_OPT_STRING "smartOffline"
+    #define SMART_OFFLINE_SCAN_LONG_OPT { SMART_OFFLINE_SCAN_LONG_OPT_STRING, no_argument, &SMART_OFFLINE_SCAN_FLAG, goTrue }
+
     #define LONG_DST_FLAG longDST
     #define LONG_DST_VAR getOptBool LONG_DST_FLAG = goFalse;
     #define LONG_DST_LONG_OPT_STRING "longDST"
@@ -2550,6 +2555,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Short_DST_Help(bool shortHelp);
+
+    void print_SMART_Offline_Data_Collection_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //
