@@ -31,7 +31,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.4.0";
+const char *buildVersion = "3.5.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -108,6 +108,7 @@ int32_t main(int argc, char *argv[])
     SHOW_POWER_TELEMETRY_VAR
     REQUEST_POWER_TELEMETRY_MEASUREMENT_VARS
     SHOW_NVM_POWER_STATES_VAR
+    PUIS_FEATURE_VARS
 
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -177,6 +178,7 @@ int32_t main(int argc, char *argv[])
         TRANSITION_POWER_STATE_LONG_OPT,
         SHOW_POWER_TELEMETRY_LONG_OPT,
         REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
+        PUIS_FEATURE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -656,6 +658,33 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, PUIS_FEATURE_LONG_OPT_STRING) == 0)
+            {
+                PUIS_FEATURE_FLAG = true;
+                if (strcmp(optarg, "info") == 0)
+                {
+                    PUIS_FEATURE_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    PUIS_FEATURE_STATE_FLAG = true;
+                    PUIS_STATE_VALID_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    PUIS_FEATURE_STATE_FLAG = false;
+                    PUIS_STATE_VALID_FLAG = true;
+                }
+                else if (strcmp(optarg, "spinup") == 0)
+                {
+                    PUIS_FEATURE_SPINUP_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(PUIS_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -984,6 +1013,7 @@ int32_t main(int argc, char *argv[])
         || SHOW_POWER_TELEMETRY_FLAG
         || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
         || SHOW_NVM_POWER_STATES
+        || PUIS_FEATURE_FLAG
         ))
     {
         utility_Usage(true);
@@ -1414,6 +1444,34 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (PUIS_FEATURE_FLAG && PUIS_FEATURE_SPINUP_FLAG)
+        {
+            switch (puis_Spinup(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\nSuccessfully performed PUIS spinup command\n");
+                    printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("PUIS spinup command is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to perform the PUIS spinup command\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1962,6 +2020,111 @@ int32_t main(int argc, char *argv[])
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
                     }
+                }
+            }
+        }
+
+        if (PUIS_FEATURE_FLAG && !PUIS_FEATURE_SPINUP_FLAG)
+        {
+            //handle all other PUIS feature options as spinup is handled above with other powerstate transitioning commands.
+            if (PUIS_FEATURE_INFO_FLAG)
+            {
+                puisInfo info;
+                memset(&info, 0, sizeof(puisInfo));
+                switch (get_PUIS_Info(&deviceList[deviceIter], &info))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("===PUIS Info===\n");
+                        if (info.puisSupported)
+                        {
+                            if (info.puisEnabled)
+                            {
+                                printf("\tPUIS is supported and enabled\n");
+                            }
+                            else
+                            {
+                                printf("\tPUIS is supported\n");
+                            }
+                            if (info.spinupCommandRequired)
+                            {
+                                printf("\tSpin-Up command is required for medium access.\n");
+                            }
+                            else
+                            {
+                                printf("\tAutomatic spin-up as needed for medium access.\n");
+                            }
+                        }
+                        else
+                        {
+                            printf("\tPUIS is not supported on this device.\n");
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("PUIS is not available on this device type!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get PUIS info from this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            if (PUIS_STATE_VALID_FLAG)
+            {
+                switch (enable_Disable_PUIS_Feature(&deviceList[deviceIter], PUIS_FEATURE_STATE_FLAG))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("PUIS feature successfully enabled!\n");
+                        }
+                        else
+                        {
+                            printf("PUIS feature successfully disabled!\n");
+                        }
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Enabling PUIS feature not supported on this device.\n");
+                        }
+                        else
+                        {
+                            printf("Disabling PUIS feature not supported on this device.\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Failed to enable PUIS feature!\n");
+                        }
+                        else
+                        {
+                            printf("Failed to disable PUIS feature!\n");
+                            printf("If PUIS is enabled with a jumper, it cannot be disabled with this command!\n");
+                            printf("Remove the PUIS jumper to disable the feature in this case.\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
             }
         }

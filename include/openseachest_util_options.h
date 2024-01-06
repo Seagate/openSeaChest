@@ -1286,10 +1286,16 @@ extern "C"
 
     //PUIS Feature enable/disable
     #define PUIS_FEATURE_FLAG puisFeature
+    #define PUIS_STATE_VALID_FLAG puisFeatureStateValid
     #define PUIS_FEATURE_STATE_FLAG puisFeatureState
+    #define PUIS_FEATURE_INFO_FLAG puisFeatureInfo
+    #define PUIS_FEATURE_SPINUP_FLAG puisFeatureSpinup
     #define PUIS_FEATURE_VARS \
     bool PUIS_FEATURE_FLAG = false;\
-    bool puisFeatureState = false;/* False = disable, true = enable */
+    bool PUIS_STATE_VALID_FLAG = false;\
+    bool PUIS_FEATURE_STATE_FLAG = false;/* False = disable, true = enable */\
+    bool PUIS_FEATURE_INFO_FLAG = false;\
+    bool PUIS_FEATURE_SPINUP_FLAG = false;
     #define PUIS_FEATURE_LONG_OPT_STRING "puisFeature"
     #define PUIS_FEATURE_LONG_OPT { PUIS_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
 

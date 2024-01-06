@@ -2692,11 +2692,17 @@ void print_Disable_APM_Help(bool shortHelp)
 
 void print_PUIS_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ info | spinup | enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the power up in standby\n");
         printf("\t\t(PUIS) feature on SATA drives. \n");
+        printf("\t\tArguments:\n");
+        printf("\t\t    info    - display information about the PUIS support on the device\n");
+        printf("\t\t    spinup  - issue the PUIS spinup set features command to spin up\n");
+        printf("\t\t              the device to active/idle state.\n");
+        printf("\t\t    enable  - enable the PUIS feature using setfeatures command\n");
+        printf("\t\t    disable - disable the PUIS feature using setfeatures command\n");
         printf("\t\tNote: If this is configured on the drive with a jumper, this\n");
         printf("\t\t      command will fail.\n");
         printf("\t\tNote2: Not all products support this feature.\n");
