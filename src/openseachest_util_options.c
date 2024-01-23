@@ -685,6 +685,23 @@ void print_SMART_Check_Help(bool shortHelp)
     }
 }
 
+void print_SMART_Offline_Data_Collection_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", SHORT_DST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tExecute the SMART off-line data collection routine on an ATA drive.\n");
+        printf("\t\tThis will run for the amount of time the device specifies that this\n");
+        printf("\t\toperation will take to complete. Progress updates are not available\n");
+        printf("\t\twhile this is running. Some drives allow other commands to be processed\n");
+        printf("\t\tand some require no interruption while this routine completes.\n");
+        printf("\t\tThis routine does vendor unique activities to update the SMART data and\n");
+        printf("\t\tSMART attributes the device reports.\n");
+        printf("\t\tIf the SMART auto-off-line feature is supported and enabled, then this\n");
+        printf("\t\troutine is already running automatically in the background periodically.\n\n");
+    }
+}
+
 void print_Short_DST_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHORT_DST_LONG_OPT_STRING);
@@ -1819,14 +1836,15 @@ void print_SCT_Write_Cache_Reordering_Help(bool shortHelp)
 
 void print_SCT_Error_Recovery_Read_Help(bool shortHelp)
 {
-    printf("\t--%s [info | value] (SATA Only)\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
+    printf("\t--%s [info | value | default] (SATA Only)\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to set the read command timer value for\n");
         printf("\t\tsynchronous commands and NCQ commands with in-order data\n");
         printf("\t\tdelivery enabled. Note: this timer starts at the time that\n");
         printf("\t\tthe drive processes the command, not the time it is received.\n");
-        printf("\t\tThis timer value is volatile and is cleared at each power cycle.\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
         printf("\t\tUse the \"info\" argument to get the current status\n");
         printf("\t\tof the read timer. A value of 0 means that all possible\n");
         printf("\t\terror recovery will be performed before returning status.\n");
@@ -1836,6 +1854,7 @@ void print_SCT_Error_Recovery_Read_Help(bool shortHelp)
         printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
         printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
         printf("\t\tThe maximum time that can be specified is 1 hour, 49 minutes, 13 seconds\n");
+        printf("\t\tUsing the \"default\" argument restores default settings.\n");
         printf("\t\tNote: On some SAT HBAs/bridges, status will not be able to be\n");
         printf("\t\tdetermined due to HBA/bridge limitations.\n\n");
     }
@@ -1843,14 +1862,15 @@ void print_SCT_Error_Recovery_Read_Help(bool shortHelp)
 
 void print_SCT_Error_Recovery_Write_Help(bool shortHelp)
 {
-    printf("\t--%s [info | value] (SATA Only)\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+    printf("\t--%s [info | value | default] (SATA Only)\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to set the write command timer value for\n");
         printf("\t\tsynchronous commands and NCQ commands with in-order data\n");
         printf("\t\tdelivery enabled. Note: this timer starts at the time that\n");
         printf("\t\tthe drive processes the command, not the time it is received.\n");
-        printf("\t\tThis timer value is volatile and is cleared at each power cycle.\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
         printf("\t\tUse the \"info\" argument to get the current status\n");
         printf("\t\tof the write timer. A value of 0 means that all possible\n");
         printf("\t\terror recovery will be performed before returning status.\n");
@@ -1860,6 +1880,7 @@ void print_SCT_Error_Recovery_Write_Help(bool shortHelp)
         printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
         printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
         printf("\t\tThe maximum time that can be specified is 1 hour, 49 minutes, 13 seconds\n");
+        printf("\t\tUsing the \"default\" argument restores default settings.\n");
         printf("\t\tNote: On some SAT HBAs/bridges, status will not be able to be\n");
         printf("\t\tdetermined due to HBA/bridge limitations.\n\n");
     }
@@ -2671,11 +2692,17 @@ void print_Disable_APM_Help(bool shortHelp)
 
 void print_PUIS_Feature_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
+    printf("\t--%s [ info | spinup | enable | disable ]  (SATA Only)\n", PUIS_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to enable or disable the power up in standby\n");
         printf("\t\t(PUIS) feature on SATA drives. \n");
+        printf("\t\tArguments:\n");
+        printf("\t\t    info    - display information about the PUIS support on the device\n");
+        printf("\t\t    spinup  - issue the PUIS spinup set features command to spin up\n");
+        printf("\t\t              the device to active/idle state.\n");
+        printf("\t\t    enable  - enable the PUIS feature using setfeatures command\n");
+        printf("\t\t    disable - disable the PUIS feature using setfeatures command\n");
         printf("\t\tNote: If this is configured on the drive with a jumper, this\n");
         printf("\t\t      command will fail.\n");
         printf("\t\tNote2: Not all products support this feature.\n");

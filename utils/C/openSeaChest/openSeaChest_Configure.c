@@ -23,6 +23,7 @@
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "power_control.h"//PUIS. transitions users to using openSeaChest_PowerControl for this feature.
 #include "drive_info.h"
 #include "set_max_lba.h"
 #include "trim_unmap.h"
@@ -33,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.4.5";
+const char *buildVersion = "2.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -455,13 +456,23 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, PUIS_FEATURE_LONG_OPT_STRING) == 0)
             {
                 PUIS_FEATURE_FLAG = true;
-                if (strcmp(optarg, "enable") == 0)
+                if (strcmp(optarg, "info") == 0)
+                {
+                    PUIS_FEATURE_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = true;
+                    PUIS_STATE_VALID_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = false;
+                    PUIS_STATE_VALID_FLAG = true;
+                }
+                else if (strcmp(optarg, "spinup") == 0)
+                {
+                    PUIS_FEATURE_SPINUP_FLAG = true;
                 }
                 else
                 {
@@ -503,6 +514,10 @@ int32_t main(int argc, char *argv[])
                 {
                     SCT_ERROR_RECOVERY_CONTROL_READ_INFO = true;
                 }
+                else if (strcmp(optarg, "default") == 0)
+                {
+                    SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT = true;
+                }
                 else
                 {
                     uint32_t multiplier = 100;//100 millisecond conversion
@@ -532,6 +547,10 @@ int32_t main(int argc, char *argv[])
                 if (strcmp(optarg, "info") == 0)
                 {
                     SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO = true;
+                }
+                else if (strcmp(optarg, "default") == 0)
+                {
+                    SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT = true;
                 }
                 else
                 {
@@ -1484,6 +1503,8 @@ int32_t main(int argc, char *argv[])
         || SCT_ERROR_RECOVERY_CONTROL_READ_INFO
         || SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER
         || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER
+        || SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT
+        || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT
         || FREE_FALL_FLAG
         || FREE_FALL_INFO
         || SCSI_MP_RESET_OP
@@ -2678,9 +2699,63 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT)
+        {
+            switch (sct_Restore_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restore SCT error recovery read command timer to default!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring SCT error recovery read command timer to default is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore SCT error recovery read command timer to default!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT)
+        {
+            switch (sct_Restore_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully restore SCT error recovery write command timer to default!\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Restoring SCT error recovery write command timer to default is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to restore SCT error recovery write command timer to default!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER)
         {
-            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
+            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE, VOLATILE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2703,11 +2778,18 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
+            if (VOLATILE_FLAG == false && exitCode != UTIL_EXIT_NO_ERROR)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Please think of using --%s flag as workaround\n", VOLATILE_LONG_OPT_STRING);
+                }
+            }
         }
 
         if (SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER)
         {
-            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE))
+            switch (sct_Set_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE, VOLATILE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2730,17 +2812,31 @@ int32_t main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
+            if (VOLATILE_FLAG == false && exitCode != UTIL_EXIT_NO_ERROR)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Please think of using --%s flag as workaround\n", VOLATILE_LONG_OPT_STRING);
+                }
+            }
         }
 
-        if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO)
+        if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO || SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO)
         {
-            uint32_t timerValueMilliseconds = 0;
-            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds))
+            uint32_t minRcvTimeLmtMilliseconds = 0;
+            switch (sct_Get_Min_Recovery_Time_Limit(&deviceList[deviceIter], &minRcvTimeLmtMilliseconds))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCT error recovery control read timer is set to %" PRIu32 "ms\n", timerValueMilliseconds);
+                    if (minRcvTimeLmtMilliseconds > 0)
+                    {
+                        printf("SCT error recovery control timer minimum supported value is %" PRIu32 "ms\n", minRcvTimeLmtMilliseconds);
+                    }
+                    else
+                    {
+                        printf("SCT error recovery control timer minimum supported value is not reported\n");
+                    }
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2753,22 +2849,22 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get SCT error recovery read command timer!\n");
+                    printf("Failed to get SCT error recovery command timer minimum supported value!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
         }
 
-        if (SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO)
+        if (SCT_ERROR_RECOVERY_CONTROL_READ_INFO)
         {
             uint32_t timerValueMilliseconds = 0;
-            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds))
+            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds, true))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCT error recovery control write timer is set to %" PRIu32 "ms\n", timerValueMilliseconds);
+                    printf("SCT error recovery control read timer is %" PRIu32 "ms (volatile)\n", timerValueMilliseconds);
                 }
                 break;
             case NOT_SUPPORTED:
@@ -2781,10 +2877,90 @@ int32_t main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get SCT error recovery write command timer!\n");
+                    printf("Failed to get SCT error recovery read command timer (volatile)!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            }
+            if (exitCode == UTIL_EXIT_NO_ERROR)
+            {
+                switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_READ_COMMAND, &timerValueMilliseconds, false))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control read timer is %" PRIu32 "ms (non-volatile)\n", timerValueMilliseconds);
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get SCT error recovery read command timer (non-volatile)!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+        }
+
+        if (SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO)
+        {
+            uint32_t timerValueMilliseconds = 0;
+            switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds, true))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SCT error recovery control write timer is %" PRIu32 "ms (volatile)\n", timerValueMilliseconds);
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SCT error recovery control is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get SCT error recovery write command timer (volatile)!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+            if (exitCode == UTIL_EXIT_NO_ERROR)
+            {
+                switch (sct_Get_Command_Timer(&deviceList[deviceIter], SCT_ERC_WRITE_COMMAND, &timerValueMilliseconds, false))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control write timer is %" PRIu32 "ms (non-volatile)\n", timerValueMilliseconds);
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("SCT error recovery control is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get SCT error recovery write command timer (non-volatile)!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
         }
 
@@ -3159,51 +3335,158 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(PUIS_FEATURE_FLAG)
+        if (PUIS_FEATURE_FLAG)
         {
-            switch (enable_Disable_PUIS_Feature(&deviceList[deviceIter], PUIS_FEATURE_STATE_FLAG))
+            printf("\nPlease switch use of PUIS options to openSeaChest_PowerControl.\n");
+            printf("These options will be removed from openSeaChest_Configure in a future release.\n");
+            puisInfo info;
+            memset(&info, 0, sizeof(puisInfo));
+            int puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
+            if (PUIS_FEATURE_SPINUP_FLAG)
             {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (info.puisEnabled)
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                    switch (puis_Spinup(&deviceList[deviceIter]))
                     {
-                        printf("PUIS feature successfully enabled!\n");
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("\nSuccessfully performed PUIS spinup command\n");
+                            printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS spinup command is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to perform the PUIS spinup command\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (info.puisSupported)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS feature is not enabled. Nothing to do.\n");
+                        }
                     }
                     else
                     {
-                        printf("PUIS feature successfully disabled!\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS spinup command is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     }
                 }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
+            }
+            if (PUIS_FEATURE_INFO_FLAG)
+            {
+                switch (puisInfoRet)
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Enabling PUIS feature not supported on this device.\n");
+                        printf("===PUIS Info===\n");
+                        if (info.puisSupported)
+                        {
+                            if (info.puisEnabled)
+                            {
+                                printf("\tPUIS is supported and enabled\n");
+                            }
+                            else
+                            {
+                                printf("\tPUIS is supported\n");
+                            }
+                            if (info.spinupCommandRequired)
+                            {
+                                printf("\tSpin-Up command is required for medium access.\n");
+                            }
+                            else
+                            {
+                                printf("\tAutomatic spin-up as needed for medium access.\n");
+                            }
+                        }
+                        else
+                        {
+                            printf("\tPUIS is not supported on this device.\n");
+                        }
                     }
-                    else
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Disabling PUIS feature not supported on this device.\n");
+                        printf("PUIS is not available on this device type!\n");
                     }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get PUIS info from this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+            }
+            if (PUIS_STATE_VALID_FLAG)
+            {
+                switch (enable_Disable_PUIS_Feature(&deviceList[deviceIter], PUIS_FEATURE_STATE_FLAG))
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to enable PUIS feature!\n");
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("PUIS feature successfully enabled!\n");
+                        }
+                        else
+                        {
+                            printf("PUIS feature successfully disabled!\n");
+                        }
                     }
-                    else
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to disable PUIS feature!\n");
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Enabling PUIS feature not supported on this device.\n");
+                        }
+                        else
+                        {
+                            printf("Disabling PUIS feature not supported on this device.\n");
+                        }
                     }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Failed to enable PUIS feature!\n");
+                        }
+                        else
+                        {
+                            printf("Failed to disable PUIS feature!\n");
+                            printf("If PUIS is enabled with a jumper, it cannot be disabled with this command!\n");
+                            printf("Remove the PUIS jumper to disable the feature in this case.\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
 
@@ -3777,7 +4060,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s info\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
     printf("\t%s -d %s --%s on\n", util_name, deviceHandleExample, SET_READY_LED_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5s\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s 0\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 0 --%s\n", util_name, deviceHandleExample, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING, VOLATILE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s all --%s 06h\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s cumulative --%s 02h --%s\n", util_name, deviceHandleExample, SCSI_RESET_LP_LONG_OPT_STRING, SCSI_RESET_LP_PAGE_LONG_OPT_STRING, VOLATILE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 0Ah\n", util_name, deviceHandleExample, SCSI_SHOW_MP_LONG_OPT_STRING);

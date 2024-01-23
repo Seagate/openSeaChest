@@ -277,6 +277,11 @@ extern "C"
     #define SHORT_DST_LONG_OPT_STRING "shortDST"
     #define SHORT_DST_LONG_OPT { SHORT_DST_LONG_OPT_STRING, no_argument, &SHORT_DST_FLAG, goTrue }
 
+    #define SMART_OFFLINE_SCAN_FLAG smartOfflineScan
+    #define SMART_OFFLINE_SCAN_VAR getOptBool SMART_OFFLINE_SCAN_FLAG = goFalse;
+    #define SMART_OFFLINE_SCAN_LONG_OPT_STRING "smartOffline"
+    #define SMART_OFFLINE_SCAN_LONG_OPT { SMART_OFFLINE_SCAN_LONG_OPT_STRING, no_argument, &SMART_OFFLINE_SCAN_FLAG, goTrue }
+
     #define LONG_DST_FLAG longDST
     #define LONG_DST_VAR getOptBool LONG_DST_FLAG = goFalse;
     #define LONG_DST_LONG_OPT_STRING "longDST"
@@ -1052,14 +1057,18 @@ extern "C"
     #define SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE sctErrorRecoveryControlReadTimerValue
     #define SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER setSCTErrorRecoveryControlWriteTimer
     #define SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE sctErrorRecoveryControlWriteTimerValue
+    #define SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT resetSCTErrorRecoveryReadTimer
+    #define SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT resetSCTErrorRecoveryWriteTimer
     #define SCT_ERROR_RECOVERY_CONTROL_READ_VARS \
     bool SCT_ERROR_RECOVERY_CONTROL_READ_INFO = false;\
     bool SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = false;\
-    uint32_t SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = 0;
+    uint32_t SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = 0;\
+    bool SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT = false;
     #define SCT_ERROR_RECOVERY_CONTROL_WRITE_VARS \
     bool SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO = false;\
     bool SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = false;\
-    uint32_t SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = 0;
+    uint32_t SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = 0;\
+    bool SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT = false;
     #define SCT_ERROR_RECOVERY_CONTROL_VARS \
     SCT_ERROR_RECOVERY_CONTROL_READ_VARS \
     SCT_ERROR_RECOVERY_CONTROL_WRITE_VARS
@@ -1277,10 +1286,16 @@ extern "C"
 
     //PUIS Feature enable/disable
     #define PUIS_FEATURE_FLAG puisFeature
+    #define PUIS_STATE_VALID_FLAG puisFeatureStateValid
     #define PUIS_FEATURE_STATE_FLAG puisFeatureState
+    #define PUIS_FEATURE_INFO_FLAG puisFeatureInfo
+    #define PUIS_FEATURE_SPINUP_FLAG puisFeatureSpinup
     #define PUIS_FEATURE_VARS \
     bool PUIS_FEATURE_FLAG = false;\
-    bool puisFeatureState = false;/* False = disable, true = enable */
+    bool PUIS_STATE_VALID_FLAG = false;\
+    bool PUIS_FEATURE_STATE_FLAG = false;/* False = disable, true = enable */\
+    bool PUIS_FEATURE_INFO_FLAG = false;\
+    bool PUIS_FEATURE_SPINUP_FLAG = false;
     #define PUIS_FEATURE_LONG_OPT_STRING "puisFeature"
     #define PUIS_FEATURE_LONG_OPT { PUIS_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
@@ -2546,6 +2561,8 @@ extern "C"
     //
     //-----------------------------------------------------------------------------
     void print_Short_DST_Help(bool shortHelp);
+
+    void print_SMART_Offline_Data_Collection_Help(bool shortHelp);
 
     //-----------------------------------------------------------------------------
     //

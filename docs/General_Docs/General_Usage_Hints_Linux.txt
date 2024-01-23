@@ -1,0 +1,95 @@
+=========================
+Linux General Usage Hints
+=========================
+Remember that Linux file names and command line arguments are cAsE SeNsiTiVe.
+
+Display a file listing with the Linux command: ls -lah
+
+The tool will require root privileges to run using either sudo or su commands.
+Also, verify that the tool has executable rights.
+
+A dot slash is a dot followed immediately by a forward slash (./). It is used
+in Linux to execute a compiled program in the current directory when it is not
+a built-in command or found in your path.
+
+For example, ./SeaChest -d /dev/sg0 --shortDST --poll
+or, sudo ./SeaChest -d /dev/sg0 --shortDST --poll
+
+Shut down the files system and remove the power with the command:
+poweroff
+
+See previous screen history with the key combination:
+Shift+PgUp or Shift+PgDn
+
+Save a log file by redirecting the screen output to a text file by adding space
+&>test.log at the end of your command line. Choose your own file name. To
+append the screen output to an existing log file use >>test.log.
+
+To save a log and display results at the conclusion of the tests, you can use
+the "tee" command. Tee command writes to the STDOUT and to a file.
+For example,
+SeaChest --echoCommandLine -d /dev/sg0 -i --smartCheck | tee -a mySeaChestLog.txt
+
+Display a log or text file with the Linux "less" command: less myfile.log
+Press the letter q to quit displaying the file.  Similarly, you can easily
+read the Seagate License agreement by piping the output to the less
+command with SeaChest --license |less
+
+Display a list of sg (SCSI generic) devices with the command:
+cat /sys/class/scsi_generic/sg*/device/model
+or
+ls /dev/sg*
+
+sg devices include the following interfaces: SATA, USB, SCSI (SCSI, SAS and FC)
+
+Add the command word 'time' on the same command line before the SeaChest
+command to see how much time it takes to run a test.
+For example, time ./SeaChest -d /dev/sg0 --shortDST --poll
+
+When drives are not detected by SeaChest
+--------------------------------------------
+The problem is that the sg driver isn't loaded on the system on boot.  You can
+test if it is loaded by doing "ls /dev/sg*" and see if anything shows up. If
+nothing shows up then the SG driver is missing (which is required by
+SeaChest to issue commands).
+
+You need to do "modprobe sg" as root to load the sg module (since it wasn't
+compiled into the kernel), then you will get sg devices that we can scan and
+find. Once you run the modprobe command and sg is successfully loaded, then you
+can re-run "ls /dev/sg*" and see SG device nodes. SeaChest tools should
+then be able to find devices once again.
+
+How to control the amount of runtime kernel messages
+----------------------------------------------------
+When testing more drives than a system can hold, careful use of host adapters
+and hot-plugging batches of drives (but never to direct motherboard
+connections!) can help speed the process.  The Linux operating system will
+display various system error messages, or none, when storage devices are
+powered down and exchanged with the next drives.  The amount of information
+contained in the OS error messages can be reviewed using the Linux utility
+command "sysctl kernel.printk".  The default setting is defined by the
+particular distro.  Tiny Core Linux, for example may set "4 4 1 7".  To hide
+hot-plugging messages try "3 4 1 7", to increase the messaging to include
+device details like model numbers try "6 4 1 7".  The command to set is 'sudo
+sysctl -w kernel.printk="6 4 1 7"'.  See man sysctl - "configure kernel
+parameters at runtime" for more.
+
+Tesing storage devices on the USB and Thunderbolt interfaces
+------------------------------------------------------------
+Sometimes, when testing a storage device, it is more convenient to attach it as
+an external drive to the test system. In the case of SATA drives there are very
+many SATA-to-USB 'bridge' adapters available.  The quality and range of command
+'passthrough' support for these adapters varies greatly.  Our tools will
+attempt to work through these adapters.
+
+If your notebook has a Thunderbolt interface connection then you may be able to
+test a wide range of devices.  External Thunderbolt expansion systems provide a
+PCIe slot in a chassis that can hold a SAS, NVMe, or SATA host adapter. The
+host adapters would have cables that go out to your test bench where you would
+provide the drive and an external power supply for the drives. Thunderbolt 2
+expansion systems work in Linux by default. Thunderbolt 3 expansion systems
+need to be enabled in the kernel with boot time options before it will be
+recognized by the Linux operating system. See
+https://www.kernel.org/doc/html/v4.14/admin-guide/thunderbolt.html for
+information about how to activate the interface.
+

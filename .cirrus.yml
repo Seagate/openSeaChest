@@ -1,11 +1,11 @@
 task:
   name: FreeBSD
   env:
-    GITHUB_TOKEN: ENCRYPTED[1ccafc1dec0a08e0798d79a13d6cf9356372b6f9218db050d62b1c2ffdc0e1dd8917224952640bd42394024d3719aa7f]
+    GITHUB_TOKEN: ENCRYPTED[!9dec9949a2f8e3df89062aa2eaee35279bf7c62a43f6e8a5a4407cde75f05f48ffdb157363d0090a91616da307c71832!]
   freebsd_instance:
     matrix:
-      image_family: freebsd-13-1
-      image_family: freebsd-12-3
+      image_family: freebsd-14-0
+      image_family: freebsd-13-2
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script: |

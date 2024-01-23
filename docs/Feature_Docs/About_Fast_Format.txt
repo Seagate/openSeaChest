@@ -1,0 +1,18 @@
+================
+About FastFormat
+================
+A FastFormat (quickly changing the logical sector size) may take a few minutes
+for the process to complete. The disk activity LED may show activity during the
+conversion.  The larger the drive, the longer it takes.
+
+NOTE: Operating systems do a device discovery during start up and set various
+parameters, like total sectors and sector size, into the storage device
+descriptions. The logical sector size times the number or logical sectors
+defines the drive capacity.  You should expect to see OS I/O errors if you
+change the logical sector size on a drive and then perform read or write
+operations before the OS has updated its storage device descriptions.  Some
+operating systems will throw an error after accessing a drive that has just run
+a FastFormat but during its error recovery routines it may re-discover the
+device parameters and update the system logs.  A system restart, however, is
+the most reliable way to refresh the storage device descriptions.
+

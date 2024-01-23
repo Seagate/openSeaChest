@@ -1,0 +1,100 @@
+Welcome to Seagate's openSeaChest_SMART diagnostic software.
+
+Disk drives are constantly monitoring and analyzing their own performance,
+integrity and environment.  The current state of this technology is the result
+of more than 20 years of innovative Seagate engineering focused on self-testing.
+
+With the backing of personal computer manufacturers, the disk drive industry
+adopted an analysis system in the 1990's called Self Monitoring Analysis and
+Reporting Technology, or SMART. The idea then and today is to predict a failure
+before it happens. Various attributes are being monitored and measured against
+certain threshold limits. If any one attribute exceeds a threshold then a
+general SATA SMART Status test will change from Pass to Fail.
+
+Many computers automatically check SMART Status when they start up which is
+when most people become aware of the issue. If still under warranty, then SMART
+Status FAIL is a valid condition for warranty replacement.
+
+You can use openSeaChest_SMART software with --smartCheck to test the SATA SMART
+status of the drive.
+
+When a SMART Status test has a FAIL it is extremely important that you back up
+all of your important data. SMART Status FAIL is a near-term prediction of
+drive failure and the drive usually functions like normal. Unfortunately, there
+is no way to specifically predict when the failure will occur, so your best
+response is to back up your data as soon as possible.
+
+SeaChest does not interpret attributes or thresholds.  As a practical matter,
+the technology supporting SMART is constantly being improved.  Each new design
+incorporates improvements that increase the accuracy of the SMART prediction.
+As a matter of policy, Seagate does not publish attributes and thresholds.
+Seagate Support does not help to analyze SMART attributes.
+
+In addition, the SMART command set includes short and long Drive Self Test
+(Offline Immediate).
+
+Seagate drives employ a background media scan (BGMS) during idle activity
+times.  The BGMS is a sequential read of sectors from the beginning to the end
+the of the drive.  If BGMS is interrupted it later restarts where it left off.
+BGMS has no effect on performance.  BGMS collects information about
+"suspicious" sectors.  When the Short DST is run the first step is a review of
+these "suspicious" sectors.  It is possible for Short DST to fail quickly if
+one of these BGMS sectors is unreadable.
+
+It may be possible to repair a problem when Short DST fails due to failure to
+read a particular sector (LBA).  You might consider the --seagateClean or
+-dstAndClean command line options.  See the sections below "Sector Repair
+Commands" and "Bad LBA (Sector) Found" for more information on this subject.
+
+If you wish to test the drive for physical integrity, please use Short Drive
+Self Test (--shortDST).  Because the BGMS has continuously collected
+information on the entire drive, Short DST is effectively testing the entire
+drive.
+
+This User Guide file contains important information about openSeaChest_SMART.
+Please read this entire file before using this software.
+
+SeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your Seagate storage
+product. It includes several tests that will examine the physical media on your
+Seagate, Samsung or Maxtor disk drive.
+
+Tests and commands which are completely data safe will run on any disk drive.
+Tests and commands which change the drive (like firmware download or data
+erasure or setting the maximum capacity, etc) are limited to Seagate disk
+drives (this includes Seagate, Maxtor, Samsung and LaCie). Be careful using
+SeaChest because some of the features, like the data erasure options, will
+cause data loss. Seagate is not responsible for lost user data.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_SMART [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_SMART --scan
+        sudo openSeaChest_SMART -d /dev/sg2 -i
+        sudo openSeaChest_SMART -d /dev/sg1 --shortDST --poll
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_SMART [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_SMART --scan
+        openSeaChest_SMART -d PD0 -i
+        openSeaChest_SMART -d PD1 --shortDST --poll
+

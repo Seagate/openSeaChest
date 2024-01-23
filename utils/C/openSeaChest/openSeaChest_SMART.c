@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.3.2";
+const char *buildVersion = "2.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -116,6 +116,7 @@ int32_t main(int argc, char *argv[])
     DEVICE_STATISTICS_VAR
     NVME_HEALTH_VAR
     LOWLEVEL_INFO_VAR
+    SMART_OFFLINE_SCAN_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -178,6 +179,7 @@ int32_t main(int argc, char *argv[])
 #endif
         DEVICE_STATISTICS_LONG_OPT,
         NVME_HEALTH_LONG_OPT,
+        SMART_OFFLINE_SCAN_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -797,6 +799,7 @@ int32_t main(int argc, char *argv[])
         || SHOW_SMART_ERROR_LOG_FLAG
         || DEVICE_STATISTICS_FLAG
         || NVME_HEALTH_FLAG
+        || SMART_OFFLINE_SCAN_FLAG
         //check for other tool specific options here
         ))
     {
@@ -1375,6 +1378,46 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Abort IDD Failed! NOTE: IDD may not currently be running when the abort was sent.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SMART_OFFLINE_SCAN_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("SMART Offline Data Collection\n");
+            }
+            switch (run_SMART_Offline(&deviceList[deviceIter]))
+            {
+            case UNKNOWN:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Unknown Error occurred while trying to start SMART Offline Scan\n");
+                }
+                break;
+            case SUCCESS:
+                break;
+            case ABORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SMART offline data collection was aborted by the host or some other operation on the drive.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_ABORTED;
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SMART offline data collection is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("SMART offline data collection Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2157,6 +2200,7 @@ void utility_Usage(bool shortUsage)
     print_SMART_Attributes_Help(shortUsage);
     print_SMART_Attribute_Autosave_Help(shortUsage);
     print_SMART_Auto_Offline_Help(shortUsage);
+    print_SMART_Offline_Data_Collection_Help(shortUsage);
     print_Show_SMART_Error_Log_Help(shortUsage);
     print_SMART_Error_Log_Format_Help(shortUsage);
     print_SMART_Info_Help(shortUsage);

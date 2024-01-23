@@ -1,0 +1,43 @@
+Interpreting Head Health and Status
+-----------------------------------
+Beginning in 2016, some Seagate nearline drives started to support the
+Remanufacture command set which allows a disk drive with a manageable
+read/write head problem to remain in service at a reduced capacity by
+"depopulating" the head element.  You can check if a drive supports the
+Remanufacture command set by running --deviceInfo and looking for 'Storage
+Element Depopulation' in the list of supported features.  (Not to be confused
+with 'SATA Rebuild Assist' which is a feature used to rebuild RAID systems.)
+
+A drive failure (due to a head problem) that is easily removed from the system
+is replaced with a spare drive.  A drive that is nearly inaccessible may make
+sense to remain in the system at a reliable lesser capacity by depopulating the
+problem head.
+
+If supported by the drive, the --showPhysicalElementStatus command will display
+a simple table showing head number, type, health, and status.
+
+The Health level is represented like a percentage, 0-100.  0 is perfectly
+healthy, 100 = at manufacturer's limit, above this to 207 is above the
+manufacturer's limit. A report of 254 means a depopulate is in progress.
+
+The Status levels are active, in limit, degraded, truncated, truncate failed.
+
+If a drive head has developed isolated, degraded performance, and does not
+affect any other reliability in the system, then the head can be removed from
+service. A drive with seven platters and fourteen heads would lose 1/14th of
+its storage capacity, or ~7%.  Likewise, a four head drive would lose 25%.
+
+If a drive is reported as "degraded" by --showPhysicalElementStatus then it can
+be depopulated using the --removePhysicalElement command.  When a head is
+depopulated the drive must perform a complete full pack write; this is
+obviously data destructive and takes a very long time to complete.
+
+When disk drives are built the post assembly factory process includes media
+scanning, any defects mapping, defining sector sizes, and establishing system,
+cache and data zones.  This activity is generically known as a low-level
+format.  During head depopulation (i.e. removing a physical element) the drive
+performs a kind of 'mid-level format' using Sanitize Overwrite which has the
+unique behavior that once started it must finish.  If power is interrupted
+during a Sanitize Overwrite it will pick up again where it left off when power
+returns.
+

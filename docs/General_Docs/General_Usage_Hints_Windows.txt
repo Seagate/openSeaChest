@@ -1,0 +1,45 @@
+===========================
+Windows General Usage Hints
+===========================
+The tool will require Administrative privileges to run.
+Also, verify that the tool has executable rights.
+
+Remember that the command line arguments are cAsE SeNsiTiVe.
+
+Save a log file by redirecting the screen output to a text file by adding space
+&>test.log at the end of your command line. Choose your own file name. To
+append the screen output to an existing log file use >>test.log.
+
+To save a log and display results at the conclusion of the tests, you can use
+the powershell "tee" command. Tee command writes to the STDOUT and to a file.
+
+For example:
+powershell ".\SeaChest --echoCommandLine -d PD1 --smartCheck | tee -append mySeaChestLog.txt"
+
+Setup for Windows
+-----------------
+The SeaChest Utilities Setup places all of the files at "C:\Program
+Files\Seagate\SeaChest" and adds an icon on the Desktop.  Clicking the icon
+will open a Windows command prompt in Administrator mode at this location.
+From there you will need to type the full command line for the tool and device
+and options to run the test you require.  See the various SeaChest Help
+documentation for descriptions and examples of the various commands.
+
+Manual Launch for Windows
+-------------------------
+An individual SeaChest utility for Windows cannot be launched by just
+clicking on the file name. If started that way, the SeaChest utility will
+briefly show a black window box and quickly close.  That is what happens when
+trying to run it from the Windows File Manager.
+
+This is a command line tool and the requirement is to open a Command Prompt as
+Administrator.  There are two easy ways to do this:
+  1. Windows Accessories, right-click the Command Prompt icon and select Run as
+     Administrator.
+  2. Click Windows Start. In the Start Search box, type cmd, and then press
+     CTRL+SHIFT+ENTER.
+
+Then change drives or directory to where the SeaChest utility is located and
+run the tool file name from there.
+
+

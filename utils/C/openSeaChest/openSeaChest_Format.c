@@ -32,7 +32,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.0.3";
+const char *buildVersion = "3.0.4";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1370,6 +1370,22 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        if (FAST_FORMAT_FLAG > 0)
+                        {
+                            printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                            printf("      background operations in order to ensure full functionality and reliability.\n");
+                            printf("      This background activity may take a long time and will prevent the drive from\n");
+                            printf("      entering power saving modes like idle or standby until these operations have\n");
+                            printf("      completed. These operations may take a very long time to complete.\n");
+                            printf("      While EPC timers are suspended during this background operation, manual\n");
+                            printf("      transitions to lower power states is supported. Manually moving to a lower power\n");
+                            printf("      state will pause all background activity until the drive has become activate again\n");
+                            printf("      from a command such as a read or write. If forcing a transition\n");
+                            printf("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
+                            printf("      and is considered a special case that the drive firmware will allow it to continue\n");
+                            printf("      these background operations. All EPC timers will be honored once the\n");
+                            printf("      background activity is completed.\n\n");
+                        }
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1455,6 +1471,15 @@ int32_t main(int argc, char *argv[])
                         printf("      This background activity may take a long time and will prevent the drive from\n");
                         printf("      entering power saving modes like idle or standby until these operations have\n");
                         printf("      completed. These operations may take a very long time to complete.\n");
+                        printf("      While EPC timers are suspended during this background operation, manual\n");
+                        printf("      transitions to lower power states is supported. Manually moving to a lower power\n"); 
+                        printf("      state will pause all background activity until the drive has become activate again\n");
+                        printf("      from a command such as a read or write. If forcing a transition\n");
+                        printf("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
+                        printf("      and is considered a special case that the drive firmware will allow it to continue\n");
+                        printf("      these background operations. All EPC timers will be honored once the\n");
+                        printf("      background activity is completed.\n\n");
+                        
                     }
                     break;
                 case NOT_SUPPORTED:

@@ -1,0 +1,195 @@
+===============
+Version History - openSeaChest_Security
+===============
+v1.0.0  02-May-2016  1_9_1 libraries.  openSeaChest_Security Windows, initial beta
+                     test release.  Branched from SeaChest_Basics v2.0.0.
+                     Added --tcgInfo, --fwdlPort, --udsPort, --ieee1667Port,
+                     --sid, --disableDataLocking
+v1.0.1  19-May-2016  1_9_2 libraries fixed scan information from ATAPI devices.
+                     Fixed a bug where we could accidentally clear some stored
+                     identify data from the device structure. Fixed continuing
+                     on when there was a permission denied error opening a
+                     drive.
+v1.0.2  15-Jun-2016  1_9_3 libraries fixed issues with ATA secure erase
+                     commands. Fixed bugs with --modelMatch and --onlyFW
+                     filters.
+v1.1.0  06-Jul-2016  1_10_0 libraries add --forceATA and --forceSCSI.  Added
+                     --displayLBA.
+v1.1.0  14-Jul-2016  1_10_1 libraries adds SMART and power management
+                     functions, format polling, endianess detection, buffer
+                     size fixes, SAS device statistics, Win32 IOCTL
+                     pass-through fix on Win8 and higher.
+v1.2.0  01-Sep-2016  1_11_1 libraries updates to various printed message,
+                     minor bug fixes. Fixed --SATInfo command.
+v1.2.0  21-Sep-2016  1_11_2 libraries updates adds --forceATADMA, --forceATAPIO
+                     and --forceATAUDMA  (SATA Only).
+v1.3.0  10-Oct-2016  1_11_4 libraries updates. Support for multiple devices.
+v1.3.0  25-Oct-2016  1_11_5 libraries updates improved LaCie  detection, adds
+                     SAT Vendor ID, SAT Product ID, and SAT Product Revision to
+                     the -i --SATInfo output.
+v1.3.1  27-Oct-2016  1_11_6 libraries updates WWN detection.  Added
+                     --enableLegacyUSBPassthrough
+v1.3.1  03-Nov-2016  1_11_7 libraries fixed issue with SAS EPC power mode
+                     settings.
+v1.3.1  13-Dec-2016  1_11_10 libraries fixes a problem when using maxLBA without
+                     the corresponding command range option, SAS power mode
+                     setting, and Sanitize erase patterns.
+v1.4.0  23-Feb-2017  1_13_0 libraries adds support for SAS 12.0Gb/s and
+                     22.5Gb/s physical bus speeds, support for double buffered
+                     passthrough IOCTLs. New -F, --scanFlags [options:
+                     ignoreCSMI allowDuplicates] for Windows tools. Add CSMI
+                     support to all Windows version tools.
+v1.4.0  06-Mar-2017  1_13_2 libraries adds Enhanced device information output
+                     for SAS features. --tcgInfo now reports Use State.
+v1.5.0  14-Jun-2017  1_15_0 libraries adds bug fix malformed command line
+                     should exit with code = 1; added detection of parallel ATA
+                     and SCSI speeds; temperature data on ATA now uses the
+                     values from the SCT status log or device statistics log.
+                     Bug fix where the "-d all" was not filtering out csmi
+                     drives like it is supposed to causing duplicate drives to
+                     show up.  Adds the child drive matching options
+                     --childModelMatch, --childOnlyFW, and --childNewFW.  Added
+                     "Data Access" to --tcgInfo.  Added --showLockedRegions.
+v1.6.0  14-Jul-2017  1_16_1 libraries adds support for ATA drives that have the
+                     Sense Data Reporting feature enabled, changes to how we
+                     interpret the completion status from the drive, new Sense
+                     Data ASC, ASCQ definitions from SPC5. Adds --Scan (or -S,
+                     note the capital S) aggressive system scan.
+v1.6.0  27-Jul-2017  1_16_2 libraries enhances Seagate brand detection.
+v1.6.0  19-Sep-2017  1_16_4 libraries fixes SCSI "--progress format", added
+                     reading remanufacture time for SAS when the drive reports
+                     a time, fixed SAS --abortDST.
+v1.6.0  25-Sep-2017  1_17_0 libraries adds improved SATA device discovery on
+                     SAS adapters, added NVMe read, write & Flush commands.
+v1.6.1  10-Oct-2017  1_17_1 libraries adds Better handling of NVMe as a SCSI
+                     device, SAT library strings, and fixes to Read-Buffer
+                     error history (ISL). Updated copyright notice, invalid
+                     command line options now only display an error instead of
+                     long help.
+v1.6.1  12-Oct-2017  1_17_3 libraries improves Fast-Format compatibility on SAS.
+v1.6.1  26-Oct-2017  1_17_5 libraries fixes SATA drive discovery behind HBAs
+                     that don't show as SATA and don't support the SAT VPD
+                     page; added Automatic fallback to 12byte CDBs during
+                     initial device discovery;  integrated fixes for SAS
+                     firmware download and fixes for SAS LongDST time
+                     calculation; added detection of TCG Pyrite and Opalite
+                     drives.
+v1.6.1  31-Oct-2017  1_17_6 libraries adds ATA Security compatibility with SATL
+                     on some LSI adapters, corrects firmware download issue
+                     under Windows 10 API.
+v1.6.1  02-Nov-2017  1_17_7 libraries fixes Long DST time on SCSI/SAS products.
+v1.6.1  19-Apr-2018  1_18_0 libraries improves device detection of CD-ROM and
+                     USB flash drives, support for early 90's PATA drives that
+                     don't support LBA mode, bug fix where the last digit of
+                     the SCSI Unit Serial Number was being dropped, additional
+                     logic for deferred download completion status. --scan
+                     --onlySeagate for just Seagate drives in a large system,
+                     Long Drive Self Test Time in the -i output, write protect
+                     status has been added for SCSI and NVMe in the -i output,
+                     IDD enhancements for SAS, IDD enhancements to allow
+                     captive mode on SATA, added USB Hacks to better support
+                     some odd-ball USB devices and prevent crashes and improve
+                     performance for some operations on them by issuing test
+                     unit ready commands when something fails during device
+                     discovery, automatic fall back to SAT 10 byte commands
+                     during device discovery to help work with some USB
+                     devices, some Legacy SCSI support enhancements (partially
+                     from USB hacks development), enhanced SD to SG mapping in
+                     Linux.
+v1.6.2  21-Sep-2018  1_18_2 libraries Added in reading os-release PRETTY_NAME
+                     field to get the OS name under linux; NVMe enabled;  fixed
+                     a bug in the ATA activate FW command; added in reading ID
+                     Data log and Device statistics logs page 0 to check the
+                     list of supported pages; fixed a bug in the loop used to
+                     read mode pages for -i information on SAS; IDD SAS
+                     improvements; fixed a bug in DST & Clean with ATA drives
+                     behind SCSI controllers. Fix for --modelMatch that have
+                     spaces in the name. Added additional information to the
+                     banner and -V data to show support levels. Add general
+                     support for NVMe and NVMe specific identify data to "-i"
+                     command.
+v1.6.2  18-Oct-2018  1_18_3 libraries Added NVMe generic read command support.
+v2.0.0  03-May-2019  1_19_18 libraries added per device verbosity, --deviceInfo
+                     adds SAS (not SATA) FastFormat for Features Supported
+                     section,  --deviceInfo now gives Low Current Spinup
+                     status. Adds --psid (removes that argument from
+                     --revertSP), adds --sid.
+v2.0.1  10-Jun-2019  1_19_23 libraries added SNTL (SCSI to NVMe translator),
+                     updated software SAT translator to use dataset management
+                     XL command, fixes for issuing vendor unique commands under
+                     Windows, improved fast format support detection, and
+                     refactored verbose output for NVMe commands. Added
+                     --ataSecureErase, --ataSATsecurityProtocol,
+                     --ataSecFreeze, --ataSecPassword, --ataSecPassType,
+                     --ataSecPWMod, --ataSecurityInfo, --disableATASecPW,
+                     --unlockATASec, --ataSecureErase.
+v2.1.0  19-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
+v2.1.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
+v3.0.0  20-Nov-2020  Changed how scan-flags are parsed. CSMI rewrite and initial
+                     Intel RST NVMe support added. Numerous code quality improvements
+                     which fixed many potential bugs and memory leaks. Improved
+                     support for openfabrics NVMe drivers. Changed permissions
+                     detection to show warnings rather than errors. Removed obsolete
+                     CSMI and SAT 12B CDB options. CSMI handles now show as csmi:?:?:?
+                     Added better error messages if PSID is not provided with --psid,
+                     but how it was provided in earlier versions.
+v3.0.1  16-Jun-2021  Added more information about Seagate PSIDs to assist with
+                     troubleshooting why a revert or revertSP may have failed.
+                     Pulled in updates to opensea-libs which includes the following:
+                     Minor USB compatibility improvements and more products added
+                     to the list with their specific workarounds.
+                     Updated NVMe compatibility for FreeBSD 11.
+                     Support for detection and showing of concurrent positioning 
+                     (new multi-actuator support from the standards).
+v3.2.1  28-Feb-2023  Includes new --noBanner option and new fast discovery option
+                     that can be used in situations where super critical performance
+                     is required at a loss of information about a drive's capabilities.
+                     Help now has many more examples of the options in the tool.
+                     Fixed a few bugs in scan and device discovery that could cause
+                     a crash or the tool to list no devices found.
+                     Added option to dump low-level info to assist with debugging.
+                     Added date of manufacture info to the -i output when available.
+                     Fixed some big endian compatibility issues discovered on AIX.
+                     Fixed a bug that caused this to display a different tool's help.
+v3.2.1  27-Mar-2023  opensea-transport updated to fix CSMI scan duplicating devices 
+                     found in certain scenarios.
+v3.3.0  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
+                     Fixed SAT ATA security protocol use for issuing ATA security
+                     commands. In some cases there could be a misinterpretation of
+                     normal vs enhanced erase. Likely only affected some NVMe devices
+                     that implemented this security protocol.
+                     Added --zeroVerify option to check a drive is filled with zeroes.
+                     Stopped reading /etc/passwd file to show username in banner.
+                     Banner will now show either "admin"/"root" or "current user".
+                     Improved parsing of linux distro/release information from
+                     /etc/os-release file.
+                     Fixed a bug in byte swap string used to get ATA MN, SN, FW.
+                     Fixed a bug in getting/reporting power on hours as years, 
+                     days, hours, etc where days was being truncated.
+                     Fixed error reading NVMe features in Windows for drive info.
+                     Fixed SAS Date of manufacture in drive info.
+                     Added detection of HPA security feature.
+                     Added more SMART attributes definitions for Seagate HDDs & SSDs,
+                     and more definitions for Maxtor HDDs.
+                     Improved temperature detection from older HDDs with only
+                     SMART attribute 194 reporting current temperature.
+                     Added separate warning for SMART attributes below threshold that
+                     are not considered prefail/warranty attributes (aka failures).
+                     Fixed output of Seagate Airflow temperature SMART attribute.
+                     Added showing new capacity after changing Max LBA.
+                     Fixed possible segmentation fault when reading /etc/mtab in Linux.
+                     Workaround for some SAS drives on some HBAs reporting incorrect
+                     response to SAT A1h CDB.
+                     Fixed a bug in FreeBSD causing non-data ATA commands to report
+                     all zeroes instead of expected output in RTFRs.
