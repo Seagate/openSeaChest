@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.5.1";
+const char *buildVersion = "2.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -108,6 +108,7 @@ int32_t main(int argc, char *argv[])
 #endif
     SCT_ERROR_RECOVERY_CONTROL_VARS
     FREE_FALL_VARS
+    WRV_VARS
 
     SCSI_MP_RESET_VARS
     SCSI_MP_RESTORE_VARS
@@ -189,6 +190,7 @@ int32_t main(int argc, char *argv[])
         ATA_DCO_SETMAXLBA_LONG_OPT,
         ATA_DCO_SETMAXMODE_LONG_OPT,
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
+        WRV_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1182,6 +1184,39 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, WRV_LONG_OPT_STRING) == 0)
+            {
+                uint64_t tempCount = 0;
+                if (strcmp(optarg, "info") == 0)
+                {
+                    WRV_INFO = true;
+                }
+                else if (strcmp(optarg, "all") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_ALL = true;
+                }
+                else if (strcmp(optarg, "vendor") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_VENDOR = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_DISABLE = true;
+                }
+                else if (get_And_Validate_Integer_Input(optarg, &tempCount))
+                {
+                    WRV_FLAG = true;
+                    WRV_USER_VALUE = C_CAST(uint32_t, tempCount);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(WRV_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -1519,6 +1554,8 @@ int32_t main(int argc, char *argv[])
         || ATA_DCO_IDENTIFY
         || ATA_DCO_FREEZE
         || ATA_DCO_RESTORE
+        || WRV_FLAG
+        || WRV_INFO
         ))
     {
         utility_Usage(true);
@@ -4012,6 +4049,90 @@ int32_t main(int argc, char *argv[])
                 }
             }
         }
+
+        if (WRV_INFO)
+        {
+            wrvInfo info;
+            memset(&info, 0, sizeof(wrvInfo));
+            switch (get_Write_Read_Verify_Info(&deviceList[deviceIter], &info))
+            {
+            case SUCCESS:
+                print_Write_Read_Verify_Info(&info);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Write-Read-Verify feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get Write-Read-Verify feature infomation.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (WRV_FLAG)
+        {
+            if (WRV_DISABLE)
+            {
+                switch (disable_Write_Read_Verify(&deviceList[deviceIter]))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully disabled Write-Read-Verify feature\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Write-Read-Verify feature is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to disable Write-Read-Verify feature.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                switch (set_Write_Read_Verify(&deviceList[deviceIter], WRV_ALL, WRV_VENDOR, WRV_USER_VALUE))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully enabled Write-Read-Verify feature\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Write-Read-Verify feature is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to enable Write-Read-Verify feature.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+        }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
@@ -4141,6 +4262,7 @@ void utility_Usage(bool shortUsage)
     print_SCT_Write_Cache_Help(shortUsage);
     print_SCT_Write_Cache_Reordering_Help(shortUsage);
     print_SCT_Error_Recovery_Write_Help(shortUsage);
+    print_WRV_Help(shortUsage);
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");

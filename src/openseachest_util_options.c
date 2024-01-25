@@ -2670,6 +2670,33 @@ void print_Set_APM_Level_Help(bool shortHelp)
     }
 }
 
+void print_WRV_Help(bool shortHelp)
+{
+    printf("\t--%s [ info | all | vendor | # | disable ]\t(SATA Only)\n", WRV_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option can report the current configuration of the\n");
+        printf("\t\tATA Write-Read-Verify feature, enable the feature, or\n");
+        printf("\t\tdisable the feature.\n");
+        printf("\t\tEnabling this feature instructs the device to perform a\n");
+        printf("\t\tverification of all data after it has been written.\n");
+        printf("\t\tEnabling this may result in lower device performance.\n");
+        printf("\t\tIf write caching is enabled, this feature may return\n");
+        printf("\t\tcompletion before writing to the medium and verifying\n");
+        printf("\t\tthe medium. If Write caching is disabled, the write and\n");
+        printf("\t\tverification must complete before returning command status.\n");
+        printf("\t\tArgument usage:\n");
+        printf("\t\t  info    - Display the current status of the feature\n");
+        printf("\t\t  all     - set verification on for all written sectors\n");
+        printf("\t\t  vendor  - set verification for the 1st vendor specific\n");
+        printf("\t\t            number of sectors.\n");
+        printf("\t\t  #       - Perform verification for the first user defined\n");
+        printf("\t\t            number of sectors. Note: This is rounded up to the\n");
+        printf("\t\t            nearest 1024 sectors. Max value of 261120 sectors.\n");
+        printf("\t\t  disable - disable the Write-Read-Verify feature.\n\n");
+    }
+}
+
 void print_Show_APM_Level_Help(bool shortHelp)
 {
     printf("\t--%s   (SATA Only)\n", SHOW_APM_LEVEL_LONG_OPT_STRING);
