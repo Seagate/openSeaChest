@@ -1957,6 +1957,12 @@ extern "C"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT_STRING "showConcurrentRanges"
     #define SHOW_CONCURRENT_RANGES_LONG_OPT { SHOW_CONCURRENT_RANGES_LONG_OPT_STRING, no_argument, &SHOW_CONCURRENT_RANGES, goTrue }
 
+    //SATA Phy event counters
+    #define SHOW_PHY_EVENT_COUNTERS showSataPhyEventCounters
+    #define SHOW_PHY_EVENT_COUNTERS_VAR getOptBool SHOW_PHY_EVENT_COUNTERS = goFalse;
+    #define SHOW_PHY_EVENT_COUNTERS_LONG_OPT_STRING "showPhyEvents"
+    #define SHOW_PHY_EVENT_COUNTERS_LONG_OPT { SHOW_PHY_EVENT_COUNTERS_LONG_OPT_STRING, no_argument, &SHOW_PHY_EVENT_COUNTERS, goTrue }
+
     //SCSI/NVMe reservations
     #define SHOW_RESERVATION_CAPABILITIES showReservationCapabilities
     #define SHOW_RESERVATION_CAPABILITIES_VAR getOptBool SHOW_RESERVATION_CAPABILITIES = goFalse;
@@ -3550,6 +3556,8 @@ extern "C"
     
     void print_DCO_Disable_Features_Help(bool shortHelp);
 
+    void print_Show_Phy_Event_Counters_Help(bool shortHelp);
+    
     void print_WRV_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
