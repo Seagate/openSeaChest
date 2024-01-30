@@ -1614,6 +1614,23 @@ extern "C"
     #define FREE_FALL_LONG_OPT_STRING "freeFall"
     #define FREE_FALL_LONG_OPT { FREE_FALL_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //ATA Write-read-verify
+    #define WRV_FLAG setWRV
+    #define WRV_DISABLE disableWRV
+    #define WRV_INFO wrvInformation
+    #define WRV_USER_VALUE wrvUserValue
+    #define WRV_ALL setWRVallSectors
+    #define WRV_VENDOR setWRVvendorSpecific
+    #define WRV_VARS \
+    bool WRV_FLAG = false;\
+    bool WRV_INFO = false;\
+    bool WRV_DISABLE = false;\
+    bool WRV_ALL = false;\
+    bool WRV_VENDOR = false;\
+    uint32_t WRV_USER_VALUE = 0;//user provides sector count. Converted as required by standard by library.
+    #define WRV_LONG_OPT_STRING "wrv"
+    #define WRV_LONG_OPT { WRV_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     //SCSI defect list
     #define SCSI_DEFECTS_FLAG showSCSIDefects
     #define SCSI_DEFECTS_PRIMARY_LIST scsiPrimaryDefects
@@ -3540,6 +3557,8 @@ extern "C"
     void print_DCO_Disable_Features_Help(bool shortHelp);
 
     void print_Show_Phy_Event_Counters_Help(bool shortHelp);
+    
+    void print_WRV_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
