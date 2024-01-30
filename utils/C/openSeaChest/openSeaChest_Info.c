@@ -31,11 +31,12 @@
 #include "csmi_helper_func.h"
 #endif
 #include "partition_info.h"
+#include "sata_phy.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Info";
-const char *buildVersion = "2.5.0";
+const char *buildVersion = "2.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -96,6 +97,7 @@ int32_t main(int argc, char *argv[])
     SHOW_CONCURRENT_RANGES_VAR
     LOWLEVEL_INFO_VAR
     PARTITION_INFO_VAR
+    SHOW_PHY_EVENT_COUNTERS_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -138,6 +140,7 @@ int32_t main(int argc, char *argv[])
 #endif
         SHOW_CONCURRENT_RANGES_LONG_OPT,
         PARTITION_INFO_LONG_OPT,
+        SHOW_PHY_EVENT_COUNTERS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -559,6 +562,7 @@ int32_t main(int argc, char *argv[])
 #endif
         || SHOW_CONCURRENT_RANGES
         || PARTITION_INFO_FLAG
+        || SHOW_PHY_EVENT_COUNTERS
         ))
     {
         utility_Usage(true);
@@ -982,6 +986,32 @@ int32_t main(int argc, char *argv[])
             }
         }
 
+        if (SHOW_PHY_EVENT_COUNTERS)
+        {
+            sataPhyEventCounters events;
+            memset(&events, 0, sizeof(sataPhyEventCounters));
+            switch (get_SATA_Phy_Event_Counters(&deviceList[deviceIter], &events))
+            {
+            case SUCCESS:
+                print_SATA_Phy_Event_Counters(&events);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Phy event counters are not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to read the Phy event counters.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
@@ -1072,6 +1102,7 @@ void utility_Usage(bool shortUsage)
     print_Partition_Info_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
+    print_Show_Phy_Event_Counters_Help(shortUsage);
     print_SMART_Attributes_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");

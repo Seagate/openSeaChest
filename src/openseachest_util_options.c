@@ -1094,6 +1094,16 @@ void print_Show_NVM_Power_States_Help(bool shortHelp)
     }
 }
 
+void print_Show_Phy_Event_Counters_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", SHOW_PHY_EVENT_COUNTERS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display a SATA device's supported\n");
+        printf("\t\tevent counters.\n\n");
+    }
+}
+
 void print_Transition_Power_Help(bool shortHelp)
 {
     printf("\t--%s [active | idle | idleUnload | standby | idle_a | idle_b | idle_c | standby_y | standby_z | sleep]\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
