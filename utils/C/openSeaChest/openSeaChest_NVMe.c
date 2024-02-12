@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_NVMe";
-const char *buildVersion = "2.3.0";
+const char *buildVersion = "2.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -107,6 +107,7 @@ int32_t main(int argc, char *argv[])
     PROGRESS_VAR
     SHOW_SUPPORTED_FORMATS_VAR
     LOWLEVEL_INFO_VAR
+    FORCE_DRIVE_TYPE_VARS
 
     int  args = 0;
     int argIndex = 0;
@@ -160,6 +161,7 @@ int32_t main(int argc, char *argv[])
         SHOW_SUPPORTED_FORMATS_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        FORCE_DRIVE_TYPE_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
 
@@ -906,6 +908,15 @@ int32_t main(int argc, char *argv[])
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
+        }
+
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
