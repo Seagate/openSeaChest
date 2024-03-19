@@ -57,7 +57,7 @@ int32_t main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR

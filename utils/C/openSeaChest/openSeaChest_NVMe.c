@@ -57,7 +57,7 @@ static void utility_Usage(bool shortUsage);
 //-----------------------------------------------------------------------------
 int32_t main(int argc, char *argv[])
 {
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     /////////////////
     //  Variables  //
     /////////////////
