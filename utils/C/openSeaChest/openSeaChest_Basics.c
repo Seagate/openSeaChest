@@ -39,7 +39,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.6.0";
+const char *buildVersion = "3.6.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -1948,7 +1948,7 @@ int main(int argc, char *argv[])
             if (DATA_ERASE_FLAG)
             {
                 //check the time
-                uint64_t overwriteSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+                uint64_t overwriteSeconds = C_CAST(uint64_t, SECONDS_TIME_FLAG) + (C_CAST(uint64_t, MINUTES_TIME_FLAG) * UINT64_C(60)) + (C_CAST(uint64_t, HOURS_TIME_FLAG) * UINT64_C(3600));
                 //determine if it's timed or a range
                 if (overwriteSeconds == 0)
                 {

@@ -34,7 +34,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.7.0";
+const char *buildVersion = "2.7.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -61,7 +61,7 @@ int32_t main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -3921,11 +3921,16 @@ int32_t main(int argc, char *argv[])
                         if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, NULL, NULL, true, rawmodePageBuffer, rawModePageSize, NULL, &usedSizeByteCmd))
                         {
                             uint32_t modeHeaderLen = usedSizeByteCmd ? MODE_PARAMETER_HEADER_6_LEN : MODE_PARAMETER_HEADER_10_LEN;
-                            uint32_t blockDescriptorLength = (deviceList[deviceIter].drive_info.scsiVersion < SCSI_VERSION_SCSI2) ? SHORT_LBA_BLOCK_DESCRIPTOR_LEN : 0;//the get_SCSI_MP function will only pull a block descriptor on old drives for compatibility using mode sense 6 commands, which is why this check is minimal
+                            uint32_t blockDescriptorLength = usedSizeByteCmd ? rawmodePageBuffer[2] : M_BytesTo2ByteValue(rawmodePageBuffer[6], rawmodePageBuffer[7]);
                             uint32_t dataLengthAdjustment = modeHeaderLen + blockDescriptorLength;
                             uint32_t modePageSize = rawModePageSize - dataLengthAdjustment;
                             uint8_t* modePageBuffer = rawmodePageBuffer + dataLengthAdjustment;
                             //TODO: some of this code can probably be simplified a bit more than it currently is.
+                            if (blockDescriptorLength > 0)
+                            {
+                                //Before going too far, clear the block descriptor to zeroes to make sure we are clearly communicating that no changes are requested.
+                                memset(&rawmodePageBuffer[modeHeaderLen], 0, blockDescriptorLength);
+                            }
                             //now we have the data, we can begin modifying the field requested.
                             if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
                             {

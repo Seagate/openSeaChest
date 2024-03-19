@@ -43,7 +43,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.4.0";
+const char *buildVersion = "3.4.1";
 
 typedef enum _eSeaChestSecurityExitCodes
 {
@@ -76,7 +76,7 @@ int32_t main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -518,16 +518,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%" SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
