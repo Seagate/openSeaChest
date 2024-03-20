@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_PassthroughTest";
-const char *buildVersion = "1.4.0";
+const char *buildVersion = "1.4.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -3944,7 +3944,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             scsiDevInfo->inquiryData.versionDescriptors[versionIter] = M_BytesTo2ByteValue(device->drive_info.scsiVpdData.inquiryData[(versionIter * 2) + 58], device->drive_info.scsiVpdData.inquiryData[(versionIter * 2) + 59]);
                             if (scsiDevInfo->inquiryData.versionDescriptors[versionIter] > 0)
                             {
-                                char versionString[20] = { 0 };
+                                char versionString[MAX_VERSION_DESCRIPTOR_STRING_LENGTH] = { 0 };
                                 printf("\t%04" PRIX16 " - ", scsiDevInfo->inquiryData.versionDescriptors[versionIter]);
                                 decypher_SCSI_Version_Descriptors(scsiDevInfo->inquiryData.versionDescriptors[versionIter], C_CAST(char*, versionString));
                                 printf("%s\n", versionString);
