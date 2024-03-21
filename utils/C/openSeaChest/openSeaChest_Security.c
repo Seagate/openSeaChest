@@ -43,7 +43,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Security";
-const char *buildVersion = "3.3.0";
+const char *buildVersion = "3.4.1";
 
 typedef enum _eSeaChestSecurityExitCodes
 {
@@ -76,7 +76,7 @@ int32_t main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -518,16 +518,21 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                DISPLAY_LBA_FLAG = true;
-                if (0 == sscanf(optarg, "%" SCNu64, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &DISPLAY_LBA_THE_LBA))
+                {
+                    DISPLAY_LBA_FLAG = true;
+                }
+                else
                 {
                     if (strcmp(optarg, "maxLBA") == 0)
                     {
                         USE_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else if (strcmp(optarg, "childMaxLBA") == 0)
                     {
                         USE_CHILD_MAX_LBA = true;
+                        DISPLAY_LBA_FLAG = true;
                     }
                     else
                     {
@@ -905,6 +910,8 @@ int32_t main(int argc, char *argv[])
     }
         
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1178,6 +1185,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)

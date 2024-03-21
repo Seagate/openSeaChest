@@ -170,12 +170,14 @@ extern "C"
 
     #define FORCE_SCSI_FLAG forceSCSI
     #define FORCE_ATA_FLAG forceATA
+    #define FORCE_NVME_FLAG forceNVME
     #define FORCE_ATA_PIO_FLAG forcePIOATA
     #define FORCE_ATA_DMA_FLAG forceATADMA
     #define FORCE_ATA_UDMA_FLAG forceATAUDMA
     #define FORCE_DRIVE_TYPE_VARS\
     getOptBool FORCE_SCSI_FLAG = goFalse;\
     getOptBool FORCE_ATA_FLAG = goFalse;\
+    getOptBool FORCE_NVME_FLAG = goFalse;\
     getOptBool FORCE_ATA_PIO_FLAG = goFalse;\
     getOptBool FORCE_ATA_DMA_FLAG = goFalse;\
     getOptBool FORCE_ATA_UDMA_FLAG = goFalse;
@@ -183,6 +185,8 @@ extern "C"
     #define FORCE_SCSI_LONG_OPT { FORCE_SCSI_LONG_OPT_STRING, no_argument, &FORCE_SCSI_FLAG, goTrue }
     #define FORCE_ATA_LONG_OPT_STRING "forceATA"
     #define FORCE_ATA_LONG_OPT { FORCE_ATA_LONG_OPT_STRING, no_argument, &FORCE_ATA_FLAG, goTrue }
+    #define FORCE_NVME_LONG_OPT_STRING "forceNVME"
+    #define FORCE_NVME_LONG_OPT { FORCE_NVME_LONG_OPT_STRING, no_argument, &FORCE_NVME_FLAG, goTrue }
     #define FORCE_ATA_PIO_LONG_OPT_STRING "forceATAPIO"
     #define FORCE_ATA_PIO_LONG_OPT { FORCE_ATA_PIO_LONG_OPT_STRING, no_argument, &FORCE_ATA_PIO_FLAG, goTrue }
     #define FORCE_ATA_DMA_LONG_OPT_STRING "forceATADMA"
@@ -190,7 +194,7 @@ extern "C"
     #define FORCE_ATA_UDMA_LONG_OPT_STRING "forceATAUDMA"
     #define FORCE_ATA_UDMA_LONG_OPT { FORCE_ATA_UDMA_LONG_OPT_STRING, no_argument, &FORCE_ATA_UDMA_FLAG, goTrue }
     #define FORCE_DRIVE_TYPE_LONG_OPTS \
-    FORCE_SCSI_LONG_OPT, FORCE_ATA_LONG_OPT, FORCE_ATA_PIO_LONG_OPT, FORCE_ATA_DMA_LONG_OPT, FORCE_ATA_UDMA_LONG_OPT
+    FORCE_SCSI_LONG_OPT, FORCE_ATA_LONG_OPT, FORCE_NVME_LONG_OPT, FORCE_ATA_PIO_LONG_OPT, FORCE_ATA_DMA_LONG_OPT, FORCE_ATA_UDMA_LONG_OPT
 
     #define USE_MAX_LBA useMaxLBA
     #define USE_CHILD_MAX_LBA useChildMaxLBA

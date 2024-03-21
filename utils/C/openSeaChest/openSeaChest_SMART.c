@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_SMART";
-const char *buildVersion = "2.4.0";
+const char *buildVersion = "2.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -60,7 +60,7 @@ int32_t main(int argc, char *argv[])
     /////////////////
     //common utility variables
     int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -759,6 +759,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1033,6 +1035,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)
@@ -1654,7 +1665,8 @@ int32_t main(int argc, char *argv[])
         if (RUN_IDD_FLAG)
         {
             int32_t IDDResult = UNKNOWN;
-            if (is_Seagate_Family(&deviceList[deviceIter]) == SEAGATE)
+            eSeagateFamily family = is_Seagate_Family(&deviceList[deviceIter]);
+            if (family == SEAGATE)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1685,7 +1697,7 @@ int32_t main(int argc, char *argv[])
                         if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT || CAPTIVE_FOREGROUND_FLAG)//short test is run in captive mode, so polling doesn't make sense
                         {
                             printf("IDD - ");
-                            switch(IDD_TEST_FLAG)
+                            switch (IDD_TEST_FLAG)
                             {
                             case SEAGATE_IDD_SHORT:
                                 printf("short");
@@ -1702,7 +1714,7 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             printf("IDD - ");
-                            switch(IDD_TEST_FLAG)
+                            switch (IDD_TEST_FLAG)
                             {
                             case SEAGATE_IDD_SHORT:
                                 printf("short");
@@ -1760,6 +1772,14 @@ int32_t main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
+            }
+            else if (family != NON_SEAGATE)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("IDD not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
             else
             {
