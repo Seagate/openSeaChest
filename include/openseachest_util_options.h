@@ -52,7 +52,7 @@ extern "C"
         UTIL_EXIT_CANNOT_OPEN_FILE,
         UTIL_EXIT_FILE_ALREADY_EXISTS,
         UTIL_EXIT_NEED_ELEVATED_PRIVILEGES,
-		UTIL_EXIT_NOT_ENOUGH_RESOURCES,
+        UTIL_EXIT_NOT_ENOUGH_RESOURCES,
         //TODO: More generic exit codes go here
         UTIL_EXIT_ERROR_WRITING_FILE, //added 5/19/20
         //Tool specific exit codes go here
@@ -133,10 +133,10 @@ extern "C"
     #define SCAN_FLAGS_LONG_OPT_STRING "scanFlags"
     #define SCAN_FLAGS_LONG_OPT { SCAN_FLAGS_LONG_OPT_STRING, required_argument, NULL, SCAN_FLAGS_SHORT_OPT }
 
-	#define NO_BANNER_FLAG noBanner
-	#define NO_BANNER_VAR getOptBool NO_BANNER_FLAG = goFalse;
-	#define NO_BANNER_OPT_STRING "noBanner"
-	#define NO_BANNER_OPT { NO_BANNER_OPT_STRING, no_argument, &NO_BANNER_FLAG, goTrue}
+    #define NO_BANNER_FLAG noBanner
+    #define NO_BANNER_VAR getOptBool NO_BANNER_FLAG = goFalse;
+    #define NO_BANNER_OPT_STRING "noBanner"
+    #define NO_BANNER_OPT { NO_BANNER_OPT_STRING, no_argument, &NO_BANNER_FLAG, goTrue}
 
     #define SHOW_BANNER_FLAG showBanner
     #define SHOW_BANNER_VAR bool SHOW_BANNER_FLAG = false;
@@ -157,11 +157,11 @@ extern "C"
     #define TEST_UNIT_READY_LONG_OPT_STRING "testUnitReady"
     #define TEST_UNIT_READY_LONG_OPT { TEST_UNIT_READY_LONG_OPT_STRING, no_argument, &TEST_UNIT_READY_FLAG, goTrue }
 
-	#define FAST_DISCOVERY_FLAG fastDiscovery
-	#define FAST_DISCOVERY_VAR \
-		getOptBool FAST_DISCOVERY_FLAG = goFalse;
-	#define FAST_DISCOVERY_LONG_OPT_STRING "fastDiscovery"
-	#define FAST_DISCOVERY_LONG_OPT { FAST_DISCOVERY_LONG_OPT_STRING, no_argument, &FAST_DISCOVERY_FLAG, goTrue }
+    #define FAST_DISCOVERY_FLAG fastDiscovery
+    #define FAST_DISCOVERY_VAR \
+        getOptBool FAST_DISCOVERY_FLAG = goFalse;
+    #define FAST_DISCOVERY_LONG_OPT_STRING "fastDiscovery"
+    #define FAST_DISCOVERY_LONG_OPT { FAST_DISCOVERY_LONG_OPT_STRING, no_argument, &FAST_DISCOVERY_FLAG, goTrue }
 
     #define ONLY_SEAGATE_FLAG onlySeagateDrives
     #define ONLY_SEAGATE_VAR getOptBool ONLY_SEAGATE_FLAG = goFalse;
@@ -757,17 +757,67 @@ extern "C"
     #define SET_POWER_CONSUMPTION_LONG_OPT_STRING "setPowerConsumption"
     #define SET_POWER_CONSUMPTION_LONG_OPT { SET_POWER_CONSUMPTION_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //sanitize TODO: This is incomplete. Need to expand this a bit more and then clean up the implementation for command line parsing in openSeaChest_Erase
+    //SATA Only Sanitize freeze/antifreeze lock variables. These can be used to block sanitize, or stop a system from blocking sanitize with a freezelock
+    #define SANITIZE_FREEZE sanitizeFreezeLock
+    #define SANITIZE_FREEZE_VAR getOptBool SANITIZE_FREEZE = goFalse;
+    #define SANITIZE_FREEZE_LONG_OPT_STRING "sanitizeFreeze"
+    #define SANITIZE_FREEZE_LONG_OPT { SANITIZE_FREEZE_LONG_OPT_STRING, no_argument, &SANITIZE_FREEZE, goTrue }
+
+    #define SANITIZE_ANTIFREEZE sanitizeAntiFreezeLock
+    #define SANITIZE_ANTIFREEZE_VAR getOptBool SANITIZE_ANTIFREEZE = goFalse;
+    #define SANITIZE_ANTIFREEZE_LONG_OPT_STRING "sanitizeAntiFreeze"
+    #define SANITIZE_ANTIFREEZE_LONG_OPT { SANITIZE_ANTIFREEZE_LONG_OPT_STRING, no_argument, &SANITIZE_ANTIFREEZE, goTrue }
+
+
+    #define SANITIZE_BLOCK_ERASE_STR "blockerase"
+    #define SANITIZE_CRYPTO_ERASE_STR "cryptoerase"
+    #define SANITIZE_OVERWRITE_ERASE_STR "overwrite"
+
+    #define SANITIZE_INFO_FLAG sanitizeCapabilities
+    #define SANITIZE_RUN_BLOCK_ERASE sanitizeBlockErase
+    #define SANITIZE_RUN_CRYPTO_ERASE sanitizeCryptoErase
+    #define SANITIZE_RUN_OVERWRITE_ERASE sanitizeOverwriteErase
     #define SANITIZE_RUN_FLAG sanitize
     #define SANITIZE_UTIL_VARS \
     bool SANITIZE_RUN_FLAG = false; \
-    bool sanitizeInfo = false; \
-    bool sanblockErase = false; \
-    bool sancryptoErase = false; \
-    bool sanoverwrite = false; \
-    bool sanfreezelock = false; \
-    bool sanAntiFreezeLock = false;
+    bool SANITIZE_INFO_FLAG = false; \
+    bool SANITIZE_RUN_BLOCK_ERASE = false; \
+    bool SANITIZE_RUN_CRYPTO_ERASE = false; \
+    bool SANITIZE_RUN_OVERWRITE_ERASE = false;
     #define SANITIZE_LONG_OPT_STRING "sanitize"
+    #define SANITIZE_LONG_OPT { SANITIZE_LONG_OPT_STRING, required_argument, NULL, 'e' }
+
+    //allow unrestricted sanitize exit option
+    #define SANITIZE_AUSE sanitizeAUSE
+    #define SANITIZE_AUSE_VAR getOptBool SANITIZE_AUSE = goFalse;
+    #define SANITIZE_AUSE_LONG_OPT_STRING "ause"
+    #define SANITIZE_AUSE_LONG_OPT { SANITIZE_AUSE_LONG_OPT_STRING, no_argument, &SANITIZE_AUSE, goTrue }
+
+    //Sanitize overwrite invert pattern flag (invert between overwrite passes)
+    #define SANITIZE_IPBP sanitizeIPBP
+    #define SANITIZE_IPBP_VAR getOptBool SANITIZE_IPBP = goFalse;
+    #define SANITIZE_IPBP_LONG_OPT_STRING "ipbp"
+    #define SANITIZE_IPBP_LONG_OPT { SANITIZE_IPBP_LONG_OPT_STRING, no_argument, &SANITIZE_IPBP, goTrue }
+
+    //Sanitize overwrite number of overwrite passes flag
+    #define SANITIZE_OVERWRITE_PASSES sanitizeOverwritePasses
+    #define SANITIZE_OVERWRITE_PASSES_VAR uint8_t SANITIZE_OVERWRITE_PASSES = 1;//default to a single pass. Max number depends on the drive standard implemented. (ATA/NVMe = 16, SCSI = 31)
+    #define SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING "overwritepasses"
+    #define SANITIZE_OVERWRITE_PASSES_LONG_OPT { SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //zone no reset bit. Can be used in Sanitize erases or ATA security erase.
+    //when set, zones are left full to allow for verification. When not set, all write pointers are reset to the beginning of the zones.
+    #define ZONE_NO_RESET zbdZoneNoReset
+    #define ZONE_NO_RESET_VAR getOptBool ZONE_NO_RESET = goFalse;
+    #define ZONE_NO_RESET_LONG_OPT_STRING "znr"
+    #define ZONE_NO_RESET_LONG_OPT { ZONE_NO_RESET_LONG_OPT_STRING, no_argument, &ZONE_NO_RESET, goTrue }
+
+    //No deallocate (NVMe for Sanitize command)...not currently in SATA or SAS, but maybe it will be one day-TJE
+    //when set, and the controller is not inhibiting this behavior, it allows reading and verifying all LBAs were erased.
+    #define NO_DEALLOCATE_AFTER_ERASE nvmeNoDeallocate
+    #define NO_DEALLOCATE_AFTER_ERASE_VAR getOptBool NO_DEALLOCATE_AFTER_ERASE = goFalse;
+    #define NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING "nodeallocate"
+    #define NO_DEALLOCATE_AFTER_ERASE_LONG_OPT { NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING, no_argument, &NO_DEALLOCATE_AFTER_ERASE, goTrue }
 
     //download FW
     #define FIRMWARE_FILE_NAME_MAX_LEN 4096
@@ -1548,15 +1598,15 @@ extern "C"
 
     //Seagate Power Balance options (SATA only since SAS can use the setPowerConsumption options)
     #define SEAGATE_POWER_BALANCE_FLAG powerBalanceFeature
-	#define POWER_BALANCE_MODE powerBalanceMode
+    #define POWER_BALANCE_MODE powerBalanceMode
     #define SEAGATE_POWER_BALANCE_ENABLE_FLAG powerBalanceEnable
-	#define SEAGATE_POWER_BALANCE_LIMITED_FLAG powerBalanceLimited
+    #define SEAGATE_POWER_BALANCE_LIMITED_FLAG powerBalanceLimited
     #define SEAGATE_POWER_BALANCE_INFO_FLAG powerBalanceInfo
     #define SEAGATE_POWER_BALANCE_VARS \
-		uint8_t POWER_BALANCE_MODE = 0;\
+        uint8_t POWER_BALANCE_MODE = 0;\
         bool SEAGATE_POWER_BALANCE_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;\
-		bool SEAGATE_POWER_BALANCE_LIMITED_FLAG = false;\
+        bool SEAGATE_POWER_BALANCE_LIMITED_FLAG = false;\
         bool SEAGATE_POWER_BALANCE_INFO_FLAG = false;
     #define SEAGATE_POWER_BALANCE_LONG_OPT_STRING "powerBalanceFeature"
     #define SEAGATE_POWER_BALANCE_LONG_OPT { SEAGATE_POWER_BALANCE_LONG_OPT_STRING, required_argument, NULL, 0 }
@@ -2459,6 +2509,10 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Sanitize_Help(bool shortHelp, const char *utilName);
 
+    void print_Sanitize_Freeze_Help(bool shortHelp);
+
+    void print_Sanitize_Anti_Freeze_Help(bool shortHelp);
+
     //-----------------------------------------------------------------------------
     //
     //  print_Writesame_Help()
@@ -3056,19 +3110,19 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Test_Unit_Ready_Help(bool shortHelp);
 
-	//-----------------------------------------------------------------------------
-	//
-	//  print_Fast_Discovery_Help()	
-	//
-	//! \brief   Description:  This function prints out the short or long help for the fast discovery option
-	//
-	//  Entry:
-	//!   \param[in] shortUsage = bool used to select when to print short or long help
-	//
-	//  Exit:
-	//
-	//-----------------------------------------------------------------------------
-	void print_Fast_Discovery_Help(bool shortUsage);
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Fast_Discovery_Help()	
+    //
+    //! \brief   Description:  This function prints out the short or long help for the fast discovery option
+    //
+    //  Entry:
+    //!   \param[in] shortUsage = bool used to select when to print short or long help
+    //
+    //  Exit:
+    //
+    //-----------------------------------------------------------------------------
+    void print_Fast_Discovery_Help(bool shortUsage);
 
     void print_Firmware_Download_Help(bool shortHelp);
 
@@ -3478,7 +3532,7 @@ extern "C"
 
     void print_No_Time_Limit_Help(bool shortHelp);
 
-	void print_No_Banner_Help(bool shortUsage);
+    void print_No_Banner_Help(bool shortUsage);
 
     void print_SAS_Phy_Partial_Help(bool shortHelp);
 
@@ -3684,56 +3738,6 @@ uint64_t            eraseTimeStartLBA = 0;
         optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
         eraseTimeSeconds *= timeMultiplier;/*adjust to a time in seconds if something other than seconds were entered*/         \
     }
-
-#define SANITIZE_SUBOPT_PARSE \
-if (optarg != NULL)                                                                                                         \
-{                                                                                                                           \
-    int  index = optind - 1;                                                                                                \
-    char *nextSubOpt = NULL;                                                                                                \
-    while (index < argc)                                                                                                    \
-    {                                                                                                                       \
-        nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-        if (strncmp("-", nextSubOpt, 1) != 0) /*check if optarg is next switch so that we break out of parsing suboptions*/ \
-        {                                                                                                                   \
-            if (strncmp("blockerase", nextSubOpt, strlen(nextSubOpt)) == 0)                                                 \
-            {                                                                                                               \
-                sanitize = true;                                                                                            \
-                sanblockErase = true;                                                                                       \
-            }                                                                                                               \
-            else if (strncmp("cryptoerase", nextSubOpt, strlen(nextSubOpt)) == 0)                                           \
-            {                                                                                                               \
-                sanitize = true;                                                                                            \
-                sancryptoErase = true;                                                                                      \
-            }                                                                                                               \
-            else if (strncmp("overwrite", nextSubOpt, strlen(nextSubOpt)) == 0)                                             \
-            {                                                                                                               \
-                sanitize = true;                                                                                            \
-                sanoverwrite = true;                                                                                        \
-            }                                                                                                               \
-            else if (strncmp("freezelock", nextSubOpt, strlen(nextSubOpt)) == 0)                                            \
-            {                                                                                                               \
-                sanitize = true;                                                                                            \
-                sanfreezelock = true;                                                                                       \
-            }                                                                                                               \
-            else if (strncmp("antifreezelock", nextSubOpt, strlen(nextSubOpt)) == 0)                                        \
-            {                                                                                                               \
-                sanitize = true;                                                                                            \
-                sanAntiFreezeLock = true;                                                                                   \
-            }                                                                                                               \
-            else if (strncmp("info", nextSubOpt, strlen(nextSubOpt)) == 0)                                                  \
-            {                                                                                                               \
-                sanitize = true; /*this flag is used to show the support sanitize commands*/                                \
-                sanitizeInfo = true;                                                                                        \
-            }                                                                                                               \
-        }                                                                                                                   \
-        else                                                                                                                \
-        {                                                                                                                   \
-            break;                                                                                                          \
-        }                                                                                                                   \
-        index++;                                                                                                            \
-    }                                                                                                                       \
-    optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-}
 
 #if defined (__cplusplus)
 }
