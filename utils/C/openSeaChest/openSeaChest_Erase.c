@@ -1234,6 +1234,7 @@ int32_t main(int argc, char *argv[])
         || SANITIZE_RUN_FLAG
         || SANITIZE_FREEZE
         || SANITIZE_ANTIFREEZE
+        || SANITIZE_INFO_FLAG
         || RUN_WRITE_SAME_FLAG
         || ATA_SECURITY_ERASE_OP
         || RUN_OVERWRITE_FLAG
