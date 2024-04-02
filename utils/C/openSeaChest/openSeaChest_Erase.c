@@ -2136,7 +2136,7 @@ int32_t main(int argc, char *argv[])
             }
             if (SUCCESS == get_Sanitize_Device_Features(&deviceList[deviceIter], &sanitizeOptions))
             {
-                if (sanitizeOptions.crypto || sanitizeOptions.blockErase || sanitizeOptions.overwrite)
+                if (sanitizeOptions.sanitizeCmdEnabled)
                 {
                     printf("\tThe following sanitize commands are supported:\n");
                     if (sanitizeOptions.crypto)
@@ -2168,6 +2168,35 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("\t\tAntifreezelock\t--%s\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
                     }
+                    if (sanitizeOptions.noDeallocateInhibited)
+                    {
+                        printf("\t\tNo Deallocate Inhibited by controller.\n");
+                        switch (sanitizeOptions.responseMode)
+                        {
+                        case NO_DEALLOC_RESPONSE_INV:
+                            break;
+                        case NO_DEALLOC_RESPONSE_WARNING:
+                            printf("\t\t\tSanitize command will be accepted but warn about deallocation when no deallocate is specified.\n");
+                            break;
+                        case NO_DEALLOC_RESPONSE_ERROR:
+                            printf("\t\t\tSanitize command will be aborted with an error when no deallocate is specified.\n");
+                            break;
+                        }
+                    }
+                    switch (sanitizeOptions.nodmmas)
+                    {
+                    case NODMMAS_NOT_DEFINED:
+                        break;
+                    case NODMMAS_NOT_ADDITIONALLY_MODIFIED_AFTER_SANITIZE:
+                        printf("\t\tMedia does not have additional modifications after sanitize completes.\n");
+                        break;
+                    case NODMMAS_MEDIA_MODIFIED_AFTER_SANITIZE:
+                        printf("\t\tMedia is modified after sanitize completes.\n");
+                        break;
+                    case NODMMAS_RESERVED:
+                        break;
+                    }
+
                 }
                 else
                 {
@@ -2199,8 +2228,14 @@ int32_t main(int argc, char *argv[])
                 sanitizeOp.size = sizeof(sanitizeOperationOptions);
                 sanitizeOp.pollForProgress = POLL_FLAG;
                 sanitizeOp.commonOptions.allowUnrestrictedSanitizeExit = SANITIZE_AUSE;
+                //NOTE: The next two options are in a union to mean the same thing
+                //      It is likely that a user will specify one for NVMe devices and one for SATA/SAS
+                //      So if this is specified, keep the one set to true.
                 sanitizeOp.commonOptions.zoneNoReset = ZONE_NO_RESET;
-                sanitizeOp.commonOptions.noDeallocate = NO_DEALLOCATE_AFTER_ERASE;
+                if (!sanitizeOp.commonOptions.noDeallocate)
+                {
+                    sanitizeOp.commonOptions.noDeallocate = NO_DEALLOCATE_AFTER_ERASE;
+                }
                 if (SANITIZE_RUN_BLOCK_ERASE)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2231,6 +2266,10 @@ int32_t main(int argc, char *argv[])
                         sanitizeOp.overwriteOptions.pattern = M_BytesTo4ByteValue(patternBuffer[3], patternBuffer[2], patternBuffer[1], patternBuffer[0]);
                     }
                 }
+                //get the support information before starting sanitize to add warnings about write after block erase or write after crypto erase.
+                writeAfterErase writeReq;
+                memset(&writeReq, 0, sizeof(writeAfterErase));
+                is_Write_After_Erase_Required(&deviceList[deviceIter], &writeReq);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("If Sanitize appears to be taking much longer than expected, the system or HBA\n");
@@ -2244,6 +2283,18 @@ int32_t main(int argc, char *argv[])
                     printf("      reduce the time sanitize takes to overwrite the drive.\n");
                     printf("      On an SSD, the overwrite time will be much faster and varies depending\n");
                     printf("      on the capabilities of the SSD controller.\n\n");
+                    if (SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
+                        printf("          Attempting to read any LBA will result in a failure until it\n");
+                        printf("          has been written with new data!\n\n");
+                    }
+                    if (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                        printf("          Attempting to read any LBA will result in a failure until it\n");
+                        printf("          has been written with new data!\n\n");
+                    }
                 }
                 switch (run_Sanitize_Operation2(&deviceList[deviceIter], sanitizeOp))
                 {
@@ -2263,10 +2314,27 @@ int32_t main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        if (SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        if (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
                     }
                     if (sanitizeCommandRun && POLL_FLAG)
                     {
                         eraseCompleted = true;
+                        if ((SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                            || (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS))
+                        {
+                            eraseCompleted = false;//turn this off otherwise the function to update file systems outputs errors to the screen since it tries to read the device.
+                        }
                     }
                     break;
                 case FAILURE:
