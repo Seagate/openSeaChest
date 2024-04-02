@@ -1,3 +1,6 @@
 {
-  "settingsInheritedFrom": "Seagate/whitesource-config@main"
+  "settingsInheritedFrom": "Seagate/whitesource-config@main",
+  "scanSettings": {
+    "configMode": "LOCAL"
+  }
 }
