@@ -608,6 +608,86 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
     }
 }
 
+void print_Sanitize_Overwrite_Passes_Help(bool shortHelp)
+{
+    printf("\t--%s [ number of overwrite passes ]\n", SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tSpecify the number of overwrite passes to use during a sanitize\n");
+        printf("\t\toverwrite operation. By default, only a single overwrite pass\n");
+        printf("\t\tis used unless this option specifies a different value.\n");
+        printf("\t\tThe maximum number of passes varies by drive type:\n");
+        printf("\t\tATA:  16 passes\n");
+        printf("\t\tNVMe: 16 passes\n");
+        printf("\t\tSCSI: 31 passes\n");
+        printf("\t\tUse the --%s option to instruct the device to invert\n", SANITIZE_IPBP_LONG_OPT_STRING);
+        printf("\t\tthe pattern between each overwrite pass.\n");
+        printf("\n");
+    }
+}
+
+void print_Sanitize_Overwrite_Invert_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SANITIZE_IPBP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to instruct the drive to invert the requested\n");
+        printf("\t\tsanitize overwrite pattern between each overwrite pass.\n");
+        printf("\t\tFor the default pattern of all zeroes, this means that after\n");
+        printf("\t\ta first pass of zeroes, the second pass will be all 1's (binary)\n");
+        printf("\t\tor all F's (hexadecimal)\n\n");
+    }
+}
+
+void print_Sanitize_AUSE_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SANITIZE_AUSE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to allow running a sanitize operation in\n");
+        printf("\t\tunrestricted mode. Without this option, all sanitize options\n");
+        printf("\t\tare run in restricted mode by default.\n");
+        printf("\t\tIn unrestricted mode, if a sanitize erase fails the drive enters\n");
+        printf("\t\ta failure state. The failure state can be cleared with a Sanitize\n");
+        printf("\t\texit failure mode command, or it can be cleared with a successful\n");
+        printf("\t\tsanitize erase.\n");
+        printf("\t\tIn restricted mode, if a sanitize fails, the failure state can only\n");
+        printf("\t\tbe cleared with a successful sanitize erase.\n\n");
+    }
+}
+
+void print_Zone_No_Reset_Help(bool shortHelp)
+{
+    printf("\t--%s\n", ZONE_NO_RESET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tFor ZBD's (Zoned Block Devices), use this option during a\n");
+        printf("\t\tSanitize or ATA Security Erase to specify leaving all zones\n");
+        printf("\t\tfull so that full verification of erasure can be performed.\n");
+        printf("\t\tWhen this option is not specified, all zones will be empty\n");
+        printf("\t\tupon completion of these erases.\n\n");
+    }
+}
+
+void print_Sanitize_No_Deallocate_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tFor NVMe devices, specify this option during a sanitize to\n");
+        printf("\t\tleave all blocks allocated after a sanitize erase. By default\n");
+        printf("\t\tan NVMe controller will deallocate (TRIM/Unmap) all the LBAs.\n");
+        printf("\t\tUsing this option allows for full verification of erasure after\n");
+        printf("\t\ta Sanitize command.\n");
+        printf("\t\tNOTE: An NVMe controller may inhibit this option in certain\n");
+        printf("\t\tconfigurations meaning the sanitize may produce a warning or\n");
+        printf("\t\ta failure depending on how this is configured on the controller.\n");
+        printf("\t\tAfter verifying an erasure with this option, run a deallocate/TRIM\n");
+        printf("\t\tacross the entire device/namespace to match default behavior of\n");
+        printf("\t\ta sanitize erase.\n\n");
+    }
+}
+
 void print_Poll_Help(bool shortHelp)
 {
     printf("\t--%s\n", POLL_LONG_OPT_STRING);

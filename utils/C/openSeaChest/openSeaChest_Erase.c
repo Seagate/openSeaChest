@@ -3217,8 +3217,11 @@ void utility_Usage(bool shortUsage)
     printf("SATA - IO, and NVMexpress.\n");
     printf("=========================\n");
     //multiple interfaces
+    print_Sanitize_AUSE_Help(shortUsage);
+    print_Sanitize_Overwrite_Invert_Help(shortUsage);
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
+    print_Sanitize_Overwrite_Passes_Help(shortUsage);
     print_Pattern_Help(shortUsage);
     print_Perform_Quickest_Erase_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
@@ -3230,6 +3233,7 @@ void utility_Usage(bool shortUsage)
     print_Trim_Unmap_Range_Help(shortUsage);
     print_Writesame_Help(shortUsage);
     print_Writesame_Range_Help(shortUsage);
+    print_Zone_No_Reset_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Erase_Help(shortUsage, "SeaChest");
@@ -3240,6 +3244,7 @@ void utility_Usage(bool shortUsage)
     print_Fast_Format_Help(shortUsage);
     print_Format_Unit_Help(shortUsage);
     printf("\n\tNVMe Only:\n\t=========\n");
+    print_Sanitize_No_Deallocate_Help(shortUsage);
     print_NVM_Format_Metadata_Setting_Help(shortUsage);
     print_NVM_Format_Metadata_Size_Help(shortUsage);
     print_NVM_Format_NSID_Help(shortUsage);

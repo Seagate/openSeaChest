@@ -2513,6 +2513,16 @@ extern "C"
 
     void print_Sanitize_Anti_Freeze_Help(bool shortHelp);
 
+    void print_Sanitize_Overwrite_Passes_Help(bool shortHelp);
+
+    void print_Sanitize_Overwrite_Invert_Help(bool shortHelp);
+
+    void print_Sanitize_AUSE_Help(bool shortHelp);
+
+    void print_Zone_No_Reset_Help(bool shortHelp);
+
+    void print_Sanitize_No_Deallocate_Help(bool shortHelp);
+
     //-----------------------------------------------------------------------------
     //
     //  print_Writesame_Help()
