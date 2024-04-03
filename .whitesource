@@ -2,5 +2,8 @@
   "settingsInheritedFrom": "Seagate/whitesource-config@main",
   "scanSettings": {
     "configMode": "LOCAL"
+  },
+  "scanSettingsSAST": {
+    "baseBranches": [ "develop" ]
   }
 }
