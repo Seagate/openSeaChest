@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.5.0";
+const char *buildVersion = "4.6.0";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -159,6 +159,7 @@ int32_t main(int argc, char *argv[])
     HIDE_LBA_COUNTER_VAR
     LOWLEVEL_INFO_VAR
     ERASE_RESTORE_MAX_VAR
+    REFRESH_FILE_SYSTEMS_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -236,6 +237,7 @@ int32_t main(int argc, char *argv[])
         NVM_FORMAT_OPTIONS_LONG_OPTS,
         ZERO_VERIFY_LONG_OPT,
         ERASE_RESTORE_MAX_PREP_LONG_OPT,
+        REFRESH_FILE_SYSTEMS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1247,6 +1249,7 @@ int32_t main(int argc, char *argv[])
         || NVM_FORMAT_FLAG
         || ZERO_VERIFY_FLAG
         || ERASE_RESTORE_MAX_PREP
+        || REFRESH_FILE_SYSTEMS
         ))
     {
         utility_Usage(true);
@@ -3109,10 +3112,37 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-        if (eraseCompleted)
+        if (eraseCompleted || REFRESH_FILE_SYSTEMS)
         {
             //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
-            os_Update_File_System_Cache(&deviceList[deviceIter]);
+            int fsret = os_Update_File_System_Cache(&deviceList[deviceIter]);
+            if (REFRESH_FILE_SYSTEMS)
+            {
+                switch (fsret)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully refreshed the filesystems for the OS!\n");
+                    }
+                    eraseCompleted = true;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Refreshing the filesystems is not supported in this OS.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to refresh the OS file systems.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
         }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
@@ -3245,6 +3275,7 @@ void utility_Usage(bool shortUsage)
     #endif
     print_Time_Seconds_Help(shortUsage);
     print_Erase_Restore_Max_Prep_Help(shortUsage);
+    print_Refresh_Filesystems_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);

@@ -688,6 +688,21 @@ void print_Sanitize_No_Deallocate_Help(bool shortHelp)
     }
 }
 
+void print_Refresh_Filesystems_Help(bool shortHelp)
+{
+    printf("\t--%s\n", REFRESH_FILE_SYSTEMS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will call an OS unique low-level routine to rescan\n");
+        printf("\t\ta device for any file systems it can detect through the\n");
+        printf("\t\tpartition table. The detected filesystems will vary by OS\n");
+        printf("\t\tand OS capabilities.\n");
+        printf("\t\tThis option is useful to call after completing a full disk erase\n");
+        printf("\t\tas it may make a cached volume in the OS go away or detect that a device\n");
+        printf("\t\tis empty and ready to have a new file system written to it.\n\n");
+    }
+}
+
 void print_Poll_Help(bool shortHelp)
 {
     printf("\t--%s\n", POLL_LONG_OPT_STRING);

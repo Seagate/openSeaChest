@@ -819,6 +819,14 @@ extern "C"
     #define NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING "nodeallocate"
     #define NO_DEALLOCATE_AFTER_ERASE_LONG_OPT { NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING, no_argument, &NO_DEALLOCATE_AFTER_ERASE, goTrue }
 
+    //Call the function to refresh the known filesystems in the OS. This can be very important to do after an erase is completed.
+    //If an erase is completed this is done automatically already, however if polling for progress or needing a write after erase (SAS crypto/block)
+    //then a user may need to call this another time as well manually.
+    #define REFRESH_FILE_SYSTEMS refreshFileSystems
+    #define REFRESH_FILE_SYSTEMS_VAR getOptBool REFRESH_FILE_SYSTEMS = goFalse;
+    #define REFRESH_FILE_SYSTEMS_LONG_OPT_STRING "refreshfs"
+    #define REFRESH_FILE_SYSTEMS_LONG_OPT { REFRESH_FILE_SYSTEMS, no_argument, &REFRESH_FILE_SYSTEMS, goTrue }
+
     //download FW
     #define FIRMWARE_FILE_NAME_MAX_LEN 4096
     #define FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR "%4096s"
@@ -3627,6 +3635,8 @@ extern "C"
     void print_Show_Phy_Event_Counters_Help(bool shortHelp);
     
     void print_WRV_Help(bool shortHelp);
+
+    void print_Refresh_Filesystems_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
