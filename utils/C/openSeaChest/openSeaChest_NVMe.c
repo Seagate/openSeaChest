@@ -85,6 +85,7 @@ int32_t main(int argc, char *argv[])
     NEW_FW_MATCH_VARS
     CHECK_POWER_VAR
     TRANSITION_POWER_STATE_VAR
+    SHOW_NVM_POWER_STATES_VAR
     GET_NVME_LOG_VAR
     GET_TELEMETRY_VAR
     TELEMETRY_DATA_AREA_VAR
@@ -107,7 +108,12 @@ int32_t main(int argc, char *argv[])
     PROGRESS_VAR
     SHOW_SUPPORTED_FORMATS_VAR
     LOWLEVEL_INFO_VAR
-    FORCE_DRIVE_TYPE_VARS
+    LIST_LOGS_VAR
+	FORCE_DRIVE_TYPE_VARS
+
+#if defined (ENABLE_HWRAID_SUPPORT)
+    RAID_PHYSICAL_DRIVE rDevice;//TODO: This should be a list so that we can talk to more than one raid device at a time!
+#endif
 
     int  args = 0;
     int argIndex = 0;
@@ -144,6 +150,7 @@ int32_t main(int argc, char *argv[])
         FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
         CHECK_POWER_LONG_OPT,
         TRANSITION_POWER_STATE_LONG_OPT,
+        SHOW_NVM_POWER_STATES_LONG_OPT,
         GET_NVME_LOG_LONG_OPT,
         GET_TELEMETRY_LONG_OPT,
         TELEMETRY_DATA_AREA_LONG_OPT,
@@ -161,6 +168,7 @@ int32_t main(int argc, char *argv[])
         SHOW_SUPPORTED_FORMATS_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        LIST_LOGS_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
@@ -759,23 +767,25 @@ int32_t main(int argc, char *argv[])
     }
     //check that we were given at least one test to perform...if not, set that we are dumping device information so we at least do something
     if (!(DEVICE_INFO_FLAG
-          || LOWLEVEL_INFO_FLAG
-          || DOWNLOAD_FW_FLAG
-          || ACTIVATE_DEFERRED_FW_FLAG
-          || SWITCH_FW_FLAG
-          || TEST_UNIT_READY_FLAG
-          || CHECK_POWER_FLAG
-          || (TRANSITION_POWER_STATE_TO >= 0)
-          || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
-          || (GET_TELEMETRY_IDENTIFIER > 0)
-          || (GET_FEATURES_FLAG)
-          || EXT_SMART_LOG_FLAG1
-          || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
-          || NVME_TEMP_STATS_FLAG
-          || NVME_PCI_STATS_FLAG
-          || SHOW_SUPPORTED_FORMATS_FLAG
-          || NVM_FORMAT_FLAG
-          || PROGRESS_CHAR != NULL
+        || LOWLEVEL_INFO_FLAG
+        || DOWNLOAD_FW_FLAG
+        || ACTIVATE_DEFERRED_FW_FLAG
+        || SWITCH_FW_FLAG
+        || TEST_UNIT_READY_FLAG
+        || CHECK_POWER_FLAG
+        || (TRANSITION_POWER_STATE_TO >= 0)
+        || SHOW_NVM_POWER_STATES
+        || (GET_NVME_LOG_IDENTIFIER > 0) // Since 0 is Reserved
+        || (GET_TELEMETRY_IDENTIFIER > 0)
+        || (GET_FEATURES_FLAG)
+        || EXT_SMART_LOG_FLAG1
+        || CLEAR_PCIE_CORRECTABLE_ERRORS_LOG_FLAG
+        || NVME_TEMP_STATS_FLAG
+        || NVME_PCI_STATS_FLAG
+        || SHOW_SUPPORTED_FORMATS_FLAG
+        || NVM_FORMAT_FLAG
+        || PROGRESS_CHAR != NULL
+        || LIST_LOGS_FLAG
         //check for other tool specific options here
         ))
     {
@@ -1044,6 +1054,30 @@ int32_t main(int argc, char *argv[])
             print_Low_Level_Info(&deviceList[deviceIter]);
         }
 
+        if (LIST_LOGS_FLAG)
+        {
+            switch (print_Supported_Logs(&deviceList[deviceIter], 0))
+            {
+            case SUCCESS:
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\nListing supported logs is not supported for device %s.\n", \
+                        deviceList[deviceIter].drive_info.serialNumber);
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\nFailed to list logs for device %s\n", \
+                        deviceList[deviceIter].drive_info.serialNumber);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
@@ -1126,7 +1160,8 @@ int32_t main(int argc, char *argv[])
                 uint64_t size = 0;
                 uint8_t * logBuffer = NULL;
                 nvmeGetLogPageCmdOpts cmdOpts;
-                if ((nvme_Get_Log_Size(&deviceList[deviceIter], GET_NVME_LOG_IDENTIFIER, &size) == SUCCESS) && size)
+                ret = nvme_Get_Log_Size(&deviceList[deviceIter], GET_NVME_LOG_IDENTIFIER, &size);
+                if (ret == SUCCESS && size)
                 {
                     memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
                     if (NVME_LOG_ERROR_ID == GET_NVME_LOG_IDENTIFIER)
@@ -1140,7 +1175,8 @@ int32_t main(int argc, char *argv[])
                         cmdOpts.addr = logBuffer;
                         cmdOpts.dataLen = C_CAST(uint32_t, size);
                         cmdOpts.lid = GET_NVME_LOG_IDENTIFIER;
-                        if (nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts) == SUCCESS)
+                        ret = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
+                        if (ret == SUCCESS)
                         {
                             if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)
                             {
@@ -1154,7 +1190,7 @@ int32_t main(int argc, char *argv[])
                                 FILE * pLogFile = NULL;
                                 char identifyFileName[OPENSEA_PATH_MAX] = { 0 };
                                 char * fileNameUsed = &identifyFileName[0];
-                                #define SEACHEST_NVME_LOG_NAME_LENGTH 16
+#define SEACHEST_NVME_LOG_NAME_LENGTH 16
                                 char logName[SEACHEST_NVME_LOG_NAME_LENGTH] = { 0 };
                                 snprintf(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
                                 if (SUCCESS == create_And_Open_Log_File(&deviceList[deviceIter], &pLogFile, NULL, \
@@ -1186,6 +1222,14 @@ int32_t main(int argc, char *argv[])
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
                         }
+                        else if (ret == NOT_SUPPORTED)
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("Log Page %" PRIu8 " is not supported. \n", GET_NVME_LOG_IDENTIFIER);
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        }
                         else
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1205,13 +1249,21 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                 }
+                else if (ret == NOT_SUPPORTED)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Log Page %" PRIu8 " is not supported. \n", GET_NVME_LOG_IDENTIFIER);
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                }
                 else
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Log Page %" PRIu8 " not available at this time. \n", GET_NVME_LOG_IDENTIFIER);
                     }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
             }
             else //Human Readable.
@@ -1223,6 +1275,13 @@ int32_t main(int argc, char *argv[])
                     {
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("SMART/Health Information Log not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1239,6 +1298,13 @@ int32_t main(int argc, char *argv[])
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
                         break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Error Information Log not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1253,6 +1319,13 @@ int32_t main(int argc, char *argv[])
                     {
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("FW Slot Information Log not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1269,6 +1342,13 @@ int32_t main(int argc, char *argv[])
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
                         break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Commands Supported and Effects Information Log not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1283,6 +1363,13 @@ int32_t main(int argc, char *argv[])
                     {
                     case SUCCESS:
                         //nothing to print here since if it was successful, the log will be printed to the screen
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Device Self-test Information Log not supported\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1566,6 +1653,32 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_NVM_POWER_STATES)
+        {
+            nvmeSupportedPowerStates ps;
+            memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
+            switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
+            {
+            case SUCCESS:
+                print_NVM_Power_States(&ps);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing NVM power states is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Could not read NVM power states from the device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
