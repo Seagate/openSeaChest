@@ -4,11 +4,13 @@ c = meson.get_compiler('c')
 
 
 warning_flags = [ ]
+linker_flags = [ ] #additional linker flags to add per-compiler for hardening.
 
 if c.get_id().contains('gcc') or c.get_id().contains('clang')
   #TODO: Add -Wcast-align=strict and fix these issues to help ensure better portability
   #NOTE: -Wsign-conversion can be useful while debugging, but there are numerous places this shows up
   #      and it is not useful, so only add it while debugging.
+  #NOTE: 4/4/2024 - adding flags from https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++
   warning_flags = [
   #	'-Wcast-align=strict',
   #	'-Wsign-conversion',
@@ -21,6 +23,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
 	'-Wjump-misses-init',
 	'-Wstringop-overflow',
 	'-Wlogical-op',
+  '-Wshift-overflow',
+  '-Wshift-overflow=1',
 	'-Wshift-overflow=2',
 	'-Wdouble-promotion',
 	'-Wformat-security',
@@ -29,7 +33,41 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wmissing-declarations',
   '-Wmissing-prototypes',
   '-Wchar-subscripts',
-  '-Wundef'
+  '-Wundef',
+  '-Wformat',
+  '-Wformat=2',
+  #'-Wconversion',
+  '-Wimplicit-fallthrough',
+  '-U_FORTIFY_SOURCE',
+  '-D_FORTIFY_SOURCE=3',
+  '-D_GLIBCXX_ASSERTIONS',
+  '-fstrict-flex-arrays=1', #NOTE: Using level 1 since Windows often uses [1] at the end of it's structures. opensea-*libs has used this in a few places too.
+  '-fstack-clash-protection',
+  '-fstack-protector-strong',
+  '-fno-delete-null-pointer-checks',
+  '-fno-strict-overflow',
+  '-fno-strict-aliasing',
+  '-ftrivial-auto-var-init=zero',
+  '-Wtrampolines', #GCC only at this time
+  '-Werror=implicit',
+  '-Werror=incompatible-pointer-types',
+  '-Werror=int-conversion'
+  ]
+  if target_machine.cpu_family() == 'ppc64'
+    #power pc builds generate a lot of warnings/notes about ABI changes since GCC-5
+    #this flag is disabling them because this is way too noisy.
+    warning_flags += ['-Wno-psabi']
+  elif target_machine.cpu_family() == 'x86_64'
+    warning_flags += ['-fcf-protection=full'] #this may be linux only at this time.
+  elif target_machine.cpu_family() == 'aarch64'
+    warning_flags += ['-mbranch-protection=standard']
+  endif
+
+  linker_flags += [
+    '-Wl,-z,nodlopen',
+    '-Wl,-z,noexecstack',
+    '-Wl,-z,relro',
+    '-Wl,-z,now'
   ]
 elif c.get_id().contains('msvc')
   #See here for enabling/disabling msvc warnings:
@@ -79,6 +117,7 @@ elif c.get_id().contains('xlc')
 endif
 
 add_project_arguments(c.get_supported_arguments(warning_flags), language : 'c')
+add_project_link_arguments(c.get_supported_link_arguments(linker_flags), language : 'c')
 
 small_code_cc_flags = []
 small_code_link_flags = []
