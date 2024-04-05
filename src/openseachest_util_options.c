@@ -13,6 +13,8 @@
 // \brief This file defines the functions and macros to make building a utility easier.
 
 #include "openseachest_util_options.h"
+#include "common.h"
+#include <time.h>
 
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
@@ -127,13 +129,11 @@ char* get_current_year(char *temp_year)
 void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
-    time_t g_curTime = time(NULL);
     char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char *userName = NULL;
+    time_t currentTimeT = time(NULL);
 #define CURRENT_TIME_STRING_MAX_LENGTH 30
     char currentTime[CURRENT_TIME_STRING_MAX_LENGTH] = { 0 };
-    struct tm utilTime;
-    memset(&utilTime, 0, sizeof(struct tm));
 #if defined (ENABLE_READ_USERNAME)
     if (SUCCESS != get_Current_User_Name(&userName))
     {
@@ -167,7 +167,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (0 == strftime(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "%c", get_Localtime(&g_curTime, &utilTime)))
+    if (!get_Current_Time_String(&currentTimeT, currentTime, CURRENT_TIME_STRING_MAX_LENGTH))
     {
         snprintf(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "Unable to get local time");
     }
