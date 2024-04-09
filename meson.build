@@ -13,7 +13,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   #NOTE: 4/4/2024 - adding flags from https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++
   warning_flags = [
   #	'-Wcast-align=strict',
-  #	'-Wsign-conversion',
 	'-Wshadow=compatible-local',
 	'-Wvla',
 	'-Wfloat-equal',
@@ -36,7 +35,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wundef',
   '-Wformat',
   '-Wformat=2',
-  #'-Wconversion',
+  '-Wconversion',
+  '-Wno-sign-conversion',
   '-Wimplicit-fallthrough',
   '-U_FORTIFY_SOURCE',
   '-D_FORTIFY_SOURCE=3',

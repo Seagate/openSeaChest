@@ -1464,7 +1464,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        uint64_t flags = 0;
+        eDiscoveryOptions flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1565,7 +1565,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    uint64_t flags = 0;
+    eDiscoveryOptions flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -3949,7 +3949,7 @@ int32_t main(int argc, char *argv[])
                                     }
                                     //check how many full bytes worth of bits we'll be setting.
                                     uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                    remainingBits -= fullBytesToSet * BITSPERBYTE;
+                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet * BITSPERBYTE);
                                     lowUnalignedBits = remainingBits;
                                     //now we know how we need to set things, so lets start at the end (lsb) and work up from there.
                                     //as we set the necessary bits, we will shift the original value to the right to make it easy to set each piece of the bits.
@@ -3959,11 +3959,11 @@ int32_t main(int argc, char *argv[])
                                     {
                                         ++offset;//add one to the offset since these bits are on another byte past the starting offset and any full bytes we need to set
                                         //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
-                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1);
+                                        uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1));
                                         //clear the requested bits first
                                         modePageBuffer[offset] &= ~(mask);
                                         //now set them as requested
-                                        modePageBuffer[offset] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1)));
+                                        modePageBuffer[offset] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1))));
                                         //bits are set, decrease the offset for the next operation
                                         --offset;
                                         SCSI_SET_MP_FIELD_VALUE >>= lowUnalignedBits;
@@ -3978,21 +3978,21 @@ int32_t main(int argc, char *argv[])
                                     if (highUnalignedBits > 0)
                                     {
                                         //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
-                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1);
+                                        uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1));
                                         //clear the requested bits first
                                         modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
                                         //now set them as requested
-                                        modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1)));
+                                        modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1))));
                                     }
                                 }
                                 else
                                 {
                                     //setting bits within a single byte.
-                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
+                                    uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1));
                                     //clear the requested bits first
                                     modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
                                     //now set them as requested
-                                    modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1)));
+                                    modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1))));
                                 }
                             }
                             else

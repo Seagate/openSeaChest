@@ -678,7 +678,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        uint64_t flags = 0;
+        eDiscoveryOptions flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -740,7 +740,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    uint64_t flags = 0;
+    eDiscoveryOptions flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -4176,7 +4176,7 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
             else
             {
                 //Everything looks ok, so double check the datalength
-                pageLengthValidation += pageLength + MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength;
+                pageLengthValidation += C_CAST(uint8_t, pageLength + MODE_PARAMETER_HEADER_6_LEN + blockDescriptorLength);
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     //reallocate enough data and reread the page.
@@ -4238,7 +4238,7 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
             else
             {
                 //Everything looks ok, so double check the datalength
-                pageLengthValidation += pageLength + MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength;
+                pageLengthValidation += C_CAST(uint8_t, pageLength + MODE_PARAMETER_HEADER_10_LEN + blockDescriptorLength);
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     //reallocate enough data and reread the page.
@@ -6734,7 +6734,7 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSuppor
         inputs->device->drive_info.ata_Options.nativeCommandQueuingSupported = true;
     }
     //check if the device is parallel or serial
-    uint8_t transportType = (ident_word[222] & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
+    uint8_t transportType = C_CAST(uint8_t, (ident_word[222] & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12);
     switch (transportType)
     {
     case 0x00://parallel

@@ -736,7 +736,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        uint64_t flags = 0;
+        eDiscoveryOptions flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -805,7 +805,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    uint64_t flags = 0;
+    eDiscoveryOptions flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1185,7 +1185,7 @@ int32_t main(int argc, char *argv[])
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
-            uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
+            uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes);
             ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, malloc(memSize));
 
             if (VERBOSITY_QUIET < toolVerbosity)
