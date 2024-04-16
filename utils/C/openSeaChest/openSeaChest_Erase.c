@@ -2148,7 +2148,14 @@ int32_t main(int argc, char *argv[])
                     }
                     if (sanitizeOptions.writeAfterCryptoErase >= WAEREQ_MEDIUM_ERROR_OTHER_ASC)
                     {
-                        printf("\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
+                        if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("\t\t\tWrite after crypto erase may be required due to PI formatting! Reads may return an error until written!\n");
+                        }
+                        else
+                        {
+                            printf("\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
+                        }
                     }
                     if (sanitizeOptions.blockErase)
                     {
@@ -2156,7 +2163,14 @@ int32_t main(int argc, char *argv[])
                     }
                     if (sanitizeOptions.writeAfterBlockErase >= WAEREQ_MEDIUM_ERROR_OTHER_ASC)
                     {
-                        printf("\t\t\tWrite after block erase required! Reads will return an error until written!\n");
+                        if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("\t\t\tWrite after block erase may be required due to PI formatting! Reads may return an error until written!\n");
+                        }
+                        else
+                        {
+                            printf("\t\t\tWrite after block erase required! Reads will return an error until written!\n");
+                        }
                     }
                     if (sanitizeOptions.overwrite)
                     {
@@ -2288,15 +2302,37 @@ int32_t main(int argc, char *argv[])
                     printf("      on the capabilities of the SSD controller.\n\n");
                     if (SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
                     {
-                        printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
-                        printf("          Attempting to read any LBA will result in a failure until it\n");
-                        printf("          has been written with new data!\n\n");
+                        if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
+                            printf("          PI bytes may be invalid and reading them results in logical block guard\n");
+                            printf("          check failures until a logical block has been written with new data.\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        else
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
                     }
                     if (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
                     {
-                        printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
-                        printf("          Attempting to read any LBA will result in a failure until it\n");
-                        printf("          has been written with new data!\n\n");
+                        if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
+                            printf("          PI bytes may be scrambled and reading them results in logical block guard\n");
+                            printf("          check failures until a logical block has been written with new data.\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        else
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
                     }
                 }
                 switch (run_Sanitize_Operation2(&deviceList[deviceIter], sanitizeOp))
