@@ -775,7 +775,7 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        size_t readLen = to_sizet(M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)));
+                        size_t readLen = long_to_sizet(M_Min(C_CAST(long, PATTERN_BUFFER_LENGTH), get_File_Size(patternFile)));
                         if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), readLen, patternFile))
                         {
                             printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
