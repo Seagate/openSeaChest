@@ -35,8 +35,11 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wundef',
   '-Wformat',
   '-Wformat=2',
-  '-Wconversion',
-  '-Wno-sign-conversion',
+  #'-Wconversion', #<-this is disabled because it is far too noisy with many cases resulting in no real resolution to the errors. Instead, the following conversion warnings are enabled for those that can be handled.
+  '-Wsign-conversion',
+  '-Wint-conversion',#-Warith-conversion
+  '-Wenum-conversion',
+  '-Wfloat-conversion',
   '-Wimplicit-fallthrough',
   '-U_FORTIFY_SOURCE',
   '-D_FORTIFY_SOURCE=3',
