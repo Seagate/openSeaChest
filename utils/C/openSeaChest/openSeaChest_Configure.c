@@ -522,7 +522,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint32_t multiplier = 100;//100 millisecond conversion
+                    uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
                     //first check is a unit is provided.
                     if (strstr(optarg, "ms"))
                     {
@@ -541,7 +541,7 @@ int32_t main(int argc, char *argv[])
                         multiplier = UINT32_C(3600000);
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
+                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg)) * multiplier;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING) == 0)
@@ -556,7 +556,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint32_t multiplier = 100;//100 millisecond conversion
+                    uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
                     //first check is a unit is provided.
                     if (strstr(optarg, "ms"))
                     {
@@ -575,7 +575,7 @@ int32_t main(int argc, char *argv[])
                         multiplier = UINT32_C(3600000);
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
+                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg)) * multiplier;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
@@ -1303,7 +1303,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1871,7 +1871,7 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //show the specific MPC value
-                show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, SCSI_SHOW_MP_MPC_VALUE, SCSI_SHOW_MP_BUFFER_MODE);
+                show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, C_CAST(eScsiModePageControl, SCSI_SHOW_MP_MPC_VALUE), SCSI_SHOW_MP_BUFFER_MODE);
             }
         }
 
@@ -2330,7 +2330,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_SSC_FLAG)
         {
-            switch (set_SSC_Feature_SATA(&deviceList[deviceIter], SSC_MODE))
+            switch (set_SSC_Feature_SATA(&deviceList[deviceIter], C_CAST(eSSCFeatureState, SSC_MODE)))
             {
             case SUCCESS:
                 printf("Successfully set SSC feature to ");
@@ -3737,7 +3737,7 @@ int32_t main(int argc, char *argv[])
                 //requesting to reset all
                 for (SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES; SCSI_RESET_LP_LPC <= LPC_DEFAULT_CUMULATIVE_VALUES; ++SCSI_RESET_LP_LPC)
                 {
-                    int resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                    int resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
                     if (SUCCESS != resetLPCommandRet)//this is to catch if any LPC reset value creates an error
                     {
                         resetLPResult = resetLPCommandRet;
@@ -3747,7 +3747,7 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //reset just the specified information
-                resetLPResult = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                resetLPResult = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
             }
             switch (resetLPResult)
             {
@@ -3961,7 +3961,7 @@ int32_t main(int argc, char *argv[])
                                         //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
                                         uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1));
                                         //clear the requested bits first
-                                        modePageBuffer[offset] &= ~(mask);
+                                        modePageBuffer[offset] &= C_CAST(uint8_t, ~(mask));
                                         //now set them as requested
                                         modePageBuffer[offset] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1))));
                                         //bits are set, decrease the offset for the next operation
@@ -3980,7 +3980,7 @@ int32_t main(int argc, char *argv[])
                                         //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
                                         uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1));
                                         //clear the requested bits first
-                                        modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                        modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                         //now set them as requested
                                         modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1))));
                                     }
@@ -3990,7 +3990,7 @@ int32_t main(int argc, char *argv[])
                                     //setting bits within a single byte.
                                     uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1));
                                     //clear the requested bits first
-                                    modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                    modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                     //now set them as requested
                                     modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1))));
                                 }
@@ -4002,7 +4002,7 @@ int32_t main(int argc, char *argv[])
                                 uint8_t byteNumber = 0;
                                 while (fieldWidthBytes >= 1)
                                 {
-                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = C_CAST(uint8_t, (M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
+                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = C_CAST(uint8_t, (C_CAST(uint64_t, M_ByteN(byteNumber)) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
                                     --fieldWidthBytes;
                                     ++byteNumber;
                                 }

@@ -551,7 +551,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
+                FAST_FORMAT_FLAG = atoi(optarg);
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
@@ -775,7 +775,8 @@ int32_t main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                         //read contents into buffer
-                        if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                        size_t readLen = to_sizet(M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)));
+                        if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), readLen, patternFile))
                         {
                             printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
                             fclose(patternFile);
@@ -860,7 +861,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1934,7 +1935,7 @@ int32_t main(int argc, char *argv[])
 
         if (ZERO_VERIFY_FLAG)
         {
-            ret = zero_Verify_Test(&deviceList[deviceIter], ZERO_VERIFY_MODE_FLAG, HIDE_LBA_COUNTER);
+            ret = zero_Verify_Test(&deviceList[deviceIter], C_CAST(eZeroVerifyTestType, ZERO_VERIFY_MODE_FLAG), HIDE_LBA_COUNTER);
             switch (ret)
             {
             case SUCCESS:
@@ -2260,7 +2261,7 @@ int32_t main(int argc, char *argv[])
                 {
                     currentBlockSize = false;
                 }
-                formatUnitParameters.formatType = FAST_FORMAT_FLAG;
+                formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
                 if (FAST_FORMAT_FLAG > 0)
                 {
                     formatUnitParameters.disableImmediate = true;//for fast format, we want to hold the bus busy until it is done.
@@ -2998,7 +2999,7 @@ void utility_Usage(bool shortUsage)
     printf("\nReturn codes\n");
     printf("============\n");
     int totalErrorCodes = SEACHEST_ERASE_EXIT_MAX_ERROR - SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE;
-    ptrToolSpecificxitCode seachestEraseExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
+    ptrToolSpecificxitCode seachestEraseExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(int_to_sizet(totalErrorCodes), sizeof(toolSpecificxitCode)));
     //now set up all the exit codes and their meanings
     if (seachestEraseExitCodes)
     {

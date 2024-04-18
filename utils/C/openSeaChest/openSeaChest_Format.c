@@ -299,7 +299,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
+                FAST_FORMAT_FLAG = atoi(optarg);
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING) == 0)
             {
@@ -463,7 +463,8 @@ int32_t main(int argc, char *argv[])
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
                             //read contents into buffer
-                            if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
+                            size_t readLen = to_sizet(M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)));
+                            if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), readLen, patternFile))
                             {
                                 printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
                                 fclose(patternFile);
@@ -572,7 +573,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -1316,7 +1317,7 @@ int32_t main(int argc, char *argv[])
                 {
                     currentBlockSize = false;
                 }
-                formatUnitParameters.formatType = FAST_FORMAT_FLAG;
+                formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
                 formatUnitParameters.currentBlockSize = currentBlockSize;
                 formatUnitParameters.newBlockSize = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.newMaxLBA = FORMAT_UNIT_NEW_MAX_LBA;//if zero, this is ignored

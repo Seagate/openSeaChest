@@ -335,7 +335,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1065,7 +1065,7 @@ int32_t main(int argc, char *argv[])
             {
                 ZONE_ID_FLAG = 0;
             }
-            if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, &numberOfZones))
+            if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
                 ptrZoneDescriptor zoneDescriptors = C_CAST(ptrZoneDescriptor, calloc(numberOfZones, sizeof(zoneDescriptor)));
@@ -1074,11 +1074,11 @@ int32_t main(int argc, char *argv[])
                     perror("cannot allocate memory for zone descriptors");
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
-                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
+                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
                 switch (reportRet)
                 {
                 case SUCCESS:
-                    print_Zone_Descriptors(REPORT_ZONES_REPORTING_MODE_FLAG, numberOfZones, zoneDescriptors);
+                    print_Zone_Descriptors(C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), numberOfZones, zoneDescriptors);
                     break;
                 case NOT_SUPPORTED:
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;

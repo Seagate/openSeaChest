@@ -343,7 +343,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -895,7 +895,7 @@ int32_t main(int argc, char *argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTRIBUTES_MODE_FLAG))
+            switch (print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the attributes will be printed to the screen
@@ -946,7 +946,7 @@ int32_t main(int argc, char *argv[])
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = NULL;
-            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], C_CAST(eSCSIAddressDescriptors, SCSI_DEFECTS_DESCRIPTOR_MODE), SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
                 print_SCSI_Defect_List(defects);

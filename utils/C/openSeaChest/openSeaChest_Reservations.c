@@ -339,7 +339,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1221,7 +1221,7 @@ int32_t main(int argc, char *argv[])
         {
             if (prSupported)
             {
-                switch (acquire_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_TYPE))
+                switch (acquire_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, C_CAST(eReservationType, PERSISTENT_RESERVATION_TYPE)))
                 {
                 case SUCCESS:
                     break;
@@ -1255,7 +1255,7 @@ int32_t main(int argc, char *argv[])
         {
             if (prSupported)
             {
-                switch (release_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_TYPE))
+                switch (release_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, C_CAST(eReservationType, PERSISTENT_RESERVATION_TYPE)))
                 {
                 case SUCCESS:
                     break;
@@ -1324,7 +1324,7 @@ int32_t main(int argc, char *argv[])
         {
             if (prSupported)
             {
-                switch (preempt_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_PREEMPT_KEY, M_ToBool(PERSISTENT_RESERVATION_PREEMPT_ABORT), PERSISTENT_RESERVATION_TYPE))
+                switch (preempt_Reservation(&deviceList[deviceIter], PERSISTENT_RESERVATION_KEY, PERSISTENT_RESERVATION_PREEMPT_KEY, M_ToBool(PERSISTENT_RESERVATION_PREEMPT_ABORT), C_CAST(eReservationType, PERSISTENT_RESERVATION_TYPE)))
                 {
                 case SUCCESS:
                     break;

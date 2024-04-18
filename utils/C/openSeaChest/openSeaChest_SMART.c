@@ -569,7 +569,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1128,7 +1128,7 @@ int32_t main(int argc, char *argv[])
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = NULL;
-            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], C_CAST(eSCSIAddressDescriptors, SCSI_DEFECTS_DESCRIPTOR_MODE), SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
                 print_SCSI_Defect_List(defects);
@@ -1201,7 +1201,7 @@ int32_t main(int argc, char *argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTRIBUTES_MODE_FLAG))
+            switch (print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the attributes will be printed to the screen
@@ -1664,7 +1664,7 @@ int32_t main(int argc, char *argv[])
 
         if (RUN_IDD_FLAG)
         {
-            int32_t IDDResult = UNKNOWN;
+            int IDDResult = UNKNOWN;
             eSeagateFamily family = is_Seagate_Family(&deviceList[deviceIter]);
             if (family == SEAGATE)
             {
@@ -1672,7 +1672,7 @@ int32_t main(int argc, char *argv[])
                 {
                     uint64_t iddTimeSeconds = 0;
                     uint8_t hours = 0, minutes = 0, seconds = 0;
-                    get_Approximate_IDD_Time(&deviceList[deviceIter], IDD_TEST_FLAG, &iddTimeSeconds);
+                    get_Approximate_IDD_Time(&deviceList[deviceIter], C_CAST(eIDDTests, IDD_TEST_FLAG), &iddTimeSeconds);
                     if (iddTimeSeconds == UINT64_MAX)
                     {
                         printf("A time estimate is not available for this IDD operation");
@@ -1685,7 +1685,7 @@ int32_t main(int argc, char *argv[])
                     }
                     printf("\n");
                 }
-                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
+                IDDResult = run_IDD(&deviceList[deviceIter], C_CAST(eIDDTests, IDD_TEST_FLAG), POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
                 switch (IDDResult)
                 {
                 case UNKNOWN:

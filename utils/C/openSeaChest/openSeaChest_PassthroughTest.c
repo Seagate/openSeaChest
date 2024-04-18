@@ -517,7 +517,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1060,13 +1060,13 @@ int32_t main(int argc, char *argv[])
             if (PT_DRIVE_HINT > 0)
             {
                 params.suspectedDriveTypeProvidedByUser = true;
-                params.suspectedDriveType = PT_DRIVE_HINT;
+                params.suspectedDriveType = C_CAST(eDriveType, PT_DRIVE_HINT);
             }
             if (PT_PTTYPE_HINT > 0)
             {
                 params.suspectedPassthroughProvidedByUser = true;
                 //TODO: Handle value of 50 meaning test all legacy methods!
-                params.suspectedPassthroughType = PT_PTTYPE_HINT;
+                params.suspectedPassthroughType = C_CAST(ePassthroughType, PT_PTTYPE_HINT);
             }
             perform_Passthrough_Test(&params);
             
@@ -6662,14 +6662,14 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSuppor
         //    head = identifyData[6];//Word3
         //    sector = identifyData[12];//Word6
         //}
-        uint32_t lba = cylinder * head * sector;
+        uint32_t lba = C_CAST(uint32_t, cylinder) * C_CAST(uint32_t, head) * C_CAST(uint32_t, sector);
         if (lba == 0)
         {
             //Cannot use "current" settings on this drive...use default (really old drive)
             cylinder = M_BytesTo2ByteValue(identifyData[3], identifyData[2]);//word 1
             head = identifyData[6];//Word3
             sector = identifyData[12];//Word6
-            lba = cylinder * head * sector;
+            lba = C_CAST(uint32_t, cylinder) * C_CAST(uint32_t, head) * C_CAST(uint32_t, sector);
         }
         inputs->device->drive_info.bridge_info.childDeviceMaxLba = lba;
     }

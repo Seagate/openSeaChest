@@ -624,7 +624,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1275,7 +1275,7 @@ int32_t main(int argc, char *argv[])
 
         if (ZERO_VERIFY_FLAG)
         {
-            ret = zero_Verify_Test(&deviceList[deviceIter], ZERO_VERIFY_MODE_FLAG, HIDE_LBA_COUNTER);
+            ret = zero_Verify_Test(&deviceList[deviceIter], C_CAST(eZeroVerifyTestType, ZERO_VERIFY_MODE_FLAG), HIDE_LBA_COUNTER);
             switch (ret)
             {
             case SUCCESS:
@@ -1822,7 +1822,7 @@ void utility_Usage(bool shortUsage)
     printf("\nReturn codes\n");
     printf("============\n");
     int totalErrorCodes = SEACHEST_SECURITY_EXIT_MAX_ERROR - SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE;
-    ptrToolSpecificxitCode seachestSecurityExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(totalErrorCodes, sizeof(toolSpecificxitCode)));
+    ptrToolSpecificxitCode seachestSecurityExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(int_to_sizet(totalErrorCodes), sizeof(toolSpecificxitCode)));
     //now set up all the exit codes and their meanings
     if (seachestSecurityExitCodes)
     {

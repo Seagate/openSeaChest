@@ -495,7 +495,7 @@ int32_t main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1115,7 +1115,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting short generic test.\n");
             }
-            switch (short_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (short_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1145,7 +1145,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting two minute generic test.\n");
             }
-            switch (two_Minute_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (two_Minute_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1179,7 +1179,7 @@ int32_t main(int argc, char *argv[])
             {
                 ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
             }
-            switch (long_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (long_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1247,7 +1247,7 @@ int32_t main(int argc, char *argv[])
                     {
                         ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                     }
-                    switch (user_Sequential_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                    switch (user_Sequential_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                     {
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1309,7 +1309,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (user_Timed_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                switch (user_Timed_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1336,12 +1336,12 @@ int32_t main(int argc, char *argv[])
 
         if (RANDOM_READ_TEST_FLAG)
         {
-            time_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Starting Random test\n");
             }
-            switch (random_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, randomReadSeconds, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (random_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), randomReadSeconds, NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1367,12 +1367,12 @@ int32_t main(int argc, char *argv[])
 
         if (BUTTERFLY_READ_TEST_FLAG)
         {
-            time_t butterflyTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t butterflyTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Starting Buttefly test.\n");
             }
-            switch (butterfly_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, butterflyTestSeconds, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (butterfly_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), butterflyTestSeconds, NULL, NULL, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1404,18 +1404,18 @@ int32_t main(int argc, char *argv[])
                 //this will convert the byte size to the nearest logical block (rounding up)
                 localRange = ((localRange + deviceList[deviceIter].drive_info.deviceBlockSize) - 1) / deviceList[deviceIter].drive_info.deviceBlockSize;
             }
-            uint64_t OdMdIdTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t OdMdIdTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (localRange > 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Starting diameter test\n");
                 }
-                if(ERROR_LIMIT_LOGICAL_COUNT)
+                if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (diameter_Test_Range(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                switch (diameter_Test_Range(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1446,7 +1446,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (diameter_Test_Time(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
+                switch (diameter_Test_Time(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)

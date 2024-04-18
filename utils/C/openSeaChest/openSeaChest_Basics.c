@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
+    get_Milliseconds_Since_Unix_Epoch();
+
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -625,7 +627,7 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = atoi(optarg);
+                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1320,7 +1322,7 @@ int main(int argc, char *argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTRIBUTES_MODE_FLAG))
+            switch (print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the attributes will be printed to the screen
@@ -1474,7 +1476,7 @@ int main(int argc, char *argv[])
                         memset(&dlOptions, 0, sizeof(firmwareUpdateData));
                         dlOptions.size = sizeof(firmwareUpdateData);
                         dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
-                        dlOptions.dlMode = DOWNLOAD_FW_MODE;
+                        dlOptions.dlMode = C_CAST(eFirmwareUpdateMode, DOWNLOAD_FW_MODE);
                         dlOptions.segmentSize = 0;
                         dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem = firmwareMem;
