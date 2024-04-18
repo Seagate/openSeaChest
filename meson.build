@@ -105,6 +105,7 @@ elif c.get_id().contains('msvc')
     '/we4837', # trigraph detected: '??character' replaced by 'character'
     '/we4628', # digraphs not supported with -Ze. Character sequence 'digraph' not interpreted as alternate token for 'char'
     '/we4289', # nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
+    '/std:c17', #NOTE: It would be better to specify for the project above, but currently still supporting MSVC and GCC compilers that may not be C11 compatible.-TJE
   ]
   #TODO: check compiler version to handle warnings that were off by default in earlier versions
   #ex: C4431 (level 4)	missing type specifier - int assumed. Note: C no longer supports default-int
