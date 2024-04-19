@@ -186,7 +186,7 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -210,7 +210,7 @@ jobs:
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang')
       id: llvm-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: C:/Program Files/LLVM
         key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
@@ -258,7 +258,7 @@ jobs:
       shell: bash
 
     # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
-    - uses: actions/setup-go@v3
+    - uses: actions/setup-go@v5
       if: ${{ matrix.config.create_package }}
       with:
         go-version: 'stable'
@@ -279,7 +279,7 @@ jobs:
       shell: bash
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: |
           ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
@@ -288,7 +288,7 @@ jobs:
 
     - name: Publish release
       if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}

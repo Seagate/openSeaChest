@@ -23,7 +23,7 @@ jobs:
             extension: ".tar.xz",
           }
     steps:  
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -44,12 +44,12 @@ jobs:
         git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules.${{ matrix.config.extension }}
 
     - name: Upload Source Archive as Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: SourceCode_With_Submodules.${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: SourceCode_With_Submodules.${{ matrix.config.extension }}
