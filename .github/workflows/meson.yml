@@ -267,7 +267,7 @@ jobs:
       if: ${{ matrix.config.create_package }}
       working-directory: ${{ format('build/{0}', env.DESTDIR) }}
       run: | # https://nfpm.goreleaser.com/install/
-        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.22.2
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.36.1
         if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
           version=$(echo ${{ github.ref_name }} | tr -d 'v')
         else
@@ -281,7 +281,7 @@ jobs:
     - name: Uploading artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ format('{0}{1}', matrix.config.release_name, matrix.config.release_extension) }}
+        name: ${{ format('{0}', matrix.config.release_name) }}
         path: |
           ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
           build/*.deb
