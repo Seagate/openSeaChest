@@ -71,6 +71,7 @@ jobs:
     - name: Uploading artifacts
       uses: actions/upload-artifact@v4
       with:
+        name: ${{ format('{0}', env.DESTDIR) }}
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 
     # - name: Publish release
