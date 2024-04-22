@@ -76,24 +76,25 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
-        - {
-            name: "Manylinux GCC",
-            os: ubuntu-latest,
-            image: "quay.io/pypa/manylinux2014_x86_64",
-            cc: "gcc",
-            cxx: "g++",
-            publish_release: true,
-            create_package: true,
-            release_name: "linux-x86_64-manylinux",
-            release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
-          }
+        # - {
+        #     name: "Manylinux GCC",
+        #     os: ubuntu-latest,
+        #     image: "quay.io/pypa/manylinux2014_x86_64",
+        #     cc: "gcc",
+        #     cxx: "g++",
+        #     publish_release: true,
+        #     create_package: true,
+        #     release_name: "linux-x86_64-manylinux",
+        #     release_extension: ".tar.xz",
+        #     archive_command: "tar cvfJ"
+        #   }
         - {
             name: "MUSL Cross Compile x86_64",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/x86_64-linux-musl-cross.txt",
             cross_compiler_arch: "x86_64",
             release_name: "linux-x86_64-portable",
@@ -263,6 +264,7 @@ jobs:
       with:
         go-version: 'stable'
 
+    #TODO: Convert from using many linux for deb/rpms to using the portable musl cross compilers to generate these packages.-TJE
     - name: Create packages
       if: ${{ matrix.config.create_package }}
       working-directory: ${{ format('build/{0}', env.DESTDIR) }}
