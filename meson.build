@@ -116,6 +116,18 @@ elif c.get_id().contains('msvc')
     '/we4628', # digraphs not supported with -Ze. Character sequence 'digraph' not interpreted as alternate token for 'char'
     '/we4289', # nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
     '/std:c17', #NOTE: It would be better to specify for the project settings above for all compilers, but currently still supporting MSVC and GCC compilers that may not be C11 compatible.-TJE
+    '/GS', #security cookie for stack protection
+    '/sdl', #adds recommended security development lifecycle checks
+    '/Qspectre',
+    '/guard:cf', #control flow guard
+    '/d2guard4', #control flow guard
+  ]
+
+  linker_flags += [
+    '/guard:cf', #control flow guard
+    '/SafeSEH', #on by default in x64 so it is unrecognized otherwise.
+    '/NXCOMPAT', #data execution prevention
+    '/dynamicbase', #address space randomization
   ]
   #TODO: check compiler version to handle warnings that were off by default in earlier versions
   #ex: C4431 (level 4)	missing type specifier - int assumed. Note: C no longer supports default-int
