@@ -266,7 +266,6 @@ jobs:
       shell: bash
       id: hash
       run: |
-          cd build
           # sha256sum generates sha256 hash for all artifacts.
           # base64 -w0 encodes to base64 and outputs on a single line.
           # sha256sum artifact | base64 -w0
