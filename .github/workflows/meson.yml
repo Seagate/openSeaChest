@@ -211,13 +211,6 @@ jobs:
         Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" ((Invoke-WebRequest -Headers $headers "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
 
-    - name: Setup toolchain for Manylinux
-      if: ${{ matrix.config.image == 'quay.io/pypa/manylinux2014_x86_64' }}
-      shell: bash
-      run: |
-        if [[ ${{ matrix.config.cc }} == "clang" ]] ; then yum install -y clang compat-gcc-44 ; fi
-        echo "/opt/python/cp310-cp310/bin" >> $GITHUB_PATH
-
     - name: Escape backslash in branch name
       shell: bash
       run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
@@ -268,6 +261,17 @@ jobs:
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
       shell: bash
 
+    - name: Generate Hashes - Linux
+      if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
+      shell: bash
+      id: hash
+      run: |
+          cd build
+          # sha256sum generates sha256 hash for all artifacts.
+          # base64 -w0 encodes to base64 and outputs on a single line.
+          # sha256sum artifact | base64 -w0
+          echo "hashes=$(sha256sum ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }} | base64 -w0)" >> "$GITHUB_OUTPUT"
+
     - name: Uploading artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -285,3 +289,16 @@ jobs:
           ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
           build/*.deb
           build/*.rpm
+
+
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      # Upload provenance to a new release
+      upload-assets: true
