@@ -103,7 +103,7 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        pip install meson==0.60.3 ninja
+        pip install meson ninja
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
 
     - name: Perform CodeQL Analysis
