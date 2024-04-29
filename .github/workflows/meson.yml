@@ -173,6 +173,19 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
+    outputs: #where hashes need to be stored for slsa provenance
+      #NOTE: Only doing this for builds with "publish_release: true"
+      #format is hash-${{release_name}}
+      hash-win-x64: ${{ steps.hash.outputs.hash-win-x64 }}
+      hash-win-x86: ${{ steps.hash.outputs.hash-win-x86 }}
+      hash-linux-x86_64-portable: ${{ steps.hash.outputs.hash-linux-x86_64-portable }}
+      hash-linux-i686-portable: ${{ steps.hash.outputs.hash-linux-i686-portable }}
+      hash-linux-aarch64-portable: ${{ steps.hash.outputs.hash-linux-aarch64-portable }}
+      hash-linux-armv7l-portable: ${{ steps.hash.outputs.hash-linux-armv7l-portable }}
+      hash-linux-armv6-portable: ${{ steps.hash.outputs.hash-linux-armv6-portable }}
+      hash-linux-armv5l-portable: ${{ steps.hash.outputs.hash-linux-armv5l-portable }}
+      hash-linux-ppc64-portable: ${{ steps.hash.outputs.hash-linux-ppc64-portable }}
+      hash-linux-ppc64le-portable: ${{ steps.hash.outputs.hash-linux-ppc64le-portable }}
 
     steps:
     - uses: actions/checkout@v4
@@ -261,15 +274,18 @@ jobs:
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
       shell: bash
 
-    - name: Generate Hashes - Linux
-      if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
+    - name: Generate Hashes
       shell: bash
       id: hash
       run: |
           # sha256sum generates sha256 hash for all artifacts.
           # base64 -w0 encodes to base64 and outputs on a single line.
           # sha256sum artifact | base64 -w0
-          echo "hashes=$(sha256sum ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }} | base64 -w0)" >> "$GITHUB_OUTPUT"
+          # NOTE: Using suggested method to generate sha across OS's from slsa documentation
+          # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md#provenance-for-artifacts-built-across-multiple-operating-systems
+          set -euo pipefail
+          (sha256sum -t ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }} || shasum -a 256 ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}) > checksum
+          echo "hash-${{ matrix.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
       uses: actions/upload-artifact@v4
@@ -289,15 +305,29 @@ jobs:
           build/*.deb
           build/*.rpm
 
-
+  # Generate the slsa provenance
   provenance:
     needs: [build]
+    strategy:
+      matrix:
+        #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
+        release_name: [ "win-x64", 
+                        "win-x86", 
+                        "linux-x86_64-portable", 
+                        "linux-i686-portable", 
+                        "linux-aarch64-portable", 
+                        "linux-armv7l-portable", 
+                        "linux-armv6-portable",
+                        "linux-armv5l-portable",
+                        "linux-ppc64-portable",
+                        "linux-ppc64le-portable"
+                        ]
     permissions:
-      actions: read
-      id-token: write
-      contents: write
+      actions: read # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
-      base64-subjects: "${{ needs.build.outputs.hashes }}"
+      base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.release_name)] }}"
       # Upload provenance to a new release
       upload-assets: true
