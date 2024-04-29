@@ -2931,6 +2931,7 @@ void utility_Usage(bool shortUsage)
     print_Disable_APM_Help(shortUsage);
     print_DAPS_Help(shortUsage);
     print_DIPM_Help(shortUsage);
+    print_PUIS_Feature_Help(shortUsage);
     print_Set_APM_Level_Help(shortUsage);
     print_Show_APM_Level_Help(shortUsage);
     //SAS Only Options

@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Erase";
-const char *buildVersion = "4.4.0";
+const char *buildVersion = "4.6.0";
 
 typedef enum _eSeaChestEraseExitCodes
 {
@@ -127,7 +127,14 @@ int32_t main(int argc, char *argv[])
     ATA_SECURITY_ERASE_OP_VARS
     ATA_SECURITY_FORCE_SAT_VARS
     //sanitize
+    SANITIZE_FREEZE_VAR
+    SANITIZE_ANTIFREEZE_VAR
     SANITIZE_UTIL_VARS
+    SANITIZE_AUSE_VAR
+    SANITIZE_IPBP_VAR
+    SANITIZE_OVERWRITE_PASSES_VAR
+    ZONE_NO_RESET_VAR
+    NO_DEALLOCATE_AFTER_ERASE_VAR //NVMe Sanitize option only at this time.
     //write same
     WRITE_SAME_UTIL_VARS
     //tcgGenkey
@@ -152,6 +159,7 @@ int32_t main(int argc, char *argv[])
     HIDE_LBA_COUNTER_VAR
     LOWLEVEL_INFO_VAR
     ERASE_RESTORE_MAX_VAR
+    REFRESH_FILE_SYSTEMS_VAR
 
     int  args = 0;
     int argIndex = 0;
@@ -204,7 +212,14 @@ int32_t main(int argc, char *argv[])
         TCG_SID_LONG_OPT,
         TCG_PSID_LONG_OPT,
 #endif
-        { "sanitize",               required_argument,          NULL,           'e'     }, //has a purposely unadvertized short option
+        SANITIZE_FREEZE_LONG_OPT,
+        SANITIZE_ANTIFREEZE_LONG_OPT,
+        SANITIZE_LONG_OPT,
+        SANITIZE_AUSE_LONG_OPT,
+        SANITIZE_IPBP_LONG_OPT,
+        SANITIZE_OVERWRITE_PASSES_LONG_OPT,
+        ZONE_NO_RESET_LONG_OPT,
+        NO_DEALLOCATE_AFTER_ERASE_LONG_OPT,
         WRITE_SAME_LONG_OPTS,
         SHOW_ERASE_SUPPORT_LONG_OPT,
         PERFORM_FASTEST_ERASE_LONG_OPT,
@@ -222,6 +237,7 @@ int32_t main(int argc, char *argv[])
         NVM_FORMAT_OPTIONS_LONG_OPTS,
         ZERO_VERIFY_LONG_OPT,
         ERASE_RESTORE_MAX_PREP_LONG_OPT,
+        REFRESH_FILE_SYSTEMS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -812,7 +828,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, ZERO_VERIFY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ZERO_VERIFY_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, ZERO_VERIFY_LONG_OPT_STRING) == 0)
             {
                 ZERO_VERIFY_FLAG = true;
                 if (strcmp(optarg, "full") == 0)
@@ -826,6 +842,19 @@ int32_t main(int argc, char *argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(ZERO_VERIFY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING) == 0)
+            {
+                uint64_t temp = 0;
+                if (get_And_Validate_Integer_Input(optarg, &temp))
+                {
+                    SANITIZE_OVERWRITE_PASSES = C_CAST(uint8_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -886,7 +915,40 @@ int32_t main(int argc, char *argv[])
             }
             exit(UTIL_EXIT_NO_ERROR);
         case 'e': //sanitize
-            SANITIZE_SUBOPT_PARSE
+            if (strcmp(SANITIZE_BLOCK_ERASE_STR, optarg) == 0)
+            {
+                SANITIZE_RUN_FLAG = true;
+                SANITIZE_RUN_BLOCK_ERASE = true;
+            }
+            else if (strcmp(SANITIZE_CRYPTO_ERASE_STR, optarg) == 0)
+            {
+                SANITIZE_RUN_FLAG = true;
+                SANITIZE_RUN_CRYPTO_ERASE = true;
+            }
+            else if (strcmp(SANITIZE_OVERWRITE_ERASE_STR, optarg) == 0)
+            {
+                SANITIZE_RUN_FLAG = true;
+                SANITIZE_RUN_OVERWRITE_ERASE = true;
+            }
+            else if (strcmp("freezelock", optarg) == 0)
+            {
+                SANITIZE_FREEZE = true;
+                printf("Please migrate to using --%s as this will be removed in future versions\n", SANITIZE_FREEZE_LONG_OPT_STRING);
+            }
+            else if (strcmp("antifreezelock", optarg) == 0)
+            {
+                SANITIZE_ANTIFREEZE = true;
+                printf("Please migrate to using --%s as this will be removed in future versions\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
+            }
+            else if (strcmp("info", optarg) == 0)
+            {
+                SANITIZE_INFO_FLAG = true;
+            }
+            else
+            {
+                print_Error_In_Cmd_Line_Args(SANITIZE_LONG_OPT_STRING, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+            }
             break;
         default:
             break;
@@ -1145,8 +1207,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1171,7 +1233,10 @@ int32_t main(int argc, char *argv[])
         || TCG_REVERT_SP_FLAG
         || TCG_REVERT_FLAG
 #endif
-        || sanitize
+        || SANITIZE_RUN_FLAG
+        || SANITIZE_FREEZE
+        || SANITIZE_ANTIFREEZE
+        || SANITIZE_INFO_FLAG
         || RUN_WRITE_SAME_FLAG
         || ATA_SECURITY_ERASE_OP
         || RUN_OVERWRITE_FLAG
@@ -1184,6 +1249,7 @@ int32_t main(int argc, char *argv[])
         || NVM_FORMAT_FLAG
         || ZERO_VERIFY_FLAG
         || ERASE_RESTORE_MAX_PREP
+        || REFRESH_FILE_SYSTEMS
         ))
     {
         utility_Usage(true);
@@ -1540,10 +1606,10 @@ int32_t main(int argc, char *argv[])
 #ifdef DISABLE_TCG_SUPPORT
             //TODO: Check the return method.
             get_Supported_Erase_Methods(&deviceList[deviceIter], eraseMethodList, &overwriteTimeMinutes);
-#else
+#else //!DISABLE_TCG_SUPPORT
             //get_Supported_Erase_Methods(&selectedDevice, &eraseMethodList);//switch this to method with TCG support later - TJE
             get_Supported_Erase_Methods_With_TCG(&deviceList[deviceIter], eraseMethodList, &overwriteTimeMinutes);
-#endif
+#endif //DISABLE_TCG_SUPPORT
             print_Supported_Erase_Methods(&deviceList[deviceIter], eraseMethodList, &overwriteTimeMinutes);
         }
 
@@ -1610,16 +1676,16 @@ int32_t main(int argc, char *argv[])
                     break;
 #endif
                 case ERASE_SANITIZE_OVERWRITE:
-                    sanitize = true;
-                    sanoverwrite = true;
+                    SANITIZE_RUN_FLAG = true;
+                    SANITIZE_RUN_OVERWRITE_ERASE = true;
                     break;
                 case ERASE_SANITIZE_BLOCK:
-                    sanitize = true;
-                    sanblockErase = true;
+                    SANITIZE_RUN_FLAG = true;
+                    SANITIZE_RUN_BLOCK_ERASE = true;
                     break;
                 case ERASE_SANITIZE_CRYPTO:
-                    sanitize = true;
-                    sancryptoErase = true;
+                    SANITIZE_RUN_FLAG = true;
+                    SANITIZE_RUN_CRYPTO_ERASE = true;
                     break;
                 case ERASE_NVM_FORMAT_USER_SECURE_ERASE:
                     NVM_FORMAT_FLAG = true;
@@ -1960,288 +2026,437 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (sanitize)
+        if (SANITIZE_FREEZE)
         {
-            int sanitizeResult = UNKNOWN;
-            sanitizeFeaturesSupported sanitizeOptions;
-            memset(&sanitizeOptions, 0, sizeof(sanitizeFeaturesSupported));
-            sanitizeResult = get_Sanitize_Device_Features(&deviceList[deviceIter], &sanitizeOptions);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nSanitize\n");
+                printf("Sending Sanitize Freeze Lock Command.\n");
             }
-            if (sanitizeInfo)
+            switch (sanitize_Freezelock(&deviceList[deviceIter]))
             {
-                if (SUCCESS == sanitizeResult)
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    if (sanitizeOptions.crypto || sanitizeOptions.blockErase || sanitizeOptions.overwrite)
+                    printf("Sanitize Freezelock passed!\n");
+                }
+                break;
+            case FAILURE:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Sanitize Freezelock failed!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Sanitize Freezelock not supported.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case IN_PROGRESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A Sanitize operation is already in progress, freezelock cannot be completed.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case DEVICE_ACCESS_DENIED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Unknown error in sanitize command.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+        if (SANITIZE_ANTIFREEZE)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("Sending Sanitize Anti Freeze Lock Command.\n");
+            }
+            switch (sanitize_Anti_Freezelock(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Sanitize Anti Freezelock passed!\n");
+                }
+                break;
+            case FAILURE:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Sanitize Anti Freezelock failed!\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Sanitize Anti Freezelock not supported.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case IN_PROGRESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A Sanitize operation is already in progress, anti freezelock cannot be completed.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            case DEVICE_ACCESS_DENIED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Unknown error in sanitize command.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+        
+        if (SANITIZE_INFO_FLAG)
+        {
+            sanitizeFeaturesSupported sanitizeOptions;
+            memset(&sanitizeOptions, 0, sizeof(sanitizeFeaturesSupported));
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\nSanitize Info\n");
+            }
+            if (SUCCESS == get_Sanitize_Device_Features(&deviceList[deviceIter], &sanitizeOptions))
+            {
+                if (sanitizeOptions.sanitizeCmdEnabled)
+                {
+                    printf("\tThe following sanitize commands are supported:\n");
+                    if (sanitizeOptions.crypto)
                     {
-                        printf("\tThe following sanitize commands are supported:\n");
-                        if (sanitizeOptions.crypto)
+                        printf("\t\tCrypto Erase\t--%s cryptoerase\n", SANITIZE_LONG_OPT_STRING);
+                    }
+                    if (sanitizeOptions.writeAfterCryptoErase >= WAEREQ_MEDIUM_ERROR_OTHER_ASC)
+                    {
+                        if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
-                            printf("\t\tCrypto Erase\t--%s cryptoerase\n", SANITIZE_LONG_OPT_STRING);
+                            printf("\t\t\tWrite after crypto erase may be required due to PI formatting! Reads may return an error until written!\n");
                         }
-                        if (sanitizeOptions.blockErase)
+                        else
                         {
-                            printf("\t\tBlock Erase\t--%s blockerase\n", SANITIZE_LONG_OPT_STRING);
-                        }
-                        if (sanitizeOptions.overwrite)
-                        {
-                            printf("\t\tOverwrite\t--%s overwrite\n", SANITIZE_LONG_OPT_STRING);
+                            printf("\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
                         }
                     }
-                    else
+                    if (sanitizeOptions.blockErase)
                     {
-                        printf("\tSanitize commands are not supported by this device.\n");
+                        printf("\t\tBlock Erase\t--%s blockerase\n", SANITIZE_LONG_OPT_STRING);
                     }
+                    if (sanitizeOptions.writeAfterBlockErase >= WAEREQ_MEDIUM_ERROR_OTHER_ASC)
+                    {
+                        if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("\t\t\tWrite after block erase may be required due to PI formatting! Reads may return an error until written!\n");
+                        }
+                        else
+                        {
+                            printf("\t\t\tWrite after block erase required! Reads will return an error until written!\n");
+                        }
+                    }
+                    if (sanitizeOptions.overwrite)
+                    {
+                        printf("\t\tOverwrite\t--%s overwrite\n", SANITIZE_LONG_OPT_STRING);
+                        printf("\t\t\tMaximum overwrite passes: %" PRIu8 "\n", sanitizeOptions.maximumOverwritePasses);
+                    }
+                    if (sanitizeOptions.freezelock)
+                    {
+                        printf("\t\tFreezelock\t--%s\n", SANITIZE_FREEZE_LONG_OPT_STRING);
+                    }
+                    if (sanitizeOptions.antiFreezeLock)
+                    {
+                        printf("\t\tAntifreezelock\t--%s\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
+                    }
+                    if (sanitizeOptions.noDeallocateInhibited)
+                    {
+                        printf("\t\tNo Deallocate Inhibited by controller.\n");
+                        switch (sanitizeOptions.responseMode)
+                        {
+                        case NO_DEALLOC_RESPONSE_INV:
+                            break;
+                        case NO_DEALLOC_RESPONSE_WARNING:
+                            printf("\t\t\tSanitize command will be accepted but warn about deallocation when no deallocate is specified.\n");
+                            break;
+                        case NO_DEALLOC_RESPONSE_ERROR:
+                            printf("\t\t\tSanitize command will be aborted with an error when no deallocate is specified.\n");
+                            break;
+                        }
+                    }
+                    switch (sanitizeOptions.nodmmas)
+                    {
+                    case NODMMAS_NOT_DEFINED:
+                        break;
+                    case NODMMAS_NOT_ADDITIONALLY_MODIFIED_AFTER_SANITIZE:
+                        printf("\t\tMedia does not have additional modifications after sanitize completes.\n");
+                        break;
+                    case NODMMAS_MEDIA_MODIFIED_AFTER_SANITIZE:
+                        printf("\t\tMedia is modified after sanitize completes.\n");
+                        break;
+                    case NODMMAS_RESERVED:
+                        break;
+                    }
+
                 }
                 else
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("\tSanitize Features not supported.\n");
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    printf("\tSanitize commands are not supported by this device.\n");
                 }
             }
-            //if sanitize features are supported and the user has input a sanitize command to run, then we can kick them off
-            if (sanitizeOptions.sanitizeCmdEnabled)
-            {
-                if (DATA_ERASE_FLAG && !(sanfreezelock || sanAntiFreezeLock || sanitizeInfo))
-                {
-                    bool sanitizeCommandRun = false;
-                    if (sanblockErase)
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Starting Sanitize Block Erase\n");
-                        }
-                        sanitizeResult = run_Sanitize_Operation(&deviceList[deviceIter], SANITIZE_BLOCK_ERASE, POLL_FLAG, NULL, 0);
-                        sanitizeCommandRun = true;
-                    }
-                    if (sancryptoErase)
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Starting Sanitize Crypto Scramble\n");
-                        }
-                        sanitizeResult = run_Sanitize_Operation(&deviceList[deviceIter], SANITIZE_CRYPTO_ERASE, POLL_FLAG, NULL, 0);
-                        sanitizeCommandRun = true;
-                    }
-                    if (sanoverwrite)
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Starting Sanitize Overwrite Erase\n");
-                        }
-                        sanitizeResult = run_Sanitize_Operation(&deviceList[deviceIter], SANITIZE_OVERWRITE_ERASE, POLL_FLAG, PATTERN_BUFFER, deviceList[deviceIter].drive_info.deviceBlockSize);
-                        sanitizeCommandRun = true;
-                    }
-                    if (sanitizeCommandRun)
-                    {
-                        switch (sanitizeResult)
-                        {
-                        case SUCCESS:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                if (POLL_FLAG)
-                                {
-                                    printf("Sanitize command passed!\n");
-                                }
-                                else
-                                {
-                                    printf("Sanitize command has been started. Use the --%s sanitize option\n", PROGRESS_LONG_OPT_STRING);
-                                    printf("to check for progress.\n");
-                                }
-                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
-                                {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
-                                }
-                            }
-                            if (sanitizeCommandRun && POLL_FLAG)
-                            {
-                                eraseCompleted = true;
-                            }
-                            break;
-                        case FAILURE:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Sanitize command failed!\n");
-                                #if defined (_WIN32)//TODO: handle Win PE somehow when we support WinPE
-                                printf("\tNote: Windows 8 and higher block sanitize commands.\n");
-                                #endif
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        case IN_PROGRESS:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("A sanitize command is already in progress.\n");
-                            }
-                            break;
-                        case FROZEN:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Cannot run sanitize operation because drive is sanitize frozen.\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        case NOT_SUPPORTED:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Sanitize command not supported by the device.\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                            break;
-                        case OS_PASSTHROUGH_FAILURE:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Sanitize command was blocked by the OS.\n");
-                                #if defined (_WIN32)//TODO: handle Win PE somehow when we support WinPE
-                                printf("\tNote: Windows 8 and higher block sanitize commands.\n");
-                                #endif
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                            break;
-                        case DEVICE_ACCESS_DENIED:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        default:
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Unknown error in sanitize command.\n");
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            break;
-                        }
-                    }
-                }
-                else if (sanfreezelock)
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Sending Sanitize Freeze Lock Command.\n");
-                    }
-                    sanitizeResult = run_Sanitize_Operation(&deviceList[deviceIter], SANTIZIE_FREEZE_LOCK, false, NULL, 0);
-                    switch (sanitizeResult)
-                    {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Freezelock passed!\n");
-                        }
-                        break;
-                    case FAILURE:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Freezelock failed!\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Freezelock not supported.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    case IN_PROGRESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("A Sanitize operation is already in progress, freezelock cannot be completed.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    case DEVICE_ACCESS_DENIED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Unknown error in sanitize command.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
-                }
-                else if (sanAntiFreezeLock)
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Sending Sanitize Anti Freeze Lock Command.\n");
-                    }
-                    sanitizeResult = run_Sanitize_Operation(&deviceList[deviceIter], SANITIZE_ANTI_FREEZE_LOCK, false, NULL, 0);
-                    switch (sanitizeResult)
-                    {
-                    case SUCCESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Anti Freezelock passed!\n");
-                        }
-                        break;
-                    case FAILURE:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Anti Freezelock failed!\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    case NOT_SUPPORTED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Sanitize Anti Freezelock not supported.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                        break;
-                    case IN_PROGRESS:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("A Sanitize operation is already in progress, anti freezelock cannot be completed.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    case DEVICE_ACCESS_DENIED:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    default:
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Unknown error in sanitize command.\n");
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        break;
-                    }
-                }
-                else if (!sanitizeInfo)
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("\n");
-                        printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                        printf("to the command line arguments to run a sanitize operation.\n\n");
-                        printf("e.g.: %s -d %s --%s blockerase --confirm %s\n\n", util_name, deviceHandleExample, SANITIZE_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
-                    }
-                }
-            }
-            else if (!sanitizeInfo)
+            else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\tSanitize Features not supported.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
+        if (SANITIZE_RUN_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\nSanitize\n");
+            }
+            if (DATA_ERASE_FLAG)
+            {
+                bool sanitizeCommandRun = false;
+                sanitizeOperationOptions sanitizeOp;
+                memset(&sanitizeOp, 0, sizeof(sanitizeOperationOptions));
+                sanitizeOp.version = SANITIZE_OPERATION_OPTIONS_VERSION;
+                sanitizeOp.size = sizeof(sanitizeOperationOptions);
+                sanitizeOp.pollForProgress = POLL_FLAG;
+                sanitizeOp.commonOptions.allowUnrestrictedSanitizeExit = SANITIZE_AUSE;
+                //NOTE: The next two options are in a union to mean the same thing
+                //      It is likely that a user will specify one for NVMe devices and one for SATA/SAS
+                //      So if this is specified, keep the one set to true.
+                sanitizeOp.commonOptions.zoneNoReset = ZONE_NO_RESET;
+                if (!sanitizeOp.commonOptions.noDeallocate)
+                {
+                    sanitizeOp.commonOptions.noDeallocate = NO_DEALLOCATE_AFTER_ERASE;
+                }
+                if (SANITIZE_RUN_BLOCK_ERASE)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Starting Sanitize Block Erase\n");
+                    }
+                    sanitizeOp.sanitizeEraseOperation = BLOCK_ERASE;
+                }
+                if (SANITIZE_RUN_CRYPTO_ERASE)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Starting Sanitize Crypto Scramble\n");
+                    }
+                    sanitizeOp.sanitizeEraseOperation = CRYPTO_ERASE;
+                }
+                if (SANITIZE_RUN_OVERWRITE_ERASE)
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Starting Sanitize Overwrite Erase\n");
+                    }
+                    sanitizeOp.sanitizeEraseOperation = OVERWRITE_ERASE;
+                    sanitizeOp.overwriteOptions.invertPatternBetweenPasses = SANITIZE_IPBP;
+                    sanitizeOp.overwriteOptions.numberOfPasses = SANITIZE_OVERWRITE_PASSES;
+                    if (PATTERN_FLAG)
+                    {
+                        sanitizeOp.overwriteOptions.pattern = M_BytesTo4ByteValue(patternBuffer[3], patternBuffer[2], patternBuffer[1], patternBuffer[0]);
+                    }
+                }
+                //get the support information before starting sanitize to add warnings about write after block erase or write after crypto erase.
+                writeAfterErase writeReq;
+                memset(&writeReq, 0, sizeof(writeAfterErase));
+                is_Write_After_Erase_Required(&deviceList[deviceIter], &writeReq);
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("If Sanitize appears to be taking much longer than expected, the system or HBA\n");
+                    printf("may not be handling the sanitize in progress state correctly. If this happens\n");
+                    printf("the next best thing to do is leave the drive powered on with the interface\n");
+                    printf("cable(SATA / SAS HBA cable) disconnected. Sanitize will continue running\n");
+                    printf("while the drive is powered onand the system will no longer be able to\n");
+                    printf("interrupt or slow down the sanitize operation.\n");
+                    printf("NOTE: On an HDD, the approximate overwrite time is 1.5-2 hours per terabyte\n");
+                    printf("      of the native capacity of the drive. Reduced size for maxLBA does not\n");
+                    printf("      reduce the time sanitize takes to overwrite the drive.\n");
+                    printf("      On an SSD, the overwrite time will be much faster and varies depending\n");
+                    printf("      on the capabilities of the SSD controller.\n\n");
+                    if (SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
+                            printf("          PI bytes may be invalid and reading them results in logical block guard\n");
+                            printf("          check failures until a logical block has been written with new data.\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        else
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                    }
+                    if (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
+                        {
+                            printf("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
+                            printf("          PI bytes may be scrambled and reading them results in logical block guard\n");
+                            printf("          check failures until a logical block has been written with new data.\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        else
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                    }
+                }
+                switch (run_Sanitize_Operation2(&deviceList[deviceIter], sanitizeOp))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (POLL_FLAG)
+                        {
+                            printf("Sanitize command passed!\n");
+                        }
+                        else
+                        {
+                            printf("Sanitize command has been started. Use the --%s sanitize option\n", PROGRESS_LONG_OPT_STRING);
+                            printf("to check for progress.\n");
+                        }
+                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        {
+                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        }
+                        if (SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a block erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                        if (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                    }
+                    if (sanitizeCommandRun && POLL_FLAG)
+                    {
+                        eraseCompleted = true;
+                        if ((SANITIZE_RUN_BLOCK_ERASE && writeReq.blockErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                            || (SANITIZE_RUN_CRYPTO_ERASE && writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS))
+                        {
+                            eraseCompleted = false;//turn this off otherwise the function to update file systems outputs errors to the screen since it tries to read the device.
+                        }
+                    }
+                    break;
+                case FAILURE:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Sanitize command failed!\n");
+                        #if defined (_WIN32)
+                        if (!is_Windows_PE())
+                        {
+                            printf("\tNote: Windows 8 and higher block sanitize commands.\n");
+                            printf("\t      Starting in Windows 11 or Windows 10 21H2, NVMe\n");
+                            printf("\t      devices can issue Sanitize Block or Crypto erases\n");
+                            printf("\t      but no other device types or sanitize operations\n");
+                            printf("\t      are permitted.\n");
+                            printf("\t      The Windows PE/RE environments allow all sanitize operations.\n");
+                        }
+                        #endif //_WIN32
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                case IN_PROGRESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A sanitize command is already in progress.\n");
+                    }
+                    break;
+                case FROZEN:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Cannot run sanitize operation because drive is sanitize frozen.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Sanitize command not supported by the device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case OS_PASSTHROUGH_FAILURE:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Sanitize command was blocked by the OS.\n");
+#if defined (_WIN32)
+                        if (!is_Windows_PE())
+                        {
+                            printf("\tNote: Windows 8 and higher block sanitize commands.\n");
+                            printf("\t      Starting in Windows 11 or Windows 10 21H2, NVMe\n");
+                            printf("\t      devices can issue Sanitize Block or Crypto erases\n");
+                            printf("\t      but no other device types or sanitize operations\n");
+                            printf("\t      are permitted.\n");
+                            printf("\t      The Windows PE/RE environments allow all sanitize operations.\n");
+                        }
+#endif //_WIN32
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case DEVICE_ACCESS_DENIED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive and try again.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Unknown error in sanitize command.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("\n");
+                    printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
+                    printf("to the command line arguments to run a sanitize operation.\n\n");
+                    printf("e.g.: %s -d %s --%s blockerase --confirm %s\n\n", util_name, deviceHandleExample, SANITIZE_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
+                }
             }
         }
 
@@ -2532,6 +2747,7 @@ int32_t main(int argc, char *argv[])
                 ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
                 memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
+                ataPassword.zacSecurityOption = ZONE_NO_RESET;
                 eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
                 if (ATA_SECURITY_ERASE_ENHANCED_FLAG)
                 {
@@ -2932,10 +3148,37 @@ int32_t main(int argc, char *argv[])
                 break;
             }
         }
-        if (eraseCompleted)
+        if (eraseCompleted || REFRESH_FILE_SYSTEMS)
         {
             //update the FS cache since just about all actions in here will need this if they do not already handle it internally.
-            os_Update_File_System_Cache(&deviceList[deviceIter]);
+            int fsret = os_Update_File_System_Cache(&deviceList[deviceIter]);
+            if (REFRESH_FILE_SYSTEMS)
+            {
+                switch (fsret)
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully refreshed the filesystems for the OS!\n");
+                    }
+                    eraseCompleted = true;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Refreshing the filesystems is not supported in this OS.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to refresh the OS file systems.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
         }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
@@ -3068,6 +3311,7 @@ void utility_Usage(bool shortUsage)
     #endif
     print_Time_Seconds_Help(shortUsage);
     print_Erase_Restore_Max_Prep_Help(shortUsage);
+    print_Refresh_Filesystems_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
@@ -3108,8 +3352,11 @@ void utility_Usage(bool shortUsage)
     printf("SATA - IO, and NVMexpress.\n");
     printf("=========================\n");
     //multiple interfaces
+    print_Sanitize_AUSE_Help(shortUsage);
+    print_Sanitize_Overwrite_Invert_Help(shortUsage);
     print_Overwrite_Help(shortUsage);
     print_Overwrite_Range_Help(shortUsage);
+    print_Sanitize_Overwrite_Passes_Help(shortUsage);
     print_Pattern_Help(shortUsage);
     print_Perform_Quickest_Erase_Help(shortUsage);
     #if !defined(DISABLE_TCG_SUPPORT)
@@ -3121,14 +3368,18 @@ void utility_Usage(bool shortUsage)
     print_Trim_Unmap_Range_Help(shortUsage);
     print_Writesame_Help(shortUsage);
     print_Writesame_Range_Help(shortUsage);
+    print_Zone_No_Reset_Help(shortUsage);
     //SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Erase_Help(shortUsage, "SeaChest");
+    print_Sanitize_Anti_Freeze_Help(shortUsage);
+    print_Sanitize_Freeze_Help(shortUsage);
     //SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
     print_Fast_Format_Help(shortUsage);
     print_Format_Unit_Help(shortUsage);
     printf("\n\tNVMe Only:\n\t=========\n");
+    print_Sanitize_No_Deallocate_Help(shortUsage);
     print_NVM_Format_Metadata_Setting_Help(shortUsage);
     print_NVM_Format_Metadata_Size_Help(shortUsage);
     print_NVM_Format_NSID_Help(shortUsage);

@@ -925,6 +925,16 @@ int32_t main(int argc, char *argv[])
             {
             case SUCCESS:
                 print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                //if supported then print Seagate Device Statistics also
+                if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
+                {
+                    seagateDeviceStatistics seagateDeviceStats;
+                    memset(&seagateDeviceStats, 0, sizeof(seagateDeviceStatistics));
+                    if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
+                    {
+                        print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
+                    }
+                }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
