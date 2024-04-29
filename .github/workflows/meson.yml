@@ -41,6 +41,18 @@ jobs:
             archive_command: "7z a -tzip -mmt"
           }
         - {
+            name: "Windows MSVC ARM64",
+            os: windows-latest,
+            cc: "cl.exe",
+            cxx: "cl.exe",
+            arch: "x64_arm64",
+            publish_release: true,
+            meson_opts: "-Db_vscrt=static_from_buildtype --cross-file=./meson_crosscompile/msvc_arm64.txt",
+            release_name: "win-ARM64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
             name: "Windows GCC",
             os: windows-latest,
             cc: "gcc.exe",
