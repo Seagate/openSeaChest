@@ -190,6 +190,7 @@ jobs:
       #format is hash-${{release_name}}
       hash-win-x64: ${{ steps.hash.outputs.hash-win-x64 }}
       hash-win-x86: ${{ steps.hash.outputs.hash-win-x86 }}
+      hash-win-ARM64: ${{ steps.hash.outputs.hash-win-ARM64 }}
       hash-linux-x86_64-portable: ${{ steps.hash.outputs.hash-linux-x86_64-portable }}
       hash-linux-i686-portable: ${{ steps.hash.outputs.hash-linux-i686-portable }}
       hash-linux-aarch64-portable: ${{ steps.hash.outputs.hash-linux-aarch64-portable }}
@@ -327,6 +328,7 @@ jobs:
         #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
         release_name: [ "win-x64", 
                         "win-x86", 
+                        "win-ARM64",
                         "linux-x86_64-portable", 
                         "linux-i686-portable", 
                         "linux-aarch64-portable", 
