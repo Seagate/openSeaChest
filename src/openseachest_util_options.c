@@ -516,6 +516,32 @@ void print_Erase_Time_Help(bool shortHelp)
     }
 }
 
+void print_Sanitize_Freeze_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", SANITIZE_FREEZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tFreezelock is a command to block processing of sanitize\n");
+        printf("\t\toperations until a power cycle is performed on a device.\n");
+        printf("\t\tIt is only available on ATA drives. Once this command has been\n");
+        printf("\t\tsent, the freezelock status becomes immediate and cannot be\n");
+        printf("\t\tcleared until the drive has been powered off. All sanitize\n");
+        printf("\t\tcommands, except a sanitize status will be aborted.\n\n");
+    }
+}
+
+void print_Sanitize_Anti_Freeze_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tAntifreezelock is a command that is designed to block a\n");
+        printf("\t\tfreezelock command from locking out the sanitize feature set.\n");
+        printf("\t\tIt is only available on ATA drives that support the ACS3, or\n");
+        printf("\t\tnewer specification.\n\n");
+    }
+}
+
 void print_Sanitize_Help(bool shortHelp, const char *utilName)
 {
     printf("\t--%s [info | blockerase | cryptoerase |\n", SANITIZE_LONG_OPT_STRING);
@@ -530,10 +556,31 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
         printf("\t\tsanitize erase operations are persistent across a power cycle\n");
         printf("\t\tand cannot be stopped\n");
         printf("\t\tExample: --%s blockerase --%s\n\n", SANITIZE_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
-#if defined (_WIN32)//TODO: handle Win PE somehow when we support WinPE
-        printf("\t\tNote: Windows 8 and higher block sanitize commands. Sanitize\n");
-        printf("\t\toperations will show a failure status on these systems.\n\n");
-#endif
+        printf("\t\tBy default, sanitize runs in restricted exit mode, meaning the\n");
+        printf("\t\tonly way to exit a failed sanitize is to attempt sanitize again\n");
+        printf("\t\tuntil it completes successfully. Add the --%s option to run\n", SANITIZE_AUSE_LONG_OPT_STRING);
+        printf("\t\tin unrestricted mode. In unrestricted mode, if sanitize fails\n");
+        printf("\t\tyou can exit this mode with the \"exit failure mode\" command\n");
+        printf("\t\tor a successful sanitize command.\n\n");
+        printf("\t\tFor Zoned block devices, the --%s option can be used\n", ZONE_NO_RESET_LONG_OPT_STRING);
+        printf("\t\tto stop the write pointers from resetting allowing full\n");
+        printf("\t\tdrive verification to be performed upon completion of sanitize\n");
+        printf("\t\tFor NVMe devices that support the deallocate feature (TRIM), the\n");
+        printf("\t\t--%s option can be used to prevent the deallocation of blocks at\n", NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING);
+        printf("\t\tcompletion of sanitize to allow for full drive verification.\n");
+        printf("\t\tNOTE: An NVMe controller may inhibit the no deallocate behavior\n");
+        printf("\t\t      and may deallocate anyways or fail the sanitize command when\n");
+        printf("\t\t      no deallocate is specified.\n\n");
+#if defined (_WIN32)
+        if (!is_Windows_PE())
+        {
+            printf("\t\tNote: Windows 8 and higher block sanitize commands. Sanitize\n");
+            printf("\t\toperations will show a failure status on these systems.\n");
+            printf("\t\tStarting in Windows 11 or Windows 10 21H1, sanitize crypto\n");
+            printf("\t\tor block erase can be executed on NVMe data drives that\n");
+            printf("\t\tsupport the sanitize command set.\n\n");
+        }
+#endif //_WIN32
         //blockerase info
         printf("\t\t* blockerase on some solid state drives is very fast at less\n");
         printf("\t\tthan one (1) second, while others may take more that 30 seconds\n");
@@ -546,23 +593,113 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
         printf("\t\tdata causing all previous data to be useless.\n\n");
         //overwrite info
         printf("\t\t* overwrite is a physical overwrite on all current, past, and\n");
-        printf("\t\tpotential user data. The ATA and SCSI specifications allow a\n");
+        printf("\t\tpotential user data. The ATA, NVMe, & SCSI specifications allow a\n");
         printf("\t\tuser defined pattern and multiple passes. %s will\n", utilName);
-        printf("\t\tuse a zero pattern and a single pass for this operation.\n\n");
+        printf("\t\tuse a zero pattern and a single pass for this operation\n");
+        printf("\t\tby default. Use --%s and --%s to specify\n", SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING, SANITIZE_IPBP_LONG_OPT_STRING);
+        printf("\t\tthe number of passes and whether to invert the pattern between\n");
+        printf("\t\teach overwrite pass.\n\n");
         //freezelock info
-        printf("\t\t* freezelock is a command to block processing of sanitize\n");
-        printf("\t\toperations until a power cycle is performed on a device.\n");
-        printf("\t\tIt is only available on ATA drives. Once this command has been\n");
-        printf("\t\tsent, the freezelock status becomes immediate and cannot be\n");
-        printf("\t\tcleared until the drive has been powered off. All sanitize\n");
-        printf("\t\tcommands, except a sanitize status will be aborted.\n\n");
+        printf("\t\t* freezelock - migrate to use of --%s\n\n", SANITIZE_FREEZE_LONG_OPT_STRING);
         //anti freezlock info
-        printf("\t\t* antifreezelock is a command that is designed to block a\n");
-        printf("\t\tfreezelock command from locking out the sanitize feature set.\n");
-        printf("\t\tIt is only available on ATA drives that support the ACS3, or\n");
-        printf("\t\tnewer specification.\n\n");
+        printf("\t\t* antifreezelock - migrate to use of --%s\n\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
         printf("\t\tWARNING: Sanitize may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+
+void print_Sanitize_Overwrite_Passes_Help(bool shortHelp)
+{
+    printf("\t--%s [ number of overwrite passes ]\n", SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tSpecify the number of overwrite passes to use during a sanitize\n");
+        printf("\t\toverwrite operation. By default, only a single overwrite pass\n");
+        printf("\t\tis used unless this option specifies a different value.\n");
+        printf("\t\tThe maximum number of passes varies by drive type:\n");
+        printf("\t\tATA:  16 passes\n");
+        printf("\t\tNVMe: 16 passes\n");
+        printf("\t\tSCSI: 31 passes\n");
+        printf("\t\tUse the --%s option to instruct the device to invert\n", SANITIZE_IPBP_LONG_OPT_STRING);
+        printf("\t\tthe pattern between each overwrite pass.\n");
+        printf("\n");
+    }
+}
+
+void print_Sanitize_Overwrite_Invert_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SANITIZE_IPBP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to instruct the drive to invert the requested\n");
+        printf("\t\tsanitize overwrite pattern between each overwrite pass.\n");
+        printf("\t\tFor the default pattern of all zeroes, this means that after\n");
+        printf("\t\ta first pass of zeroes, the second pass will be all 1's (binary)\n");
+        printf("\t\tor all F's (hexadecimal)\n\n");
+    }
+}
+
+void print_Sanitize_AUSE_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SANITIZE_AUSE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to allow running a sanitize operation in\n");
+        printf("\t\tunrestricted mode. Without this option, all sanitize options\n");
+        printf("\t\tare run in restricted mode by default.\n");
+        printf("\t\tIn unrestricted mode, if a sanitize erase fails the drive enters\n");
+        printf("\t\ta failure state. The failure state can be cleared with a Sanitize\n");
+        printf("\t\texit failure mode command, or it can be cleared with a successful\n");
+        printf("\t\tsanitize erase.\n");
+        printf("\t\tIn restricted mode, if a sanitize fails, the failure state can only\n");
+        printf("\t\tbe cleared with a successful sanitize erase.\n\n");
+    }
+}
+
+void print_Zone_No_Reset_Help(bool shortHelp)
+{
+    printf("\t--%s\n", ZONE_NO_RESET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tFor ZBD's (Zoned Block Devices), use this option during a\n");
+        printf("\t\tSanitize or ATA Security Erase to specify leaving all zones\n");
+        printf("\t\tfull so that full verification of erasure can be performed.\n");
+        printf("\t\tWhen this option is not specified, all zones will be empty\n");
+        printf("\t\tupon completion of these erases.\n\n");
+    }
+}
+
+void print_Sanitize_No_Deallocate_Help(bool shortHelp)
+{
+    printf("\t--%s\t(NVMe Only)\n", NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tFor NVMe devices, specify this option during a sanitize to\n");
+        printf("\t\tleave all blocks allocated after a sanitize erase. By default\n");
+        printf("\t\tan NVMe controller will deallocate (TRIM/Unmap) all the LBAs.\n");
+        printf("\t\tUsing this option allows for full verification of erasure after\n");
+        printf("\t\ta Sanitize command.\n");
+        printf("\t\tNOTE: An NVMe controller may inhibit this option in certain\n");
+        printf("\t\tconfigurations meaning the sanitize may produce a warning or\n");
+        printf("\t\ta failure depending on how this is configured on the controller.\n");
+        printf("\t\tAfter verifying an erasure with this option, run a deallocate/TRIM\n");
+        printf("\t\tacross the entire device/namespace to match default behavior of\n");
+        printf("\t\ta sanitize erase.\n\n");
+    }
+}
+
+void print_Refresh_Filesystems_Help(bool shortHelp)
+{
+    printf("\t--%s\n", REFRESH_FILE_SYSTEMS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will call an OS unique low-level routine to rescan\n");
+        printf("\t\ta device for any file systems it can detect through the\n");
+        printf("\t\tpartition table. The detected filesystems will vary by OS\n");
+        printf("\t\tand OS capabilities.\n");
+        printf("\t\tThis option is useful to call after completing a full disk erase\n");
+        printf("\t\tas it may make a cached volume in the OS go away or detect that a device\n");
+        printf("\t\tis empty and ready to have a new file system written to it.\n\n");
     }
 }
 
