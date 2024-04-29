@@ -184,8 +184,8 @@ jobs:
       hash-linux-armv7l-portable: ${{ steps.hash.outputs.hash-linux-armv7l-portable }}
       hash-linux-armv6-portable: ${{ steps.hash.outputs.hash-linux-armv6-portable }}
       hash-linux-armv5l-portable: ${{ steps.hash.outputs.hash-linux-armv5l-portable }}
-      hash-linux-ppc64-portable: ${{ steps.hash.outputs.hash-linux-ppc64-portable }}
-      hash-linux-ppc64le-portable: ${{ steps.hash.outputs.hash-linux-ppc64le-portable }}
+      hash-linux-powerpc64-portable: ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}
+      hash-linux-powerpc64le-portable: ${{ steps.hash.outputs.hash-linux-powerpc64le-portable }}
 
     steps:
     - uses: actions/checkout@v4
@@ -321,8 +321,8 @@ jobs:
                         "linux-armv7l-portable", 
                         "linux-armv6-portable",
                         "linux-armv5l-portable",
-                        "linux-ppc64-portable",
-                        "linux-ppc64le-portable"
+                        "linux-powerpc64-portable",
+                        "linux-powerpc64le-portable"
                         ]
     permissions:
       actions: read # To read the workflow path.
