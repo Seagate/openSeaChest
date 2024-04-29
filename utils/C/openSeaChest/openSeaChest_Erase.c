@@ -2748,7 +2748,14 @@ int32_t main(int argc, char *argv[])
                 ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
                 memcpy(ataPassword.password, ATA_SECURITY_PASSWORD, ATA_SECURITY_PASSWORD_BYTE_COUNT);//ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32. Should be caught above.
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
-                ataPassword.zacSecurityOption = ZONE_NO_RESET;
+                if (ZONE_NO_RESET == goTrue)
+                {
+                    ataPassword.zacSecurityOption = ATA_ZAC_ERASE_FULL_ZONES;
+                }
+                else 
+                {
+                    ataPassword.zacSecurityOption = ATA_ZAC_ERASE_EMPTY_ZONES;
+                }
                 eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
                 if (ATA_SECURITY_ERASE_ENHANCED_FLAG)
                 {
