@@ -154,7 +154,7 @@ add_project_link_arguments(c.get_supported_link_arguments(linker_flags), languag
 small_code_cc_flags = []
 small_code_link_flags = []
 
-if (c.get_id() == 'gcc' or c.get_id() == 'clang')
+if (c.get_id() == 'gcc' or c.get_id() == 'clang') and target_machine.system() != 'windows'
   
   small_code_cc_flags = [
       '-ffunction-sections',

@@ -67,6 +67,7 @@ jobs:
             os: windows-latest,
             cc: "clang.exe",
             cxx: "clang++.exe",
+            meson_opts: "--native-file=./meson_crosscompile/Windows-Clang.txt",
             release_name: "win-x86_64-clang",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"

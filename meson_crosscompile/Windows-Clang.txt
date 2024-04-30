@@ -1,0 +1,32 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#example usage of this file:
+#    meson setup --buildtype=release --native-file=./meson_crosscompile/Windows-Clang.txt nativebuild_win_clang
+#    ninja -C nativebuild_win_clang
+
+#NOTE: This is for the LLVM.exe installer from github.
+
+[binaries]
+c = 'clang.exe'
+cpp = 'clang++.exe'
+ar = 'llvm-ar.exe'
+c_ld = 'lld-link.exe'
+cpp_ld = 'lld-link.exe'
+strip = 'llvm-strip.exe'
+windres = 'llvm-rc.exe'
+llvm-config = 'llvm-config.exe'
+
+[properties]
+has_function_printf = true
+
+[host_machine]
+system = 'windows'
+subsystem = 'windows'
+kernel = 'nt'
+endian = 'little'
+cpu_family = 'x86_64'
+cpu = ''
+
+[built-in options]
+default_library='static'
