@@ -333,44 +333,56 @@ jobs:
           build/*.rpm
 
   # This step takes all the generated hashes from all build targets and combines them so slsa provenance step can run
-  # combine_hashes:
-  #   runs-on: ubuntu-latest
-  #   needs: [build]
-  #   outputs:
-  #     hashes: ${{ steps.hashes.outputs.hashes }}
-  #   env:
-  #     HASHES: ${{ toJSON(needs.build.outputs) }}
-  #   steps:
-  #     - id: hashes
-  #       run: |
-  #         echo "$HASHES" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes.txt
-  #         echo "hashes=$(cat hashes.txt | base64 -w0)" >> "$GITHUB_OUTPUT"
+  combine_hashes:
+    runs-on: ubuntu-latest
+    needs: [build]
+    outputs:
+      hashes: ${{ steps.hashes.outputs.hashes }}
+    env:
+      HASHES: ${{ toJSON(needs.build.outputs) }}
+    steps:
+      - id: hashes
+        run: |
+          echo "$HASHES" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes.txt
+          echo "hashes=$(cat hashes.txt | base64 -w0)" >> "$GITHUB_OUTPUT"
 
   # Generate the slsa provenance
   provenance:
-    needs: [build]
-    strategy:
-      fail-fast: false #don't cancel other jobs if one is failing
-      matrix:
-        #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
-        release_name: [ "win-x64", 
-                        "win-x86", 
-                        "win-ARM64",
-                        "linux-x86_64-portable", 
-                        "linux-i686-portable", 
-                        "linux-aarch64-portable", 
-                        "linux-armv7l-portable", 
-                        "linux-armv6-portable",
-                        "linux-armv5l-portable",
-                        "linux-powerpc64-portable",
-                        "linux-powerpc64le-portable"
-                        ]
+    needs: [combine_hashes]
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
-      base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.release_name)] }}"
-      # Upload provenance to a new release
-      upload-assets: true
+      base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"
+      upload-assets: true # Optional: Upload to a new release
+
+  #This is how we were trying to do it with matrix builds
+  # provenance:
+  #   needs: [build]
+  #   strategy:
+  #     fail-fast: false #don't cancel other jobs if one is failing
+  #     matrix:
+  #       #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
+  #       release_name: [ "win-x64", 
+  #                       "win-x86", 
+  #                       "win-ARM64",
+  #                       "linux-x86_64-portable", 
+  #                       "linux-i686-portable", 
+  #                       "linux-aarch64-portable", 
+  #                       "linux-armv7l-portable", 
+  #                       "linux-armv6-portable",
+  #                       "linux-armv5l-portable",
+  #                       "linux-powerpc64-portable",
+  #                       "linux-powerpc64le-portable"
+  #                       ]
+  #   permissions:
+  #     actions: read # To read the workflow path.
+  #     id-token: write # To sign the provenance.
+  #     contents: write # To add assets to a release.
+  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+  #   with:
+  #     base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.release_name)] }}"
+  #     # Upload provenance to a new release
+  #     upload-assets: true
