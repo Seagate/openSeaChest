@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# SPDX-License-Identifier: MPL-2.0
 function usage {
     echo "This script will copy all files required to build openSeaChest to the edk2/UDK path specified."
     echo "Once the script is done copying, change the target.txt to build one of the following:"

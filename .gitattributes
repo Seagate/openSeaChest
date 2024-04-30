@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 #this file specifies some rules on specific files for line endings and more.
 #it also has a section on which files should NOT be part of an export (git archive) command.
 
