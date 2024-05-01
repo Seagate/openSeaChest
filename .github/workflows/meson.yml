@@ -515,34 +515,8 @@ jobs:
   combine_hashes:
     runs-on: ubuntu-latest
     needs: [build]
-    strategy:
-      fail-fast: false #don't cancel other jobs if one is failing
-      matrix:
-        #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
-        release_name: [ "win-x64", 
-                        "win-x86", 
-                        "win-ARM64",
-                        "linux-x86_64-portable", 
-                        "linux-i686-portable", 
-                        "linux-aarch64-portable", 
-                        "linux-armv7l-portable", 
-                        "linux-armv6-portable",
-                        "linux-armv5l-portable",
-                        "linux-powerpc64-portable",
-                        "linux-powerpc64le-portable"
-                        ]
     outputs:
-      hashes-win-x64:                     ${{ steps.hashes.outputs.hashes-win-x64 }}
-      hashes-win-x86:                     ${{ steps.hashes.outputs.hashes-win-x86 }}
-      hashes-win-ARM64:                   ${{ steps.hashes.outputs.hashes-win-ARM64 }}
-      hashes-linux-x86_64-portable:       ${{ steps.hashes.outputs.hashes-linux-x86_64-portable }}
-      hashes-linux-i686-portable:         ${{ steps.hashes.outputs.hashes-linux-i686-portable }}
-      hashes-linux-aarch64-portable:      ${{ steps.hashes.outputs.hashes-linux-aarch64-portable }}
-      hashes-linux-armv7l-portable:       ${{ steps.hashes.outputs.hashes-linux-armv7l-portable }}
-      hashes-linux-armv6-portable:        ${{ steps.hashes.outputs.hashes-linux-armv6-portable }}
-      hashes-linux-armv5l-portable:       ${{ steps.hashes.outputs.hashes-linux-armv5l-portable }}
-      hashes-linux-powerpc64-portable:    ${{ steps.hashes.outputs.hashes-linux-powerpc64-portable }}
-      hashes-linux-powerpc64le-portable:  ${{ steps.hashes.outputs.hashes-linux-powerpc64le-portable }}
+      hashes: ${{ steps.hashes.outputs.hashes }}
     env:
       HASHES: ${{ toJSON(needs.build.outputs) }}
     steps:
@@ -555,29 +529,13 @@ jobs:
   # Generate the slsa provenance
   provenance:
     needs: [combine_hashes]
-    strategy:
-      fail-fast: false #don't cancel other jobs if one is failing
-      matrix:
-        #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
-        release_name: [ "win-x64", 
-                        "win-x86", 
-                        "win-ARM64",
-                        "linux-x86_64-portable", 
-                        "linux-i686-portable", 
-                        "linux-aarch64-portable", 
-                        "linux-armv7l-portable", 
-                        "linux-armv6-portable",
-                        "linux-armv5l-portable",
-                        "linux-powerpc64-portable",
-                        "linux-powerpc64le-portable"
-                        ]
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
-      base64-subjects: "${{ needs.combine_hashes.outputs[format('hashes-{0}', matrix.release_name)] }}"
+      base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"
       upload-assets: true # Optional: Upload to a new release
 
   #This is how we were trying to do it with matrix builds
