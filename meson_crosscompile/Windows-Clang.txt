@@ -30,3 +30,4 @@ cpu = ''
 
 [built-in options]
 default_library='static'
+b_pie='false'
