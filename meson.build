@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
-project('openSeaChest', 'c', license: 'MPL-2.0', default_options : ['warning_level=2'])
+project('openSeaChest', 'c', license: 'MPL-2.0', default_options : ['warning_level=2', 'b_pie=true'])
 
 c = meson.get_compiler('c')
-
 
 warning_flags = [ ]
 linker_flags = [ ] #additional linker flags to add per-compiler for hardening.
