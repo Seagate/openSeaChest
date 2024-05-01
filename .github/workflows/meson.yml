@@ -481,10 +481,13 @@ jobs:
           echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
           #
           #now go into the build directory and hash each openseachest tool that was built and save that to an output for slsa
-          for file in ./build/openSeaChest_*; do
+          cd build
+          for file in openSeaChest_*; do
             if [ -f "$file" ]; then
-              (sha256sum -t $file || shasum -a 256 $file) > checksum 
-              echo "hash-${{ matrix.config.release_name }}-"$file"=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+              if [[ "$file" == openSeaChest_* ]]; then
+                (sha256sum -t $file || shasum -a 256 $file) > checksum 
+                echo "hash-${{ matrix.config.release_name }}-"$file"=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+              fi
             fi
           done
           #TODO: rpm/deb package if any
@@ -574,7 +577,7 @@ jobs:
       contents: write # To add assets to a release.
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
     with:
-      base64-subjects: "${{ needs.combine_hashes.outputs[format('hashes-{0}{1}', matrix.release_name)] }}"
+      base64-subjects: "${{ needs.combine_hashes.outputs[format('hashes-{0}', matrix.release_name)] }}"
       upload-assets: true # Optional: Upload to a new release
 
   #This is how we were trying to do it with matrix builds
