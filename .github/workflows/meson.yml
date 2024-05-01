@@ -192,192 +192,16 @@ jobs:
       #format is hash-${{release_name}} for the zipped packages
       #
       hash-win-x64:                                                   ${{ steps.hash.outputs.hash-win-x64 }}
-      hash-win-x64-openSeaChest_Basics:                               ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Basics }}
-      hash-win-x64-openSeaChest_Configure:                            ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Configure }}
-      hash-win-x64-openSeaChest_Erase:                                ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Erase }}
-      hash-win-x64-openSeaChest_Firmware:                             ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Firmware }}
-      hash-win-x64-openSeaChest_Format:                               ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Format }}
-      hash-win-x64-openSeaChest_GenericTests:                         ${{ steps.hash.outputs.hash-win-x64-openSeaChest_GenericTests }}
-      hash-win-x64-openSeaChest_Info:                                 ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Info }}
-      hash-win-x64-openSeaChest_Logs:                                 ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Logs }}
-      hash-win-x64-openSeaChest_NVMe:                                 ${{ steps.hash.outputs.hash-win-x64-openSeaChest_NVMe }}
-      hash-win-x64-openSeaChest_PassthoughTest:                       ${{ steps.hash.outputs.hash-win-x64-openSeaChest_PassthroughTest }}
-      hash-win-x64-openSeaChest_PowerControl:                         ${{ steps.hash.outputs.hash-win-x64-openSeaChest_PowerControl }}
-      hash-win-x64-openSeaChest_Reservations:                         ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Reservations }}
-      hash-win-x64-openSeaChest_SMART:                                ${{ steps.hash.outputs.hash-win-x64-openSeaChest_SMART }}
-      hash-win-x64-openSeaChest_Security:                             ${{ steps.hash.outputs.hash-win-x64-openSeaChest_Security }}
-      hash-win-x64-openSeaChest_ZBD:                                  ${{ steps.hash.outputs.hash-win-x64-openSeaChest_ZBD }}
-      #                             
       hash-win-x86:                                                   ${{ steps.hash.outputs.hash-win-x86 }}
-      hash-win-x86-openSeaChest_Basics:                               ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Basics }}
-      hash-win-x86-openSeaChest_Configure:                            ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Configure }}
-      hash-win-x86-openSeaChest_Erase:                                ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Erase }}
-      hash-win-x86-openSeaChest_Firmware:                             ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Firmware }}
-      hash-win-x86-openSeaChest_Format:                               ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Format }}
-      hash-win-x86-openSeaChest_GenericTests:                         ${{ steps.hash.outputs.hash-win-x86-openSeaChest_GenericTests }}
-      hash-win-x86-openSeaChest_Info:                                 ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Info }}
-      hash-win-x86-openSeaChest_Logs:                                 ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Logs }}
-      hash-win-x86-openSeaChest_NVMe:                                 ${{ steps.hash.outputs.hash-win-x86-openSeaChest_NVMe }}
-      hash-win-x86-openSeaChest_PassthoughTest:                       ${{ steps.hash.outputs.hash-win-x86-openSeaChest_PassthroughTest }}
-      hash-win-x86-openSeaChest_PowerControl:                         ${{ steps.hash.outputs.hash-win-x86-openSeaChest_PowerControl }}
-      hash-win-x86-openSeaChest_Reservations:                         ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Reservations }}
-      hash-win-x86-openSeaChest_SMART:                                ${{ steps.hash.outputs.hash-win-x86-openSeaChest_SMART }}
-      hash-win-x86-openSeaChest_Security:                             ${{ steps.hash.outputs.hash-win-x86-openSeaChest_Security }}
-      hash-win-x86-openSeaChest_ZBD:                                  ${{ steps.hash.outputs.hash-win-x86-openSeaChest_ZBD }}
-      #                             
       hash-win-ARM64:                                                 ${{ steps.hash.outputs.hash-win-ARM64 }}
-      hash-win-ARM64-openSeaChest_Basics:                             ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Basics }}
-      hash-win-ARM64-openSeaChest_Configure:                          ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Configure }}
-      hash-win-ARM64-openSeaChest_Erase:                              ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Erase }}
-      hash-win-ARM64-openSeaChest_Firmware:                           ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Firmware }}
-      hash-win-ARM64-openSeaChest_Format:                             ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Format }}
-      hash-win-ARM64-openSeaChest_GenericTests:                       ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_GenericTests }}
-      hash-win-ARM64-openSeaChest_Info:                               ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Info }}
-      hash-win-ARM64-openSeaChest_Logs:                               ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Logs }}
-      hash-win-ARM64-openSeaChest_NVMe:                               ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_NVMe }}
-      hash-win-ARM64-openSeaChest_PassthoughTest:                     ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_PassthroughTest }}
-      hash-win-ARM64-openSeaChest_PowerControl:                       ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_PowerControl }}
-      hash-win-ARM64-openSeaChest_Reservations:                       ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Reservations }}
-      hash-win-ARM64-openSeaChest_SMART:                              ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_SMART }}
-      hash-win-ARM64-openSeaChest_Security:                           ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_Security }}
-      hash-win-ARM64-openSeaChest_ZBD:                                ${{ steps.hash.outputs.hash-win-ARM64-openSeaChest_ZBD }}
-      #                             
       hash-linux-x86_64-portable:                                     ${{ steps.hash.outputs.hash-linux-x86_64-portable }}
-      hash-linux-x86_64-portable-openSeaChest_Basics:                 ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Basics }}
-      hash-linux-x86_64-portable-openSeaChest_Configure:              ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Configure }}
-      hash-linux-x86_64-portable-openSeaChest_Erase:                  ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Erase }}
-      hash-linux-x86_64-portable-openSeaChest_Firmware:               ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Firmware }}
-      hash-linux-x86_64-portable-openSeaChest_Format:                 ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Format }}
-      hash-linux-x86_64-portable-openSeaChest_GenericTests:           ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_GenericTests }}
-      hash-linux-x86_64-portable-openSeaChest_Info:                   ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Info }}
-      hash-linux-x86_64-portable-openSeaChest_Logs:                   ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Logs }}
-      hash-linux-x86_64-portable-openSeaChest_NVMe:                   ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_NVMe }}
-      hash-linux-x86_64-portable-openSeaChest_PassthoughTest:         ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_PassthroughTest }}
-      hash-linux-x86_64-portable-openSeaChest_PowerControl:           ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_PowerControl }}
-      hash-linux-x86_64-portable-openSeaChest_Reservations:           ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Reservations }}
-      hash-linux-x86_64-portable-openSeaChest_SMART:                  ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_SMART }}
-      hash-linux-x86_64-portable-openSeaChest_Security:               ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_Security }}
-      hash-linux-x86_64-portable-openSeaChest_ZBD:                    ${{ steps.hash.outputs.hash-linux-x86_64-portable-openSeaChest_ZBD }}
-      #                             
       hash-linux-i686-portable:                                       ${{ steps.hash.outputs.hash-linux-i686-portable }}
-      hash-linux-i686-portable-openSeaChest_Basics:                   ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Basics }}
-      hash-linux-i686-portable-openSeaChest_Configure:                ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Configure }}
-      hash-linux-i686-portable-openSeaChest_Erase:                    ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Erase }}
-      hash-linux-i686-portable-openSeaChest_Firmware:                 ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Firmware }}
-      hash-linux-i686-portable-openSeaChest_Format:                   ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Format }}
-      hash-linux-i686-portable-openSeaChest_GenericTests:             ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_GenericTests }}
-      hash-linux-i686-portable-openSeaChest_Info:                     ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Info }}
-      hash-linux-i686-portable-openSeaChest_Logs:                     ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Logs }}
-      hash-linux-i686-portable-openSeaChest_NVMe:                     ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_NVMe }}
-      hash-linux-i686-portable-openSeaChest_PassthoughTest:           ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_PassthroughTest }}
-      hash-linux-i686-portable-openSeaChest_PowerControl:             ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_PowerControl }}
-      hash-linux-i686-portable-openSeaChest_Reservations:             ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Reservations }}
-      hash-linux-i686-portable-openSeaChest_SMART:                    ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_SMART }}
-      hash-linux-i686-portable-openSeaChest_Security:                 ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_Security }}
-      hash-linux-i686-portable-openSeaChest_ZBD:                      ${{ steps.hash.outputs.hash-linux-i686-portable-openSeaChest_ZBD }}
-      #                             
       hash-linux-aarch64-portable:                                    ${{ steps.hash.outputs.hash-linux-aarch64-portable }}
-      hash-linux-aarch64-portable-openSeaChest_Basics:                ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Basics }}
-      hash-linux-aarch64-portable-openSeaChest_Configure:             ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Configure }}
-      hash-linux-aarch64-portable-openSeaChest_Erase:                 ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Erase }}
-      hash-linux-aarch64-portable-openSeaChest_Firmware:              ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Firmware }}
-      hash-linux-aarch64-portable-openSeaChest_Format:                ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Format }}
-      hash-linux-aarch64-portable-openSeaChest_GenericTests:          ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_GenericTests }}
-      hash-linux-aarch64-portable-openSeaChest_Info:                  ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Info }}
-      hash-linux-aarch64-portable-openSeaChest_Logs:                  ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Logs }}
-      hash-linux-aarch64-portable-openSeaChest_NVMe:                  ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_NVMe }}
-      hash-linux-aarch64-portable-openSeaChest_PassthoughTest:        ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_PassthroughTest }}
-      hash-linux-aarch64-portable-openSeaChest_PowerControl:          ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_PowerControl }}
-      hash-linux-aarch64-portable-openSeaChest_Reservations:          ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Reservations }}
-      hash-linux-aarch64-portable-openSeaChest_SMART:                 ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_SMART }}
-      hash-linux-aarch64-portable-openSeaChest_Security:              ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_Security }}
-      hash-linux-aarch64-portable-openSeaChest_ZBD:                   ${{ steps.hash.outputs.hash-linux-aarch64-portable-openSeaChest_ZBD }}
-      #                             
       hash-linux-armv7l-portable:                                     ${{ steps.hash.outputs.hash-linux-armv7l-portable }}
-      hash-linux-armv7l-portable-openSeaChest_Basics:                 ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Basics }}
-      hash-linux-armv7l-portable-openSeaChest_Configure:              ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Configure }}
-      hash-linux-armv7l-portable-openSeaChest_Erase:                  ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Erase }}
-      hash-linux-armv7l-portable-openSeaChest_Firmware:               ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Firmware }}
-      hash-linux-armv7l-portable-openSeaChest_Format:                 ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Format }}
-      hash-linux-armv7l-portable-openSeaChest_GenericTests:           ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_GenericTests }}
-      hash-linux-armv7l-portable-openSeaChest_Info:                   ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Info }}
-      hash-linux-armv7l-portable-openSeaChest_Logs:                   ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Logs }}
-      hash-linux-armv7l-portable-openSeaChest_NVMe:                   ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_NVMe }}
-      hash-linux-armv7l-portable-openSeaChest_PassthoughTest:         ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_PassthroughTest }}
-      hash-linux-armv7l-portable-openSeaChest_PowerControl:           ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_PowerControl }}
-      hash-linux-armv7l-portable-openSeaChest_Reservations:           ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Reservations }}
-      hash-linux-armv7l-portable-openSeaChest_SMART:                  ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_SMART }}
-      hash-linux-armv7l-portable-openSeaChest_Security:               ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_Security }}
-      hash-linux-armv7l-portable-openSeaChest_ZBD:                    ${{ steps.hash.outputs.hash-linux-armv7l-portable-openSeaChest_ZBD }}
-      #                             
       hash-linux-armv6-portable:                                      ${{ steps.hash.outputs.hash-linux-armv6-portable }}
-      hash-linux-armv6-portable-openSeaChest_Basics:                  ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Basics }}
-      hash-linux-armv6-portable-openSeaChest_Configure:               ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Configure }}
-      hash-linux-armv6-portable-openSeaChest_Erase:                   ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Erase }}
-      hash-linux-armv6-portable-openSeaChest_Firmware:                ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Firmware }}
-      hash-linux-armv6-portable-openSeaChest_Format:                  ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Format }}
-      hash-linux-armv6-portable-openSeaChest_GenericTests:            ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_GenericTests }}
-      hash-linux-armv6-portable-openSeaChest_Info:                    ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Info }}
-      hash-linux-armv6-portable-openSeaChest_Logs:                    ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Logs }}
-      hash-linux-armv6-portable-openSeaChest_NVMe:                    ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_NVMe }}
-      hash-linux-armv6-portable-openSeaChest_PassthoughTest:          ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_PassthroughTest }}
-      hash-linux-armv6-portable-openSeaChest_PowerControl:            ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_PowerControl }}
-      hash-linux-armv6-portable-openSeaChest_Reservations:            ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Reservations }}
-      hash-linux-armv6-portable-openSeaChest_SMART:                   ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_SMART }}
-      hash-linux-armv6-portable-openSeaChest_Security:                ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_Security }}
-      hash-linux-armv6-portable-openSeaChest_ZBD:                     ${{ steps.hash.outputs.hash-linux-armv6-portable-openSeaChest_ZBD }}
-      #                             
       hash-linux-armv5l-portable:                                     ${{ steps.hash.outputs.hash-linux-armv5l-portable }}
-      hash-linux-armv5l-portable-openSeaChest_Basics:                 ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Basics }}
-      hash-linux-armv5l-portable-openSeaChest_Configure:              ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Configure }}
-      hash-linux-armv5l-portable-openSeaChest_Erase:                  ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Erase }}
-      hash-linux-armv5l-portable-openSeaChest_Firmware:               ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Firmware }}
-      hash-linux-armv5l-portable-openSeaChest_Format:                 ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Format }}
-      hash-linux-armv5l-portable-openSeaChest_GenericTests:           ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_GenericTests }}
-      hash-linux-armv5l-portable-openSeaChest_Info:                   ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Info }}
-      hash-linux-armv5l-portable-openSeaChest_Logs:                   ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Logs }}
-      hash-linux-armv5l-portable-openSeaChest_NVMe:                   ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_NVMe }}
-      hash-linux-armv5l-portable-openSeaChest_PassthoughTest:         ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_PassthroughTest }}
-      hash-linux-armv5l-portable-openSeaChest_PowerControl:           ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_PowerControl }}
-      hash-linux-armv5l-portable-openSeaChest_Reservations:           ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Reservations }}
-      hash-linux-armv5l-portable-openSeaChest_SMART:                  ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_SMART }}
-      hash-linux-armv5l-portable-openSeaChest_Security:               ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_Security }}
-      hash-linux-armv5l-portable-openSeaChest_ZBD:                    ${{ steps.hash.outputs.hash-linux-armv5l-portable-openSeaChest_ZBD }}
-      #                             
-      hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}
-      hash-linux-powerpc64-portable-openSeaChest_Basics:              ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Basics }}
-      hash-linux-powerpc64-portable-openSeaChest_Configure:           ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Configure }}
-      hash-linux-powerpc64-portable-openSeaChest_Erase:               ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Erase }}
-      hash-linux-powerpc64-portable-openSeaChest_Firmware:            ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Firmware }}
-      hash-linux-powerpc64-portable-openSeaChest_Format:              ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Format }}
-      hash-linux-powerpc64-portable-openSeaChest_GenericTests:        ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_GenericTests }}
-      hash-linux-powerpc64-portable-openSeaChest_Info:                ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Info }}
-      hash-linux-powerpc64-portable-openSeaChest_Logs:                ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Logs }}
-      hash-linux-powerpc64-portable-openSeaChest_NVMe:                ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_NVMe }}
-      hash-linux-powerpc64-portable-openSeaChest_PassthoughTest:      ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_PassthroughTest }}
-      hash-linux-powerpc64-portable-openSeaChest_PowerControl:        ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_PowerControl }}
-      hash-linux-powerpc64-portable-openSeaChest_Reservations:        ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Reservations }}
-      hash-linux-powerpc64-portable-openSeaChest_SMART:               ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_SMART }}
-      hash-linux-powerpc64-portable-openSeaChest_Security:            ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_Security }}
-      hash-linux-powerpc64-portable-openSeaChest_ZBD:                 ${{ steps.hash.outputs.hash-linux-powerpc64-portable-openSeaChest_ZBD }}
-      #                             
+      hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}                
       hash-linux-powerpc64le-portable:                                ${{ steps.hash.outputs.hash-linux-powerpc64le-portable }}
-      hash-linux-powerpc64le-portable-openSeaChest_Basics:            ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Basics }}
-      hash-linux-powerpc64le-portable-openSeaChest_Configure:         ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Configure }}
-      hash-linux-powerpc64le-portable-openSeaChest_Erase:             ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Erase }}
-      hash-linux-powerpc64le-portable-openSeaChest_Firmware:          ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Firmware }}
-      hash-linux-powerpc64le-portable-openSeaChest_Format:            ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Format }}
-      hash-linux-powerpc64le-portable-openSeaChest_GenericTests:      ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_GenericTests }}
-      hash-linux-powerpc64le-portable-openSeaChest_Info:              ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Info }}
-      hash-linux-powerpc64le-portable-openSeaChest_Logs:              ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Logs }}
-      hash-linux-powerpc64le-portable-openSeaChest_NVMe:              ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_NVMe }}
-      hash-linux-powerpc64le-portable-openSeaChest_PassthoughTest:    ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_PassthroughTest }}
-      hash-linux-powerpc64le-portable-openSeaChest_PowerControl:      ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_PowerControl }}
-      hash-linux-powerpc64le-portable-openSeaChest_Reservations:      ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Reservations }}
-      hash-linux-powerpc64le-portable-openSeaChest_SMART:             ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_SMART }}
-      hash-linux-powerpc64le-portable-openSeaChest_Security:          ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_Security }}
-      hash-linux-powerpc64le-portable-openSeaChest_ZBD:               ${{ steps.hash.outputs.hash-linux-powerpc64le-portable-openSeaChest_ZBD }}
-      #
 
     steps:
     - uses: actions/checkout@v4
@@ -479,19 +303,6 @@ jobs:
           set -euo pipefail
           (sha256sum -t ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }} || shasum -a 256 ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}) > checksum
           echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
-          #
-          #now go into the build directory and hash each openseachest tool that was built and save that to an output for slsa
-          cd build
-          for file in openSeaChest_*; do
-            if [ -f "$file" ]; then
-              if [[ "$file" == openSeaChest_* ]]; then
-                (sha256sum -t $file || shasum -a 256 $file) > checksum 
-                echo "hash-${{ matrix.config.release_name }}-"$file"=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
-              fi
-            fi
-          done
-          #TODO: rpm/deb package if any
-
 
     - name: Uploading artifacts
       uses: actions/upload-artifact@v4
@@ -537,32 +348,3 @@ jobs:
     with:
       base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"
       upload-assets: true # Optional: Upload to a new release
-
-  #This is how we were trying to do it with matrix builds
-  # provenance:
-  #   needs: [build]
-  #   strategy:
-  #     fail-fast: false #don't cancel other jobs if one is failing
-  #     matrix:
-  #       #NOTE: this release_name MUST match EXACTLY the name used by the build job above!
-  #       release_name: [ "win-x64", 
-  #                       "win-x86", 
-  #                       "win-ARM64",
-  #                       "linux-x86_64-portable", 
-  #                       "linux-i686-portable", 
-  #                       "linux-aarch64-portable", 
-  #                       "linux-armv7l-portable", 
-  #                       "linux-armv6-portable",
-  #                       "linux-armv5l-portable",
-  #                       "linux-powerpc64-portable",
-  #                       "linux-powerpc64le-portable"
-  #                       ]
-  #   permissions:
-  #     actions: read # To read the workflow path.
-  #     id-token: write # To sign the provenance.
-  #     contents: write # To add assets to a release.
-  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
-  #   with:
-  #     base64-subjects: "${{ needs.build.outputs[format('hash-{0}', matrix.release_name)] }}"
-  #     # Upload provenance to a new release
-  #     upload-assets: true
