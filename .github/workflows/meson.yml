@@ -541,7 +541,7 @@ jobs:
       hashes-linux-powerpc64-portable:    ${{ steps.hashes.outputs.hashes-linux-powerpc64-portable }}
       hashes-linux-powerpc64le-portable:  ${{ steps.hashes.outputs.hashes-linux-powerpc64le-portable }}
     env:
-      HASHES: ${{ toJSON(needs.build.outputs[format('hash-{0}*', matrix.release_name)]) }}
+      HASHES: ${{ toJSON(needs.build.outputs) }}
     steps:
       - id: hashes
         run: |
