@@ -60,7 +60,7 @@ jobs:
           # NOTE: Using suggested method to generate sha across OS's from slsa documentation
           # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md#provenance-for-artifacts-built-across-multiple-operating-systems
           set -euo pipefail
-          (sha256sum -t ${{ format('SourceCode_With_Submodules.{0}',  matrix.config.extension) }} || shasum -a 256 ${{ format('SourceCode_With_Submodules.{0}',  matrix.config.extension) }}) > checksum
+          (sha256sum -t ${{ format('SourceCode_With_Submodules{0}',  matrix.config.extension) }} || shasum -a 256 ${{ format('SourceCode_With_Submodules{0}',  matrix.config.extension) }}) > checksum
           echo "hash-SourceCode_With_Submodules${{ matrix.config.extension }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
