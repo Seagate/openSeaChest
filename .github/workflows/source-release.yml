@@ -48,7 +48,7 @@ jobs:
     - name: Create Source Archive
       run: |
         pip install git-archive-all
-        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules.${{ matrix.config.extension }}
+        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules${{ matrix.config.extension }}
 
     - name: Generate Hashes
       shell: bash
@@ -61,19 +61,19 @@ jobs:
           # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md#provenance-for-artifacts-built-across-multiple-operating-systems
           set -euo pipefail
           (sha256sum -t ${{ format('SourceCode_With_Submodules.{0}',  matrix.config.extension) }} || shasum -a 256 ${{ format('SourceCode_With_Submodules.{0}',  matrix.config.extension) }}) > checksum
-          echo "hash-SourceCode_With_Submodules.${{ matrix.config.extension }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+          echo "hash-SourceCode_With_Submodules${{ matrix.config.extension }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: SourceCode_With_Submodules.${{ matrix.config.extension }}
-        path: SourceCode_With_Submodules.${{ matrix.config.extension }}
+        name: SourceCode_With_Submodules${{ matrix.config.extension }}
+        path: SourceCode_With_Submodules${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
       uses: softprops/action-gh-release@v2
       with:
-        files: SourceCode_With_Submodules.${{ matrix.config.extension }}
+        files: SourceCode_With_Submodules${{ matrix.config.extension }}
   
   # Generate the slsa provenance
   provenance:
