@@ -4,6 +4,7 @@ name: Create Complete Source Archive
 on:
   push:
     tags: [ v* ]
+    branches: [ feature/hardening ]
     
 jobs:
   archive:
@@ -65,6 +66,7 @@ jobs:
     - name: Upload Source Archive as Artifact
       uses: actions/upload-artifact@v4
       with:
+        name: SourceCode_With_Submodules.${{ matrix.config.extension }}
         path: SourceCode_With_Submodules.${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
