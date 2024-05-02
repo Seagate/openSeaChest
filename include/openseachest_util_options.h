@@ -2195,6 +2195,190 @@ extern "C"
     #define ATA_DCO_FEATURE_OPTION_EPC                  "epc"
     #define ATA_DCO_DISABLE_FEEATURES_LONG_OPT { ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //raw CDB related flags
+    #define RAW_CDB_LEN_FLAG rawCDBLength
+    #define RAW_CDB_LEN_VAR \
+    uint8_t RAW_CDB_LEN_FLAG = 0;
+    #define RAW_CDB_LEN_LONG_OPT_STRING "cdbLen"
+    #define RAW_CDB_LEN_LONG_OPT { RAW_CDB_LEN_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_CDB_ARRAY rawCDB
+    #define RAW_CDB_ARRAY_VAR \
+    uint8_t RAW_CDB_ARRAY[UINT8_MAX] = { 0 };
+    #define RAW_CDB_ARRAY_LONG_OPT_STRING "cdb"
+    #define RAW_CDB_ARRAY_LONG_OPT { RAW_CDB_ARRAY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //raw TFR related flags
+    #define RAW_TFR_SIZE_FLAG rawTFRLength
+    #define RAW_TFR_SIZE_VAR \
+    uint8_t RAW_TFR_SIZE_FLAG = 0; //48 for ext command, and 28 for short command
+    #define RAW_TFR_SIZE_LONG_OPT_STRING "tfrSize"
+    #define RAW_TFR_SIZE_LONG_OPT { RAW_TFR_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //raw tfr registers
+    #define RAW_TFR_COMMAND tfrCommand
+    #define RAW_TFR_FEATURE tfrFeature
+    #define RAW_TFR_FEATURE_EXT tfrFeatureExt
+    #define RAW_TFR_LBA_LOW tfrLBALo
+    #define RAW_TFR_LBA_MID tfrLBAMid
+    #define RAW_TFR_LBA_HIGH tfrLBAHigh
+    #define RAW_TFR_LBA_LOW_EXT tfrLBALoExt
+    #define RAW_TFR_LBA_MID_EXT tfrLBAMidExt
+    #define RAW_TFR_LBA_HIGH_EXT tfrLBAHighExt
+    #define RAW_TFR_DEVICE_HEAD tfrDeviceHead
+    #define RAW_TFR_SECTOR_COUNT tfrSectorCount
+    #define RAW_TFR_SECTOR_COUNT_EXT tfrSectorCountExt
+    #define RAW_TFR_ICC tfrICC
+    #define RAW_TFR_AUX1 tfrAux1
+    #define RAW_TFR_AUX2 tfrAux2
+    #define RAW_TFR_AUX3 tfrAux3
+    #define RAW_TFR_AUX4 tfrAux4
+    #define RAW_TFR_VARS \
+    uint8_t RAW_TFR_COMMAND = 0;\
+    uint8_t RAW_TFR_FEATURE = 0;\
+    uint8_t RAW_TFR_FEATURE_EXT = 0;\
+    uint8_t RAW_TFR_LBA_LOW = 0;\
+    uint8_t RAW_TFR_LBA_MID = 0;\
+    uint8_t RAW_TFR_LBA_HIGH = 0;\
+    uint8_t RAW_TFR_LBA_LOW_EXT = 0;\
+    uint8_t RAW_TFR_LBA_MID_EXT = 0;\
+    uint8_t RAW_TFR_LBA_HIGH_EXT = 0;\
+    uint8_t RAW_TFR_DEVICE_HEAD = 0xA0/*backwards compatible by default*/;\
+    uint8_t RAW_TFR_SECTOR_COUNT = 0;\
+    uint8_t RAW_TFR_SECTOR_COUNT_EXT = 0;\
+    uint8_t RAW_TFR_ICC = 0;\
+    uint8_t RAW_TFR_AUX1 = 0;\
+    uint8_t RAW_TFR_AUX2 = 0;\
+    uint8_t RAW_TFR_AUX3 = 0;\
+    uint8_t RAW_TFR_AUX4 = 0;
+
+    #define RAW_TFR_COMMAND_LONG_OPT_STRING "command"
+    #define RAW_TFR_FEATURE_LONG_OPT_STRING "feature"
+    #define RAW_TFR_FEATURE_EXT_LONG_OPT_STRING "featureExt"
+    #define RAW_TFR_FEATURE_FULL_LONG_OPT_STRING "featFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_LBA_LOW_LONG_OPT_STRING "lbaLow"
+    #define RAW_TFR_LBA_MID_LONG_OPT_STRING "lbaMid"
+    #define RAW_TFR_LBA_HIGH_LONG_OPT_STRING "lbaHigh"
+    #define RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING "lbaLowExt"
+    #define RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING "lbaMidExt"
+    #define RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING "lbaHighExt"
+    #define RAW_TFR_LBA_FULL_LONG_OPT_STRING "fullLBA" //will be broken apart into all separate sections based on the passed in value...to help simplify cli when they don't need specific bits set to specific things
+/*
+    #define RAW_TFR_SECTOR_NUM_LONG_OPT_STRING "sectorNum"
+    #define RAW_TFR_SECTOR_NUM_LONG_OPT_STRING "sectorNumExt"
+    #define RAW_TFR_CYLINDER_LOW_LONG_OPT_STRING "cylinderLow"
+    #define RAW_TFR_CYLINDER_HIGH_LONG_OPT_STRING "cylinderHigh"
+    #define RAW_TFR_CYLINDER_LOW_EXT_LONG_OPT_STRING "cylinderLowExt"
+    #define RAW_TFR_CYLINDER_HIGH_EXT_LONG_OPT_STRING "cylinderHighExt"
+    #define RAW_TFR_CHS_FULL "chsFull"
+*/
+    #define RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING "deviceHead"
+    #define RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING "sectorCount"
+    #define RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING "sectorCountExt"
+    #define RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING "sectFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_ICC_LONG_OPT_STRING "icc"
+    #define RAW_TFR_AUX1_LONG_OPT_STRING "aux1"
+    #define RAW_TFR_AUX2_LONG_OPT_STRING "aux2"
+    #define RAW_TFR_AUX3_LONG_OPT_STRING "aux3"
+    #define RAW_TFR_AUX4_LONG_OPT_STRING "aux4"
+    #define RAW_TFR_AUX_FULL_LONG_OPT_STRING "auxFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING "lbaMode" //sets the LBA mode bit in device/head register
+
+//TODO: add other options with legacy names like cylinder, head, sector, etc
+//TODO: multiple count option for read/write multiple commands?
+
+    #define RAW_TFR_COMMAND_LONG_OPT { RAW_TFR_COMMAND_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_LONG_OPT { RAW_TFR_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_EXT_LONG_OPT { RAW_TFR_FEATURE_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_FULL_LONG_OPT { RAW_TFR_FEATURE_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_LOW_LONG_OPT { RAW_TFR_LBA_LOW_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MID_LONG_OPT { RAW_TFR_LBA_MID_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_HIGH_LONG_OPT { RAW_TFR_LBA_HIGH_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_LOW_EXT_LONG_OPT { RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MID_EXT_LONG_OPT { RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_HIGH_EXT_LONG_OPT { RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_FULL_LONG_OPT { RAW_TFR_LBA_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_DEVICE_HEAD_LONG_OPT { RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MODE_BIT_LONG_OPT { RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING, no_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_LONG_OPT { RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT { RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT { RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_ICC_LONG_OPT { RAW_TFR_ICC_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX1_LONG_OPT { RAW_TFR_AUX1_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX2_LONG_OPT { RAW_TFR_AUX2_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX3_LONG_OPT { RAW_TFR_AUX3_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX4_LONG_OPT { RAW_TFR_AUX4_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX_FULL_LONG_OPT { RAW_TFR_AUX_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_REGITER_LONG_OPTS \
+    RAW_TFR_COMMAND_LONG_OPT, RAW_TFR_FEATURE_LONG_OPT, RAW_TFR_FEATURE_EXT_LONG_OPT, RAW_TFR_FEATURE_FULL_LONG_OPT, RAW_TFR_LBA_LOW_LONG_OPT, RAW_TFR_LBA_MID_LONG_OPT, RAW_TFR_LBA_HIGH_LONG_OPT, \
+    RAW_TFR_LBA_LOW_EXT_LONG_OPT, RAW_TFR_LBA_MID_EXT_LONG_OPT, RAW_TFR_LBA_HIGH_EXT_LONG_OPT, RAW_TFR_LBA_FULL_LONG_OPT, RAW_TFR_DEVICE_HEAD_LONG_OPT, RAW_TFR_LBA_MODE_BIT_LONG_OPT, RAW_TFR_SECTOR_COUNT_LONG_OPT, \
+    RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT, RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT, RAW_TFR_ICC_LONG_OPT, RAW_TFR_AUX1_LONG_OPT, RAW_TFR_AUX2_LONG_OPT, RAW_TFR_AUX3_LONG_OPT, RAW_TFR_AUX4_LONG_OPT, RAW_TFR_AUX_FULL_LONG_OPT
+
+    #define RAW_TFR_PROTOCOL tfrProtocol
+    #define RAW_TFR_PROTOCOL_VAR int RAW_TFR_PROTOCOL = -1;
+    #define RAW_TFR_PROTOCOL_LONG_OPT_STRING "tfrProtocol"
+    #define RAW_TFR_PROTOCOL_LONG_OPT { RAW_TFR_PROTOCOL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TFR_XFER_LENGTH_LOCATION tfrLengthLocation
+    #define RAW_TFR_XFER_LENGTH_LOCATION_VAR int RAW_TFR_XFER_LENGTH_LOCATION = -1;
+    #define RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING "tfrXferLengthReg"
+    #define RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT { RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TFR_CHECK_CONDITION tfrCheckCondition
+    #define RAW_TFR_CHECK_CONDITION_VAR getOptBool RAW_TFR_CHECK_CONDITION = goFalse;
+    #define RAW_TFR_CHECK_CONDITION_LONG_OPT_STRING "tfrSetChkCond"
+    #define RAW_TFR_CHECK_CONDITION_LONG_OPT { RAW_TFR_CHECK_CONDITION_LONG_OPT_STRING, no_argument, &RAW_TFR_CHECK_CONDITION, goTrue }
+
+    #define RAW_TFR_BYTE_BLOCK tfrByteBlock
+    #define RAW_TFR_BYTE_BLOCK_VAR int RAW_TFR_BYTE_BLOCK = -1;//0 will mean no-data, 1 = byte count, 512 = 512B blocks, UINT8_MAX = logical sector size
+    #define RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING "tfrByteBlock"
+    #define RAW_TFR_BYTE_BLOCK_LONG_OPT { RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //shared raw flags
+    #define RAW_DATA_LEN_FLAG rawDataLength
+    #define RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG rawDataLengthBlocks
+    #define RAW_DATA_LEN_VARS \
+    uint32_t RAW_DATA_LEN_FLAG = 0;\
+    bool RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = false;
+    #define RAW_DATA_LEN_LONG_OPT_STRING "dataLen"
+    #define RAW_DATA_LEN_LONG_OPT { RAW_DATA_LEN_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_DATA_DIRECTION_FLAG rawDataDirection
+    #define RAW_DATA_DIRECTION_VAR \
+    int RAW_DATA_DIRECTION_FLAG = -1;//set to somthing invalid. this int should cast to the data direction enum for us just fine....
+    #define RAW_DATA_DIRECTION_LONG_OPT_STRING "dataDir"
+    #define RAW_DATA_DIRECTION_LONG_OPT { RAW_DATA_DIRECTION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TIMEOUT_FLAG rawTimeout
+    #define RAW_TIMEOUT_VAR \
+    uint32_t RAW_TIMEOUT_FLAG = 15 * 1000;//15 seconds is the default
+    #define RAW_TIMEOUT_LONG_OPT_STRING "timeout"
+    #define RAW_TIMEOUT_LONG_OPT { RAW_TIMEOUT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_OUTPUT_FILE_FLAG rawOutFile
+    #define RAW_OUTPUT_FILE_NAME_FLAG rawOutFileName
+    #define RAW_OUTPUT_FILE_VARS \
+    const char* RAW_OUTPUT_FILE_NAME_FLAG = NULL;\
+    FILE *RAW_OUTPUT_FILE_FLAG = NULL;
+    #define RAW_OUTPUT_FILE_LONG_OPT_STRING "outputFile"
+    #define RAW_OUTPUT_FILE_LONG_OPT { RAW_OUTPUT_FILE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_INPUT_FILE_FLAG rawInFile
+    #define RAW_INPUT_FILE_NAME_FLAG rawInFileName
+    #define RAW_INPUT_FILE_VARS \
+    const char* RAW_INPUT_FILE_NAME_FLAG = NULL;\
+    FILE *RAW_INPUT_FILE_FLAG = NULL;
+    #define RAW_INPUT_FILE_LONG_OPT_STRING "inputFile"
+    #define RAW_INPUT_FILE_LONG_OPT { RAW_INPUT_FILE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_INPUT_FILE_OFFSET_FLAG rawInFileOffset
+    #define RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG rawInOffsetBlocks
+    #define RAW_INPUT_FILE_OFFSET_VAR \
+    long int RAW_INPUT_FILE_OFFSET_FLAG = SEEK_SET; \
+    getOptBool RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = goFalse;
+    #define RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING "inputOffset"
+    #define RAW_INPUT_FILE_OFFSET_LONG_OPT { RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, required_argument, NULL, 0 }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3637,6 +3821,50 @@ extern "C"
     void print_WRV_Help(bool shortHelp);
 
     void print_Refresh_Filesystems_Help(bool shortHelp);
+
+    void print_Raw_CDB_Length_Help(bool shortHelp);
+
+    void print_Raw_CDB_Help(bool shortHelp);
+
+    void print_Raw_TFR_Command_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Full_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Low_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mid_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_High_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Low_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mid_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_High_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Full_Help(bool shortHelp);
+    void print_Raw_TFR_Device_Head_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mode_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Full_Help(bool shortHelp);
+    void print_Raw_TFR_Byte_Block_Help(bool shortHelp);
+    void print_Raw_TFR_Protocol_Help(bool shortHelp);
+    void print_Raw_TFR_Check_Condition_Help(bool shortHelp);
+    void print_Raw_TFR_Size_Help(bool shortHelp);
+    void print_Raw_TFR_XFer_Length_Register_Help(bool shortHelp);
+    void print_Raw_TFR_ICC_Help(bool shortHelp);
+    void print_Raw_TFR_AUX1_Help(bool shortHelp);
+    void print_Raw_TFR_AUX2_Help(bool shortHelp);
+    void print_Raw_TFR_AUX3_Help(bool shortHelp);
+    void print_Raw_TFR_AUX4_Help(bool shortHelp);
+    void print_Raw_TFR_Aux_Full_Help(bool shortHelp);
+
+    void print_Raw_Data_Length_Help(bool shortHelp);
+
+    void print_Raw_Data_Direction_Help(bool shortHelp);
+
+    void print_Raw_Output_File_Help(bool shortHelp);
+
+    void print_Raw_Input_File_Help(bool shortHelp);
+
+    void print_Raw_Timeout_Help(bool shortHelp);
+
+    void print_Raw_Input_File_Offset_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

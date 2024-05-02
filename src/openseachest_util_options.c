@@ -4747,3 +4747,477 @@ void print_DCO_Disable_Features_Help(bool shortHelp)
     }
 }
 
+void print_Raw_CDB_Length_Help(bool shortHelp)
+{
+    printf("\t--%s [length in bytes]\n", RAW_CDB_LEN_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the length of the CDB\n");
+        printf("\t\tto send to the device. Max length is %" PRIu8 "\n", UINT8_MAX);
+        printf("\t\tSome OS's may not support CDBs larger than 16 bytes\n\n");
+    }
+}
+
+void print_Raw_CDB_Help(bool shortHelp)
+{
+    printf("\t--%s [csv CDB]\n", RAW_CDB_ARRAY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify a specific CDB to\n");
+        printf("\t\tsend to a device. The entered value must be\n");
+        printf("\t\tin comma separated value (csv) format. To\n");
+        printf("\t\tspecify a value as hex, it must be either\n");
+        printf("\t\tpre-pended with \"0x\" or post-pended with\n");
+        printf("\t\t\"h\" or \"H\"\n");
+        printf("\t\tExamples:\n");
+        printf("\t\t\t1) inquiry: --%s 12h,0,0,0,60h,0\n", RAW_CDB_ARRAY_LONG_OPT_STRING);
+        printf("\t\t\t2) inquiry: --%s 0x12,0,0,0,0x60,0\n", RAW_CDB_ARRAY_LONG_OPT_STRING);
+        printf("\t\t\t3) inquiry: --%s 18,0,0,0,96,0\n", RAW_CDB_ARRAY_LONG_OPT_STRING);
+        printf("\t\tAll 3 examples send the same command to a drive\n\n");
+    }
+}
+
+void print_Raw_TFR_Command_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_COMMAND_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the command operation code for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Feature_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_FEATURE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the feature register for\n");
+        printf("\t\tsending a raw SATA command. (Lower 8 bits on 48 bit commands)\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Feature_Ext_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_FEATURE_EXT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the feature ext register for\n");
+        printf("\t\tsending a raw SATA command. (Upper 8 bits on 48 bit commands)\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Feature_Full_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_FEATURE_FULL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the feature and feature ext register for\n");
+        printf("\t\tsending a raw SATA command. This will be interpretted as a 16bit value.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Low_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_LOW_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA low (sector number) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Mid_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_MID_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA mid (Cylinder Low) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_High_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_HIGH_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA high (Cylinder High) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Low_Ext_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA low ext (sector number ext) register for\n");
+        printf("\t\tsending a raw SATA command. This is for 48 bit commands.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Mid_Ext_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA mid ext (Cylinder Low ext) register for\n");
+        printf("\t\tsending a raw SATA command. This is for 48 bit commands.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_High_Ext_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA high ext (Cylinder High) ext register for\n");
+        printf("\t\tsending a raw SATA command. This is for 48 bit commands.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Full_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_LBA_FULL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the LBA registers for\n");
+        printf("\t\tsending a raw SATA command. This will be interpretted as a 48 bit value\n");
+        printf("\t\tto put into the appropriate LBA registers. This option is more useful when specifying\n");
+        printf("\t\tan LBA value for a command like a read or a write.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Device_Head_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Device/Head register for\n");
+        printf("\t\tsending a raw SATA command. If this option is not provided, a value of\n");
+        printf("\t\tA0h will be used for backwards compatibility with older ATA command specifications.\n");
+        printf("\t\tNOTE: This option should be specified BEFORE the --%s option\n", RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING);
+        printf("\t\tNOTE: On 28bit read/write commands, the high 4 bits of the LBA register need to be\n");
+        printf("\t\t      placed in the lower 4 bits of this register.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_LBA_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set the LBA Mode bit of the Device/Head register for\n");
+        printf("\t\tsending a raw SATA command. \n");
+        printf("\t\tThis bit is necessary for performing read/write commands on modern drives.\n");
+        printf("\t\tNOTE: This bit will NOT be set by default since it only applies to read/write commands\n");
+        printf("\t\t      but not all other commands in the ATA specifications.\n");
+        printf("\n");
+    }
+}
+
+void print_Raw_TFR_Sector_Count_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the sector count register for\n");
+        printf("\t\tsending a raw SATA command. (Lower 8 bits on 48 bit commands)\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Sector_Count_Ext_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the sector count ext register for\n");
+        printf("\t\tsending a raw SATA command. (Upper 8 bits on 48 bit commands)\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_Sector_Count_Full_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the sector count and sector count ext register for\n");
+        printf("\t\tsending a raw SATA command. This will be interpretted as a 16bit value.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
+    }
+}
+
+void print_Raw_TFR_ICC_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_ICC_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the ICC register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting this register. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_AUX1_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_AUX1_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Aux (7:0) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting this register. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_AUX2_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_AUX2_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Aux (15:8) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting this register. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_AUX3_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_AUX3_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Aux (23:16) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting this register. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_AUX4_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_AUX4_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Aux (31:24) register for\n");
+        printf("\t\tsending a raw SATA command.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting this register. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_Aux_Full_Help(bool shortHelp)
+{
+    printf("\t--%s [hex or decimal]\t(SATA Only)\n", RAW_TFR_AUX_FULL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the Aux (31:0) registers for\n");
+        printf("\t\tsending a raw SATA command. This will be interpretted as a 32bit value.\n");
+        printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n");
+        printf("\t\tNOTE: Not all interfaces support setting these registers. 32B SAT CDB required.\n\n");
+    }
+}
+
+void print_Raw_TFR_Protocol_Help(bool shortHelp)
+{
+    printf("\t--%s [pio | dma | udma | fpdma | ncq | nodata | reset | dmaque | diag]\t(SATA Only)\n", RAW_TFR_PROTOCOL_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the protocol for\n");
+        printf("\t\tsending a raw SATA command. This option must match the definition\n");
+        printf("\t\tof the command in the ATA/ACS specification.\n");
+        printf("\t\tThis option must be provided before a command will be sent.\n");
+        printf("\t\tArguments:\n");
+        printf("\t\t  pio - send as programmed IO protocol.\n");
+        printf("\t\t  dma - send as direct memory access protocol\n");
+        printf("\t\t  udma - send as ultra direct memory access protocol\n");
+        printf("\t\t  fpdma/ncq - send as first party direct memory access protocol (NCQ)\n");
+        printf("\t\t  nodata - send as non-data protocol\n");
+        printf("\t\t  reset - send as reset protocol (ATAPI only)\n");
+        printf("\t\t  dmaque - send as direct memory access queued protocol (TCQ)\n");
+        printf("\t\t  diag - send as devie diagnostic protocol\n");
+        printf("\t\tNOTE: If a command with dma doesn't work, try udma. Some SATLs like it better.\n");
+        printf("\t\tNOTE: Most SATLs don't allow sending queued commands as pass-through. Some OSs\n");
+        printf("\t\t      also will not allow queued pass-through commands.\n\n");
+    }
+}
+
+void print_Raw_TFR_XFer_Length_Register_Help(bool shortHelp)
+{
+    printf("\t--%s [sectorCount | feature | tpsiu | nodata]\t(SATA Only)\n", RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the registers used to specify the length of data\n");
+        printf("\t\tbeing sent or received when issuing a raw SATA command. This option must match\n");
+        printf("\t\tthe definition of the command in the ATA/ACS specification.\n");
+        printf("\t\tThis option must be provided before a command will be sent.\n");
+        printf("\t\tArguments:\n");
+        printf("\t\t  sectorCount - the sector count registers specify the number of blocks (most commands)\n");
+        printf("\t\t  feature - the feature registers specify the number of blocks (queued commands)\n");
+        printf("\t\t  tpsiu - a transport specific location will specify the length of the data transfer\n");
+        printf("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
+        printf("\t\tNOTE: tpsiu is generally only seen supported on USB adapters, but not all USB SATL's\n");
+        printf("\t\t      will recognize this option.\n");
+        printf("\t\tNOTE: For commands, such as identify (ECh), that transfer data, but do not specify\n");
+        printf("\t\t      a value of 1 in the sector count, it is recommended that this is added\n");
+        printf("\t\t      to the sector count register and and \"sectorCount\" is used for better\n");
+        printf("\t\t      compatibility with various SATLs.\n\n");
+    }
+}
+
+void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
+{
+    printf("\t--%s [512 | logical | bytes | nodata]\t(SATA Only)\n", RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the data transfer length\n");
+        printf("\t\tbeing sent or received when issuing a raw SATA command. This option must match\n");
+        printf("\t\tthe definition of the command in the ATA/ACS specification.\n");
+        printf("\t\tThis option must be provided before a command will be sent.\n");
+        printf("\t\tArguments:\n");
+        printf("\t\t  512 - the data transfer is a number of 512B blocks (most commands)\n");
+        printf("\t\t  logical - data transfer is a number of logical block sizes transfers (read commands)\n");
+        printf("\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
+        printf("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
+        printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
+    }
+}
+
+void print_Raw_TFR_Size_Help(bool shortHelp)
+{
+    printf("\t--%s [28 | 48 | complete]\t(SATA Only)\n", RAW_TFR_SIZE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the command type: 28bit or 48bit\n");
+        printf("\t\twhen issuing a raw SATA command. This option must match\n");
+        printf("\t\tthe definition of the command in the ATA/ACS specification.\n");
+        printf("\t\tThis option must be provided before a command will be sent.\n");
+        printf("\t\tArguments:\n");
+        printf("\t\t  28 - the command is a 28 bit command (ex: identify, SMART)\n");
+        printf("\t\t  48 - the command is a 48 bit command (ex: read DMA ext, read log ext)\n");
+        printf("\t\t  complete - 48 bit command that also sets ICC or AUX registers.\n");
+        printf("\t\t             use this to force a 32B CDB. If specifying 48 and AUX or ICC\n");
+        printf("\t\t             are set, 32B CDB will automatically be generated without needing\n");
+        printf("\t\t             this option explicitly set.\n");
+        printf("\t\tNOTE: complete TFR requires SAT 32B cdb, which many devices or interfaces\n");
+        printf("\t\t      may not support. These commands may not be available.\n\n");
+    }
+}
+
+void print_Raw_TFR_Check_Condition_Help(bool shortHelp)
+{
+    printf("\t--%s\t(SATA Only)\n", RAW_TFR_CHECK_CONDITION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set the check condition bit in the SAT CDB that may be\n");
+        printf("\t\tsent to a translator to inform it to generate a check condition and return\n");
+        printf("\t\tall task file results.\n");
+        printf("\t\tNOTE: This option may not work on all SATLs.\n\n");
+    }
+}
+
+void print_Raw_Data_Length_Help(bool shortHelp)
+{
+    printf("\t--%s [length in bytes]\n", RAW_DATA_LEN_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the data transfer\n");
+        printf("\t\tlength for a data-in or data-out transfer.\n");
+        printf("\t\tThe following post fixes are allowed for\n");
+        printf("\t\tspecifying a transfer length:\n");
+        printf("\t\t\tBLOCKS - used to specify a transfer length\n");
+        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
+        printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
+        printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
+        printf("\t\t\tMiB - length in mebibytes (val * 1048576)\n");
+        printf("\t\tYou must enter a size that is greater than or\n");
+        printf("\t\tequal to any length in the entered raw command\n");
+        printf("\t\tdata. If a lesser value is entered, then the\n");
+        printf("\t\tutility may experience errors or crash.\n\n");
+    }
+}
+
+void print_Raw_Data_Direction_Help(bool shortHelp)
+{
+    printf("\t--%s [in | out | none]\n", RAW_DATA_DIRECTION_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the data direction\n");
+        printf("\t\tof the entered raw command.\n");
+        printf("\t\tin - transfer data from the device to host\n");
+        printf("\t\tout - transfer data from the host to device\n");
+        printf("\t\tnone - no data is transferred\n");
+    }
+}
+
+void print_Raw_Output_File_Help(bool shortHelp)
+{
+    printf("\t--%s [path/filename]\n", RAW_OUTPUT_FILE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify an output file to\n");
+        printf("\t\tsave data returned from a command, or in the\n");
+        printf("\t\tcase of an error, the returned error buffer.\n");
+        printf("\t\tThis option will always append data to already\n");
+        printf("\t\tcreated files. If an error occurs on a datain\n");
+        printf("\t\traw command, the returned error data will not be\n");
+        printf("\t\tsaved to a file to prevent adding unexpected data\n");
+        printf("\t\tto the created file.\n\n");
+    }
+}
+
+void print_Raw_Input_File_Help(bool shortHelp)
+{
+    printf("\t--%s [path/filename]\n", RAW_INPUT_FILE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify an input file to\n");
+        printf("\t\tsend to a device. Must be a binary file.\n\n");
+    }
+}
+
+void print_Raw_Timeout_Help(bool shortHelp)
+{
+    printf("\t--%s [time in seconds]\n", RAW_TIMEOUT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify an timeout in seconds\n");
+        printf("\t\tfor a raw command being sent to a device.\n\n");
+    }
+}
+
+void print_Raw_Input_File_Offset_Help(bool shortHelp)
+{
+    printf("\t--%s [offset in bytes]\n", RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the offset within\n");
+        printf("\t\tthe raw input file to start sending data from.\n");
+        printf("\t\tThe following post fixes are allowed for\n");
+        printf("\t\tspecifying a transfer length:\n");
+        printf("\t\t\tBLOCKS - used to specify an offset length\n");
+        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
+        printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
+        printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
+        printf("\t\t\tMiB - length in mebibytes (val * 1048576)\n");
+        printf("\n");
+    }
+}
