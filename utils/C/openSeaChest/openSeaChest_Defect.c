@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
     CORRUPT_LBA_RANGE_VAR
     CORRUPT_RANDOM_LBAS_VAR
     BYTES_TO_CORRUPT_VAR
+    SCSI_DEFECTS_VARS
 
     int  args = 0;
     int argIndex = 0;
@@ -155,6 +156,7 @@ int main(int argc, char* argv[])
         CORRUPT_LBA_RANGE_LONG_OPT,
         CORRUPT_RANDOM_LBAS_LONG_OPT,
         BYTES_TO_CORRUPT_LONG_OPT,
+        SCSI_DEFECTS_LONG_OPTS,
         LONG_OPT_TERMINATOR
     };
 
@@ -229,6 +231,69 @@ int main(int argc, char* argv[])
                 if (strchr(optarg, 'L') || strchr(optarg, 'l'))
                 {
                     CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = true;
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
+            {
+                size_t counter = 0;
+                SCSI_DEFECTS_FLAG = true;
+                while (counter < strlen(optarg))
+                {
+                    if (optarg[counter] == 'p' || optarg[counter] == 'P')
+                    {
+                        SCSI_DEFECTS_PRIMARY_LIST = true;
+                    }
+                    else if (optarg[counter] == 'g' || optarg[counter] == 'G')
+                    {
+                        SCSI_DEFECTS_GROWN_LIST = true;
+                    }
+                    ++counter;
+                }
+                if (!SCSI_DEFECTS_PRIMARY_LIST && !SCSI_DEFECTS_GROWN_LIST)
+                {
+                    printf("\n Error in option --%s. You must specify showing primary (p) or grown (g) defects or both\n", SCSI_DEFECTS_LONG_OPT_STRING);
+                    printf("Use -h option to view command line help\n");
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
+            {
+                //check for integer value or string that specifies the correct mode.
+                if (strlen(optarg) == 1 && isdigit(optarg[0]))
+                {
+                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
+                }
+                else
+                {
+                    if (strcmp("shortBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 0;
+                    }
+                    else if (strcmp("longBlock", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 3;
+                    }
+                    else if (strcmp("xbfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 1;
+                    }
+                    else if (strcmp("xchs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 2;
+                    }
+                    else if (strcmp("bfi", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 4;
+                    }
+                    else if (strcmp("chs", optarg) == 0)
+                    {
+                        SCSI_DEFECTS_DESCRIPTOR_MODE = 5;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, CREATE_UNCORRECTABLE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CREATE_UNCORRECTABLE_LONG_OPT_STRING))) == 0)
@@ -622,6 +687,7 @@ int main(int argc, char* argv[])
         || RANDOM_UNCORRECTABLES_FLAG
         || CORRUPT_LBA_FLAG
         || CORRUPT_RANDOM_LBAS
+        || SCSI_DEFECTS_FLAG
         ))
     {
         utility_Usage(true);
@@ -1077,6 +1143,32 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (SCSI_DEFECTS_FLAG)
+        {
+            ptrSCSIDefectList defects = NULL;
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            {
+            case SUCCESS:
+                print_SCSI_Defect_List(defects);
+                free_Defect_List(&defects);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve SCSI defect list from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (DST_AND_CLEAN_FLAG)
         {
             if (SINGLE_SECTOR_DATA_ERASE_FLAG)
@@ -1498,7 +1590,9 @@ void utility_Usage(bool shortUsage)
     //printf("\n\tSATA Only:\n\n");
 
     //SAS Only Options
-    //printf("\n\tSAS Only:\n\n");
+    printf("\n\tSAS Only:\n\n");
+    print_SCSI_Defects_Format_Help(shortUsage);
+    print_SCSI_Defects_Help(shortUsage);
 
 
     //data destructive commands - alphabetized
