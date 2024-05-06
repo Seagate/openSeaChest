@@ -152,10 +152,11 @@ if target_machine.system() == 'windows'
   add_project_arguments('-D_CRT_SECURE_NO_WARNINGS', language : 'c')
 endif
 
-if meson.is_cross_build()
-  message('Meson is cross-building')
-  if meson.can_run_host_binaries()
-    message('Capable of running host-binaries')
+usehelp2man = false
+if meson.can_run_host_binaries()
+  help2man = find_program('help2man', required : false)
+  if help2man.found()
+    usehelp2man = true
   endif
 endif
 
@@ -179,6 +180,10 @@ exe_src_map = {
 
 foreach p : get_option('tools')
   executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
+  if usehelp2man
+    #use help2man to generate manpages before installing them
+    run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: true)
+  endif
   install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
 endforeach
 install_man('docs/man/man8/openSeaChest.8')
