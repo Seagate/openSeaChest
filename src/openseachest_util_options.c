@@ -5221,3 +5221,163 @@ void print_Raw_Input_File_Offset_Help(bool shortHelp)
         printf("\n");
     }
 }
+
+void print_Check_Pending_List_Help(bool shortHelp)
+{
+    printf("\t--%s [count to check]\n", CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to check if the pending defect list count is\n");
+        printf("\t\tgreater than the provided value.\n");
+        printf("\t\tNOTE: This only works on SAS products that support the Pending\n");
+        printf("\t\tDefects log page from SBC4 or later\n\n");
+    }
+}
+
+void print_Check_Grown_List_Help(bool shortHelp)
+{
+    printf("\t--%s [count to check]\n", CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to check if the grown defect list count is\n");
+        printf("\t\tgreater than the provided value.\n\n");
+    }
+}
+
+void print_Show_Pending_List_Help(bool shortHelp)
+{
+    printf("\t--%s (Seagate Only)\n", SHOW_PENDING_LIST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the pending defect list\n");
+        printf("\t\tas it is reported by the drive.\n");
+        printf("\t\tNOTE: SBC4 pending log required for SAS support.\n\n");
+    }
+}
+
+void print_Create_Uncorrectable_Help(bool shortHelp)
+{
+    printf("\t--%s [lba]\t(Seagate Only)\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to create a uncorrectable error at\n");
+        printf("\t\tthe specified LBA. Use --%s to specify a range.\n", UNCORRECTABLE_RANGE_LONG_OPT_STRING);
+        printf("\t\tBy default, pseudo uncorrectable errors will be created for\n");
+        printf("\t\tthe entire physical sector. Use the --%s option\n", FLAG_UNCORRECTABLE_LONG_OPT_STRING);
+        printf("\t\tto flag errors instead. Flagged errors do not get logged\n");
+        printf("\t\tor have any error processing when encountered.\n\n");
+    }
+}
+
+void print_Flag_Uncorrectable_Help(bool shortHelp)
+{
+    printf("\t--%s\t(Seagate Only)\n", FLAG_UNCORRECTABLE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to flag an uncorrectable error instead of\n");
+        printf("\t\tcreating a pseudo uncorrectable error with the\n");
+        printf("\t\t--%s or --%s options.\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING, RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
+        printf("\t\tError types:\n");
+        printf("\t\t    Pseudo - creates a pseudo uncorrectable error. The device\n");
+        printf("\t\t             will perform full error recovery and logging on failure.\n");
+        printf("\t\t    Flagged - flags an error. The device will not perform error\n");
+        printf("\t\t              recovery and will not log on failure.\n");
+        printf("\n");
+    }
+}
+
+void print_Uncorrectable_Range_Help(bool shortHelp)
+{
+    printf("\t--%s [range]\t(Seagate Only)\n", UNCORRECTABLE_RANGE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify a range of LBAs to create an\n");
+        printf("\t\tuncorrectable error at. This option must be used with the\n");
+        printf("\t\t--%s or --%s options so that a\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING, FLAG_UNCORRECTABLE_LONG_OPT_STRING);
+        printf("\t\tstarting LBA is specified. \n\n");
+    }
+}
+
+void print_Random_Uncorrectable_Help(bool shortHelp)
+{
+    printf("\t--%s [number of errors]\t(Seagate Only)\n", RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to create a number of random uncorrectable\n");
+        printf("\t\tLBAs on a drive. \n\n");
+    }
+}
+
+void print_Disable_Read_Uncorrectables_Help(bool shortHelp)
+{
+    printf("\t--%s\n", DISABLE_READ_UNCORRECTABLES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to disable issuing read commands to the LBAs\n");
+        printf("\t\twhere errors are written. This option should only be used for\n");
+        printf("\t\tdebugging. When this option is used, the uncorrectable errors\n");
+        printf("\t\tmay not end up being logged in the Pending Defect List on the\n");
+        printf("\t\tdrive.\n\n");
+    }
+}
+
+void print_Corrupt_LBA_Help(bool shortHelp)
+{
+    printf("\t--%s [lba]\t(Seagate Only)\n", CORRUPT_LBA_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to corrupt the data bytes of an LBA. The\n");
+        printf("\t\t--%s option can be used to specify the number of bytes to\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
+        printf("\t\tcorrupt. If that option is not given, a default will be used\n");
+        printf("\t\tthat attempts to create a correctable error on the drive.\n");
+        printf("\t\tThis option can be used to create uncorrectable or correctable\n");
+        printf("\t\terrors on a drive, depending on it's ECC algorithm and the number\n");
+        printf("\t\tof corrupted data bytes.\n\n");
+    }
+}
+
+void print_Corrupt_Random_LBAs_Help(bool shortHelp)
+{
+    printf("\t--%s [# of LBAs to corrupt]\t(Seagate Only)\n", CORRUPT_RANDOM_LBAS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will corrupt the specified number of LBAs randomly\n");
+        printf("\t\ton the device. The --%s option can be used to specify the number of bytes to\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
+        printf("\t\tcorrupt. If that option is not given, a default will be used\n");
+        printf("\t\tthat attempts to create a correctable error on the drive.\n");
+        printf("\t\tThis option can be used to create uncorrectable or correctable\n");
+        printf("\t\terrors on a drive, depending on it's ECC algorithm and the number\n");
+        printf("\t\tof corrupted data bytes.\n\n");
+    }
+}
+
+void print_Corrupt_Range_Help(bool shortHelp)
+{
+    printf("\t--%s [# of LBAs]\t(Seagate Only)\n", CORRUPT_LBA_RANGE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option is used with the --%s option to\n", CORRUPT_LBA_LONG_OPT_STRING);
+        printf("\t\tcorrupt a range of LBAs on the drive.\n\n");
+    }
+}
+
+void print_Bytes_To_Corrupt_Help(bool shortHelp)
+{
+    printf("\t--%s [# of bytes]\t(Seagate Only)\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to specify the number of data bytes to change\n");
+        printf("\t\twhen used with the --%s option.\n\n", CORRUPT_LBA_LONG_OPT_STRING);
+    }
+}
+
+void print_SCSI_FW_Info_Help(bool shortHelp)
+{
+    printf("\t--%s (SAS Only)\n", SHOW_SCSI_FW_INFO_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tThis option will show the SCSI Firmware info from\n");
+        printf("\t\ta Seagate SAS drive. This is the extended firmware build\n");
+        printf("\t\tinformation.\n\n");
+    }
+}

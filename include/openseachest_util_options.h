@@ -2379,6 +2379,102 @@ extern "C"
     #define RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING "inputOffset"
     #define RAW_INPUT_FILE_OFFSET_LONG_OPT { RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //check Pending List count
+    #define CHECK_PENDING_LIST_COUNT_FLAG checkPendingListCount
+    #define CHECK_PENDING_LIST_COUNT_VALUE pendlingListCountToCheck
+    #define CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG checkPendingListLogicalCount
+    #define CHECK_PENDING_LIST_COUNT_VARS \
+    bool CHECK_PENDING_LIST_COUNT_FLAG = false;\
+    bool CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG = false; /*By default we check for bad Physical sector counts, but the drive reports in logical, so this is an override flag*/\
+    uint32_t CHECK_PENDING_LIST_COUNT_VALUE = UINT32_MAX;
+    #define CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING "checkPendingListCount"
+    #define CHECK_PENDING_LIST_COUNT_LONG_OPT { CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    
+    //check Grown List count
+    #define CHECK_GROWN_LIST_COUNT_FLAG checkGrownListCount
+    #define CHECK_GROWN_LIST_COUNT_VALUE grownListCountToCheck
+    #define CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG checkGrownListLogicalCount
+    #define CHECK_GROWN_LIST_COUNT_VARS \
+    bool CHECK_GROWN_LIST_COUNT_FLAG = false;\
+    bool CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = false; /*By default we check for bad Physical sector counts, but the drive reports in logical, so this is an override flag*/\
+    uint32_t CHECK_GROWN_LIST_COUNT_VALUE = UINT32_MAX;
+    #define CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING "checkGrownListCount"
+    #define CHECK_GROWN_LIST_COUNT_LONG_OPT { CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //show pending list
+    #define SHOW_PENDING_LIST showPendingList
+    #define SHOW_PENDING_LIST_VAR getOptBool SHOW_PENDING_LIST = goFalse;
+    #define SHOW_PENDING_LIST_LONG_OPT_STRING "showPendingList"
+    #define SHOW_PENDING_LIST_LONG_OPT { SHOW_PENDING_LIST_LONG_OPT_STRING, no_argument, &SHOW_PENDING_LIST, goTrue }
+
+    #define CREATE_UNCORRECTABLE_FLAG createUncorrectable
+    #define CREATE_UNCORRECTABLE_VAR \
+    bool CREATE_UNCORRECTABLE_FLAG = false;
+    #define CREATE_UNCORRECTABLE_LBA_FLAG uncorrectableLBA
+    #define CREATE_UNCORRECTABLE_LBA_VAR \
+    uint64_t CREATE_UNCORRECTABLE_LBA_FLAG = UINT64_MAX;
+    #define CREATE_UNCORRECTABLE_LONG_OPT_STRING "psuedoUncorrectable"
+    #define CREATE_UNCORRECTABLE_LONG_OPT { CREATE_UNCORRECTABLE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define UNCORRECTABLE_RANGE_FLAG uncorrectableRange
+    #define UNCORRECTABLE_RANGE_VAR \
+    uint64_t UNCORRECTABLE_RANGE_FLAG = 1;/*set to one for a default value of a single sector*/
+    #define UNCORRECTABLE_RANGE_LONG_OPT_STRING "uncorrectableRange"
+    #define UNCORRECTABLE_RANGE_LONG_OPT { UNCORRECTABLE_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RANDOM_UNCORRECTABLES_FLAG randomUncorrectableCount
+    #define RANDOM_UNCORRECTABLES_VAR \
+    uint16_t RANDOM_UNCORRECTABLES_FLAG = 0;
+    #define RANDOM_UNCORRECTABLES_LONG_OPT_STRING "randomUncorrectables"
+    #define RANDOM_UNCORRECTABLES_LONG_OPT { RANDOM_UNCORRECTABLES_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define FLAG_UNCORRECTABLES_FLAG flagUncorrectable
+    #define FLAG_UNCORRECTABLES_VAR \
+    getOptBool FLAG_UNCORRECTABLES_FLAG = goFalse;
+    #define FLAG_UNCORRECTABLE_LONG_OPT_STRING "flaggedUncorrectable"
+    #define FLAG_UNCORRECTABLE_LONG_OPT { FLAG_UNCORRECTABLE_LONG_OPT_STRING, no_argument, &FLAG_UNCORRECTABLES_FLAG, goTrue }
+
+    #define READ_UNCORRECTABLES_FLAG readUncorrectables
+    #define READ_UNCORRECTABLES_VAR \
+    bool READ_UNCORRECTABLES_FLAG = true;/*this is set to true by default. The command line flag is used to disable this functionality*/
+    #define DISABLE_READ_UNCORRECTABLES_LONG_OPT_STRING "disableReadUncorrectables"
+    #define DISABLE_READ_UNCORRECTABLES_LONG_OPT { DISABLE_READ_UNCORRECTABLES_LONG_OPT_STRING, no_argument, NULL, 0 }
+
+    #define CORRUPT_LBA_FLAG performCorruptLBA
+    #define CORRUPT_LBA_LBA lbaToCorrupt
+    #define CORRUPT_LBA_VAR \
+    bool CORRUPT_LBA_FLAG = false;\
+    uint64_t CORRUPT_LBA_LBA = 0;
+    #define CORRUPT_LBA_LONG_OPT_STRING "corruptLBA"
+    #define CORRUPT_LBA_LONG_OPT { CORRUPT_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define CORRUPT_LBA_RANGE_FLAG lbaRangeToCorrupt
+    #define CORRUPT_LBA_RANGE_VAR uint64_t CORRUPT_LBA_RANGE_FLAG = 1;
+    #define CORRUPT_LBA_RANGE_LONG_OPT_STRING "corruptRange"
+    #define CORRUPT_LBA_RANGE_LONG_OPT { CORRUPT_LBA_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define CORRUPT_RANDOM_LBAS performCorruptRandomLBAs
+    #define CORRUPT_RANDOM_LBAS_COUNT randomCorruptLBACount
+    #define CORRUPT_RANDOM_LBAS_VAR \
+    bool CORRUPT_RANDOM_LBAS = false;\
+    uint16_t CORRUPT_RANDOM_LBAS_COUNT = 0;
+    #define CORRUPT_RANDOM_LBAS_LONG_OPT_STRING "corruptRandomLBAs"
+    #define CORRUPT_RANDOM_LBAS_LONG_OPT { CORRUPT_RANDOM_LBAS_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define BYTES_TO_CORRUPT_FLAG bytesToCorruptForCorrectableHasBeenEnteredByUser
+    #define BYTES_TO_CORRUPT_VAL bytesToCorruptForCorrectable
+    #define BYTES_TO_CORRUPT_VAR \
+    bool BYTES_TO_CORRUPT_FLAG = false;\
+    uint16_t BYTES_TO_CORRUPT_VAL = 0;
+    #define BYTES_TO_CORRUPT_LONG_OPT_STRING "bytesToCorrupt"
+    #define BYTES_TO_CORRUPT_LONG_OPT { BYTES_TO_CORRUPT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Seagate SCSI/SAS drives only
+    #define SHOW_SCSI_FW_INFO_FLAG showSCSIFWInfo
+    #define SHOW_SCSI_FW_INFO_VAR getOptBool SHOW_SCSI_FW_INFO_FLAG = goFalse;
+    #define SHOW_SCSI_FW_INFO_LONG_OPT_STRING "scsiFWInfo"
+    #define SHOW_SCSI_FW_INFO_LONG_OPT { SHOW_SCSI_FW_INFO_LONG_OPT_STRING, no_argument, &SHOW_SCSI_FW_INFO_FLAG, goTrue }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3865,6 +3961,84 @@ extern "C"
     void print_Raw_Timeout_Help(bool shortHelp);
 
     void print_Raw_Input_File_Offset_Help(bool shortHelp);
+    
+    void print_Check_Pending_List_Help(bool shortHelp);
+
+    void print_Check_Grown_List_Help(bool shortHelp);
+
+    void print_Show_Pending_List_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Create_Uncorrectable_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the create Uncorrectable option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Create_Uncorrectable_Help(bool shortHelp);
+
+    void print_Flag_Uncorrectable_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Uncorrectable_Range_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the uncorrectable range option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Uncorrectable_Range_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Random_Uncorrectable_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the random uncorrectables option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Random_Uncorrectable_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Disable_Read_Uncorrectables_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the disable read uncorrectables option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Disable_Read_Uncorrectables_Help(bool shortHelp);
+
+    void print_Corrupt_LBA_Help(bool shortHelp);
+
+    void print_Corrupt_Range_Help(bool shortHelp);
+
+    void print_Bytes_To_Corrupt_Help(bool shortHelp);
+
+    void print_Corrupt_Random_LBAs_Help(bool shortHelp);
+
+    void print_SCSI_FW_Info_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

@@ -1,6 +1,7 @@
 option('tools', type : 'array', choices : [
   'Basics',
   'Configure',
+  'Defect',
   'Erase',
   'Firmware',
   'Format',
