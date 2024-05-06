@@ -95,6 +95,16 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define CAPACITY_MODEL_NUMBER_MAPPING_FLAG capModelMapping
+    #define CAPACITY_MODEL_NUMBER_MAPPING_VAR getOptBool CAPACITY_MODEL_NUMBER_MAPPING_FLAG = false;
+    #define CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING "capacityModelNumberMapping"
+    #define CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT { CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING, no_argument, &CAPACITY_MODEL_NUMBER_MAPPING_FLAG, goTrue }
+
+    #define CHANGE_ID_STRING_FLAG changeIdString
+    #define CHANGE_ID_STRING_VAR getOptBool CHANGE_ID_STRING_FLAG = goFalse;
+    #define CHANGE_ID_STRING_LONG_OPT_STRING "changeIdString"
+    #define CHANGE_ID_STRING_LONG_OPT { CHANGE_ID_STRING_LONG_OPT_STRING, no_argument, &CHANGE_ID_STRING_FLAG, goTrue }
+    
     #define PARTITION_INFO_FLAG showPartitionInfo
     #define PARTITION_INFO_VAR getOptBool PARTITION_INFO_FLAG = goFalse;
     #define PARTITION_INFO_LONG_OPT_STRING "partitionInfo"
@@ -3912,6 +3922,9 @@ extern "C"
     
     void print_DCO_Disable_Features_Help(bool shortHelp);
 
+    void print_Capacity_Model_Number_Mapping_Help(bool shortHelp);
+
+    void print_Change_Id_String_Help(bool shortHelp);
     void print_Show_Phy_Event_Counters_Help(bool shortHelp);
     
     void print_WRV_Help(bool shortHelp);

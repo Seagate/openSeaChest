@@ -9,7 +9,7 @@ openSeaChest_Defect \- openSeaChest drive utilities \- NVMe Enabled
 Copyright (c) 2014\-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 openSeaChest_Defect Version: 0.9.0\-7_1_0 X86_64
 Build Date: May  6 2024
-Today: Mon May  6 11:25:27 2024        User: current user
+Today: Mon May  6 12:10:34 2024        User: current user
 .PP
 ==========================================================================================
 Usage
@@ -247,6 +247,37 @@ Defects log page from SBC4 or later
 Use this option to show the pending defect list
 as it is reported by the drive.
 NOTE: SBC4 pending log required for SAS support.
+.IP
+SAS Only:
+.HP
+\fB\-\-defectFormat\fR [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ] (SAS Only)
+.IP
+This option set the format of the defects to output.
+Not all drives will support all defect modes!
+SSDs will only support block modes!
+Arguments: (name | #)
+.IP
+shortBlock | 0 \- show the defects in short block address mode (drives < 32bit LBA)
+xbfi       | 1 \- show the defects in extended bytes from index mode
+xchs       | 2 \- show the defects in extended physical cylinder\-head\-sector mode
+longBlock  | 3 \- show the defects in long block address mode (drives > 32bit LBA)
+bfi        | 4 \- show the defects in bytes from index mode
+chs        | 5 \- show the defects in physical cylinder\-head\-sector mode
+.TP
+\fB\-\-showSCSIDefects\fR [ p | g | pg ]
+(SAS Only)
+.IP
+This option will display the SCSI defects on the screen.
+The arguments to this will tell whether to get the grown,
+primary, or primary and grown defects from the drive.
+Use the \fB\-\-defectFormat\fR option to specify the mode to display the defects.
+If no mode is specified, physical cylinder\-head\-sector mode is assumed
+Arguments:
+.IP
+p \- use this option to pull and display the primary (factory) defects
+g \- use this option to pull and display the grown (reallocated) defects
+.IP
+The above options can be combined to pull and display both defect lists.
 .PP
 Data Destructive Commands (Seagate only)
 ========================================
@@ -342,7 +373,7 @@ openSeaChest_Defect \- openSeaChest drive utilities \- NVMe Enabled
 Copyright (c) 2014\-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 openSeaChest_Defect Version: 0.9.0\-7_1_0 X86_64
 Build Date: May  6 2024
-Today: Mon May  6 11:25:27 2024        User: current user
+Today: Mon May  6 12:10:34 2024        User: current user
 .PP
 ==========================================================================================
 Version Info for openSeaChest_Defect:
