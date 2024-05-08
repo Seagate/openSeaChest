@@ -82,11 +82,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     '-Wl,-z,relro',
     '-Wl,-z,now'
   ]
-  if target_machine.cpu_family() == 'ppc64'
-    #power pc builds generate a lot of warnings/notes about ABI changes since GCC-5
-    #this flag is disabling them because this is way too noisy.
-    warning_flags += ['-Wno-psabi']
-  endif
 elif c.get_id().contains('msvc')
   #See here for enabling/disabling msvc warnings:
   #https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level?view=msvc-170

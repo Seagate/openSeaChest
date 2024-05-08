@@ -54,13 +54,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -731,7 +731,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -811,7 +811,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1316,7 +1316,7 @@ int32_t main(int argc, char *argv[])
 
         if (ABORT_DST_FLAG)
         {
-            int abortResult = UNKNOWN;
+            eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Aborting DST\n");
@@ -1357,7 +1357,7 @@ int32_t main(int argc, char *argv[])
 
         if (ABORT_IDD_FLAG)
         {
-            int abortResult = UNKNOWN;
+            eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Aborting IDD\n");
@@ -1438,7 +1438,7 @@ int32_t main(int argc, char *argv[])
 
         if (SHORT_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Short DST\n");
@@ -1500,7 +1500,7 @@ int32_t main(int argc, char *argv[])
 
         if (CONVEYANCE_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Conveyance DST\n");
@@ -1562,7 +1562,7 @@ int32_t main(int argc, char *argv[])
 
         if (LONG_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Long DST\n");
@@ -1665,7 +1665,7 @@ int32_t main(int argc, char *argv[])
 
         if (RUN_IDD_FLAG)
         {
-            int IDDResult = UNKNOWN;
+            eReturnValues IDDResult = UNKNOWN;
             eSeagateFamily family = is_Seagate_Family(&deviceList[deviceIter]);
             if (family == SEAGATE)
             {
@@ -2052,7 +2052,7 @@ int32_t main(int argc, char *argv[])
 
         if (PROGRESS_CHAR != NULL)
         {
-            int result = UNKNOWN;
+            eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
             convert_String_To_Upper_Case(progressTest);
             //do some string comparisons to figure out what we are checking for progress on

@@ -52,13 +52,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -933,7 +933,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1024,7 +1024,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1873,7 +1873,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            int idleRet = SUCCESS;
+                            eReturnValues idleRet = SUCCESS;
                             char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_IDLE_STATE)
@@ -1971,7 +1971,7 @@ int32_t main(int argc, char *argv[])
                     {
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
-                            int standbyRet = SUCCESS;
+                            eReturnValues standbyRet = SUCCESS;
                             char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
                             switch (LEGACY_STANDBY_STATE)
@@ -2195,7 +2195,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_POWER_CONSUMPTION_FLAG)
         {
-            int pcRet = SUCCESS;
+            eReturnValues pcRet = SUCCESS;
             if (SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(&deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
@@ -2654,7 +2654,7 @@ int32_t main(int argc, char *argv[])
 
         if (SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_INFO_FLAG)
         {
-            int result = SUCCESS;
+            eReturnValues result = SUCCESS;
             uint8_t phyListSize = 1;
             if (SET_PHY_SAS_PHY_IDENTIFIER == 0xFF)
             {

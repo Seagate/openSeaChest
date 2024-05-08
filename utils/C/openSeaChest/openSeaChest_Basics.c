@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -792,7 +792,7 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -874,7 +874,7 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1347,7 +1347,7 @@ int main(int argc, char *argv[])
 
         if (ABORT_DST_FLAG)
         {
-            int abortResult = UNKNOWN;
+            eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Aborting DST\n");
@@ -1388,7 +1388,7 @@ int main(int argc, char *argv[])
 
         if (SHORT_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Short DST\n");
@@ -1955,7 +1955,7 @@ int main(int argc, char *argv[])
                 //determine if it's timed or a range
                 if (overwriteSeconds == 0)
                 {
-                    int overwriteRet = UNKNOWN;
+                    eReturnValues overwriteRet = UNKNOWN;
                     uint64_t localStartLBA = OVERWRITE_START_FLAG;
                     uint64_t localRange = OVERWRITE_RANGE_FLAG;
                     if (USE_MAX_LBA)
@@ -2013,7 +2013,7 @@ int main(int argc, char *argv[])
                 {
                     if (overwriteSeconds > 0)
                     {
-                        int overwriteRet = UNKNOWN;
+                        eReturnValues overwriteRet = UNKNOWN;
                         overwriteRet = erase_Time(&deviceList[deviceIter], OVERWRITE_START_FLAG, overwriteSeconds, NULL, 0, HIDE_LBA_COUNTER);
                         switch (overwriteRet)
                         {
@@ -2141,7 +2141,7 @@ int main(int argc, char *argv[])
 
         if (PROGRESS_CHAR != NULL)
         {
-            int result = UNKNOWN;
+            eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
             convert_String_To_Upper_Case(progressTest);
             //do some string comparisons to figure out what we are checking for progress on

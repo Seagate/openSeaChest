@@ -55,13 +55,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -1465,7 +1465,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1566,7 +1566,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -3390,7 +3390,7 @@ int32_t main(int argc, char *argv[])
             printf("These options will be removed from openSeaChest_Configure in a future release.\n");
             puisInfo info;
             memset(&info, 0, sizeof(puisInfo));
-            int puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
+            eReturnValues puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
             if (PUIS_FEATURE_SPINUP_FLAG)
             {
                 if (info.puisEnabled)
@@ -3732,13 +3732,13 @@ int32_t main(int argc, char *argv[])
 
         if (SCSI_RESET_LP_OP)
         {
-            int resetLPResult = SUCCESS;
+            eReturnValues resetLPResult = SUCCESS;
             if (SCSI_RESET_LP_LPC > LPC_DEFAULT_CUMULATIVE_VALUES)
             {
                 //requesting to reset all
                 for (SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES; SCSI_RESET_LP_LPC <= LPC_DEFAULT_CUMULATIVE_VALUES; ++SCSI_RESET_LP_LPC)
                 {
-                    int resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                    eReturnValues resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
                     if (SUCCESS != resetLPCommandRet)//this is to catch if any LPC reset value creates an error
                     {
                         resetLPResult = resetLPCommandRet;

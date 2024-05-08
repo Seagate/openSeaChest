@@ -66,14 +66,14 @@ typedef struct _passthroughTestParams
     
 }passthroughTestParams, *ptrPassthroughTestParams;
 
-int perform_Passthrough_Test(ptrPassthroughTestParams inputs);
+eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs);
 
-#define HACK_COLOR BLUE
-#define LIKELY_HACK_COLOR CYAN
-#define WARNING_COLOR YELLOW
-#define ERROR_COLOR RED
-#define NOTE_COLOR MAGENTA
-#define HEADING_COLOR GREEN
+#define HACK_COLOR CONSOLE_COLOR_BLUE
+#define LIKELY_HACK_COLOR CONSOLE_COLOR_CYAN
+#define WARNING_COLOR CONSOLE_COLOR_YELLOW
+#define ERROR_COLOR CONSOLE_COLOR_RED
+#define NOTE_COLOR CONSOLE_COLOR_MAGENTA
+#define HEADING_COLOR CONSOLE_COLOR_GREEN
 
 //run the passthrough test
 #define RUN_PASSTHROUGH_TEST_FLAG passthroughTest
@@ -248,13 +248,13 @@ static void print_Run_Passthrough_Test_Help(bool shortHelp)
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -679,7 +679,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -719,7 +719,7 @@ int32_t main(int argc, char *argv[])
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("\nError: Only one force flag can be used at a time.\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -741,7 +741,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1079,15 +1079,15 @@ int32_t main(int argc, char *argv[])
     exit(exitCode);
 }
 
-static int return_Response_Extend_Bit_Test(tDevice *device)
+static eReturnValues return_Response_Extend_Bit_Test(tDevice *device)
 {
-    int ret = NOT_SUPPORTED;
+    eReturnValues ret = NOT_SUPPORTED;
     //Do additional command testing to check if the extend bit is reported correctly or not.
     //This obviously requires a 48bit drive and support for a command such as reading the native max LBA
     if (device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported)
     {
         uint64_t nativeMaxLBA = 0;
-        int nativeMaxRet = 0;
+        eReturnValues nativeMaxRet = 0;
         bool commandIssued = true;
         //check HPA or AMAC support as those are preferred commands to be used.
         //The values that are returned should be greater than or equal to the current maxLBA of the drive.
@@ -1121,7 +1121,7 @@ static int return_Response_Extend_Bit_Test(tDevice *device)
                     {
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: RSIE\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -1148,7 +1148,7 @@ static int return_Response_Extend_Bit_Test(tDevice *device)
                     printf("         This means only 28bit commands will get full results. 48bit commands will be partial\n");
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: PARTRTFR\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs = true;
                 }
             }
@@ -1175,7 +1175,7 @@ static int return_Response_Extend_Bit_Test(tDevice *device)
                     printf("         This means only 28bit commands will get full results. 48bit commands will be partial\n");
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: PARTRTFR\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs = true;
                 }
             }
@@ -1184,7 +1184,7 @@ static int return_Response_Extend_Bit_Test(tDevice *device)
                 //Something went really wrong
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Command failure while trying to perform RTFR return response info test.\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 return FAILURE;
             }
         }
@@ -1195,7 +1195,7 @@ static int return_Response_Extend_Bit_Test(tDevice *device)
         printf("NOTE: This device doesn't support 48bit commands. Cannot test for proper extend bit in\n");
         printf("      return response information test. It is strongly recommended that this adapter is retested\n");
         printf("      with a device that supports 48bit commands so that this can be tested properly\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     return ret;
 }
@@ -1205,7 +1205,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
     uint8_t *log = C_CAST(uint8_t*, calloc_aligned(logSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (log)
     {
-        int cmdResult = SUCCESS;
+        eReturnValues cmdResult = SUCCESS;
         fill_Random_Pattern_In_Buffer(log, logSize);
         if (gpl)
         {
@@ -1239,7 +1239,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                         {
                             set_Console_Colors(true, HACK_COLOR);
                             printf("HACK FOUND: MMPIO\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else
                         {
@@ -1253,7 +1253,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                             device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
                             set_Console_Colors(true, HACK_COLOR);
                             printf("HACK FOUND: SPIO\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                         }
                         else
@@ -1282,7 +1282,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                             {
                                 set_Console_Colors(true, HACK_COLOR);
                                 printf("HACK FOUND: SPIO\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                             }
                         }
@@ -1310,7 +1310,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("FATAL ERROR: Unable to allocate enough memory to finish multi-sector PIO test!\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             //clear the log back to zeros if necessary
         }
@@ -1341,7 +1341,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SPIO\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
             }
         }
@@ -1427,7 +1427,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = false;
                                     set_Console_Colors(true, LIKELY_HACK_COLOR);
                                     printf("HACK FOUND: SPIO\n");
-                                    set_Console_Colors(true, DEFAULT);
+                                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                     device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 }
                             }
@@ -1437,7 +1437,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                                 printf("Unable to perform test of multi-sector PIO commands\n");
                                 set_Console_Colors(true, HACK_COLOR);
                                 printf("HACK FOUND: SPIO\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 break;
                             }
@@ -1445,7 +1445,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                             {
                                 set_Console_Colors(true, HACK_COLOR);
                                 printf("HACK FOUND: SPIO\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 break;
                             }
@@ -1493,7 +1493,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                             safe_Free_aligned(log)
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not compliant with multisector PIO commands\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode && M_Byte1(device->drive_info.IdentifyData.ata.Word047) == 0x80 && M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
                             {
                                 printf("Retrying after changing the multiple mode.\n");
@@ -1519,7 +1519,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                                 printf("Unable to perform test of multi-sector PIO commands\n");
                                 set_Console_Colors(true, HACK_COLOR);
                                 printf("HACK FOUND: SPIO\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 break;
                             }
@@ -1527,7 +1527,7 @@ static void multi_Sector_PIO_Test(tDevice *device, bool smartSupported, bool sma
                             {
                                 set_Console_Colors(true, HACK_COLOR);
                                 printf("HACK FOUND: SPIO\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
                                 break;
                             }
@@ -1560,18 +1560,18 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smart
             use48 = false;
         }
         device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
-        int dmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
+        eReturnValues dmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
         device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
-        int udmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
+        eReturnValues udmaReadRet = ata_Read_DMA(device, lba, ptrData, sectors, dataSize, use48);
 
         if (dmaReadRet != SUCCESS && udmaReadRet != SUCCESS)
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: NDMA\n");//Cannot issue any DMA mode commands.
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: No possible way to issue a DMA mode command on this device.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_NO_DMA;
         }
         else
@@ -1580,14 +1580,14 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smart
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: FDMA\n");//force using DMA mode instead of UDMA
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
             }
             else if (udmaReadRet == SUCCESS && dmaReadRet != SUCCESS)
             {
                 set_Console_Colors(true, NOTE_COLOR);
                 printf("NOTE: Device only supports UDMA mode for passthrough. This is the default for the tool, but may be an issue for some other tools.\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
             }
             else if (udmaReadRet == SUCCESS && dmaReadRet == SUCCESS)
@@ -1598,7 +1598,7 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smart
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("FATAL ERROR: You shouldn't be seeing this message. Something went horribly wrong\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         safe_Free_aligned(ptrData)
@@ -1607,7 +1607,7 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smart
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("ERROR: Unable to allocate memory for DMA/UDMA protocol test\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     return;
 }
@@ -1619,7 +1619,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
     device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = true;
     //try identify first...if this doesn't even work, then we know this doesn't work
     uint8_t identifyData[512] = { 0 };
-    int satRet = ata_Identify(device, identifyData, 512);
+    eReturnValues satRet = ata_Identify(device, identifyData, 512);
     if ((SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet) && !is_Empty(identifyData, 512))
     {
         bool testedGPL = false, testedSMART = false;
@@ -1640,7 +1640,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
             memset(&device->drive_info.lastCommandRTFRs, 0, sizeof(ataReturnTFRs));
             if (smartData)
             {
-                int smartRet = ata_SMART_Read_Data(device, smartData, 512);
+                eReturnValues smartRet = ata_SMART_Read_Data(device, smartData, 512);
                 if (SUCCESS == smartRet || WARN_INVALID_CHECKSUM == smartRet)
                 {
                     //Make sure the registers show successful completion and not zeros
@@ -1679,7 +1679,7 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: CHK\n");//check condition bit is always supported properly
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         else
         {
@@ -1695,13 +1695,13 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
                 {
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: CHKND\n");//check condition bit is supported for non-data commands only
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: CHKE\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     device->drive_info.passThroughHacks.ataPTHacks.checkConditionEmpty = true;
                 }
             }
@@ -1721,14 +1721,14 @@ static void check_Condition_Bit_Test(tDevice *device, bool smartSupported, bool 
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: CHKND\n");//check condition bit is supported for non-data commands only
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         else
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: NCHK\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             device->drive_info.passThroughHacks.ataPTHacks.disableCheckCondition = true;
         }
     }
@@ -1746,7 +1746,7 @@ static void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartS
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: RS\n");//returnResponseInfoSupported
         printf("HACK FOUND: RSTD\n");//returnResponseInfoNeedsTDIR
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     else if (testWithoutTDirAllowed)
     {
@@ -1757,7 +1757,7 @@ static void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartS
             device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: RS\n");//returnResponseInfoSupported
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             
         }
     }
@@ -2024,7 +2024,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     printf("\n=========================\n");
     printf("Checking VPD page support\n");
     printf("=========================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     
     uint8_t supportedPages[36] = { 0 };
     uint8_t dummiedPageCount = 0;
@@ -2037,7 +2037,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
         printf("         VPD pages communicate other device capabilities\n");
         printf("         and limits which are useful to the host.\n");
         printf("Will dummy up support to see if any pages are supported that are useful.\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         memset(supportedPages, 0, 36);
         uint16_t offset = 4;//start of pages to dummy up
         //in here we will set up a fake supported VPD pages buffer so that we try to read the unit serial number page, the SAT page, and device identification page
@@ -2091,7 +2091,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         set_Console_Colors(true, WARNING_COLOR);
         printf("WARNING: Supported VPD pages length seems suspiciously large!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     uint16_t pagesread = 0;
     //TODO: validate peripheral qualifier and peripheral device type on every page with std inquiry data
@@ -2119,7 +2119,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, ERROR_COLOR);
                         printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", supportedPages[vpdIter], pageToRead[1]);
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2132,14 +2132,14 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Failed to read page %" PRIX8 "h. Was reported as supported, but cannot be read.\n", supportedPages[vpdIter]);
                     printf("       Attempted to read %" PRIu16 " bytes as reported by device.\n", vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             else
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Unable to allocate memory to read %" PRIu16 "B of page %" PRIX8 "h\n", vpdPageLength, supportedPages[vpdIter]);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         else if (!dummiedPages)
@@ -2147,7 +2147,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Failed to read page %" PRIX8 "h. Was reported as supported, but cannot be read.\n", supportedPages[vpdIter]);
             printf("       Attempted to read only first 4 bytes to determine full VPD page size as spec allows.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         switch (supportedPages[vpdIter])
         {
@@ -2162,7 +2162,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: UNA\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable = true;
                 }
                 char *unitSerialNumber = C_CAST(char *, calloc(vpdPageLength + 1, sizeof(char))); //add 1 for NULL terminator
@@ -2177,14 +2177,14 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             unitSerialNumber[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Unit Serial Number contains non-ASCII or non-Printable Characters!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
                     if (strlen(unitSerialNumber) == 0)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: Unit Serial Number is empty!\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2198,7 +2198,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Unable to allocate %" PRIu16 " Bytes for the serial number\n", vpdPageLength + 1);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             break;
@@ -2359,7 +2359,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     case 3://reserved
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("\t\t\tWARNING: Reserved association\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         break;
                     }
                     switch (designatorType)
@@ -2374,7 +2374,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Code set does not mark this as ASCII! This should be ASCII data!!!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         {
                             char desVendorID[9] = { 0 };
@@ -2397,7 +2397,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 set_Console_Colors(true, WARNING_COLOR);
                                 printf("WARNING: T10 Vendor ID based designator is missing vendor specific identifier!!!\n");
                                 printf("Recommended method from SPC is to concatenate Product ID and Product Serial number\n");
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             }
                         }
                         break;
@@ -2547,13 +2547,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Code set is not set properly! This should be set to 1 for binary!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else if (association != 1)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Use of this designator with association not set to 1 is reserved!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         {
                             uint16_t relativeTargetPortID = M_BytesTo2ByteValue(pageToRead[designatorOffset + 2], pageToRead[designatorOffset + 3]);
@@ -2566,13 +2566,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Code set is not set properly! This should be set to 1 for binary!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else if (association != 1)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Use of this designator with association not set to 1 is reserved!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         {
                             uint16_t targetPortGroup = M_BytesTo2ByteValue(pageToRead[designatorOffset + 2], pageToRead[designatorOffset + 3]);
@@ -2585,13 +2585,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Code set is not set properly! This should be set to 1 for binary!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else if (association != 0)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Use of this designator with association not set to 0 is reserved!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         {
                             uint16_t luGroup = M_BytesTo2ByteValue(pageToRead[designatorOffset + 2], pageToRead[designatorOffset + 3]);
@@ -2612,7 +2612,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Code set is not properly set! This should be set to 3 for UTF8!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         {
                             char *scsiNameString = NULL;
@@ -2628,7 +2628,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
                                 printf("ERROR: failed to allocate memory (%" PRIu16 "B) to read SCSI Name string\n", designatorLength + 1);
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             }
                         }
                         break;
@@ -2639,14 +2639,14 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Association is not set to 1! This may cause parsing issues!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         if (!piv)
                         {
                             //This should be an error since we can only parse this if the interface is set.
                             set_Console_Colors(true, ERROR_COLOR);
                             printf("ERROR: Protocol identifier valid bit is not set! Cannot parse this without this bit!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else
                         {
@@ -2690,7 +2690,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 {
                                     set_Console_Colors(true, WARNING_COLOR);
                                     printf("WARNING: Designator length should be 18B, but got %" PRIu16 "B\n", designatorLength);
-                                    set_Console_Colors(true, DEFAULT);
+                                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                                 }
                                 for (uint16_t uuidOffset = designatorOffset; uuidOffset < (designatorLength + 4); ++uuidOffset)
                                 {
@@ -2717,7 +2717,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("WARNING: Device reported MD5 designator while also reporting a\n");
                     printf("         unique identifier as well. This is not allowed per SPC!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else if (gotMD5 && md5Offset)
                 {
@@ -2748,7 +2748,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
@@ -2760,7 +2760,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: Extended DST time in minutes was reported as zero! This means SCSI DST translation is not available!\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2771,13 +2771,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: Maximum Sense Length not reported. Will assume %u Bytes\n", SPC3_SENSE_LEN);
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else if (pageToRead[13] > SPC3_SENSE_LEN)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: Maximum Sense Length reported as larger than max allowed by SPC! %u Bytes\n", pageToRead[13]);
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2806,7 +2806,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SAT! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0238, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
@@ -2825,7 +2825,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             satVendor[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: SAT Vendor ID contains non-ASCII or non-Printable Characters!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
                     memcpy(device->drive_info.bridge_info.t10SATvendorID, satVendor, 8);
@@ -2833,7 +2833,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: SAT Vendor ID is empty!\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2846,7 +2846,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             satProductID[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: SAT Product ID contains non-ASCII or non-Printable Characters!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
                     memcpy(device->drive_info.bridge_info.SATproductID, satProductID, 16);
@@ -2854,7 +2854,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: SAT Product ID is empty!\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2867,7 +2867,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             satRevision[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: SAT Product Revision contains non-ASCII or non-Printable Characters!\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
                     memcpy(device->drive_info.bridge_info.SATfwRev, satRevision, 4);
@@ -2875,7 +2875,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         printf("WARNING: SAT Product Revision is empty!\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
@@ -2948,7 +2948,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SPC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0E, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
@@ -3229,7 +3229,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 } 
                 else
                 {
@@ -3378,7 +3378,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
@@ -3402,7 +3402,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, ERROR_COLOR);
                         printf("ERROR: Reserved value\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     printf("\tProduct Type: ");
                     scsiDevInfo->vpdData.blockCharacteristicsData.productType = pageToRead[6];
@@ -3515,7 +3515,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x0004, vpdPageLength);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
@@ -3649,18 +3649,18 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NVPD\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.noVPDPages = true;
     }
 }
 
-static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static eReturnValues scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n====================\n");
     printf("Reading Inquiry Data\n");
     printf("====================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
  
     if (SUCCESS == scsi_Inquiry(device, (uint8_t *)&device->drive_info.scsiVpdData.inquiryData, 96, 0, false, false))
     {
@@ -3845,10 +3845,10 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             printf("         This is only expected for OLD SCSI devices. Nothing else should\n");
             printf("         report in this format. Raw output is provided which may be usable\n");
             printf("         if needed for better legacy device support.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: PRESCSI2\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData = true;
             print_Data_Buffer(inqPtr, totalInqLength, true);
         }
@@ -3864,7 +3864,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     scsiDevInfo->inquiryData.vendorId[iter] = ' ';
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("WARNING: Vendor ID contains non-ASCII or non-Printable Characters!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             memcpy(device->drive_info.T10_vendor_ident, scsiDevInfo->inquiryData.vendorId, T10_VENDOR_ID_LEN);
@@ -3872,7 +3872,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Vendor ID is empty!\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else
             {
@@ -3888,7 +3888,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     scsiDevInfo->inquiryData.productId[iter] = ' ';
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("WARNING: Product ID contains non-ASCII or non-Printable Characters!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             memcpy(device->drive_info.product_identification, scsiDevInfo->inquiryData.productId, INQ_DATA_PRODUCT_ID_LEN);
@@ -3896,7 +3896,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Product ID is empty!\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else
             {
@@ -3912,7 +3912,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     scsiDevInfo->inquiryData.productRev[iter] = ' ';
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("WARNING: Product Revision contains non-ASCII or non-Printable Characters!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             memcpy(device->drive_info.product_revision, scsiDevInfo->inquiryData.productRev, INQ_DATA_PRODUCT_REV_LEN);
@@ -3920,7 +3920,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Product Revision is empty!\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else
             {
@@ -3979,7 +3979,7 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                 printf("NOTE: Inquiry data is 36 bytes or less but reports format 2 which should be 96\n");
                 printf("      bytes. In these bytes version descriptors will be reported and can be used\n");
                 printf("      to help better understand device capabilities (starting with SPC2)\n\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
 
         }
@@ -3993,13 +3993,13 @@ static int scsi_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("Fatal Error: Unable to get standard inquiry data. Unable to proceed with any more testing!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return FAILURE;
     }
     return SUCCESS;
 }
 
-static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static eReturnValues scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     //Read capacity. Start with 10, then do 16. Emit warnings when 16 doesn't work and the scsi versions is greater than SPC2
     //If read capacity 10 comes back saying UINT32_MAX for capacity, warn that this mismatches the SCSI version reported.
@@ -4007,9 +4007,9 @@ static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsi
     printf("\n========================================\n");
     printf("Getting Read Capacity data. 10 & 16 byte\n");
     printf("========================================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     uint8_t readCapacityData[32] = { 0 };
-    int readCap10Result = SUCCESS, readCap16Result = SUCCESS;
+    eReturnValues readCap10Result = SUCCESS, readCap16Result = SUCCESS;
     if (SUCCESS == (readCap10Result = scsi_Read_Capacity_10(device, readCapacityData, 8)))
     {
         scsiDevInfo->readCapData.rc10MaxLBA = M_BytesTo4ByteValue(readCapacityData[0], readCapacityData[1], readCapacityData[2], readCapacityData[3]);
@@ -4026,7 +4026,7 @@ static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsi
         printf("WARNING: Failed read capacity 10. While this command is superceeded by read capacity 16,\n");
         printf("         supporting it helps legacy system support and software. If not supported, it should\n");
         printf("         at least fail gracefully and report \"Invalid Operation Code\"\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     memset(readCapacityData, 0, 32);
     if (SUCCESS == (readCap16Result = scsi_Read_Capacity_16(device, readCapacityData, 32)))
@@ -4050,7 +4050,7 @@ static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsi
         printf("         to physical block relationships so that read/write can be properly aligned for the device.\n");
         printf("         this command also reports if logical block provisioning management is enabled and whether\n");
         printf("         or not zeros are reported when reading an unmapped LBA.\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
     if (readCap16Result == SUCCESS && readCap10Result == SUCCESS)
@@ -4059,21 +4059,21 @@ static int scsi_Capacity_Information(tDevice *device, ptrScsiDevInformation scsi
         {
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Block length does not match between read capacity commands!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         if (scsiDevInfo->readCapData.rc10MaxLBA != UINT32_MAX && scsiDevInfo->readCapData.rc10MaxLBA != scsiDevInfo->readCapData.rc16MaxLBA)
         {
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Max LBA does not match between read capacity commands!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
     return SUCCESS;
 }
 
-static int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
+static eReturnValues use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
 {
-    int ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     if (!use6Byte)
     {
         return BAD_PARAMETER;
@@ -4100,7 +4100,7 @@ static int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
                 {   
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: This device does not appear to support either mode sense 10 or mode sense 6!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     return FAILURE;
                 }
                 else
@@ -4130,9 +4130,9 @@ static int use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *use6Byte)
     return ret;
 }
 
-static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageCode, bool sixByte, uint8_t **dataBuffer /*to allow for reallocation/resize if necessary to get the full page*/, uint32_t *dataBufferLength)
+static eReturnValues get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t subPageCode, bool sixByte, uint8_t **dataBuffer /*to allow for reallocation/resize if necessary to get the full page*/, uint32_t *dataBufferLength)
 {
-    int ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     memset(*dataBuffer, 0, *dataBufferLength);
     if (sixByte)
     {
@@ -4157,14 +4157,14 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Incorrect page returned from mode sense 6. Expected %02" PRIX8 "h, but got %02" PRIX8 "h\n", pageCode, readpageCode);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 ret = FAILURE;
             }
             else if (subpageFormat && subPageCode != readsubpage)
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Incorrect subpage returned from mode sense 6. Expected %02" PRIX8 "h, but got %02" PRIX8 "h\n", subPageCode, readsubpage);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 ret = FAILURE;
             }
             else if (subPageCode != 0 && !subpageFormat)
@@ -4172,7 +4172,7 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: NMSP\n");//mode page subpages are not supported by this device and it does not properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             } 
             else
             {
@@ -4219,14 +4219,14 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Incorrect page returned from mode sense 6. Expected %02" PRIX8 "h, but got %02" PRIX8 "h\n", pageCode, readpageCode);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 ret = FAILURE;
             }
             else if (subpageFormat && subPageCode != readsubpage)
             {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Incorrect subpage returned from mode sense 6. Expected %02" PRIX8 "h, but got %02" PRIX8 "h\n", subPageCode, readsubpage);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 ret = FAILURE;
             }
             else if (subPageCode != 0 && !subpageFormat)
@@ -4234,7 +4234,7 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: NMSP\n");//mode page subpages are not supported by this device and it does not properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             } 
             else
             {
@@ -4262,7 +4262,7 @@ static int get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode, uint8_t s
 }
 
 //TODO: Validate or check for default, changable, and saved values? Only checking current right now - TJE
-static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     bool successfullyReadAtLeastOnePage = false;
     bool use6Byte = false;
@@ -4270,9 +4270,9 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
     printf("\n==========================\n");
     printf("Checking Mode Page Support\n");
     printf("==========================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     //Attempting mode sense 10 since nearly EVERYTHING should support it. The only exception is REALLY old SCSI drives.
-    int sixTest = use_Mode_Sense_6(device, MP_CONTROL, &use6Byte);
+    eReturnValues sixTest = use_Mode_Sense_6(device, MP_CONTROL, &use6Byte);
     if (SUCCESS != sixTest)
     {
         if (use6Byte)
@@ -4280,7 +4280,7 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: MP6\n");
             device->drive_info.passThroughHacks.scsiHacks.mode6bytes = true;
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             //TODO: add this to the passthrough hacks structure.
         }
         if (sixTest == NOT_SUPPORTED)
@@ -4288,7 +4288,7 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: This device does not seem to support any standard mode pages. Skipping all mode page checks\n");
             printf("       This should only happen on SCSI (1) and earlier (SASI) devices!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             return NOT_SUPPORTED;
         }
         else
@@ -4296,11 +4296,11 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: NMP\n");
             device->drive_info.passThroughHacks.scsiHacks.noModePages = true;
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: This device doesn't support ANY mode sense commands. Mode sense commands can convey device support and change\n");
             printf("       device settings/capabilties. This can be especially important for disabling write caching for backups.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         return sixTest;
     }
@@ -4310,7 +4310,7 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
         modeHeaderLength = MODE_PARAMETER_HEADER_6_LEN;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: MP6\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.mode6bytes = true;
     }
 
@@ -4819,10 +4819,10 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NMP\n");
         device->drive_info.passThroughHacks.scsiHacks.noModePages = true;
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         set_Console_Colors(true, WARNING_COLOR);
         printf("WARNING: This device does not seem to support any standard mode pages. Multiple pages were attempted, but none were read successfully.\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return NOT_SUPPORTED;
     }
     safe_Free_aligned(modeData)
@@ -4830,13 +4830,13 @@ static int scsi_Mode_Information(tDevice *device, ptrScsiDevInformation scsiDevI
 }
 
 //TODO: we can clean up the loops in each case to most likely a single loop somewhere, but will need to figure out a method to save the data fields we care about...-TJE
-static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
+static eReturnValues scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevInfo)
 {
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==========================\n");
     printf("Testing for SCSI Log Pages\n");
     printf("==========================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     //Make sure on the first log sense, if it fails, we check for invalid operation code. If invalid code, test is over since the command isn't supported.
     //Let the user know about this though!
     uint8_t supportPages[255] = { 0 };
@@ -4853,7 +4853,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: NLPS\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.passThroughHacks.scsiHacks.noLogSubPages = true;
                 printf("This device does NOT report log page subpages properly! Do not attempt to read ANY subpages as it only checks the page code!\n");
             }
@@ -4880,7 +4880,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                         {
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Length of subpages does not appear to make sense. It should be AT LEAST twice as long as without reporting subpages.\n");
-                            set_Console_Colors(true, DEFAULT);
+                            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             //printf("         One more level analysis is allowed before this is considered a buggy device that reports incorrectly when asking for subpages.\n");
                             //TODO: final level of analysis...looping and checking to see if a single page is missing or not.
                             //      when completed, uncomment the above printf....if this case actually happens, will need another hack for this device since it reports correctly formatted data, but misses reporting some pages.
@@ -4892,7 +4892,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                     {
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: NLPS\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         printf("This device reports success from asking for subpage list, BUT doesn't report properly\n");
                         hasSubpages = false;
                         device->drive_info.passThroughHacks.scsiHacks.noLogSubPages = true;
@@ -4906,7 +4906,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Data looks completely invalid! Cancelling SCSI log page test!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     return FAILURE;
                 }
             }
@@ -4959,13 +4959,13 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
                                 printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, C_CAST(uint8_t, M_GETBITRANGE(pageToRead[0], 5, 0)));
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             }
                             else if (pageToRead[1] != subPageCode)
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
                                 printf("ERROR: Expected subpage %" PRIX8 "h, but got %" PRIX8 "h\n", subPageCode, pageToRead[1]);
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             } 
                             else
                             {
@@ -4978,7 +4978,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                             {
                                 set_Console_Colors(true, ERROR_COLOR);
                                 printf("ERROR: Expected page %" PRIX8 "h, but got %" PRIX8 "h\n", pageCode, C_CAST(uint8_t, M_GETBITRANGE(pageToRead[0], 5, 0)));
-                                set_Console_Colors(true, DEFAULT);
+                                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             }
                             else
                             {
@@ -4991,14 +4991,14 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
                         set_Console_Colors(true, ERROR_COLOR);
                         printf("ERROR: Failed to read page %02" PRIX8 "h-%02" PRIX8 "h. Was reported as supported, but cannot be read.\n", pageCode, subPageCode);
                         printf("       Attempted to read %02" PRIu16 " bytes as reported by device.\n", logPageLength);
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                 }
                 else
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Unable to allocate memory to read %" PRIu16 "B of page  %02" PRIX8 "h-%02" PRIX8 "h\n", logPageLength, pageCode, subPageCode);
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
 
@@ -6037,7 +6037,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
             //Invalid operation code, so this device does not support log sense commands.
             set_Console_Colors(true, NOTE_COLOR);
             printf("NOTE: Skipping SCSI Log test since device reported invalid operation code.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         else
         {
@@ -6049,7 +6049,7 @@ static int scsi_Log_Information(tDevice *device, ptrScsiDevInformation scsiDevIn
         device->drive_info.passThroughHacks.scsiHacks.noLogPages = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NLP\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     return SUCCESS;
 }
@@ -6063,7 +6063,7 @@ typedef struct _scsiRWSupport
     bool nonZeroSectorCountRequired;
 }scsiRWSupport, *ptrScsiRWSupport;
 
-static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport rwSupport, bool testZeroLengthTransfersToo)
+static eReturnValues scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport rwSupport, bool testZeroLengthTransfersToo)
 {
     if (!device || ! rwSupport)
     {
@@ -6083,7 +6083,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
         printf("Checking SCSI Read/Write Command Support\n");
         printf("========================================\n");
     }
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
     uint8_t *ptrData = NULL;
     uint32_t transferLength = 0;
@@ -6103,7 +6103,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
             rwSupport->sixBytes = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: RW6\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             device->drive_info.passThroughHacks.scsiHacks.readWrite.available = true;
             device->drive_info.passThroughHacks.scsiHacks.readWrite.rw6 = true;
         }
@@ -6112,7 +6112,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
     {
         set_Console_Colors(true, NOTE_COLOR);
         printf("NOTE: Skipping R6 since zero length has a different meaning than other commands\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
     //read 10
@@ -6121,7 +6121,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
         rwSupport->tenBytes = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: RW10\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.readWrite.available = true;
         device->drive_info.passThroughHacks.scsiHacks.readWrite.rw10 = true;
     }
@@ -6132,7 +6132,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
         rwSupport->twelveBytes = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: RW12\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.readWrite.available = true;
         device->drive_info.passThroughHacks.scsiHacks.readWrite.rw12 = true;
     }
@@ -6143,7 +6143,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
         rwSupport->sixteenBytes = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: RW16\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.readWrite.available = true;
         device->drive_info.passThroughHacks.scsiHacks.readWrite.rw16 = true;
     }
@@ -6159,7 +6159,7 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
     {
         set_Console_Colors(true, NOTE_COLOR);
         printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibilty testing!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
 
@@ -6167,11 +6167,11 @@ static int scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWS
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("ERROR: Failed to find any support read commands by the device!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         rwSupport->nonZeroSectorCountRequired = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NZTL\n");//non-zero transfer length
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         scsi_Test_Unit_Ready(device, NULL);//try to clear errors before leaving this test
         return FAILURE;
     }
@@ -6239,7 +6239,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     printf("\n===========================\n");
     printf("Testing Other SCSI Commands\n");
     printf("===========================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
     uint8_t scsiDataBytes[512] = { 0 };//used by each command
 
@@ -6253,7 +6253,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("ERROR: Test unit ready command total failure. This is a critical command!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
     if (SUCCESS == scsi_Report_Luns(device, 0, 256, scsiDataBytes))
@@ -6264,7 +6264,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("ERROR: Report LUNS failed. This is a critical command!\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     
     if (SUCCESS == scsi_SecurityProtocol_In(device, 0, 0, false, 512, scsiDataBytes))
@@ -6273,7 +6273,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
         device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: SECPROT\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
     else
     {
@@ -6289,16 +6289,16 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
                 device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SECPROTI512\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Device reported in a way that suggests that security protocol commands work, but no security protocol commands were successful\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
                 printf("Likely HACK FOUND: SECPROTI512\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512 = true;
                 device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported = true;
             }
@@ -6307,7 +6307,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: Security protocol in failed. Access to device security subsystems may be inaccessible or limited!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
 
@@ -6316,7 +6316,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
         scsiCmds->reportAllSupportedOperationCodes = true;
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: REPALLOP\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.reportAllOpCodes = true;
     }
     else
@@ -6325,13 +6325,13 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: Reporting supported operation codes failed! This command does not appear to be known by the device.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         else if (does_Sense_Data_Show_Invalid_Field_In_CDB(device))
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: Reporting all supported operation codes is not supported! Will attempt requesting a single operation code.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
     if (!does_Sense_Data_Show_Invalid_OP(device))
@@ -6342,14 +6342,14 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
             scsiCmds->reportSingleSupportedOperationCode = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: SUPSOP\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             device->drive_info.passThroughHacks.scsiHacks.reportSingleOpCodes = true;
         }
         else
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: Reporting support for single requested operation codes failed! Unable to request command support from the device!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
 
@@ -6357,7 +6357,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     {
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NRSUPOP\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations = true;
     }
 
@@ -6374,7 +6374,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     {
         set_Console_Colors(true, WARNING_COLOR);
         printf("WARNING: Default self-test is not available.\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
     //TODO: add testing for diagnostic pages (try to get a list of pages)
@@ -6383,7 +6383,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
 }
 
 #include <math.h>
-static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGood)
+static eReturnValues scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeTimeToGood)
 {
     if (!device)
     {
@@ -6394,7 +6394,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     printf("\n==============================================\n");
     printf("Testing Error Handling Of Unsupported Commands\n");
     printf("==============================================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
     //need to figure out commands to try, and time each and everyone.
     //Start with determining a baseline from a 3-4 commands (TUR after each)
@@ -6409,7 +6409,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     commandTimes[commandIter] = device->drive_info.lastCommandTimeNanoSeconds;
     ++commandIter;
     //Now try one that is likely to not be supported and return invalid field in CDB (vendor specific page of some kind or another...try something in middle of range to hopefully avoid something that may actually be implented.)
-    int ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     uint8_t pageCode = 0x2B;
     uint8_t subpage = 0x01;
     //page 2B, 01 should be an invalid page-subpage combination which should generate invalid field in CDB...
@@ -6475,7 +6475,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
         device->drive_info.passThroughHacks.turfValue = C_CAST(uint8_t, round(xTimesHigher));
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: TURF%" PRIu8 "\n", device->drive_info.passThroughHacks.turfValue);
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         scsi_Test_Unit_Ready(device, NULL);
     }
@@ -6483,7 +6483,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     {
         set_Console_Colors(true, LIKELY_HACK_COLOR);
         printf("Likely HACK FOUND: TURF%" PRIu8 "\n", 33);//setting 33...this should be sooo much higher and worse that this should remain true for a long long time.
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         device->drive_info.passThroughHacks.turfValue = 33;
         scsi_Test_Unit_Ready(device, NULL);
@@ -6492,7 +6492,7 @@ static int scsi_Error_Handling_Test(tDevice *device, double *badCommandRelativeT
     {
         set_Console_Colors(true, LIKELY_HACK_COLOR);
         printf("Likely HACK FOUND: TURF%" PRIu8 "\n", 34);//setting 34...this helps differentiate from the issue above
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure = true;
         device->drive_info.passThroughHacks.turfValue = 34;
         scsi_Test_Unit_Ready(device, NULL);
@@ -6511,7 +6511,7 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
     printf("\n============\n");
     printf("SCT-GPL Test\n");
     printf("============\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     if (sctSupported && smartSupported && gplSupported)
     {
         bool smartWorked = false;
@@ -6532,7 +6532,7 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
         {
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Something went wrong trying to read the SCT status log!!!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         //now GPL
         printf("\tTesting with read log ext\n");
@@ -6546,7 +6546,7 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SCTSM\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 printf("\t\tA retest is recommended with this test turned off. Devices with this hack\n");
                 printf("\t\toften do not recover properly and need a full power cycle once this issue is\n");
                 printf("\t\ttested and identified.\n");
@@ -6554,7 +6554,7 @@ static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported,
             }
             set_Console_Colors(true, ERROR_COLOR);
             printf("ERROR: Something went wrong trying to read the SCT status log!!!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         return SUCCESS;
     }
@@ -6827,9 +6827,9 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs, bool *smartSuppor
     return;
 }
 
-static int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint8_t cdbSize)
+static eReturnValues sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSize, uint8_t cdbSize)
 {
-    int ret = UNKNOWN;
+    eReturnValues ret = UNKNOWN;
     ataPassthroughCommand identify;
     memset(&identify, 0, sizeof(ataPassthroughCommand));
     identify.commandType = ATA_CMD_TYPE_TASKFILE;
@@ -6899,9 +6899,9 @@ static int sat_Test_Identify(tDevice *device, uint8_t *ptrData, uint32_t dataSiz
     return ret;
 }
 
-static int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
+static eReturnValues sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
 {
-    int ret = NOT_SUPPORTED;
+    eReturnValues ret = NOT_SUPPORTED;
     if (device->drive_info.ata_Options.generalPurposeLoggingSupported)
     {
         uint8_t log[512] = { 0 };
@@ -6912,7 +6912,7 @@ static int sat_Ext_Cmd_With_A1_When_Possible_Test(tDevice *device)
             //TODO: Validate the return data???
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: A1EXT\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             ret = SUCCESS;
         }
         else
@@ -6930,7 +6930,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
     printf("\n=====================================\n");
     printf("Checking SAT ATA-passthrough commands\n");
     printf("=====================================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     bool satSupported = false;
     bool twelveByteSupported = false;
     bool sixteenByteSupported = false;
@@ -6939,7 +6939,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
     inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
     //inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1 first.
     uint8_t *identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
-    int satRet = sat_Test_Identify(inputs->device, identifyData, 512, 12);
+    eReturnValues satRet = sat_Test_Identify(inputs->device, identifyData, 512, 12);
     if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
     {
         //TODO: Validate Identify data!
@@ -6971,14 +6971,14 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: A1\n");//useA1SATPassthroughWheneverPossible
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             //inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true;
         }
         else if (!twelveByteSupported && sixteenByteSupported)
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: NA1\n");//a1NeverSupported
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.a1NeverSupported = true;
         }
 
@@ -7032,7 +7032,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 inputs->device->drive_info.ata_Options.generalPurposeLoggingSupported)
             {
                 uint8_t data[512] = { 0 };
-                int retrySAT16 = ata_Read_Log_Ext(inputs->device, ATA_LOG_DIRECTORY, 0, data, 512, false, 0);
+                eReturnValues retrySAT16 = ata_Read_Log_Ext(inputs->device, ATA_LOG_DIRECTORY, 0, data, 512, false, 0);
                 if(retrySAT16 == SUCCESS)
                 {
                     printf("SAT 16-byte passthrough supported, but only for 48bit commands!\n");
@@ -7052,14 +7052,14 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("WARNING: This device is not able to pass-through 48 bit (extended) commands!\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
 
         if (twelveByteSupported && !sixteenByteSupported)
         {
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: ATA28\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
         }
 
@@ -7078,18 +7078,18 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = true;
                 //Before declaring TPSIU support to be always used, additionally test a read passthrough command to see if that works. - TJE
                 //Using a PIO read command since the DMA test hasn't been performed yet. This is a single sector and should be OK to do at this point. - TJE
-                int tpsiuRet = ata_Read_Sectors(inputs->device, 0, data, 1, inputs->device->drive_info.deviceBlockSize * 1, use48);
+                eReturnValues tpsiuRet = ata_Read_Sectors(inputs->device, 0, data, 1, inputs->device->drive_info.deviceBlockSize * 1, use48);
                 if (SUCCESS == tpsiuRet && !does_Sense_Data_Show_Invalid_Field_In_CDB(inputs->device))
                 {
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: TPSIU\n");//alwaysUseTPSIUForSATPassthrough
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
                     set_Console_Colors(true, HACK_COLOR);
                     printf("HACK FOUND: TPID\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     inputs->device->drive_info.passThroughHacks.ataPTHacks.limitedUseTPSIU = true;
                     inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
                 }
@@ -7099,7 +7099,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Unable to allocate memory and fully test TPSIU capability.\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
             }
         }
@@ -7126,20 +7126,20 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: MMPIO\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SPIO\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         else
         {
             set_Console_Colors(true, LIKELY_HACK_COLOR);
             printf("HACK FOUND: SPIO\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
         }
 
@@ -7167,7 +7167,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         printf("\n====================================\n");
         printf("Comparing ATA and SCSI reported data\n");
         printf("====================================\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         //Here we will compare the reported information by the bridge from SCSI commands to what the ATA Identify data reports.
         //For MN, SN, FW, check for commonly broken reporting methods.
 #define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
@@ -7182,7 +7182,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         {
             set_Console_Colors(true, WARNING_COLOR);
             printf("\tWARNING: Non-SAT Compliant product ID reported. This may be a \"branded\" product or non-compliant translator.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             printf("\t  Checking common non-compliant reporting.\n");
             if (strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.productId) && strstr(inputs->device->drive_info.bridge_info.childDriveMN, scsiInformation->inquiryData.vendorId))
             {
@@ -7224,19 +7224,19 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Rotation rate doesn't Match! Got %" PRIu16 ", expected %" PRIu16 "\n", scsiInformation->vpdData.blockCharacteristicsData.rotationRate, inputs->device->drive_info.IdentifyData.ata.Word217);
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 byte_Swap_16(&scsiInformation->vpdData.blockCharacteristicsData.rotationRate);
                 if(inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Even after byteswapping, the rotation rate still doesn't match!!!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
                 else
                 {
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("It seems like the RPM was reported without byteswapping it first! Fix this in the translator firmware!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             
@@ -7245,7 +7245,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             {   
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Formfactor doesn't match! Got %" PRIu8 ", expected %" PRIu8 "\n", scsiInformation->vpdData.blockCharacteristicsData.formFactor, M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168));
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
 
         }
@@ -7278,14 +7278,14 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: WWN was not found in device identification VPD page!\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             else
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Device didn't report device ID VPD page, cannot check for WWN translation!\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
 
@@ -7307,7 +7307,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
     printf("\n====================================================================\n");
     printf("Testing For Legacy ATA Passthrough Support With Known Legacy Methods\n");
     printf("====================================================================\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     set_Console_Colors(true, WARNING_COLOR);
     printf("WARNING! Legacy ATA Passthrough methods use vendor unique operation codes!\n");
     printf("         Sometimes these operation code will cause problems on devices where\n");
@@ -7325,7 +7325,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
         delay_Seconds(1);
     }
     printf("\n");
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
     //Now that the users have been warned, it's time to try the different legacy methods until we get a successful identify command through to the device.
     inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT + 1;//go to the next passthrough type after SAT since SAT is the default since it is the standard.
@@ -7372,7 +7372,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
             inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: ATA28\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             break;
         case ATA_PASSTHROUGH_PROLIFIC:
             printf("Prolific\n");
@@ -7383,7 +7383,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
             inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands = true;
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: ATA28\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             break;
         case ATA_PASSTHROUGH_NEC:
             printf("NEC\n");
@@ -7395,7 +7395,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
             printf("Unknown legacy device type! This means the passthrough test code needs updating!\n");
             break;
         }
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         legacyATAPassthroughSupported = true;
         bool smartSupported = false;
         bool smartLoggingSupported = false;
@@ -7423,13 +7423,13 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: MMPIO\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
             else if (inputs->device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly)
             {
                 set_Console_Colors(true, HACK_COLOR);
                 printf("HACK FOUND: SPIO\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         //TODO: additional testing here for legacy capabilities!
@@ -7438,7 +7438,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
     {
         set_Console_Colors(true, HACK_COLOR);
         printf("HACK FOUND: NOPT\n");//no passthrough available at all
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
     }
     return legacyATAPassthroughSupported;
@@ -7446,7 +7446,7 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
 
 #define THIRTY_TWO_KB UINT32_C(32768)
 #define MAX_SCSI_SECTORS_TO_TEST UINT32_C(4096)
-static int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_t reportedOptimal)
+static eReturnValues scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, uint32_t reportedOptimal)
 {
     uint32_t maxTestSizeBlocks = MAX_SCSI_SECTORS_TO_TEST;
     if (reportedMax > 0)
@@ -7465,17 +7465,17 @@ static int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, 
     printf("==================================\n");
     set_Console_Colors(true, NOTE_COLOR);
     printf("NOTE: This is currently limited to %" PRIu32 " sectors for now\n", maxTestSizeBlocks);
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     if (!data)
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("Fatal error, unable to allocate %" PRIu32 " sectors worth of memory to perform SCSI pass-through test.\n", maxTestSizeBlocks);
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return MEMORY_FAILURE;
     }
     //start at 1 sector, then double until 32k. From here, increment one sector at a time since most USB devices only handle 32k properly.
     uint32_t transferLengthSectors = 1;
-    int readResult = SUCCESS;
+    eReturnValues readResult = SUCCESS;
     while (transferLengthSectors <= maxTestSizeBlocks && readResult == SUCCESS)
     {
         readResult = scsi_Read(device, 0, false, data, transferLengthSectors * device->drive_info.deviceBlockSize);
@@ -7507,9 +7507,9 @@ static int scsi_Max_Transfer_Length_Test(tDevice *device, uint32_t reportedMax, 
 }
 
 
-static int ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uint32_t dataSize)
+static eReturnValues ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint8_t *ptrData, uint32_t dataSize)
 {
-    int ret = SUCCESS;//assume success
+    eReturnValues ret = SUCCESS;//assume success
     uint16_t sectors = 0;
     //make sure that the data size is at least logical sector in size
     if (dataSize < device->drive_info.bridge_info.childDeviceBlockSize)
@@ -7779,17 +7779,17 @@ static int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t sc
     printf("=============================================\n");
     set_Console_Colors(true, NOTE_COLOR);
     printf("NOTE: This is currently limited to %" PRIu32 " sectors for now\n", maxTestSizeBlocks);
-    set_Console_Colors(true, DEFAULT);
+    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     if (!data)
     {
         set_Console_Colors(true, ERROR_COLOR);
         printf("Fatal error, unable to allocate %" PRIu32 " sectors worth of memory to perform ATA pass-through test.\n", maxTestSizeBlocks);
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return MEMORY_FAILURE;
     }
     //start at 1 sector, then double until 32k. From here, increment one sector at a time since most USB devices only handle 32k properly.
     uint32_t transferLengthSectors = 1; 
-    int readResult = SUCCESS;
+    eReturnValues readResult = SUCCESS;
     while(transferLengthSectors <= maxTestSizeBlocks && readResult == SUCCESS)
     {
         readResult = ata_PT_Read(device, 0, false, data, transferLengthSectors * device->drive_info.bridge_info.childDeviceBlockSize);
@@ -7821,9 +7821,9 @@ static int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t sc
     return SUCCESS;
 }
 
-int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
+eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
 {
-    int ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     printf("Performing Pass-through test. \n");
     printf("If at any point during the test, a crash, a hang, or the device\n");
     printf("seems to stop responding to any normal request, save all previously\n");
@@ -7892,7 +7892,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 printf("\n==================================================\n");
                 printf("Checking Vendor Specific NVMe-passthrough commands\n");
                 printf("==================================================\n");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 //TODO: If given a specific NVMe passthrough type, only test that
                 inputs->device->drive_info.passThroughHacks.passthroughType = NVME_PASSTHROUGH_UNKNOWN;
                 if (inputs->device->drive_info.interface_type != NVME_INTERFACE)
@@ -7913,13 +7913,13 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     case NVME_PASSTHROUGH_JMICRON:
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: JMNVME\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         break;
                     case NVME_PASSTHROUGH_ASMEDIA_BASIC:
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: ASMNVMEBASIC\n");
                         printf("HACK FOUND: IDGLP\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedPassthroughCapabilities = true;
                         inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController = true;
                         inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace = true;
@@ -7928,7 +7928,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     case NVME_PASSTHROUGH_ASMEDIA:
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: ASMNVME\n");
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         break;
                     default:
                         printf("No NVMe pass-through detected for this device!\n");
@@ -7944,7 +7944,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: SAT Pass-through failed both 12B and 16B CDBs.\n");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     if (inputs->allowLegacyATAPTTest)
                     {
                         test_Legacy_ATA_Passthrough(inputs, &scsiInformation);
@@ -7953,7 +7953,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     {
                         set_Console_Colors(true, HACK_COLOR);
                         printf("HACK FOUND: NOPT\n");//no passthrough available at all
-                        set_Console_Colors(true, DEFAULT);
+                        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_UNKNOWN;
                     }
                 }
@@ -7967,7 +7967,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             set_Console_Colors(true, NOTE_COLOR);
             printf("NOTE: Attempting passthrough CDBs for SAT or a vendor unique methods has been disabled and is being skipped.\n");
-            set_Console_Colors(true, DEFAULT);
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
 
         //Finally. Display the results and which hacks were found while testing the device.
@@ -7976,7 +7976,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         printf("\n\n==================\n");
         printf("Final Test Results\n");
         printf("==================\n");
-        set_Console_Colors(true, DEFAULT);
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         printf("SEND THIS INFO BELOW TO seaboard@seagate.com:\n");
         //low-level OS device VID/PID/REV as available
         if (inputs->device->drive_info.adapter_info.infoType != ADAPTER_INFO_UNKNOWN)
@@ -8162,7 +8162,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             {
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
                 printf(" NORWZ,");
-                set_Console_Colors(true, DEFAULT);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
@@ -8297,7 +8297,7 @@ int perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 {
                     set_Console_Colors(true, LIKELY_HACK_COLOR);
                     printf(" SCTSM,");// -please retest to ensure that reading the SCT status log with GPL commands is indeed a necessary hack");
-                    set_Console_Colors(true, DEFAULT);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength < (MAX_ATA_SECTORS_TO_TEST * inputs->device->drive_info.bridge_info.childDeviceBlockSize))

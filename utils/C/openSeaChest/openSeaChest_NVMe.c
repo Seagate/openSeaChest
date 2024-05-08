@@ -56,14 +56,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int exitCode = UTIL_EXIT_NO_ERROR;
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -734,7 +734,7 @@ int32_t main(int argc, char *argv[])
     }
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -795,7 +795,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1415,7 +1415,7 @@ int32_t main(int argc, char *argv[])
                 nvmeGetLogPageCmdOpts cmdOpts;
                 uint64_t offset = 0;
                 uint64_t fullSize = 0;
-                int rtnVal;
+                eReturnValues rtnVal;
                 nvmeTemetryLogHdr   *teleHdr;
 
                 memset(&cmdOpts, 0, sizeof(nvmeGetLogPageCmdOpts));
@@ -2096,7 +2096,7 @@ int32_t main(int argc, char *argv[])
                 default:
                     break;
                 }
-                int formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
+                eReturnValues formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
                 switch (formatRet)
                 {
                 case SUCCESS:
@@ -2150,7 +2150,7 @@ int32_t main(int argc, char *argv[])
 
         if (PROGRESS_CHAR != NULL)
         {
-            int result = UNKNOWN;
+            eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
             convert_String_To_Upper_Case(progressTest);
             //do some string comparisons to figure out what we are checking for progress on

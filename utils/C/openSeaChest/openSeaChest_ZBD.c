@@ -50,13 +50,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -497,7 +497,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        eDiscoveryOptions flags = 0;
+        uint64_t flags = 0;
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -561,7 +561,7 @@ int32_t main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    eDiscoveryOptions flags = 0;
+    uint64_t flags = 0;
     DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
@@ -1075,7 +1075,7 @@ int32_t main(int argc, char *argv[])
                     perror("cannot allocate memory for zone descriptors");
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
-                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
+                eReturnValues reportRet = get_Zone_Descriptors(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
                 switch (reportRet)
                 {
                 case SUCCESS:
