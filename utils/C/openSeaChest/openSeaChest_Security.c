@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     ATA_SECURITY_FREEZELOCK_OP_VAR
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -912,10 +912,10 @@ int main(int argc, char *argv[])
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
-        
+
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1081,10 +1081,10 @@ int main(int argc, char *argv[])
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) || 
+            if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) && 
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+            if (((deviceList[handleIter].os_info.fd < 0) &&
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -1096,7 +1096,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }

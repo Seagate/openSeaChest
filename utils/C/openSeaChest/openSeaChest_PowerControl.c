@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
                     //set the value to change to (watts)
                     //use the lf specifier otherwise it thinks it's a standard float and you won't get the right value.
                     int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
-//ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
+                    //ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
                     if (scanRet == 0 || scanRet == EOF)
                     {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
@@ -430,7 +430,7 @@ int main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(SAS_PARTIAL_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(SAS_SLUMBER_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
                 SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp("all", optarg) == 0)
@@ -962,8 +962,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1040,7 +1040,7 @@ int main(int argc, char *argv[])
     version.version = DEVICE_BLOCK_VERSION;
     version.size = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG
         || (TRANSITION_POWER_STATE_TO >= 0)
         )
     {
@@ -1146,7 +1146,7 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -1158,7 +1158,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1494,7 +1494,7 @@ int main(int argc, char *argv[])
         {
             nvmeSupportedPowerStates ps;
             memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
-            switch(get_NVMe_Power_States(&deviceList[deviceIter], &ps))
+            switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
             {
             case SUCCESS:
                 print_NVM_Power_States(&ps);
@@ -2145,7 +2145,7 @@ int main(int argc, char *argv[])
         {
             epcSettings deviceEPCSettings;
             memset(&deviceEPCSettings, 0, sizeof(epcSettings));
-            switch(get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
+            switch (get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
             {
             case SUCCESS:
                 print_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings);
@@ -2240,9 +2240,9 @@ int main(int argc, char *argv[])
             }
         }
 
-        if(SET_APM_LEVEL_FLAG)
+        if (SET_APM_LEVEL_FLAG)
         {
-            switch(set_APM_Level(&deviceList[deviceIter], SET_APM_LEVEL_VALUE_FLAG))
+            switch (set_APM_Level(&deviceList[deviceIter], SET_APM_LEVEL_VALUE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2296,29 +2296,29 @@ int main(int argc, char *argv[])
 
         if (SHOW_APM_LEVEL_FLAG)
         {
-            switch(get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
+            switch (get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Current APM Level is %"PRIu8" (", SHOW_APM_LEVEL_VALUE_FLAG);
-                    if(SHOW_APM_LEVEL_VALUE_FLAG == 0x01)
+                    if (SHOW_APM_LEVEL_VALUE_FLAG == 0x01)
                     {
                         printf("Minimum power consumption with Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG >= 0x02 && SHOW_APM_LEVEL_VALUE_FLAG <= 0x7F)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x02 && SHOW_APM_LEVEL_VALUE_FLAG <= 0x7F)
                     {
                         printf("Intermediate power management with Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG == 0x80)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG == 0x80)
                     {
                         printf("Minimum power consumption without Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG >= 0x81 && SHOW_APM_LEVEL_VALUE_FLAG <= 0xFD)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x81 && SHOW_APM_LEVEL_VALUE_FLAG <= 0xFD)
                     {
                         printf("Intermediate power management without Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG == 0xFE)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG == 0xFE)
                     {
                         printf("Maximum Performance");
                     }

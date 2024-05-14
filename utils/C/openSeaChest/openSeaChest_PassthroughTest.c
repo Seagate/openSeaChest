@@ -63,7 +63,7 @@ typedef struct _passthroughTestParams
     bool noMultiSectorPIOTest;
     bool noReturnResponseInfoTest;
     bool nocheckConditionTest;
-    
+
 }passthroughTestParams, *ptrPassthroughTestParams;
 
 eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs);
@@ -109,7 +109,7 @@ static void print_Passthrough_Type_Hint_Help(bool shortHelp)
 {
     printf("\t--%s [sat | legacyATA]\n", PT_PTTYPE_HINT_LONG_OPT_STRING);
     if (!shortHelp)
-    {   
+    {
         printf("\t\tAdd this option if the device being tested is likely to support one of\n");
         printf("\t\tthe supported passthrough types. This hints to the software to perform\n");
         printf("\t\tadditional testing for these passthroughs if no other support is apparent.\n");
@@ -133,7 +133,7 @@ static void print_Disable_PT_Testing_Help(bool shortHelp)
 {
     printf("\t--%s\n", DISABLE_PT_TESTING_LONG_OPT_STRING);
     if (!shortHelp)
-    {   
+    {
         printf("\t\tDisables all ATA passthrough testing. Device will only be tested with SCSI commands from\n");
         printf("\t\tSPC and SBC specifications.\n\n");
     }
@@ -148,7 +148,7 @@ static void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
 {
     printf("\t--%s\n", ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING);
     if (!shortHelp)
-    {   
+    {
         printf("\t\tAdd this option to the command line to allow sending legacy passthrough CDBs from\n");
         printf("\t\told USB adapters or drivers. By default these are off since these operation codes\n");
         printf("\t\tmay perform unintended actions on devices that don't actually support passthrough.\n");
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 #endif
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -373,7 +373,7 @@ int main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strncmp(longopts[optionIndex].name, PT_DRIVE_HINT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PT_DRIVE_HINT_LONG_OPT_STRING))) == 0)
             {
-                if (strcmp(optarg, "ata") == 0 || strcmp(optarg, "ATA") == 0 || strcmp(optarg, "sata") == 0 || strcmp(optarg, "SATA") == 0 || strcmp(optarg, "pata") == 0 || strcmp(optarg, "PATA") == 0 || strcmp(optarg, "ide") == 0 || strcmp(optarg, "IDE") == 0 )
+                if (strcmp(optarg, "ata") == 0 || strcmp(optarg, "ATA") == 0 || strcmp(optarg, "sata") == 0 || strcmp(optarg, "SATA") == 0 || strcmp(optarg, "pata") == 0 || strcmp(optarg, "PATA") == 0 || strcmp(optarg, "ide") == 0 || strcmp(optarg, "IDE") == 0)
                 {
                     PT_DRIVE_HINT = ATA_DRIVE;
                 }
@@ -708,8 +708,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -866,7 +866,7 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -878,7 +878,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1070,7 +1070,7 @@ int main(int argc, char *argv[])
                 params.suspectedPassthroughType = C_CAST(ePassthroughType, PT_PTTYPE_HINT);
             }
             perform_Passthrough_Test(&params);
-            
+
         }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
@@ -1324,7 +1324,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice *device, bool gpl, uint8_t l
                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                     //recursively call this function and try again
                     safe_Free_aligned(log)
-                    multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
+                        multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
                 }
                 else
                 {
@@ -1593,7 +1593,7 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice *device, M_ATTR_UNUSED bool smart
             else if (udmaReadRet == SUCCESS && dmaReadRet == SUCCESS)
             {
                 printf("Both UDMA and DMA protocols are supported.\n");
-            } 
+            }
             else
             {
                 set_Console_Colors(true, ERROR_COLOR);
@@ -1758,7 +1758,7 @@ static void return_Response_Info_Test(tDevice *device, M_ATTR_UNUSED bool smartS
             set_Console_Colors(true, HACK_COLOR);
             printf("HACK FOUND: RS\n");//returnResponseInfoSupported
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-            
+
         }
     }
     if (device->drive_info.passThroughHacks.ataPTHacks.returnResponseInfoSupported)
@@ -1784,7 +1784,7 @@ typedef struct _rawDesignator
 typedef struct _scsiDevInfo
 {
     //inquiry data
-    struct 
+    struct
     {
         char vendorId[T10_VENDOR_ID_LEN + 1];
         char productId[INQ_DATA_PRODUCT_ID_LEN + 1];
@@ -1797,7 +1797,7 @@ typedef struct _scsiDevInfo
         bool satVersionDescriptorFound;
     }inquiryData;
     //read capacity data - zeros mean we couldn't read one of these pieces of information.
-    struct 
+    struct
     {
         uint32_t rc10MaxLBA;
         uint32_t rc10blockSize;
@@ -1806,7 +1806,7 @@ typedef struct _scsiDevInfo
         uint32_t rc16physBlockSize;
     }readCapData;
     //vpd page data
-    struct 
+    struct
     {
         bool gotUnitSNVPDPage;
         char unitSN[255];
@@ -1815,7 +1815,7 @@ typedef struct _scsiDevInfo
         rawDesignator designators[8];
         bool gotSATVPDPage;
         bool gotPowerConditionsVPDPage;
-        struct 
+        struct
         {
             bool standby_z;
             bool standby_y;
@@ -1831,7 +1831,7 @@ typedef struct _scsiDevInfo
         bool gotExInquiryVPDPage;
         uint16_t vpdDSTTimeMinutes;//ext dst from VPD page. If zero, either not reported on this page, or device just doesn't do this translation
         bool gotBlockCharacteristicsVPDPage;
-        struct 
+        struct
         {
             uint16_t rotationRate;
             uint8_t productType;
@@ -1839,7 +1839,7 @@ typedef struct _scsiDevInfo
             uint8_t zonedCapabilities;
         }blockCharacteristicsData;
         bool gotBlockLimitsVPDPage;
-        struct 
+        struct
         {
             uint32_t maximumXferLen;
             uint32_t optimalXferLen;
@@ -1850,10 +1850,10 @@ typedef struct _scsiDevInfo
         //TODO: based on reported VPD pages (mode page policy and/or feature sets, etc), create a list of mode pages that are expected to be supported for the mode page test.
     }vpdData;
     //Log Page data
-    struct 
+    struct
     {
         bool readErrorsFound;
-        struct 
+        struct
         {
             union {
                 uint32_t readRecoveryAttempts;//ATA
@@ -1865,13 +1865,13 @@ typedef struct _scsiDevInfo
             };
         }readErrorData;
         bool gotTemperature;
-        struct 
+        struct
         {
             uint8_t temperature;
             uint8_t referenceTemperature;
         }temperatureData;
         bool gotStartStop;
-        struct 
+        struct
         {
             union {
                 uint32_t headLoadEvents;
@@ -1883,28 +1883,28 @@ typedef struct _scsiDevInfo
             };
         }startStopData;
         bool gotSelfTestData;
-        struct 
+        struct
         {
             uint32_t totalSelfTestEntries;//Only doing this because it is more complicated to compare the fields with ATA and is not really worth it right now - TJE
         }selfTestData;
         bool gotSolidStateData;
-        struct 
+        struct
         {
             uint8_t percentUsedIndicator;
         }solidStateData;
         bool gotBackgroundScan;
-        struct 
+        struct
         {
             uint64_t accumulatedPowerOnMinutes;//60 * ATA Power on hours statistic
         }backgroundData;
         bool gotZonedStatistics;
-        struct 
+        struct
         {
             //TODO: zoned statistics
             uint8_t reserved;
         }zonedData;
         bool gotGeneralStatistics;
-        struct 
+        struct
         {
             uint64_t numberOfReadCommands;
             uint64_t numberOfWriteCommands;
@@ -1912,12 +1912,12 @@ typedef struct _scsiDevInfo
             uint64_t numberOfLogicalBlocksTransmitted;
         }generalStatisticsData;
         bool gotPendingDefects;
-        struct 
+        struct
         {
             uint32_t pendingDefectsCount;
         }pendingDefectsData;
         bool gotInformationalExceptions;
-        struct 
+        struct
         {
             uint8_t asc;
             uint8_t ascq;
@@ -1929,32 +1929,32 @@ typedef struct _scsiDevInfo
     struct
     {
         bool gotControlPage;
-        struct 
+        struct
         {
             bool d_sense;
             uint16_t extDSTCompletionTimeSeconds;//Seconds
             //TODO: busy timeout period???
         }controlData;
         bool gotControlExtensionPage;//not in NVMe
-        struct 
+        struct
         {
             uint8_t maxSenseDataLength;//what is it currently set to here...can also be changed here.
         }controlExtData;
         bool gotReadWriteErrorRecoveryPage;
-        struct 
+        struct
         {
             bool awre;//true for everything today. Possibly false if it is an old drive....can tell by checking defaults instead of current values.
             bool arre;//false for ATA, true for NVMe
             uint16_t recoveryTimeLimit;//0 for all ATA devices according to SAT. NVMe will set this to value of a feature.
         }rwErrRecData;
         bool gotCachingPage;
-        struct 
+        struct
         {
             bool wce;
             bool dra;//not on NVMe ever.
         }cachingData;
         bool gotInformationalExceptionsControlPage;
-        struct 
+        struct
         {
             uint8_t mrie;
             bool ewasc;
@@ -1962,7 +1962,7 @@ typedef struct _scsiDevInfo
             bool perf;
         }infoExcepData;
         bool gotRigidDiskPage;
-        struct 
+        struct
         {
             //Storing everything from this page for now.
             uint32_t numberOfCylinders;
@@ -1976,7 +1976,7 @@ typedef struct _scsiDevInfo
             uint16_t mediumRotationRate;
         }rigidDiskData;
         bool gotPowerConditionControlPage;//StdSCSI page
-        struct 
+        struct
         {
             uint8_t pageLength;//to help detect legacy devices since this used to be a shorter page
             bool standbyY;
@@ -1992,7 +1992,7 @@ typedef struct _scsiDevInfo
             uint32_t standbyYTimer;
         }powerConditionCtrlData;
         bool gotPataControlPage;//ATA specific for PATA devices.
-        struct 
+        struct
         {
             bool mwd2;
             bool mwd1;
@@ -2008,7 +2008,7 @@ typedef struct _scsiDevInfo
             bool udma0;
         }pataCtrlData;
         bool gotATAPowerConditionPage;//ATA specific page for APM
-        struct 
+        struct
         {
             bool apmp;
             uint8_t apmValue;
@@ -2025,7 +2025,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     printf("Checking VPD page support\n");
     printf("=========================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-    
+
     uint8_t supportedPages[36] = { 0 };
     uint8_t dummiedPageCount = 0;
     bool dummiedPages = false;
@@ -2095,7 +2095,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
     }
     uint16_t pagesread = 0;
     //TODO: validate peripheral qualifier and peripheral device type on every page with std inquiry data
-    for (uint32_t vpdIter = 4; vpdIter < C_CAST(uint32_t,(supportedVPDPagesLength + 4)) && vpdIter < INQ_RETURN_DATA_LENGTH; vpdIter++)
+    for (uint32_t vpdIter = 4; vpdIter < C_CAST(uint32_t, (supportedVPDPagesLength + 4)) && vpdIter < INQ_RETURN_DATA_LENGTH; vpdIter++)
     {
         bool genericVPDPageReadOutput = true;
         bool readVPDPage = false;
@@ -2234,13 +2234,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     switch (codeSet)
                     {
                     case 1://binary values
-                       break;
+                        break;
                     case 2://ASCII printable characters
-                       isASCII = true;
-                       break;
+                        isASCII = true;
+                        break;
                     case 3://UTF-8 codes
-                       isUTF8 = true;
-                       break;
+                        isUTF8 = true;
+                        break;
                     case 0://reserved
                     default://reserved
                         break;
@@ -2413,13 +2413,13 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             printf("\t\t\t    IEEE Company ID: ");
                             for (uint32_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 3)); ++ieeeVIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
+                                printf("%02" PRIX8, pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
                             for (uint32_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++vuExtIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
+                                printf("%02" PRIX8, pageToRead[vuExtIDOffset]);
                             }
                             printf("\n");
                             break;
@@ -2428,19 +2428,19 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             printf("\t\t\t    IEEE Company ID: ");
                             for (uint32_t ieeeVIDOffset = designatorOffset; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 3)); ++ieeeVIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
+                                printf("%02" PRIX8, pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
                             for (uint32_t vuExtIDOffset = designatorOffset + 3; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++vuExtIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
+                                printf("%02" PRIX8, pageToRead[vuExtIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Directory ID: ");
                             for (uint32_t dIDOffset = designatorOffset + 8; dIDOffset < C_CAST(uint32_t, (designatorOffset + 12)); ++dIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[dIDOffset]);
+                                printf("%02" PRIX8, pageToRead[dIDOffset]);
                             }
                             printf("\n");
                             break;
@@ -2449,19 +2449,19 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             printf("\t\t\t    Identifier Extension: ");
                             for (uint32_t idExtOffset = designatorOffset; idExtOffset < C_CAST(uint32_t, (designatorOffset + 8)); ++idExtOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[idExtOffset]);
+                                printf("%02" PRIX8, pageToRead[idExtOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    IEEE Company ID: ");
                             for (uint32_t ieeeVIDOffset = designatorOffset + 8; ieeeVIDOffset < C_CAST(uint32_t, (designatorOffset + 11)); ++ieeeVIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[ieeeVIDOffset]);
+                                printf("%02" PRIX8, pageToRead[ieeeVIDOffset]);
                             }
                             printf("\n");
                             printf("\t\t\t    Vendor Specific Extension Identifier: ");
                             for (uint32_t vuExtIDOffset = designatorOffset + 11; vuExtIDOffset < C_CAST(uint32_t, (designatorOffset + 16)); ++vuExtIDOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[vuExtIDOffset]);
+                                printf("%02" PRIX8, pageToRead[vuExtIDOffset]);
                             }
                             printf("\n");
                             break;
@@ -2471,7 +2471,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             //print it out in hex
                             for (uint32_t euiOffset = designatorOffset; euiOffset < C_CAST(uint32_t, (designatorOffset + designatorLength)); ++euiOffset)
                             {
-                                printf("%02" PRIX8 , pageToRead[euiOffset]);
+                                printf("%02" PRIX8, pageToRead[euiOffset]);
                             }
                             printf("\n");
                             break;
@@ -2498,10 +2498,10 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             case 3://Locally Assigned - binary only
                                 printf("\t\t\t    NAA Type 3 - Locally Assigned\n");
                                 //Locally administered value
-                                printf("\t\t\t        Locally Administered Value: %01" PRIX8 , M_Nibble0(pageToRead[designatorOffset]));//print the first nibble, the rest is all individual bytes
+                                printf("\t\t\t        Locally Administered Value: %01" PRIX8, M_Nibble0(pageToRead[designatorOffset]));//print the first nibble, the rest is all individual bytes
                                 for (uint16_t lavOffset = designatorOffset + 1; lavOffset < (designatorLength + 4); ++lavOffset)
                                 {
-                                    printf("%02" PRIX8 , pageToRead[lavOffset]);
+                                    printf("%02" PRIX8, pageToRead[lavOffset]);
                                 }
                                 printf("\n");
                                 break;
@@ -2533,7 +2533,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                     }
                                     else
                                     {
-                                        printf("%02" PRIX8 , pageToRead[unaaOffset]);
+                                        printf("%02" PRIX8, pageToRead[unaaOffset]);
                                     }
                                 }
                                 printf("\n");
@@ -2653,21 +2653,21 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                             switch (protocolIdentifier)
                             {
                             case 9://UAS
-                                {
-                                    uint8_t deviceAddress = M_GETBITRANGE(pageToRead[designatorOffset], 6, 0);
-                                    uint8_t interfaceNumber = pageToRead[designatorOffset + 2];
-                                    printf("\t\t\t    UAS Target Port Identifier:\n");
-                                    printf("\t\t\t        Device Address: %02" PRIX8 "h\n", deviceAddress);
-                                    printf("\t\t\t        Interface Number: %02" PRIX8 "h\n", interfaceNumber);
-                                }
-                                break;
+                            {
+                                uint8_t deviceAddress = M_GETBITRANGE(pageToRead[designatorOffset], 6, 0);
+                                uint8_t interfaceNumber = pageToRead[designatorOffset + 2];
+                                printf("\t\t\t    UAS Target Port Identifier:\n");
+                                printf("\t\t\t        Device Address: %02" PRIX8 "h\n", deviceAddress);
+                                printf("\t\t\t        Interface Number: %02" PRIX8 "h\n", interfaceNumber);
+                            }
+                            break;
                             case 0xA://SCSI over PCIe
-                                {
-                                    uint16_t routingID = M_BytesTo2ByteValue(pageToRead[designatorOffset], pageToRead[designatorOffset + 1]);
-                                    printf("\t\t\t    PCIe Routing Identifier:\n");
-                                    printf("\t\t\t        Routing ID: %04" PRIX16 "h\n", routingID);
-                                }
-                                break;
+                            {
+                                uint16_t routingID = M_BytesTo2ByteValue(pageToRead[designatorOffset], pageToRead[designatorOffset + 1]);
+                                printf("\t\t\t    PCIe Routing Identifier:\n");
+                                printf("\t\t\t        Routing ID: %04" PRIX16 "h\n", routingID);
+                            }
+                            break;
                             default://unknown or not defined in SPC5 when this was written
                                 printf("\t\t\t    Unknown Protocol Specific Port Identifier type!\n");
                                 print_Data_Buffer(&pageToRead[designatorOffset], designatorLength, true);
@@ -2694,7 +2694,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 }
                                 for (uint16_t uuidOffset = designatorOffset; uuidOffset < (designatorLength + 4); ++uuidOffset)
                                 {
-                                    printf("%02" PRIX8 , pageToRead[uuidOffset]);
+                                    printf("%02" PRIX8, pageToRead[uuidOffset]);
                                 }
                                 printf("\n");
                                 break;
@@ -2712,7 +2712,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     }
                 }
                 //checking if we got an MD5 when we shouldn't have!
-                if (gotMD5 && (gotEUI64 || gotNAA || gotSCSINameString || gotUUID ))
+                if (gotMD5 && (gotEUI64 || gotNAA || gotSCSINameString || gotUUID))
                 {
                     set_Console_Colors(true, WARNING_COLOR);
                     printf("WARNING: Device reported MD5 designator while also reporting a\n");
@@ -2727,7 +2727,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     printf("\t\t\t    MD5 Logical Unit Identifier: ");
                     for (; md5Offset < 16; ++md5Offset)
                     {
-                        printf("%02" PRIX8 , pageToRead[md5Offset]);
+                        printf("%02" PRIX8, pageToRead[md5Offset]);
                     }
                     printf("\n");
                 }
@@ -3230,7 +3230,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: VPD Page length is less than specified in SBC! Expected %" PRIX16 "h, but got %" PRIX16 "h\n", 0x003C, vpdPageLength);
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-                } 
+                }
                 else
                 {
                     genericVPDPageReadOutput = false;
@@ -3242,7 +3242,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                     printf("\tOptimal Transfer Length Granularity: ");
                     if (M_BytesTo2ByteValue(pageToRead[6], pageToRead[7]) > 0)
                     {
-                         printf("%" PRIu16 " Logical Blocks\n", M_BytesTo2ByteValue(pageToRead[6], pageToRead[7]));
+                        printf("%" PRIu16 " Logical Blocks\n", M_BytesTo2ByteValue(pageToRead[6], pageToRead[7]));
                     }
                     else
                     {
@@ -3631,7 +3631,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
             {
                 //vendor specific
                 printf("Vendor Specific VPD Page %02" PRIX8 "h\n", supportedPages[vpdIter]);
-            } 
+            }
             else
             {
                 //unknown page
@@ -3661,7 +3661,7 @@ static eReturnValues scsi_Information(tDevice *device, ptrScsiDevInformation scs
     printf("Reading Inquiry Data\n");
     printf("====================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
- 
+
     if (SUCCESS == scsi_Inquiry(device, (uint8_t *)&device->drive_info.scsiVpdData.inquiryData, 96, 0, false, false))
     {
         bool continueTesting = false;
@@ -3983,7 +3983,7 @@ static eReturnValues scsi_Information(tDevice *device, ptrScsiDevInformation scs
             }
 
         }
-        
+
         if (!continueTesting)
         {
             return NOT_SUPPORTED;
@@ -4097,7 +4097,7 @@ static eReturnValues use_Mode_Sense_6(tDevice * device, uint8_t pageCode, bool *
             {
                 get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
                 if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x20 && senseFields.scsiStatusCodes.ascq == 0x00)
-                {   
+                {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: This device does not appear to support either mode sense 10 or mode sense 6!\n");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
@@ -4173,7 +4173,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode,
                 printf("HACK FOUND: NMSP\n");//mode page subpages are not supported by this device and it does not properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-            } 
+            }
             else
             {
                 //Everything looks ok, so double check the datalength
@@ -4235,7 +4235,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(tDevice * device, uint8_t pageCode,
                 printf("HACK FOUND: NMSP\n");//mode page subpages are not supported by this device and it does not properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-            } 
+            }
             else
             {
                 //Everything looks ok, so double check the datalength
@@ -4391,7 +4391,7 @@ static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformatio
         safe_Free_aligned(modeData)
     }
     safe_Free_aligned(modeData)
-    
+
     //read write error recovery mode page
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
     modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -4425,7 +4425,7 @@ static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformatio
         {
             printf("Enabled\n");
         }
-        else 
+        else
         {
             printf("Disabled\n");
         }
@@ -4435,7 +4435,7 @@ static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformatio
         {
             printf("Enabled\n");
         }
-        else 
+        else
         {
             printf("Disabled\n");
         }
@@ -4495,7 +4495,7 @@ static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformatio
         }
     }
     safe_Free_aligned(modeData)
-    
+
     //rigid disk geometry page
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
     modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -4573,7 +4573,7 @@ static eReturnValues scsi_Mode_Information(tDevice *device, ptrScsiDevInformatio
         }
     }
     safe_Free_aligned(modeData)
-    
+
     //informational exceptions mode page
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
     modeData = C_CAST(uint8_t *, calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -4940,7 +4940,7 @@ static eReturnValues scsi_Log_Information(tDevice *device, ptrScsiDevInformation
             //TODO: Read the length of the current page/subpage, then read the whole thing. Keep this pointer for the rest of the loop below.
             uint8_t *pageToRead = C_CAST(uint8_t*, calloc_aligned(logPageLength, sizeof(uint8_t), device->os_info.minimumAlignment));
 
-            if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES,pageCode,subPageCode, 0, pageToRead, logPageLength))
+            if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES, pageCode, subPageCode, 0, pageToRead, logPageLength))
             {
                 logPageLength = M_BytesTo2ByteValue(pageToRead[2], pageToRead[3]);
                 uint8_t* temp = realloc_aligned(pageToRead, logPageLength, logPageLength + 4, device->os_info.minimumAlignment);
@@ -4966,7 +4966,7 @@ static eReturnValues scsi_Log_Information(tDevice *device, ptrScsiDevInformation
                                 set_Console_Colors(true, ERROR_COLOR);
                                 printf("ERROR: Expected subpage %" PRIX8 "h, but got %" PRIX8 "h\n", subPageCode, pageToRead[1]);
                                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-                            } 
+                            }
                             else
                             {
                                 readLogPage = true;
@@ -5735,7 +5735,7 @@ static eReturnValues scsi_Log_Information(tDevice *device, ptrScsiDevInformation
                             printf("\tPending Defect Count: %" PRIu32 "\n", scsiDevInfo->logData.pendingDefectsData.pendingDefectsCount);
                             break;
                         default:
-                            if (parameterCode >0 && parameterCode <= 0xF000)
+                            if (parameterCode > 0 && parameterCode <= 0xF000)
                             {
                                 printf("\tPending Defect %" PRIu16 "\n", parameterCode);
                                 uint32_t poh = M_BytesTo4ByteValue(pageToRead[offset + 4], pageToRead[offset + 5], pageToRead[offset + 6], pageToRead[offset + 7]);
@@ -6065,7 +6065,7 @@ typedef struct _scsiRWSupport
 
 static eReturnValues scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, ptrScsiRWSupport rwSupport, bool testZeroLengthTransfersToo)
 {
-    if (!device || ! rwSupport)
+    if (!device || !rwSupport)
     {
         return BAD_PARAMETER;
     }
@@ -6116,7 +6116,7 @@ static eReturnValues scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, 
     }
 
     //read 10
-    if (SUCCESS == scsi_Read_10(device, 0, false, false, false, 0, 0, C_CAST(uint16_t, transferLength), ptrData,transferLengthBytes))
+    if (SUCCESS == scsi_Read_10(device, 0, false, false, false, 0, 0, C_CAST(uint16_t, transferLength), ptrData, transferLengthBytes))
     {
         rwSupport->tenBytes = true;
         set_Console_Colors(true, HACK_COLOR);
@@ -6127,7 +6127,7 @@ static eReturnValues scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, 
     }
 
     //read 12
-    if (SUCCESS == scsi_Read_12(device, 0, false, false, false, 0, 0, transferLength,ptrData,transferLengthBytes))
+    if (SUCCESS == scsi_Read_12(device, 0, false, false, false, 0, 0, transferLength, ptrData, transferLengthBytes))
     {
         rwSupport->twelveBytes = true;
         set_Console_Colors(true, HACK_COLOR);
@@ -6138,7 +6138,7 @@ static eReturnValues scsi_Read_Check(tDevice *device, bool zeroLengthTransfers, 
     }
 
     //read 16
-    if (SUCCESS == scsi_Read_16(device, 0, false, false, false, 0, 0, transferLength,ptrData,transferLengthBytes))
+    if (SUCCESS == scsi_Read_16(device, 0, false, false, false, 0, 0, transferLength, ptrData, transferLengthBytes))
     {
         rwSupport->sixteenBytes = true;
         set_Console_Colors(true, HACK_COLOR);
@@ -6228,7 +6228,7 @@ static bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice *device)
 //     return invalidField;
 // }
 
-static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
+static eReturnValues other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCmds)
 {
     if (!device || !scsiCmds)
     {
@@ -6266,7 +6266,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
         printf("ERROR: Report LUNS failed. This is a critical command!\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
-    
+
     if (SUCCESS == scsi_SecurityProtocol_In(device, 0, 0, false, 512, scsiDataBytes))
     {
         scsiCmds->securityProtocol = true;
@@ -6364,7 +6364,7 @@ static int other_SCSI_Cmd_Support(tDevice *device, ptrOtherSCSICmdSupport scsiCm
     printf("Testing SCSI default self-test.\n");
     //send diagnostic for default device self test. Wait up to 5 minutes for this command since some devices could take longer to process this
     //TODO: it is possible for self-test to fail, which we should catch since it performed the test and didn't return invalid operation code or invalid field in CDB
-    /*int selfTestResult =*/ scsi_Send_Diagnostic(device, 0, 0, 1, 0, 0, 0, NULL, 0, 5 * 60);
+    /*eReturnValues selfTestResult =*/ scsi_Send_Diagnostic(device, 0, 0, 1, 0, 0, 0, NULL, 0, 5 * 60);
     if (!does_Sense_Data_Show_Invalid_OP(device))
     {
         scsiCmds->sendDiagnostic = true;
@@ -6501,7 +6501,7 @@ static eReturnValues scsi_Error_Handling_Test(tDevice *device, double *badComman
     return SUCCESS;
 }
 
-static int sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool sctSupported)
+static eReturnValues sct_GPL_Test(tDevice *device, bool smartSupported, bool gplSupported, bool sctSupported)
 {
     if (!device)
     {
@@ -7033,7 +7033,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
             {
                 uint8_t data[512] = { 0 };
                 eReturnValues retrySAT16 = ata_Read_Log_Ext(inputs->device, ATA_LOG_DIRECTORY, 0, data, 512, false, 0);
-                if(retrySAT16 == SUCCESS)
+                if (retrySAT16 == SUCCESS)
                 {
                     printf("SAT 16-byte passthrough supported, but only for 48bit commands!\n");
                     satSupported = true;
@@ -7146,7 +7146,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         //In next tests, need to make sure we actually get response information that makes sense.
         // Will try SMART, get native max LBA first. Then try sending the drive to standby and checking the power mode, then spinning it up and checking again.
         // Need to make sure we look for ext RTFRs as well.
-        
+
         if (!inputs->nocheckConditionTest)
         {
             check_Condition_Bit_Test(inputs->device, smartSupported, smartLoggingSupported);
@@ -7216,17 +7216,17 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         {
             printf("\tNo Unit serial number reported. Skipping this check\n");
         }
-        
+
         if (scsiInformation->vpdData.gotBlockCharacteristicsVPDPage)
         {
             //Check rotation rate (if SCSI reported it)...if this doesn't match, check if it is byte swapped and throw a warning.
-            if(inputs->device->drive_info.IdentifyData.ata.Word217 != 0 && inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
+            if (inputs->device->drive_info.IdentifyData.ata.Word217 != 0 && inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
             {
                 set_Console_Colors(true, WARNING_COLOR);
                 printf("WARNING: Rotation rate doesn't Match! Got %" PRIu16 ", expected %" PRIu16 "\n", scsiInformation->vpdData.blockCharacteristicsData.rotationRate, inputs->device->drive_info.IdentifyData.ata.Word217);
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 byte_Swap_16(&scsiInformation->vpdData.blockCharacteristicsData.rotationRate);
-                if(inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
+                if (inputs->device->drive_info.IdentifyData.ata.Word217 != scsiInformation->vpdData.blockCharacteristicsData.rotationRate)
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: Even after byteswapping, the rotation rate still doesn't match!!!\n");
@@ -7239,10 +7239,10 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
-            
+
             //Check form factor (if SCSI reported it)..if this doesn't match, show a warning since this page was otherwise reported.
             if (M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != 0 && M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168) != scsiInformation->vpdData.blockCharacteristicsData.formFactor)
-            {   
+            {
                 set_Console_Colors(true, ERROR_COLOR);
                 printf("ERROR: Formfactor doesn't match! Got %" PRIu8 ", expected %" PRIu8 "\n", scsiInformation->vpdData.blockCharacteristicsData.formFactor, M_Nibble0(inputs->device->drive_info.IdentifyData.ata.Word168));
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
@@ -7291,7 +7291,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
 
         //check block sizes and maxLBA values
         //Throw a warning that the reverse 4k emulation crap is not useful since we are way past Windows XP at this point.
-        
+
         //TODO: Based on other SCSI reported information, read the ATA logs that the information should come from to compare and make sure it matches, or is close (>= what SCSI reported)
         //      This should be device statistics, other identify data not checked above, command/feature support, EPC settings, etc
 
@@ -7760,7 +7760,7 @@ static eReturnValues ata_PT_Read(tDevice *device, uint64_t lba, bool async, uint
 }
 
 #define MAX_ATA_SECTORS_TO_TEST UINT32_C(4096)
-static int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiReportedMax, uint32_t scsiReportedOptimal)
+static eReturnValues ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t scsiReportedMax, uint32_t scsiReportedOptimal)
 {
     uint32_t maxTestSizeBlocks = MAX_ATA_SECTORS_TO_TEST;
     if (scsiReportedMax > 0)
@@ -7788,9 +7788,9 @@ static int ata_Passthrough_Max_Transfer_Length_Test(tDevice *device, uint32_t sc
         return MEMORY_FAILURE;
     }
     //start at 1 sector, then double until 32k. From here, increment one sector at a time since most USB devices only handle 32k properly.
-    uint32_t transferLengthSectors = 1; 
+    uint32_t transferLengthSectors = 1;
     eReturnValues readResult = SUCCESS;
-    while(transferLengthSectors <= maxTestSizeBlocks && readResult == SUCCESS)
+    while (transferLengthSectors <= maxTestSizeBlocks && readResult == SUCCESS)
     {
         readResult = ata_PT_Read(device, 0, false, data, transferLengthSectors * device->drive_info.bridge_info.childDeviceBlockSize);
         scsi_Test_Unit_Ready(device, NULL);
@@ -7880,7 +7880,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         scsi_Error_Handling_Test(inputs->device, &relativeCommandProcessingPerformance);
 
         scsi_Max_Transfer_Length_Test(inputs->device, scsiInformation.vpdData.blockLimitsData.maximumXferLen, scsiInformation.vpdData.blockLimitsData.optimalXferLen);
-        
+
         //3. Start checking for SAT or VS NVMe passthrough, unless given information to use a different passthrough.
         //TODO: Make sure to do this only for direct access block devices OR zoned block devices
         //TODO: Move these passthrough tests to separate functions.
@@ -8065,7 +8065,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\tPlease include the full output from the tool when sending to seaboard@seagate.com\n");
         }
         printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
-        
+
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength < (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
         {
             printf("\tSCSI Max Transfer Size: %" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
@@ -8328,9 +8328,9 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 printf(" LIMPT,");
                 if (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.getLogPage &&
                     (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyGeneric ||
-                      (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController && inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace)
-                     )
-                   )
+                    (inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyController && inputs->device->drive_info.passThroughHacks.nvmePTHacks.limitedCommandsSupported.identifyNamespace)
+                        )
+                    )
                 {
                     printf(" IDGLP,");
                 }
@@ -8367,7 +8367,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\tfixed to prevent these hangs, that is the best solution!\n");
             ++recommendationCounter;
         }
-        #if defined (__linux__)
+#if defined (__linux__)
         if (inputs->device->drive_info.passThroughHacks.passthroughType == ATA_PASSTHROUGH_UNKNOWN)
         {
             printf("%" PRIu8 "\tThis device doesn't support passthrough OR this device is being blacklisted\n", recommendationCounter);
@@ -8377,7 +8377,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\thandling them correctly in UAS mode.\n");
             ++recommendationCounter;
         }
-        #endif
+#endif
         if (scsiInformation.vpdData.gotBlockLimitsVPDPage)
         {
             //TODO:Check if we hit the maximum in our test: MAX_SCSI_SECTORS_TO_TEST
