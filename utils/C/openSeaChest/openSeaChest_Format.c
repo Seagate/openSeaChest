@@ -246,13 +246,7 @@ int main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
-                    {
-                        //set the sector size
-                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint16(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &FORMAT_SECTOR_SIZE))
                     {
                         print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -261,11 +255,9 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
             {
-                uint64_t tempSectorSize = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
+                if (get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &SET_SECTOR_SIZE_SIZE))
                 {
                     SET_SECTOR_SIZE_FLAG = true;
-                    SET_SECTOR_SIZE_SIZE = C_CAST(uint32_t, tempSectorSize);
                 }
                 else
                 {
@@ -275,7 +267,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -300,21 +292,39 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = atoi(optarg);
+                if (!get_And_Validate_Integer_Input_I(optarg, NULL, ALLOW_UNIT_NONE, &FAST_FORMAT_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(FAST_FORMAT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_TYPE = C_CAST(uint8_t, atoi(optarg));
-                FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &FORMAT_UNIT_PROTECTION_TYPE))
+                {
+                    FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
+                }
+                else
+                {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = C_CAST(uint8_t, atoi(optarg));
-                FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT))
+                {
+                    FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
+                }
+                else
+                {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &FORMAT_UNIT_NEW_MAX_LBA))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &FORMAT_UNIT_NEW_MAX_LBA))
                 {
                     print_Error_In_Cmd_Line_Args(FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -322,7 +332,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DEPOP_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DEPOP_MAX_LBA_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DEPOP_MAX_LBA_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(DEPOP_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -330,12 +340,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &REMOVE_PHYSICAL_ELEMENT_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -346,12 +351,7 @@ int main(int argc, char *argv[])
                 NVM_FORMAT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t temp = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                    {
-                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM))
                     {
                         print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -396,7 +396,11 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_PI_TYPE) || NVM_FORMAT_PI_TYPE > 3)
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
             {
@@ -416,7 +420,11 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_METADATA_SIZE))
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
             {
@@ -449,36 +457,55 @@ int main(int argc, char *argv[])
                         colonLocation += 1;//adding 1 to offset just beyond the colon for parsing the remaining data
                         if (strncmp("file:", optarg, 5) == 0)
                         {
-                            FILE *patternFile = NULL;
-                            size_t filenameLength = strlen(colonLocation) + 1;
-                            char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
-                            if (!filename)
+                            fileExt allowedExt[] = {
+                                {".bin", false},
+                                {".BIN", false},
+                                {NULL, false} };
+                            secureFileInfo* fileinfo = secure_Open_File(colonLocation, "rb", allowedExt, NULL, NULL);
+                            if (fileinfo)
                             {
+                                if (fileinfo->error == SEC_FILE_SUCCESS)
+                                {
+                                    if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, NULL))
+                                    {
+                                        if (fileinfo->error == SEC_FILE_END_OF_FILE_REACHED)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
+                                            secure_Close_File(fileinfo);
+                                            free_Secure_File_Info(&fileinfo);
+                                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    printf("Unable to open file \"%s\" for pattern\n", colonLocation);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
+                                secure_Close_File(fileinfo);
+                                free_Secure_File_Info(&fileinfo);
+                            }
+                            else
+                            {
+                                printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
-                            snprintf(filename, filenameLength, "%s", colonLocation);
-                            //open file
-                            if (NULL == (patternFile = fopen(filename, "rb")))
-                            {
-                                printf("Unable to open file \"%s\" for pattern\n", filename);
-                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                            }
-                            //read contents into buffer
-                            size_t readLen = long_to_sizet(M_Min(C_CAST(long, PATTERN_BUFFER_LENGTH), get_File_Size(patternFile)));
-                            if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), readLen, patternFile))
-                            {
-                                printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
-                                fclose(patternFile);
-                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                            }
-                            //close file
-                            fclose(patternFile);
-                            safe_Free(filename);
                         }
                         else if (strncmp("increment:", optarg, 10) == 0)
                         {
-                            uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
-                            fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            uint8_t incrementStart = 0;
+                            if (get_And_Validate_Integer_Input_Uint8(colonLocation, NULL, ALLOW_UNIT_NONE, &incrementStart))
+                            {
+                                fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
                         else if (strncmp("repeat:", optarg, 7) == 0)
                         {
@@ -574,7 +601,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -767,8 +803,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

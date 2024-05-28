@@ -450,13 +450,11 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING))) == 0)
             {
-                uint64_t masterIDOut = 0;
-                if (!get_And_Validate_Integer_Input(optarg, &masterIDOut))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, &ATA_SECURITY_MASTER_PW_ID))
                 {
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                ATA_SECURITY_MASTER_PW_ID = C_CAST(uint16_t, masterIDOut);
             }
 #endif //ENABLE_ATA_SET_PASSWORD
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
@@ -519,7 +517,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -625,7 +623,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -914,8 +921,8 @@ int main(int argc, char *argv[])
     }
         
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

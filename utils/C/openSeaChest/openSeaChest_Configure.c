@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                 }
@@ -256,15 +256,33 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_SPEED_FLAG = true;
-                SET_PHY_SPEED_GEN = C_CAST(uint8_t, atoi(optarg));
+                unsigned long temp = strtoul(optarg, NULL, 10);
+                if (!(temp == ULONG_MAX && errno == ERANGE) && temp <= SET_PHY_SPEED_MAX_GENERATION)
+                {
+                    SET_PHY_SPEED_FLAG = true;
+                    SET_PHY_SPEED_GEN = C_CAST(uint8_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SPEED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_ALL_PHYS = false;
-                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
+                unsigned long temp = strtoul(optarg, NULL, 10);
+                if (!(temp == ULONG_MAX && errno == ERANGE) && temp <= UINT8_MAX)
+                {
+                    SET_PHY_ALL_PHYS = false;
+                    SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
             {
@@ -367,7 +385,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -524,25 +542,35 @@ int main(int argc, char *argv[])
                 else
                 {
                     uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
+                    char *unit = NULL;
+                    unsigned long rawValue = strtoul(optarg, &unit, 10);
                     //first check is a unit is provided.
-                    if (strstr(optarg, "ms"))
+                    if (unit)
                     {
-                        multiplier = UINT32_C(1);
-                    }
-                    else if (strstr(optarg, "s"))
-                    {
-                        multiplier = UINT32_C(1000);
-                    }
-                    else if (strstr(optarg, "m"))
-                    {
-                        multiplier = UINT32_C(60000);
-                    }
-                    else if (strstr(optarg, "h"))
-                    {
-                        multiplier = UINT32_C(3600000);
+                        if (strcmp(unit, "ms") == 0)
+                        {
+                            multiplier = UINT32_C(1);
+                        }
+                        else if (strcmp(unit, "s") == 0)
+                        {
+                            multiplier = UINT32_C(1000);
+                        }
+                        else if (strcmp(unit, "m") == 0)
+                        {
+                            multiplier = UINT32_C(60000);
+                        }
+                        else if (strcmp(unit, "h") == 0)
+                        {
+                            multiplier = UINT32_C(3600000);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg)) * multiplier;
+                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, rawValue) * multiplier;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING) == 0)
@@ -558,25 +586,35 @@ int main(int argc, char *argv[])
                 else
                 {
                     uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
+                    char *unit = NULL;
+                    unsigned long rawValue = strtoul(optarg, &unit, 10);
                     //first check is a unit is provided.
-                    if (strstr(optarg, "ms"))
+                    if (unit)
                     {
-                        multiplier = UINT32_C(1);
-                    }
-                    else if (strstr(optarg, "s"))
-                    {
-                        multiplier = UINT32_C(1000);
-                    }
-                    else if (strstr(optarg, "m"))
-                    {
-                        multiplier = UINT32_C(60000);
-                    }
-                    else if (strstr(optarg, "h"))
-                    {
-                        multiplier = UINT32_C(3600000);
+                        if (strcmp(unit, "ms") == 0)
+                        {
+                            multiplier = UINT32_C(1);
+                        }
+                        else if (strcmp(unit, "s") == 0)
+                        {
+                            multiplier = UINT32_C(1000);
+                        }
+                        else if (strcmp(unit, "m") == 0)
+                        {
+                            multiplier = UINT32_C(60000);
+                        }
+                        else if (strcmp(unit, "h") == 0)
+                        {
+                            multiplier = UINT32_C(3600000);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg)) * multiplier;
+                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, rawValue) * multiplier;
                 }
             }
             else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
@@ -592,57 +630,66 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint64_t value = 0;
                     //this is a value to read in.
-                    if (get_And_Validate_Integer_Input(optarg, &value))
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &FREE_FALL_SENSITIVITY))
                     {
                         print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    if (value > UINT8_MAX)
+                    else
                     {
-                        print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        FREE_FALL_FLAG = true;
                     }
-                    FREE_FALL_FLAG = true;
-                    FREE_FALL_SENSITIVITY = C_CAST(uint8_t, value);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESET_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_RESET_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = NULL;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESET_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESET_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESET_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESET_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(NULL, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_Free(dupoptarg)
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESET_LONG_OPT_STRING, optarg);
@@ -652,38 +699,51 @@ int main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESTORE_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_RESTORE_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = NULL;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESTORE_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESTORE_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(NULL, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_Free(dupoptarg)
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESTORE_LONG_OPT_STRING, optarg);
@@ -693,38 +753,51 @@ int main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_SAVE_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_SAVE_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = NULL;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_SAVE_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_SAVE_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_SAVE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_SAVE_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(NULL, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_Free(dupoptarg)
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_SAVE_LONG_OPT_STRING, optarg);
@@ -734,38 +807,51 @@ int main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_SHOW_MP_LONG_OPT_STRING) == 0)
             {
                 SCSI_SHOW_MP_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = NULL;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_SHOW_MP_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_SHOW_MP_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_SHOW_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_SHOW_MP_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(NULL, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_Free(dupoptarg)
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_SHOW_MP_LONG_OPT_STRING, optarg);
@@ -776,24 +862,33 @@ int main(int argc, char *argv[])
             {
                 SCSI_SET_MP_OP = true;
                 //first check if they are specifying a file!
-                if (strncmp(optarg, "file", 4) == 0)
+                if (strncmp(optarg, "file=", 5) == 0)
                 {
                     //format is file=filename.txt
-                    int sscanfRes = sscanf(optarg, SCSI_SET_MP_SSCANF_FILE_FORMAT_STR , SCSI_SET_MP_FILENAME);
-                    if (sscanfRes < 1 || sscanfRes == EOF)
+                    char *filenameptr = strstr(optarg, "=");
+                    if (filenameptr && strlen(filenameptr) > 1)
                     {
-                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        filenameptr += 1;//go past the =
+                        if (snprintf(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, "%s", filenameptr) > 0)
+                        {
+                            if (!os_File_Exists(SCSI_SET_MP_FILENAME))
+                            {
+                                //TODO: print file open error instead???
+                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
+                            //else we open the file later to use
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     else
                     {
-                        if (!os_File_Exists(SCSI_SET_MP_FILENAME))
-                        {
-                            //TODO: print file open error instead???
-                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        //else we open the file later to use
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
                 else
@@ -801,64 +896,81 @@ int main(int argc, char *argv[])
                     //formatted as mp[-sp]:byte:highbit:fieldWidth=value
                     #define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
                     char pageAndSubpage[PARSE_MP_PAGE_AND_SUBPAGE_LENGTH] = { 0 };
-                    char *token = strtok(optarg, ":=");
-                    uint8_t tokenCounter = 0;
-                    while (token && tokenCounter < 5)
+                    char *saveptr = NULL;
+                    rsize_t duplen = 0;
+                    char *dupoptarg = strdup(optarg);
+                    if (dupoptarg)
                     {
-                        //go through each string and convert it from a string into a value we can use in this tool
-                        //start with page and subpage
-                        switch (tokenCounter)
+                        duplen = strlen(dupoptarg);
+                        char *token = common_String_Token(dupoptarg, &duplen, ":=", &saveptr);
+                        uint8_t tokenCounter = 0;
+                        while (token && tokenCounter < 5)
                         {
-                        case 0://page-subpage
-                        {
-                            snprintf(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
-                            //parse later outside this loop. If we use strtok again in here, we'll break the way the parsing works... :(
+                            //go through each string and convert it from a string into a value we can use in this tool
+                            //start with page and subpage
+                            switch (tokenCounter)
+                            {
+                            case 0://page-subpage
+                            {
+                                snprintf(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
+                                //parse later outside this loop. If we tokenize again in here, we'll break the way the parsing works... :(
+                            }
+                            break;
+                            case 1://byte
+                                if (!get_And_Validate_Integer_Input_Uint16(token, NULL, ALLOW_UNIT_NONE, &SCSI_SET_MP_BYTE))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 2://bit
+                                if (!get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &SCSI_SET_MP_BIT) && SCSI_SET_MP_BIT > 7)
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 3://field width
+                                if (!get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &SCSI_SET_MP_FIELD_LEN_BITS) && SCSI_SET_MP_FIELD_LEN_BITS > 64)
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 4://value
+                                if (!get_And_Validate_Integer_Input_Uint64(token, NULL, ALLOW_UNIT_NONE, &SCSI_SET_MP_FIELD_VALUE))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            default:
+                                //shouldn't get here!!! throw an error?!
+                                break;
+                            }
+                            ++tokenCounter;
+                            token = common_String_Token(NULL, &duplen, ":=", &saveptr);
                         }
-                        break;
-                        case 1://byte
-                            SCSI_SET_MP_BYTE = C_CAST(uint16_t, atoi(token));
-                            break;
-                        case 2://bit
-                            if (atoi(token) > 7)
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            SCSI_SET_MP_BIT = C_CAST(uint8_t, atoi(token));
-                            break;
-                        case 3://field width
-                            if (atoi(token) > 64)
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            SCSI_SET_MP_FIELD_LEN_BITS = C_CAST(uint8_t, atoi(token));
-                            break;
-                        case 4://value
-                            if (!get_And_Validate_Integer_Input(token, &SCSI_SET_MP_FIELD_VALUE))
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            break;
-                        default:
-                            //shouldn't get here!!! throw an error?!
-                            break;
-                        }
-                        ++tokenCounter;
-                        token = strtok(NULL, ":=");
                     }
-                    char *pagetoken = strtok(pageAndSubpage, "-");
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    safe_Free(dupoptarg);
+                    saveptr = NULL;
+                    rsize_t pageSPlen = strlen(pageAndSubpage);
+                    char *pagetoken = common_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
                     if (pagetoken)
                     {
                         SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
-                        pagetoken = strtok(NULL, "-");
+                        pagetoken = common_String_Token(NULL, &pageSPlen, "-", &saveptr);
                         if (pagetoken)
                         {
                             SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
                         }
                     }
-                    else //should this be an error condition since strtok failed?
+                    else //should this be an error condition since tokenize failed?
                     {
                         //no subpage
                         SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pageAndSubpage, NULL, 16));
@@ -941,38 +1053,51 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_RESET_LP_PAGE_LONG_OPT_STRING) == 0)
             {
-                char * token = strtok(optarg, "-");
+                char *saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = NULL;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_RESET_LP_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_RESET_LP_PAGE_NUMBER = value;
                             if (value > 0x3F)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_RESET_LP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_RESET_LP_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(NULL, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_Free(dupoptarg)
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_PAGE_LONG_OPT_STRING, optarg);
@@ -981,11 +1106,9 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, ATA_DCO_SETMAXLBA_LONG_OPT_STRING) == 0)
             {
-                uint64_t dcoMaxLBA = 0;
-                if (get_And_Validate_Integer_Input(optarg, &dcoMaxLBA))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &ATA_DCO_SETMAXLBA_VALUE))
                 {
                     ATA_DCO_SETMAXLBA = true;
-                    ATA_DCO_SETMAXLBA_VALUE = dcoMaxLBA;
                 }
                 else
                 {
@@ -1053,7 +1176,9 @@ int main(int argc, char *argv[])
                 char* dcoDisableFeatList = strdup(optarg);
                 if (dcoDisableFeatList)
                 {
-                    char* dcoFeatToken = strtok(dcoDisableFeatList, ",");
+                    char *saveptr = NULL;
+                    rsize_t featlistlen = strlen(dcoDisableFeatList);
+                    char* dcoFeatToken = common_String_Token(dcoDisableFeatList, &featlistlen, ",", &saveptr);
                     ATA_DCO_DISABLE_FEATURES = true;
                     while (dcoFeatToken)
                     {
@@ -1174,7 +1299,7 @@ int main(int argc, char *argv[])
                             print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
-                        dcoFeatToken = strtok(NULL, ",");
+                        dcoFeatToken = common_String_Token(NULL, &featlistlen, ",", &saveptr);
                     }
                     safe_Free(dcoDisableFeatList)
                 }
@@ -1187,7 +1312,6 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRV_LONG_OPT_STRING) == 0)
             {
-                uint64_t tempCount = 0;
                 if (strcmp(optarg, "info") == 0)
                 {
                     WRV_INFO = true;
@@ -1207,10 +1331,9 @@ int main(int argc, char *argv[])
                     WRV_FLAG = true;
                     WRV_DISABLE = true;
                 }
-                else if (get_And_Validate_Integer_Input(optarg, &tempCount))
+                else if (get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &WRV_USER_VALUE))
                 {
                     WRV_FLAG = true;
-                    WRV_USER_VALUE = C_CAST(uint32_t, tempCount);
                 }
                 else
                 {
@@ -1304,7 +1427,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1494,8 +1626,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -3796,74 +3928,88 @@ int main(int argc, char *argv[])
                 if (modePageFile)
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
-                    size_t fileLength = C_CAST(size_t, get_File_Size(modePageFile)) + 1;//add 1 so that we have a null terminator once we read in the file.
-                    uint8_t *modePageBuffer = C_CAST(uint8_t*, calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
-                    char *fileBuf = C_CAST(char*, calloc(fileLength, sizeof(char)));
-                    if (modePageBuffer && fileBuf)
+                    int64_t modePageFileLen = os_Get_File_Size(modePageFile);
+                    if (modePageFileLen > 0)
                     {
-                        //read the file
-                        if ((fileLength - 1) == fread(fileBuf, sizeof(char), (fileLength - 1), modePageFile))//need the -1 since we added an extra 1 space above for a null terminator otherwise this fails. - TJE
+                        size_t fileLength = int64_to_sizet(modePageFileLen) + 1;//add 1 so that we have a null terminator once we read in the file.
+                        uint8_t *modePageBuffer = C_CAST(uint8_t*, calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                        char *fileBuf = C_CAST(char*, calloc(fileLength, sizeof(char)));
+                        if (modePageBuffer && fileBuf)
                         {
-                            //parse the file
-                            char *delimiters = " \n\r-_\\/|\t:;";
-                            char *token = strtok(fileBuf, delimiters);//add more to the delimiter list as needed
-                            if (token)
+                            //read the file
+                            if ((fileLength - 1) == fread(fileBuf, sizeof(char), (fileLength - 1), modePageFile))//need the -1 since we added an extra 1 space above for a null terminator otherwise this fails. - TJE
                             {
-                                bool invalidCharacterOrMissingSeparator = false;
-                                uint16_t modeBufferElementCount = 0;
-                                do
+                                //parse the file
+                                rsize_t filebuflen = strlen(fileBuf);
+                                char *saveptr = NULL;
+                                const char *delimiters = " \n\r-_\\/|\t:;";
+                                char *token = common_String_Token(fileBuf, &filebuflen, delimiters, &saveptr);//add more to the delimiter list as needed
+                                if (token)
                                 {
-                                    if (strlen(token) > 2)
+                                    bool invalidCharacterOrMissingSeparator = false;
+                                    uint16_t modeBufferElementCount = 0;
+                                    do
                                     {
-                                        invalidCharacterOrMissingSeparator = true;
-                                        break;
-                                    }
-                                    if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
-                                    {
-                                        invalidCharacterOrMissingSeparator = true;
-                                        break;
-                                    }
-                                    //not an invalid character or a missing separator, so convert the string to an array value.
-                                    modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, strtoul(token, NULL, 16));
-                                    ++modeBufferElementCount;
-                                    token = strtok(NULL, delimiters);
-                                } while (token);
-                                if (!invalidCharacterOrMissingSeparator)
-                                {
-                                    //file is read, send the change
-                                    switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
-                                    {
-                                    case SUCCESS:
-                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        if (strlen(token) > 2)
                                         {
-                                            printf("Successfully set SCSI mode page!\n");
-                                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                            invalidCharacterOrMissingSeparator = true;
+                                            break;
+                                        }
+                                        if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
+                                        {
+                                            invalidCharacterOrMissingSeparator = true;
+                                            break;
+                                        }
+                                        //not an invalid character or a missing separator, so convert the string to an array value.
+                                        modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, strtoul(token, NULL, 16));
+                                        ++modeBufferElementCount;
+                                        token = common_String_Token(NULL, &filebuflen, delimiters, &saveptr);
+                                    } while (token);
+                                    if (!invalidCharacterOrMissingSeparator)
+                                    {
+                                        //file is read, send the change
+                                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
+                                        {
+                                        case SUCCESS:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                                printf("Successfully set SCSI mode page!\n");
+                                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                                {
+                                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                                }
                                             }
+                                            break;
+                                        case NOT_SUPPORTED:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                            }
+                                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                            break;
+                                        default:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("Failed to set the mode page changes that were requested.\n");
+                                            }
+                                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                            break;
                                         }
-                                        break;
-                                    case NOT_SUPPORTED:
+                                    }
+                                    else
+                                    {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
-                                        }
-                                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                                        break;
-                                    default:
-                                        if (VERBOSITY_QUIET < toolVerbosity)
-                                        {
-                                            printf("Failed to set the mode page changes that were requested.\n");
+                                            printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                        break;
                                     }
                                 }
                                 else
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                        printf("An error occurred while trying to parse the file. Please check the file format.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -3872,20 +4018,22 @@ int main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An error occurred while trying to parse the file. Please check the file format.\n");
+                                    printf("Error reading contents of mode page file!\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
+                            safe_Free_aligned(modePageBuffer)
                         }
                         else
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Error reading contents of mode page file!\n");
+                                printf("Unable to allocate memory to read the file. Cannot set the mode page.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
                         safe_Free_aligned(modePageBuffer)
+                        safe_Free(fileBuf);
                     }
                     else
                     {
@@ -3896,8 +4044,6 @@ int main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                     fclose(modePageFile);
-                    safe_Free_aligned(modePageBuffer)
-                    safe_Free(fileBuf);
                 }
                 else
                 {

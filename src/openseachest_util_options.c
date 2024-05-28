@@ -3218,6 +3218,12 @@ void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg)
     printf("Use -h option to view command line help\n");
 }
 
+void print_Error_In_Cmd_Line_Args_Short_Opt(char opt, const char * arg)
+{
+    printf("\nError in option --%c. Invalid argument given '%s'.\n", opt, arg);
+    printf("Use -h option to view command line help\n");
+}
+
 void print_Enable_Legacy_USB_Passthrough_Help(bool shortHelp)
 {
     printf("\t--%s\n", ENABLE_LEGACY_PASSTHROUGH_LONG_OPT_STRING);

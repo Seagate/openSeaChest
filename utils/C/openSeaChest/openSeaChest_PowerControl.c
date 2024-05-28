@@ -234,12 +234,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = UINT64_MAX;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp) && temp < INT32_MAX)
-                {
-                    TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Int32(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &TRANSITION_POWER_STATE_TO))
                 {
                     print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -319,11 +314,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //set the value to change to (watts)
-                    //use the lf specifier otherwise it thinks it's a standard float and you won't get the right value.
-                    int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
-//ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
-                    if (scanRet == 0 || scanRet == EOF)
+                    if (!get_And_Validate_Double_Input(optarg, NULL, ALLOW_UNIT_NONE, &SET_POWER_CONSUMPTION_WATTS_VALUE))
                     {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -332,8 +323,15 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING) == 0)
             {
-                SET_APM_LEVEL_FLAG = true;
-                SET_APM_LEVEL_VALUE_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_APM_LEVEL_VALUE_FLAG))
+                {
+                    SET_APM_LEVEL_FLAG = true;
+                }
+                else 
+                {
+                    print_Error_In_Cmd_Line_Args(SET_APM_LEVEL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, SEAGATE_POWER_BALANCE_LONG_OPT_STRING) == 0)
             {
@@ -455,7 +453,11 @@ int main(int argc, char *argv[])
             } 
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_A_LONG_OPT_STRING) == 0)
             {
@@ -474,10 +476,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_A_TIMER_VALID = true;
-                    IDLE_A_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_A_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_A_TIMER_VALID = true;
+                        IDLE_A_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_B_LONG_OPT_STRING) == 0)
@@ -497,10 +534,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_B_TIMER_VALID = true;
-                    IDLE_B_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_B_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_B_TIMER_VALID = true;
+                        IDLE_B_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_C_LONG_OPT_STRING) == 0)
@@ -520,10 +592,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_C_TIMER_VALID = true;
-                    IDLE_C_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_C_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_C_TIMER_VALID = true;
+                        IDLE_C_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Z_LONG_OPT_STRING) == 0)
@@ -543,10 +650,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    STANDBY_Z_TIMER_VALID = true;
-                    STANDBY_Z_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Z_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        STANDBY_Z_TIMER_VALID = true;
+                        STANDBY_Z_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Y_LONG_OPT_STRING) == 0)
@@ -566,10 +708,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    STANDBY_Y_TIMER_VALID = true;
-                    STANDBY_Y_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Y_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        STANDBY_Y_TIMER_VALID = true;
+                        STANDBY_Y_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_IDLE_LONG_OPT_STRING) == 0)
@@ -589,10 +766,45 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    LEGACY_IDLE_TIMER_VALID = true;
-                    LEGACY_IDLE_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_IDLE_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        LEGACY_IDLE_TIMER_VALID = true;
+                        LEGACY_IDLE_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_STANDBY_LONG_OPT_STRING) == 0)
@@ -612,26 +824,52 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    LEGACY_STANDBY_TIMER_VALID = true;
-                    LEGACY_STANDBY_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = NULL;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_STANDBY_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        LEGACY_STANDBY_TIMER_VALID = true;
+                        LEGACY_STANDBY_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING) == 0)
             {
-                uint64_t measurementTime = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &measurementTime))
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS))
                 {
                     REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
-                    if (measurementTime > 65535)
-                    {
-                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
-                    }
-                    else
-                    {
-                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = C_CAST(uint16_t, measurementTime);
-                    }
                 }
                 else
                 {
@@ -772,7 +1010,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -962,8 +1209,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

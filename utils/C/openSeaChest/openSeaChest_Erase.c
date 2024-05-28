@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -377,19 +377,31 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(HOURS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(MINUTES_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(SECONDS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &WRITE_SAME_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(WRITE_SAME_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -397,7 +409,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, WRITE_SAME_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &WRITE_SAME_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &WRITE_SAME_START_FLAG))
                 {
                     RUN_WRITE_SAME_FLAG = true;
                 }
@@ -435,13 +447,7 @@ int main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
-                    {
-                        //set the sector size
-                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint16(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &FORMAT_SECTOR_SIZE))
                     {
                         print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -453,12 +459,7 @@ int main(int argc, char *argv[])
                 NVM_FORMAT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t temp = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                    {
-                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM))
                     {
                         print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -503,7 +504,11 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_PI_TYPE) || NVM_FORMAT_PI_TYPE > 3)
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
             {
@@ -523,7 +528,11 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &NVM_FORMAT_METADATA_SIZE))
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
             {
@@ -543,7 +552,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -568,7 +577,11 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = atoi(optarg);
+                if (!get_And_Validate_Integer_Input_I(optarg, NULL, ALLOW_UNIT_NONE, &FAST_FORMAT_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(FAST_FORMAT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strncmp(longopts[optionIndex].name, ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ATA_SECURITY_FORCE_SAT_LONG_OPT_STRING))) == 0)
             {
@@ -777,36 +790,49 @@ int main(int argc, char *argv[])
                     char *colonLocation = strstr(optarg, ":") + 1;//adding 1 to offset just beyond the colon for parsing the remaining data
                     if (strncmp("file:", optarg, 5) == 0)
                     {
-                        FILE *patternFile = NULL;
-                        size_t filenameLength = strlen(colonLocation) + 1;
-                        char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
-                        if (!filename)
+                        fileExt allowedExt[] = {
+                                {".bin", false},
+                                {".BIN", false},
+                                {NULL, false} };
+                        secureFileInfo* fileinfo = secure_Open_File(colonLocation, "rb", allowedExt, NULL, NULL);
+                        if (fileinfo)
                         {
+                            if (fileinfo->error == SEC_FILE_SUCCESS)
+                            {
+                                if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, NULL))
+                                {
+                                    printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
+                                    secure_Close_File(fileinfo);
+                                    free_Secure_File_Info(&fileinfo);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
+                            }
+                            else
+                            {
+                                printf("Unable to open file \"%s\" for pattern\n", colonLocation);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
+                            secure_Close_File(fileinfo);
+                            free_Secure_File_Info(&fileinfo);
+                        }
+                        else
+                        {
+                            printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
-                        snprintf(filename, filenameLength, "%s", colonLocation);
-                        //open file
-                        if (NULL == (patternFile = fopen(filename, "rb")))
-                        {
-                            printf("Unable to open file \"%s\" for pattern\n", filename);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        //read contents into buffer
-                        size_t readLen = long_to_sizet(M_Min(C_CAST(long, PATTERN_BUFFER_LENGTH), get_File_Size(patternFile)));
-                        if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), readLen, patternFile))
-                        {
-                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
-                            fclose(patternFile);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        //close file
-                        fclose(patternFile);
-                        safe_Free(filename);
                     }
                     else if (strncmp("increment:", optarg, 10) == 0)
                     {
-                        uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
-                        fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                        uint8_t incrementStart = 0;
+                        if (get_And_Validate_Integer_Input_Uint8(colonLocation, NULL, ALLOW_UNIT_NONE, &incrementStart))
+                        {
+                            fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     else if (strncmp("repeat:", optarg, 7) == 0)
                     {
@@ -849,12 +875,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    SANITIZE_OVERWRITE_PASSES = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SANITIZE_OVERWRITE_PASSES))
                 {
                     print_Error_In_Cmd_Line_Args(SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -891,7 +912,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode

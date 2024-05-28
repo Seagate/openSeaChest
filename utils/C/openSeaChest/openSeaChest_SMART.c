@@ -217,13 +217,13 @@ int main(int argc, char *argv[])
         {
         case 0:
             //parse long options that have no short option and required arguments here
-            if (strncmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CONFIRM_LONG_OPT_STRING))) == 0)
+            if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(LONG_TEST_ACCEPT_STRING) && strncmp(optarg, LONG_TEST_ACCEPT_STRING, strlen(LONG_TEST_ACCEPT_STRING)) == 0)
+                if (strcmp(optarg, LONG_TEST_ACCEPT_STRING) == 0)
                 {
                     LONG_TEST_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING, strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strcmp(optarg, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     SINGLE_SECTOR_DATA_ERASE_FLAG = true;
                 }
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING) == 0)
             {
                 RUN_IDD_FLAG = true;
                 if (strcmp(optarg, "short") == 0)
@@ -248,8 +248,7 @@ int main(int argc, char *argv[])
                 {
                     //read in the argument as a hex value instead of an integer
                     uint32_t iddTestNumber = 0;
-                    int res = sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    if (res != EOF && res > 0)
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &iddTestNumber))
                     {
                         switch (iddTestNumber)
                         {
@@ -274,10 +273,30 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
-                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
-                if(strstr(optarg, "l"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &ERROR_LIMIT_FLAG))
                 {
-                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = true;
+                        }
+                        else if (strcmp(unit, "p") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
@@ -321,13 +340,17 @@ int main(int argc, char *argv[])
             else if (strncmp(longopts[optionIndex].name, SET_MRIE_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MRIE_MODE_LONG_OPT_STRING))) == 0)
             {
                 SET_MRIE_MODE_FLAG = true;
-                if(strcmp(optarg, "default") == 0)
+                if (strcmp(optarg, "default") == 0)
                 {
                     SET_MRIE_MODE_DEFAULT = true;
                 }
                 else
                 {
-                    SET_MRIE_MODE_VALUE = C_CAST(uint8_t, atoi(optarg));
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_MRIE_MODE_VALUE))
+                    {
+                        print_Error_In_Cmd_Line_Args(SET_MRIE_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING))) == 0)
@@ -389,12 +412,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
             {
-                //check for integer value or string that specifies the correct mode.
-                if (strlen(optarg) == 1 && isdigit(optarg[0]))
-                {
-                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_I(optarg, NULL, ALLOW_UNIT_NONE, &SCSI_DEFECTS_DESCRIPTOR_MODE))
                 {
                     if (strcmp("shortBlock", optarg) == 0)
                     {
@@ -541,7 +559,7 @@ int main(int argc, char *argv[])
             }
             break;
         case PROGRESS_SHORT_OPT://progress [test]
-            PROGRESS_CHAR = strdup(optarg);
+            PROGRESS_CHAR = optarg;
             break;
         case DEVICE_SHORT_OPT: //device
             if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT, &HANDLE_LIST))
@@ -570,7 +588,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode

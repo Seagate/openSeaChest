@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_KEY))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_KEY))
                 {
                     PERSISTENT_RESREVATION_KEY_VALID = true;
                 }
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(optarg, &PERSISTENT_RESERVATION_PREEMPT_KEY))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_PREEMPT_KEY))
                 {
                     PERSISTENT_RESERVATION_PREEMPT = true;
                 }
@@ -340,7 +340,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -530,8 +539,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

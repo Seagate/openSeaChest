@@ -132,8 +132,6 @@ int main(int argc, char *argv[])
     int argIndex = 0;
     int optionIndex = 0;
 
-    get_Milliseconds_Since_Unix_Epoch();
-
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -234,11 +232,11 @@ int main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
+                if (strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
                 }
@@ -250,7 +248,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -265,7 +263,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -297,7 +295,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -305,7 +303,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -330,20 +328,32 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(HOURS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(MINUTES_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(SECONDS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING) == 0)
             {
-                int scanRet = sscanf(optarg, FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR, DOWNLOAD_FW_FILENAME_FLAG);
-                if (scanRet > 0 && scanRet != EOF)
+                int res = snprintf(DOWNLOAD_FW_FILENAME_FLAG, FIRMWARE_FILE_NAME_MAX_LEN, "%s", optarg);
+                if (res > 0 && res <= FIRMWARE_FILE_NAME_MAX_LEN)
                 {
                     DOWNLOAD_FW_FLAG = true;
                 }
@@ -353,7 +363,7 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(DOWNLOAD_FW_MODE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING) == 0)
             {
                 DOWNLOAD_FW_MODE = FWDL_UPDATE_MODE_AUTOMATIC;
                 if (strcmp(optarg, "immediate") == 0 || strcmp(optarg, "full") == 0)
@@ -387,10 +397,9 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                int scanRet = sscanf(optarg, "%" SCNu64, &SET_MAX_LBA_VALUE);
-                if (scanRet > 0 && scanRet != EOF)
+                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                 }
@@ -400,19 +409,31 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_SPEED_FLAG = true;
-                SET_PHY_SPEED_GEN = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SPEED_GEN) && SET_PHY_SPEED_GEN < SET_PHY_SPEED_MAX_GENERATION)
+                {
+                    SET_PHY_SPEED_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SPEED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_ALL_PHYS = false;
-                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                {
+                    SET_PHY_ALL_PHYS = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0) ||
-                (strncmp(longopts[optionIndex].name, SET_PIN_11_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PIN_11_LONG_OPT_STRING))) == 0)
-                )
+            else if (strcmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "default") == 0)
                 {
@@ -439,7 +460,7 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -463,7 +484,7 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, WRITE_CACHE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(WRITE_CACHE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, WRITE_CACHE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -487,9 +508,9 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -501,7 +522,7 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING) == 0)
             {
                 SMART_ATTRIBUTES_FLAG = true;
                 if (strcmp(optarg, "raw") == 0)
@@ -518,29 +539,29 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -628,7 +649,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -654,7 +684,7 @@ int main(int argc, char *argv[])
             }
             exit(UTIL_EXIT_NO_ERROR);
         case PROGRESS_SHORT_OPT://progress [test]
-            PROGRESS_CHAR = strdup(optarg);
+            PROGRESS_CHAR = optarg;
             break;
         default:
             break;
@@ -821,8 +851,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1450,28 +1480,13 @@ int main(int argc, char *argv[])
 
         if (DOWNLOAD_FW_FLAG)
         {
-            FILE* firmwareFilePtr = NULL;
-            bool fileOpenedSuccessfully = true;//assume true in case of activate command
-            if (DOWNLOAD_FW_MODE != DL_FW_ACTIVATE)
+            secureFileInfo* fwfile = secure_Open_File(DOWNLOAD_FW_FILENAME_FLAG, "rb", NULL, NULL, NULL);
+            if (fwfile && fwfile->error == SEC_FILE_SUCCESS)
             {
-                //open the file and send the download
-                if ((firmwareFilePtr = fopen(DOWNLOAD_FW_FILENAME_FLAG, "rb")) == NULL)
-                {
-                    fileOpenedSuccessfully = false;
-                }
-            }
-            if (DOWNLOAD_FW_MODE == DL_FW_ACTIVATE)
-            {
-                //this shouldn't fall into this code path anymore...
-                fileOpenedSuccessfully = false;
-            }
-            if (fileOpenedSuccessfully)
-            {
-                size_t firmwareFileSize = C_CAST(size_t, get_File_Size(firmwareFilePtr));
-                uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(firmwareFileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(fwfile->fileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    if (firmwareFileSize == fread(firmwareMem, sizeof(uint8_t), firmwareFileSize, firmwareFilePtr))
+                    if (SEC_FILE_SUCCESS == secure_Read_File(fwfile, firmwareMem, fwfile->fileSize, sizeof(uint8_t), fwfile->fileSize, NULL))
                     {
                         firmwareUpdateData dlOptions;
                         memset(&dlOptions, 0, sizeof(firmwareUpdateData));
@@ -1481,7 +1496,7 @@ int main(int argc, char *argv[])
                         dlOptions.segmentSize = 0;
                         dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem = firmwareMem;
-                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, firmwareFileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
+                        dlOptions.firmwareMemoryLength = C_CAST(uint32_t, fwfile->fileSize);//firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = 0;
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);
                         switch (ret)
@@ -1496,7 +1511,7 @@ int main(int argc, char *argv[])
                             {
                                 printf("The Operating system has reported that a power cycle is required to complete the firmware update\n");
                             }
-                            if (DOWNLOAD_FW_MODE == DL_FW_DEFERRED)
+                            if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
@@ -1549,6 +1564,11 @@ int main(int argc, char *argv[])
                 else
                 {
                     perror("failed to allocate memory");
+                    if (fwfile)
+                    {
+                        secure_Close_File(fwfile);
+                        free_Secure_File_Info(&fwfile);
+                    }
                     exit(255);
                 }
             }
@@ -1556,10 +1576,14 @@ int main(int argc, char *argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    perror("fopen");
                     printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+            if (fwfile)
+            {
+                secure_Close_File(fwfile);
+                free_Secure_File_Info(&fwfile);
             }
         }
 

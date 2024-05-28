@@ -198,11 +198,9 @@ int main(int argc, char *argv[])
         case 0:
             if (strncmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING, strlen(GENERIC_LOG_LONG_OPT_STRING)) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
+                if (get_And_Validate_Integer_Input_Uint8(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &GENERIC_LOG_DATA_SET))
                 {
                     GENERIC_LOG_PULL_FLAG = true;
-                    GENERIC_LOG_DATA_SET = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -212,13 +210,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, strlen(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING)) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    //no need to do anything...this option requires that the page is also given
-                    GENERIC_LOG_SUBPAGE_DATA_SET = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &GENERIC_LOG_SUBPAGE_DATA_SET))
                 {
                     print_Error_In_Cmd_Line_Args(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -226,7 +218,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, strlen(GENERIC_ERROR_HISTORY_LONG_OPT_STRING)) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &GENERIC_ERROR_HISTORY_BUFFER_ID))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &GENERIC_ERROR_HISTORY_BUFFER_ID))
                 {
                     GENERIC_ERROR_HISTORY_PULL_FLAG = true;
                 }
@@ -236,93 +228,109 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, strlen(LOG_TRANSFER_LENGTH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING) == 0)
             {
-                //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                uint64_t optargInt = C_CAST(uint64_t, atoll(optarg));
-                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &LOG_TRANSFER_LENGTH_BYTES))
                 {
-                    //they specified blocks. For log transfers this means a number of 512B sectors
-                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    LOG_TRANSFER_LENGTH_BYTES *= multiplier;
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = UINT64_C(1000);
+                    print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = UINT64_C(1024);
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = UINT64_C(1099511627776);
-                }
-                LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
             else if (strcmp(longopts[optionIndex].name, LOG_LENGTH_LONG_OPT_STRING) == 0)
             {
-                //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                uint32_t optargInt = C_CAST(uint32_t, atoi(optarg));
-                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &LOG_LENGTH_BYTES))
                 {
-                    //they specified blocks. For log transfers this means a number of 512B sectors
-                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT32_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT32_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT32_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            multiplier = UINT32_C(1073741824);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(LOG_LENGTH_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    LOG_LENGTH_BYTES *= multiplier;
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = 1000;
+                    print_Error_In_Cmd_Line_Args(LOG_LENGTH_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = 1024;
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = 1000000;
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = 1048576;
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = 1000000000;
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = 1073741824;
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = 1000000000000;
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = 1099511627776;
-                }
-                LOG_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
             else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, strlen(longopts[optionIndex].name)) == 0)
             {
@@ -332,7 +340,6 @@ int main(int argc, char *argv[])
                     printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, strlen(MODEL_MATCH_LONG_OPT_STRING)) == 0)
             {
@@ -424,7 +431,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -614,8 +630,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -635,7 +651,7 @@ int main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
-		|| LOWLEVEL_INFO_FLAG
+        || LOWLEVEL_INFO_FLAG
         || LIST_LOGS_FLAG
         || LIST_ERROR_HISTORY_FLAG
         || GENERIC_LOG_PULL_FLAG

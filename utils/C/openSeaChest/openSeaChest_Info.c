@@ -220,12 +220,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
             {
-                //check for integer value or string that specifies the correct mode.
-                if (strlen(optarg) == 1 && isdigit(optarg[0]))
-                {
-                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_I(optarg, NULL, ALLOW_UNIT_NONE, &SCSI_DEFECTS_DESCRIPTOR_MODE))
                 {
                     if (strcmp("shortBlock", optarg) == 0)
                     {
@@ -344,7 +339,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -534,8 +538,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

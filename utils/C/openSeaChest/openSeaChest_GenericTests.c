@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_START_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_START_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &USER_GENERIC_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &USER_GENERIC_START_FLAG))
                 {
                     RUN_USER_GENERIC_TEST = true;
                 }
@@ -236,84 +236,136 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_RANGE_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING) == 0)
             {
-                USER_GENERIC_RANGE_FLAG = C_CAST(uint64_t, atoll(optarg));
-                //Check to see if any units were specified, otherwise assume LBAs
-                uint64_t multiplier = 1;
-                if (strstr(optarg, "KB"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &USER_GENERIC_RANGE_FLAG))
                 {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000);
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint64_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1073741824);
+                        }
+                        else if (strcmp(unit, "TB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000000);
+                        }
+                        else if (strcmp(unit, "TiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1099511627776);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(USER_GENERIC_LONG_OPT_RANGE_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    USER_GENERIC_RANGE_FLAG *= multiplier;
                 }
-                else if (strstr(optarg, "KiB"))
+                else
                 {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1024);
+                    print_Error_In_Cmd_Line_Args(USER_GENERIC_LONG_OPT_RANGE_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "MB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1099511627776);
-                }
-                USER_GENERIC_RANGE_FLAG *= multiplier;//Later we need to adjust this by the logical sector size...currently this is a value in bytes
             }
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
-                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
-                if(strstr(optarg, "l"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &ERROR_LIMIT_FLAG))
                 {
-                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = true;
+                        }
+                        else if (strcmp(unit, "p") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(HOURS_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(HOURS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MINUTES_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(MINUTES_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SECONDS_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(SECONDS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, GENERIC_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GENERIC_TEST_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, GENERIC_TEST_LONG_OPT_STRING) == 0)
             {
-                if (strncmp(optarg, "read", M_Min(4, strlen(optarg))) == 0)
+                if (strcmp(optarg, "read") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_READ;
                 }
-                else if (strncmp(optarg, "write", M_Min(5, strlen(optarg))) == 0)
+                else if (strcmp(optarg, "write") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_WRITE;
                 }
-                else if (strncmp(optarg, "verify", M_Min(6, strlen(optarg))) == 0)
+                else if (strcmp(optarg, "verify") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_VERIFY;
                 }
@@ -345,7 +397,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -385,50 +437,70 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OD_MD_ID_TEST_RANGE_LONG_OPT_STRING) == 0)
             {
-                OD_ID_MD_TEST_RANGE = C_CAST(uint64_t, atoll(optarg));
-                //Check to see if any units were specified, otherwise assume LBAs
-                uint64_t multiplier = 1;
-                if (strstr(optarg, "KB"))
+                char *unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &OD_ID_MD_TEST_RANGE))
                 {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000);
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint64_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1073741824);
+                        }
+                        else if (strcmp(unit, "TB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000000);
+                        }
+                        else if (strcmp(unit, "TiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1099511627776);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(OD_MD_ID_TEST_RANGE_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    OD_ID_MD_TEST_RANGE *= multiplier;
                 }
-                else if (strstr(optarg, "KiB"))
+                else
                 {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1024);
+                    print_Error_In_Cmd_Line_Args(OD_MD_ID_TEST_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "MB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1099511627776);
-                }
-                OD_ID_MD_TEST_RANGE *= multiplier;//Later we need to adjust this by the logical sector size...currently this is a value in bytes
             }
             break;
         case ':'://missing required argument
@@ -496,7 +568,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -686,8 +767,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)

@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &ZONE_ID_FLAG))
+                    if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &ZONE_ID_FLAG))
                     {
                         print_Error_In_Cmd_Line_Args(ZONE_ID_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -186,12 +186,7 @@ int main(int argc, char *argv[])
             }
             else if (strncmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MAX_ZONES_LONG_OPT_STRING))) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    MAX_ZONES_FLAG = C_CAST(uint32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &MAX_ZONES_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(MAX_ZONES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -336,7 +331,16 @@ int main(int argc, char *argv[])
         case VERBOSE_SHORT_OPT: //verbose
             if (optarg != NULL)
             {
-                toolVerbosity = C_CAST(eVerbosityLevels, atoi(optarg));
+                long temp = strtol(optarg, NULL, 10);
+                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
+                {
+                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode

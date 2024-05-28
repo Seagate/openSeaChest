@@ -830,7 +830,6 @@ extern "C"
 
     //download FW
     #define FIRMWARE_FILE_NAME_MAX_LEN 4096
-    #define FIRMWARE_FILE_NAME_MAX_LEN_FORMAT_STR "%4096s"
     #define DOWNLOAD_FW_FLAG downloadFW
     #define DOWNLOAD_FW_FILENAME_FLAG downloadFWFilename
     #define DOWNLOAD_FW_MODE downloadMode
@@ -1935,6 +1934,7 @@ extern "C"
     #define SCSI_SHOW_MP_LONG_OPTS SCSI_SHOW_MP_LONG_OPT,SCSI_SHOW_MP_MPC_LONG_OPT,SCSI_SHOW_MP_BUFFER_MODE_LONG_OPT
 
     //setting a SCSI mode page
+    #define SCSI_SET_MP_FILENAME_LEN 4096
     #define SCSI_SET_MP_OP setSCSIModePage
     #define SCSI_SET_MP_FILENAME setSCSIModePageFilename
     #define SCSI_SET_MP_PAGE_NUMBER setSCSIModePageNumber
@@ -1943,10 +1943,9 @@ extern "C"
     #define SCSI_SET_MP_BIT setSCSIMPBit
     #define SCSI_SET_MP_FIELD_LEN_BITS setSCSIMPFieldLen
     #define SCSI_SET_MP_FIELD_VALUE setSCSIMPFieldVal
-    #define SCSI_SET_MP_SSCANF_FILE_FORMAT_STR "file=%4095s" //one less that total array size to make sure there is room without a warning for a null terminating character-TJE
     #define SCSI_SET_MP_VARS \
     bool SCSI_SET_MP_OP = false;\
-    char SCSI_SET_MP_FILENAME[4096] = { 0 };\
+    char SCSI_SET_MP_FILENAME[SCSI_SET_MP_FILENAME_LEN] = { 0 };\
     uint8_t SCSI_SET_MP_PAGE_NUMBER = 0;\
     uint8_t SCSI_SET_MP_SUBPAGE_NUMBER = 0;\
     uint16_t SCSI_SET_MP_BYTE = 0;\
@@ -3327,6 +3326,8 @@ extern "C"
 
     void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg);
 
+    void print_Error_In_Cmd_Line_Args_Short_Opt(char opt, const char * arg);
+
     void print_Buffer_Test_Help(bool shortHelp);
 
     //Returns 255 when a memory allocation/reallocation error occurs (prints to stderr), 254 when a parameter is missing, zero otherwise.
@@ -3662,103 +3663,6 @@ extern "C"
 #define SCAN_FLAGS_UTIL_VARS deviceScanFlags SCAN_FLAGS = { false, false, false, false, false, false, false, false, false, false, false, false, false };
 
     void get_Scan_Flags(deviceScanFlags *scanFlags, char *optarg);
-
-#define ERASE_RANGE_UTIL_VARS \
-    bool                eraseRange                  = false; \
-    uint64_t            eraseRangeStart             = 0; \
-    uint64_t            eraseRangeEnd               = UINT64_MAX;/*set to a maximum value. If it stays this way, we know to correct this to the device's maxLBA later*/ \
-    bool                eraseForceWrites            = false;//this is an option for SSD's in an erase test like eraseRange where we want to force the write commands to the drive instead of using TRIM/Unmap
-
-#define ERASE_RANGE_SUBOPT_PARSE                                                \
-    if (optarg != NULL)                                                         \
-    {                                                                           \
-        eraseRange = true;                                                      \
-        int  index = optind - 1;                                                \
-        char *nextSubOpt = NULL;                                                \
-        bool startSet = false;                                                  \
-        while (index < argc)                                                    \
-        {                                                                       \
-            nextSubOpt = strdup(argv[index]);                                   \
-            if (strncmp("-", nextSubOpt, 1) != 0)                               \
-            {                                                                   \
-                if (strncmp("forceWrites", nextSubOpt, strlen(nextSubOpt)) == 0)\
-                {                                                               \
-                    eraseForceWrites = true;                                    \
-                }                                                               \
-                else if (isdigit(nextSubOpt[0]) != 0)                           \
-                {                                                               \
-                    if (startSet == false)                                      \
-                    {                                                           \
-                        startSet = true;                                        \
-                        eraseRangeStart = C_CAST(uint64_t, atoll(nextSubOpt));  \
-                    }                                                           \
-                    else                                                        \
-                    {                                                           \
-                        eraseRangeEnd = C_CAST(uint64_t, atoll(nextSubOpt));    \
-                    }                                                           \
-                }                                                               \
-            }                                                                   \
-            else                                                                \
-            {                                                                   \
-                break;                                                          \
-            }                                                                   \
-            index++;                                                            \
-        }                                                                       \
-        optind = index;                                                         \
-    }
-
-#define ERASE_TIME_UTIL_VARS \
-bool                eraseTime = false;\
-time_t              eraseTimeSeconds = 0;\
-uint64_t            eraseTimeStartLBA = 0;
-
-#define ERASE_TIME_SUBOPT_PARSE                                                                                                 \
-    if (optarg != NULL)                                                                                                         \
-    {                                                                                                                           \
-        eraseTime = true;                                                                                                       \
-        int  index = optind - 1;                                                                                                \
-        char *nextSubOpt = NULL;                                                                                                \
-        bool lbaSet = false;                                                                                                    \
-        uint64_t timeMultiplier = 1;/*use this if the user enters hours or minutes to increment the erase time*/                \
-        while (index < argc)                                                                                                    \
-        {                                                                                                                       \
-            nextSubOpt = strdup(argv[index]); /*get the next subopt*/                                                           \
-            if (strncmp("-", nextSubOpt, 1) != 0)/*check if optarg is next switch so that we break out of parsing suboptions*/  \
-            {                                                                                                                   \
-                if (strncmp("minutes", nextSubOpt, strlen(nextSubOpt)) == 0)                                                    \
-                {                                                                                                               \
-                    timeMultiplier = 60;                                                                                        \
-                }                                                                                                               \
-                else if (strncmp("hours", nextSubOpt, strlen(nextSubOpt)) == 0)                                                 \
-                {                                                                                                               \
-                    timeMultiplier = 3600;                                                                                      \
-                }                                                                                                               \
-                else if (strncmp("days", nextSubOpt, strlen(nextSubOpt)) == 0)                                                  \
-                {                                                                                                               \
-                    timeMultiplier = 86400;                                                                                     \
-                }                                                                                                               \
-                else if (isdigit(nextSubOpt[0]) != 0)/*this is an LBA*/                                                         \
-                {                                                                                                               \
-                    if (lbaSet == false)                                                                                        \
-                    {                                                                                                           \
-                        lbaSet = true;                                                                                          \
-                        eraseTimeStartLBA = C_CAST(uint64_t, atoll(nextSubOpt));                                                \
-                    }                                                                                                           \
-                    else                                                                                                        \
-                    {                                                                                                           \
-                        eraseTimeSeconds = C_CAST(uint64_t, atoll(nextSubOpt));                                                 \
-                    }                                                                                                           \
-                }                                                                                                               \
-            }                                                                                                                   \
-            else                                                                                                                \
-            {                                                                                                                   \
-                break;                                                                                                          \
-            }                                                                                                                   \
-            index++;                                                                                                            \
-        }                                                                                                                       \
-        optind = index; /*reset this since we were searching for options to pull out around getopt*/                            \
-        eraseTimeSeconds *= timeMultiplier;/*adjust to a time in seconds if something other than seconds were entered*/         \
-    }
 
 #if defined (__cplusplus)
 }
