@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 #endif
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -681,7 +681,7 @@ int main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
@@ -803,8 +803,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -963,9 +963,9 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -975,7 +975,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1521,14 +1521,14 @@ int main(int argc, char *argv[])
                         printf("      entering power saving modes like idle or standby until these operations have\n");
                         printf("      completed. These operations may take a very long time to complete.\n");
                         printf("      While EPC timers are suspended during this background operation, manual\n");
-                        printf("      transitions to lower power states is supported. Manually moving to a lower power\n"); 
+                        printf("      transitions to lower power states is supported. Manually moving to a lower power\n");
                         printf("      state will pause all background activity until the drive has become activate again\n");
                         printf("      from a command such as a read or write. If forcing a transition\n");
                         printf("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
                         printf("      and is considered a special case that the drive firmware will allow it to continue\n");
                         printf("      these background operations. All EPC timers will be honored once the\n");
                         printf("      background activity is completed.\n\n");
-                        
+
                     }
                     break;
                 case NOT_SUPPORTED:
@@ -1690,7 +1690,7 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                printf("Successfully started repopulation.\n"); 
+                                printf("Successfully started repopulation.\n");
                                 printf("The device may take a long time before it is ready to accept all commands again.\n");
                                 printf("Use \"--%s repop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
                             }
@@ -1986,7 +1986,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
     //TODO: Format and NVM format with PI
-    
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");

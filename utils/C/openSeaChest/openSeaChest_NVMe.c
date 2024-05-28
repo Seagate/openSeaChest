@@ -58,12 +58,12 @@ static void utility_Usage(bool shortUsage);
 //-----------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    int exitCode = UTIL_EXIT_NO_ERROR;
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
     eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     RAID_PHYSICAL_DRIVE rDevice;//TODO: This should be a list so that we can talk to more than one raid device at a time!
 #endif
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
             switch (optopt)
             {
             case 0:
-                    //check long options for missing arguments
+                //check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -655,7 +655,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-        #if defined (__linux__)
+#if defined (__linux__)
         if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -664,7 +664,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SG_TO_SD;
         }
-        #endif
+#endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanATA)
         {
@@ -907,7 +907,7 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -919,7 +919,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1593,7 +1593,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        
+
         if (NVME_TEMP_STATS_FLAG)
         {
             switch (nvme_Print_Temp_Statistics(&deviceList[deviceIter]))
@@ -2241,7 +2241,7 @@ void utility_Usage(bool shortUsage)
     printf("\tChecking and changing power states:\n");
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
-    printf("\tPulling the Telemetry log:\n"); 
+    printf("\tPulling the Telemetry log:\n");
     printf("\t%s -d %s --%s host\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s host, --%s 2 --%s bin\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING, TELEMETRY_DATA_AREA_LONG_OPT_STRING, OUTPUT_MODE_LONG_OPT_STRING);
     //TODO: other log options/feature options

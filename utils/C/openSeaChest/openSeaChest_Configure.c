@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     ATA_DCO_SETMAXMODE_VARS
     ATA_DCO_DISABLE_FEATURES_VARS
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -894,7 +894,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     //formatted as mp[-sp]:byte:highbit:fieldWidth=value
-                    #define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
+#define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
                     char pageAndSubpage[PARSE_MP_PAGE_AND_SUBPAGE_LENGTH] = { 0 };
                     char *saveptr = NULL;
                     rsize_t duplen = 0;
@@ -1295,7 +1295,7 @@ int main(int argc, char *argv[])
                         {
                             //error, unknown option
                             safe_Free(dcoDisableFeatList)
-                            ATA_DCO_DISABLE_FEATURES = false;
+                                ATA_DCO_DISABLE_FEATURES = false;
                             print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
@@ -1504,7 +1504,7 @@ int main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
@@ -1626,8 +1626,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1818,9 +1818,9 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -2012,7 +2012,7 @@ int main(int argc, char *argv[])
         {
             dcoData dco;
             memset(&dco, 0, sizeof(dcoData));
-            switch(dco_Identify(&deviceList[deviceIter], &dco))
+            switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
                 show_DCO_Identify_Data(&dco);
@@ -2127,7 +2127,7 @@ int main(int argc, char *argv[])
                     dco.mwdma.mwdma1 = false;
                     dco.mwdma.mwdma2 = false;
                     //now go turn modes on to highest supported value
-                    switch(ATA_DCO_SETMAXMODE_VALUE)
+                    switch (ATA_DCO_SETMAXMODE_VALUE)
                     {
                     case 10://udma6
                         dco.udma.udma6 = true;
@@ -3371,7 +3371,7 @@ int main(int argc, char *argv[])
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
@@ -3425,7 +3425,7 @@ int main(int argc, char *argv[])
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);

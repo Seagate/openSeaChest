@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     LOWLEVEL_INFO_VAR
 
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -539,8 +539,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1062,7 +1062,7 @@ int main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
         }
-        
+
         if (SHOW_RESERVATIONS)
         {
             if (prSupported)
@@ -1149,7 +1149,7 @@ int main(int argc, char *argv[])
         }
 
         //persistent reservation type must be provided for these options.
-        if(!PERSISTENT_RESREVATION_TYPE_VALID && (PERSISTENT_RESERVATION_RESERVE || PERSISTENT_RESERVATION_RELEASE || PERSISTENT_RESERVATION_PREEMPT))
+        if (!PERSISTENT_RESREVATION_TYPE_VALID && (PERSISTENT_RESERVATION_RESERVE || PERSISTENT_RESERVATION_RELEASE || PERSISTENT_RESERVATION_PREEMPT))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -1226,7 +1226,7 @@ int main(int argc, char *argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
         }
-        
+
         if (PERSISTENT_RESERVATION_RESERVE)
         {
             if (prSupported)
@@ -1408,7 +1408,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_REGISTRATION_KEYS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_RESERVATIONS_LONG_OPT_STRING);
     //TODO: examples of creating a reservation, clearing, aborting, preempting, releasing
-    
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");

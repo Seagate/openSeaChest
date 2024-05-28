@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     /////////////////
     //common utility variables
     eReturnValues ret = SUCCESS;
-    int      exitCode = UTIL_EXIT_NO_ERROR;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
     ERASE_RESTORE_MAX_VAR
     REFRESH_FILE_SYSTEMS_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -1025,11 +1025,11 @@ int main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-        #if defined (__linux__)
+#if defined (__linux__)
         if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -1038,7 +1038,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SG_TO_SD;
         }
-        #endif
+#endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanATA)
         {
@@ -1242,8 +1242,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1412,9 +1412,9 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -1424,7 +1424,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1785,7 +1785,7 @@ int main(int argc, char *argv[])
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
@@ -2163,7 +2163,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        
+
         if (SANITIZE_INFO_FLAG)
         {
             sanitizeFeaturesSupported sanitizeOptions;
@@ -2415,7 +2415,7 @@ int main(int argc, char *argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Sanitize command failed!\n");
-                        #if defined (_WIN32)
+#if defined (_WIN32)
                         if (!is_Windows_PE())
                         {
                             printf("\tNote: Windows 8 and higher block sanitize commands.\n");
@@ -2425,7 +2425,7 @@ int main(int argc, char *argv[])
                             printf("\t      are permitted.\n");
                             printf("\t      The Windows PE/RE environments allow all sanitize operations.\n");
                         }
-                        #endif //_WIN32
+#endif //_WIN32
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -3348,16 +3348,16 @@ void utility_Usage(bool shortUsage)
     print_Fast_Discovery_Help(shortUsage);
     print_Time_Hours_Help(shortUsage);
     print_Time_Minutes_Help(shortUsage);
-    #if !defined(DISABLE_TCG_SUPPORT)
+#if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_PSID_Help(shortUsage);
-    #endif
+#endif
     print_Time_Seconds_Help(shortUsage);
     print_Erase_Restore_Max_Prep_Help(shortUsage);
     print_Refresh_Filesystems_Help(shortUsage);
     print_Show_Supported_Erase_Modes_Help(shortUsage);
-    #if !defined(DISABLE_TCG_SUPPORT)
+#if !defined(DISABLE_TCG_SUPPORT)
     print_TCG_SID_Help(shortUsage);
-    #endif
+#endif
     print_Zero_Verify_Help(shortUsage);
 
     //SATA Only Options
@@ -3401,10 +3401,10 @@ void utility_Usage(bool shortUsage)
     print_Sanitize_Overwrite_Passes_Help(shortUsage);
     print_Pattern_Help(shortUsage);
     print_Perform_Quickest_Erase_Help(shortUsage);
-    #if !defined(DISABLE_TCG_SUPPORT)
+#if !defined(DISABLE_TCG_SUPPORT)
     print_Revert_Help(shortUsage);
     print_RevertSP_Help(shortUsage);
-    #endif
+#endif
     print_Sanitize_Help(shortUsage, util_name);
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);

@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     LOG_LENGTH_BYTES_VAR
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -508,7 +508,7 @@ int main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
@@ -630,8 +630,8 @@ int main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -790,9 +790,9 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -802,7 +802,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -941,7 +941,7 @@ int main(int argc, char *argv[])
             if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
             {
                 printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
-            }     
+            }
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1041,7 +1041,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        printf("\nLog %" PRIu8 " not supported by %s\n",\
+                        printf("\nLog %" PRIu8 " not supported by %s\n", \
                             GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                 }
@@ -1332,7 +1332,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s logs --%s pipe\n", util_name, deviceHandleExample, FARM_LONG_OPT_STRING, PATH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s 64KiB --%s bin\n", util_name, deviceHandleExample, FARM_COMBINED_LONG_OPT_STRING, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_LOGS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s C6h\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 0Dh --%s 01h --%s bin\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
