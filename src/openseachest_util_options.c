@@ -16,6 +16,7 @@
 #include "openseachest_util_options.h"
 #include "common.h"
 #include <time.h>
+#include <limits.h>
 
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
@@ -64,6 +65,22 @@ void print_Bug_Report_Email(bool shortHelp)
         printf("\nPlease report bugs/suggestions to seaboard@seagate.com.\n");
         printf("Include the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
     }
+}
+
+M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosityLevels* verbosity)
+{
+    bool set = false;
+    if (requestedLevel && verbosity)
+    {
+        char* end = NULL;
+        long temp = strtol(requestedLevel, &end, 10);
+        if (!(temp == LONG_MAX && errno == ERANGE) && !(temp == 0 && requestedLevel == end) && strcmp(end, "") == 0 && C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
+        {
+            *verbosity = C_CAST(eVerbosityLevels, temp);
+            set = true;
+        }
+    }
+    return set;
 }
 
 void print_Elevated_Privileges_Text(void)

@@ -474,7 +474,10 @@ int main(int argc, char *argv[])
                                         else
                                         {
                                             printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
-                                            secure_Close_File(fileinfo);
+                                            if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                                            {
+                                                printf("secure file structure could not be closed! This is a fatal error!\n");
+                                            }
                                             free_Secure_File_Info(&fileinfo);
                                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                         }
@@ -485,8 +488,14 @@ int main(int argc, char *argv[])
                                     printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                 }
-                                secure_Close_File(fileinfo);
-                                free_Secure_File_Info(&fileinfo);
+                                if (secure_Close_File(fileinfo))
+                                {
+                                    free_Secure_File_Info(&fileinfo);
+                                }
+                                else
+                                {
+                                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                                }
                             }
                             else
                             {
@@ -599,18 +608,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test

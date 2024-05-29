@@ -245,18 +245,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode

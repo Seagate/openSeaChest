@@ -569,18 +569,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -1896,7 +1888,10 @@ int main(int argc, char *argv[])
                     perror("failed to allocate memory");
                     if (fwfile)
                     {
-                        secure_Close_File(fwfile);
+                        if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
+                        {
+                            printf("secure file structure could not be closed! This is a fatal error!\n");
+                        }
                         free_Secure_File_Info(&fwfile);
                     }
                     exit(255);
@@ -1912,7 +1907,10 @@ int main(int argc, char *argv[])
             }
             if (fwfile)
             {
-                secure_Close_File(fwfile);
+                if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
+                {
+                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                }
                 free_Secure_File_Info(&fwfile);
             }
         }
@@ -2241,6 +2239,7 @@ void utility_Usage(bool shortUsage)
     printf("\tChecking and changing power states:\n");
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
     printf("\tPulling the Telemetry log:\n");
     printf("\t%s -d %s --%s host\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s host, --%s 2 --%s bin\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING, TELEMETRY_DATA_AREA_LONG_OPT_STRING, OUTPUT_MODE_LONG_OPT_STRING);
@@ -2288,6 +2287,7 @@ void utility_Usage(bool shortUsage)
     print_Get_Features_Help(shortUsage);
     print_NVMe_Get_Log_Help(shortUsage);
     print_NVMe_Get_Tele_Help(shortUsage);
+    print_Supported_Logs_Help(shortUsage);
     print_Firmware_Revision_Match_Help(shortUsage);
     print_pcierr_Help(shortUsage);
     print_Poll_Help(shortUsage);
@@ -2296,6 +2296,7 @@ void utility_Usage(bool shortUsage)
     print_Output_Mode_Help(shortUsage);
     print_NVMe_Temp_Stats_Help(shortUsage);
     print_NVMe_Pci_Stats_Help(shortUsage);
+    print_Show_NVM_Power_States_Help(shortUsage);
     print_Show_Supported_Formats_Help(shortUsage);
 
     //data destructive commands

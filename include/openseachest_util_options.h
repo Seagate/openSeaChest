@@ -149,6 +149,8 @@ extern "C"
     #define VERBOSE_LONG_OPT_STRING "verbose"
     #define VERBOSE_LONG_OPT { VERBOSE_LONG_OPT_STRING, required_argument, NULL, VERBOSE_SHORT_OPT }
 
+    M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosityLevels* verbosity);
+
     #define QUIET_SHORT_OPT 'q'
     #define QUIET_LONG_OPT_STRING "quiet"
     #define QUIET_LONG_OPT { QUIET_LONG_OPT_STRING, no_argument, NULL, QUIET_SHORT_OPT }

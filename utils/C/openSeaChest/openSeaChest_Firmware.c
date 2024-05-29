@@ -376,18 +376,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1125,7 +1117,10 @@ int main(int argc, char *argv[])
                     perror("failed to allocate memory");
                     if (fwfile)
                     {
-                        secure_Close_File(fwfile);
+                        if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
+                        {
+                            printf("secure file structure could not be closed! This is a fatal error!\n");
+                        }
                         free_Secure_File_Info(&fwfile);
                     }
                     exit(255);
@@ -1141,7 +1136,10 @@ int main(int argc, char *argv[])
             }
             if (fwfile)
             {
-                secure_Close_File(fwfile);
+                if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
+                {
+                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                }
                 free_Secure_File_Info(&fwfile);
             }
         }

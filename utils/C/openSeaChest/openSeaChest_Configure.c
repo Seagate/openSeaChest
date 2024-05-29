@@ -258,11 +258,9 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING) == 0)
             {
-                unsigned long temp = strtoul(optarg, NULL, 10);
-                if (!(temp == ULONG_MAX && errno == ERANGE) && temp <= SET_PHY_SPEED_MAX_GENERATION)
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SPEED_GEN) && SET_PHY_SPEED_GEN < SET_PHY_SPEED_MAX_GENERATION)
                 {
                     SET_PHY_SPEED_FLAG = true;
-                    SET_PHY_SPEED_GEN = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -272,11 +270,9 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                unsigned long temp = strtoul(optarg, NULL, 10);
-                if (!(temp == ULONG_MAX && errno == ERANGE) && temp <= UINT8_MAX)
+                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
                 {
                     SET_PHY_ALL_PHYS = false;
-                    SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -543,34 +539,41 @@ int main(int argc, char *argv[])
                 {
                     uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
                     char *unit = NULL;
-                    unsigned long rawValue = strtoul(optarg, &unit, 10);
-                    //first check is a unit is provided.
-                    if (unit)
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
                     {
-                        if (strcmp(unit, "ms") == 0)
+                        //first check is a unit is provided.
+                        if (unit)
                         {
-                            multiplier = UINT32_C(1);
+                            if (strcmp(unit, "ms") == 0)
+                            {
+                                multiplier = UINT32_C(1);
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                multiplier = UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                multiplier = UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                multiplier = UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
-                        else if (strcmp(unit, "s") == 0)
-                        {
-                            multiplier = UINT32_C(1000);
-                        }
-                        else if (strcmp(unit, "m") == 0)
-                        {
-                            multiplier = UINT32_C(60000);
-                        }
-                        else if (strcmp(unit, "h") == 0)
-                        {
-                            multiplier = UINT32_C(3600000);
-                        }
-                        else
-                        {
-                            print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
-                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                        }
+                        SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
+                        SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE *= multiplier;
                     }
-                    SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, rawValue) * multiplier;
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING) == 0)
@@ -587,34 +590,41 @@ int main(int argc, char *argv[])
                 {
                     uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
                     char *unit = NULL;
-                    unsigned long rawValue = strtoul(optarg, &unit, 10);
-                    //first check is a unit is provided.
-                    if (unit)
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
                     {
-                        if (strcmp(unit, "ms") == 0)
+                        //first check is a unit is provided.
+                        if (unit)
                         {
-                            multiplier = UINT32_C(1);
+                            if (strcmp(unit, "ms") == 0)
+                            {
+                                multiplier = UINT32_C(1);
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                multiplier = UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                multiplier = UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                multiplier = UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
-                        else if (strcmp(unit, "s") == 0)
-                        {
-                            multiplier = UINT32_C(1000);
-                        }
-                        else if (strcmp(unit, "m") == 0)
-                        {
-                            multiplier = UINT32_C(60000);
-                        }
-                        else if (strcmp(unit, "h") == 0)
-                        {
-                            multiplier = UINT32_C(3600000);
-                        }
-                        else
-                        {
-                            print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
-                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                        }
+                        SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
+                        SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE *=multiplier;
                     }
-                    SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, rawValue) * multiplier;
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
@@ -1425,18 +1435,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -3362,7 +3364,7 @@ int main(int argc, char *argv[])
             {
                 printf("Setting MaxLBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false, false))
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
@@ -3371,7 +3373,7 @@ int main(int argc, char *argv[])
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
@@ -3416,7 +3418,7 @@ int main(int argc, char *argv[])
             {
                 printf("Restoring max LBA\n");
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], 0, true))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], 0, true, false))
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
@@ -3425,7 +3427,7 @@ int main(int argc, char *argv[])
                 {
                     double mCapacity = 0, capacity = 0;
                     char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
+                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);

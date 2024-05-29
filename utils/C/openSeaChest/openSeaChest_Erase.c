@@ -802,7 +802,10 @@ int main(int argc, char *argv[])
                                 if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, NULL))
                                 {
                                     printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
-                                    secure_Close_File(fileinfo);
+                                    if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                                    {
+                                        printf("secure file structure could not be closed! This is a fatal error!\n");
+                                    }
                                     free_Secure_File_Info(&fileinfo);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                 }
@@ -812,7 +815,10 @@ int main(int argc, char *argv[])
                                 printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
-                            secure_Close_File(fileinfo);
+                            if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                            {
+                                printf("secure file structure could not be closed! This is a fatal error!\n");
+                            }
                             free_Secure_File_Info(&fileinfo);
                         }
                         else
@@ -910,18 +916,10 @@ int main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                long temp = strtol(optarg, NULL, 10);
-                if (!(temp == LONG_MAX && errno == ERANGE) && C_CAST(eVerbosityLevels, temp) <= VERBOSITY_BUFFERS)
-                {
-                    toolVerbosity = C_CAST(eVerbosityLevels, temp);
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1878,6 +1876,8 @@ int main(int argc, char *argv[])
             }
             if (DATA_ERASE_FLAG)
             {
+                writeAfterErase writeReq;
+                memset(&writeReq, 0, sizeof(writeAfterErase));
                 if (strlen(TCG_PSID_FLAG) == 0)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1904,6 +1904,17 @@ int main(int argc, char *argv[])
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
                         }
+                        if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
+                    }
+                    eraseCompleted = true;
+                    if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        eraseCompleted = false;//turn this off otherwise the function to update file systems outputs errors to the screen since it tries to read the device.
                     }
                     eraseCompleted = true;
                     break;
@@ -1948,8 +1959,10 @@ int main(int argc, char *argv[])
             }
             if (DATA_ERASE_FLAG)
             {
+                writeAfterErase writeReq;
                 eRevertAuthority authority = REVERT_AUTHORITY_MSID;
                 char *passwordToUse = NULL;
+                memset(&writeReq, 0, sizeof(writeAfterErase));
                 if (strlen(TCG_PSID_FLAG) || strlen(TCG_SID_FLAG))
                 {
                     //user is providing SID or PSID to use.
@@ -1988,6 +2001,12 @@ int main(int argc, char *argv[])
                             printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been erased.\n");
                             printf("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was completely erased.\n\n");
                         }
+                        if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                        {
+                            printf("ADVISORY: This device requires a write to all LBAs after a crypto erase!\n");
+                            printf("          Attempting to read any LBA will result in a failure until it\n");
+                            printf("          has been written with new data!\n\n");
+                        }
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
                             printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1996,6 +2015,10 @@ int main(int argc, char *argv[])
                     if (didEraseHappen)
                     {
                         eraseCompleted = true;
+                    }
+                    if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
+                    {
+                        eraseCompleted = false;//turn this off otherwise the function to update file systems outputs errors to the screen since it tries to read the device.
                     }
                     break;
                 case NOT_SUPPORTED:
