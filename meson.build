@@ -269,7 +269,7 @@ foreach p : get_option('tools')
   executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
   if usehelp2man
     #use help2man to generate manpages before installing them
-    run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: true)
+    run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: false)
   endif
   install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
 endforeach
