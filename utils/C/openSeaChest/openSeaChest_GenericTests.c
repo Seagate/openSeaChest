@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
                         {
                             ERROR_LIMIT_LOGICAL_COUNT = true;
                         }
-                        else if (strcmp(unit, "p") == 0)
+                        else if (strcmp(unit, "p") == 0 || strcmp(unit, "") == 0)
                         {
                             ERROR_LIMIT_LOGICAL_COUNT = false;
                         }

@@ -59,8 +59,8 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    int      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -106,11 +106,10 @@ int main(int argc, char* argv[])
     BYTES_TO_CORRUPT_VAR
     SCSI_DEFECTS_VARS
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -207,30 +206,89 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
             {
-                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
-                if (strchr(optarg, 'L') || strchr(optarg, 'l'))
+                char* unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &ERROR_LIMIT_FLAG))
                 {
-                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = true;
+                        }
+                        else if (strcmp(unit, "p") == 0 || strcmp(unit, "") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING))) == 0)
             {
-                CHECK_PENDING_LIST_COUNT_FLAG = true;
-                CHECK_PENDING_LIST_COUNT_VALUE = C_CAST(uint32_t, atoi(optarg));
                 //see if they want physical or logical sectors
-                if (strchr(optarg, 'L') || strchr(optarg, 'l'))
+                char* unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &CHECK_PENDING_LIST_COUNT_VALUE))
                 {
-                    CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG = true;
+                    CHECK_PENDING_LIST_COUNT_FLAG = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG = true;
+                        }
+                        else if (strcmp(unit, "p") == 0 || strcmp(unit, "") == 0)
+                        {
+                            CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING))) == 0)
             {
-                CHECK_GROWN_LIST_COUNT_FLAG = true;
-                CHECK_GROWN_LIST_COUNT_VALUE = C_CAST(uint32_t, atoi(optarg));
-                //see if they want physical or logical sectors
-                if (strchr(optarg, 'L') || strchr(optarg, 'l'))
+                char* unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &CHECK_GROWN_LIST_COUNT_VALUE))
                 {
-                    CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = true;
+                    CHECK_GROWN_LIST_COUNT_FLAG = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = true;
+                        }
+                        else if (strcmp(unit, "p") == 0 || strcmp(unit, "") == 0)
+                        {
+                            CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
@@ -258,12 +316,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
             {
-                //check for integer value or string that specifies the correct mode.
-                if (strlen(optarg) == 1 && isdigit(optarg[0]))
-                {
-                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_I(optarg, NULL, ALLOW_UNIT_NONE, &SCSI_DEFECTS_DESCRIPTOR_MODE))
                 {
                     if (strcmp("shortBlock", optarg) == 0)
                     {
@@ -298,7 +351,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, CREATE_UNCORRECTABLE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CREATE_UNCORRECTABLE_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &CREATE_UNCORRECTABLE_LBA_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &CREATE_UNCORRECTABLE_LBA_FLAG))
                 {
                     CREATE_UNCORRECTABLE_FLAG = true;
                 }
@@ -310,7 +363,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, UNCORRECTABLE_RANGE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(UNCORRECTABLE_RANGE_LONG_OPT_STRING))) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &UNCORRECTABLE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &UNCORRECTABLE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(UNCORRECTABLE_RANGE_LONG_OPT_STRING, C_CAST(const char*, optarg));
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -318,12 +371,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, RANDOM_UNCORRECTABLES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(RANDOM_UNCORRECTABLES_LONG_OPT_STRING))) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp))
-                {
-                    RANDOM_UNCORRECTABLES_FLAG = C_CAST(uint16_t, temp);
-                }
-                else
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &RANDOM_UNCORRECTABLES_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(RANDOM_UNCORRECTABLES_LONG_OPT_STRING, C_CAST(const char*, optarg));
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -335,7 +383,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, CORRUPT_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CORRUPT_LBA_LONG_OPT_STRING))) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &CORRUPT_LBA_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &CORRUPT_LBA_LBA))
                 {
                     CORRUPT_LBA_FLAG = true;
                 }
@@ -347,7 +395,7 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, CORRUPT_LBA_RANGE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CORRUPT_LBA_RANGE_LONG_OPT_STRING))) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &CORRUPT_LBA_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &CORRUPT_LBA_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(CORRUPT_LBA_RANGE_LONG_OPT_STRING, C_CAST(const char*, optarg));
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -355,11 +403,9 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, CORRUPT_RANDOM_LBAS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CORRUPT_RANDOM_LBAS_LONG_OPT_STRING))) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp))
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &CORRUPT_RANDOM_LBAS_COUNT))
                 {
                     CORRUPT_RANDOM_LBAS = true;
-                    CORRUPT_RANDOM_LBAS_COUNT = C_CAST(uint16_t, temp);
                 }
                 else
                 {
@@ -369,11 +415,9 @@ int main(int argc, char* argv[])
             }
             else if (strncmp(longopts[optionIndex].name, BYTES_TO_CORRUPT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(BYTES_TO_CORRUPT_LONG_OPT_STRING))) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp))
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), NULL, ALLOW_UNIT_NONE, &BYTES_TO_CORRUPT_VAL))
                 {
                     BYTES_TO_CORRUPT_FLAG = true;
-                    BYTES_TO_CORRUPT_VAL = C_CAST(uint16_t, temp);
                 }
                 else
                 {
@@ -465,9 +509,10 @@ int main(int argc, char* argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1146,7 +1191,7 @@ int main(int argc, char* argv[])
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = NULL;
-            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], C_CAST(eSCSIAddressDescriptors, SCSI_DEFECTS_DESCRIPTOR_MODE), SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
                 print_SCSI_Defect_List(defects);
@@ -1251,7 +1296,7 @@ int main(int argc, char* argv[])
                         printf("Flagging uncorrectable errors at LBA %"PRIu64" for a range of %"PRIu64" LBAs\n.", CREATE_UNCORRECTABLE_LBA_FLAG, UNCORRECTABLE_RANGE_FLAG);
                     }
                 }
-                int uncorrectableRet = UNKNOWN;
+                eReturnValues uncorrectableRet = UNKNOWN;
                 if (!FLAG_UNCORRECTABLES_FLAG)
                 {
                     uncorrectableRet = create_Uncorrectables(&deviceList[deviceIter], CREATE_UNCORRECTABLE_LBA_FLAG, UNCORRECTABLE_RANGE_FLAG, READ_UNCORRECTABLES_FLAG, NULL, NULL);

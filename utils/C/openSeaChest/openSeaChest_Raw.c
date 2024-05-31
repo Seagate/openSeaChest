@@ -54,8 +54,8 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    int      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -97,11 +97,10 @@ int main(int argc, char* argv[])
     CSMI_VERBOSE_VAR
 #endif
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
-    //add -- options to this structure DO NOT ADD OPTIONAL ARGUMENTS! Optional arguments are a GNU extension and are not supported in Unix or some compilers- TJE
     struct option longopts[] = {
         //common command line options
         DEVICE_LONG_OPT,
@@ -183,31 +182,50 @@ int main(int argc, char* argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, RAW_CDB_ARRAY_LONG_OPT_STRING) == 0)
             {
-                //parse the command separated value cdb that was input
-                char* cdbToken = strtok(optarg, ",");
-                uint8_t cdbIter = 0;
-                while (cdbToken)
+                char* saveptr = NULL;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char* token = NULL;
+                uint8_t count = 0;
+                bool errorInCL = false;
+                if (dupoptarg)
                 {
-                    if (strchr(cdbToken, 'h') || strchr(cdbToken, 'H'))
+                    duplen = strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, ",", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
+                while (token && !errorInCL && count < UINT8_MAX)
+                {
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
                     {
-                        if (EOF == sscanf(cdbToken, "%"SCNx8"h", &RAW_CDB_ARRAY[cdbIter]))
-                        {
-                            //this shouldn't happen...just trying to make code analysis happy
-                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                        }
+                        RAW_CDB_ARRAY[count] = value;
+                        ++count;
+                        token = common_String_Token(NULL, &duplen, ",", &saveptr);
                     }
-                    else if (!sscanf(cdbToken, "0x%"SCNx8"", &RAW_CDB_ARRAY[cdbIter]))
+                    else
                     {
-                        RAW_CDB_ARRAY[cdbIter] = C_CAST(uint8_t, atoi(cdbToken));
+                        errorInCL = true;
                     }
-                    cdbToken = strtok(NULL, ",");
-                    cdbIter++;
+                }
+                safe_Free(dupoptarg)
+                if (errorInCL)
+                {
+                    print_Error_In_Cmd_Line_Args(RAW_CDB_ARRAY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, RAW_CDB_LEN_LONG_OPT_STRING) == 0)
             {
                 //set the cdblength
-                RAW_CDB_LEN_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_CDB_LEN_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(RAW_CDB_LEN_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SIZE_LONG_OPT_STRING) == 0)
             {
@@ -217,17 +235,16 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    RAW_TFR_SIZE_FLAG = C_CAST(uint8_t, atoi(optarg));
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SIZE_FLAG))
+                    {
+                        print_Error_In_Cmd_Line_Args(RAW_TFR_SIZE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_COMMAND_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_COMMAND = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_COMMAND))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_COMMAND_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -235,12 +252,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_FEATURE = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_FEATURE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -248,12 +260,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_EXT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_FEATURE_EXT = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_FEATURE_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -261,11 +268,11 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_FULL_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
+                uint16_t fullfeat = 0;
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &fullfeat))
                 {
-                    RAW_TFR_FEATURE = M_Byte0(temp);
-                    RAW_TFR_FEATURE_EXT = M_Byte1(temp);
+                    RAW_TFR_FEATURE = M_Byte0(fullfeat);
+                    RAW_TFR_FEATURE_EXT = M_Byte1(fullfeat);
                 }
                 else
                 {
@@ -275,12 +282,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_LOW_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_LOW = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_LOW_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -288,12 +290,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_MID_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_MID = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_MID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -301,12 +298,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_HIGH_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_HIGH = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_HIGH_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -314,12 +306,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_LOW_EXT = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -327,12 +314,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_MID_EXT = C_CAST(uint8_t, temp);
-                }
-                else
+            if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -340,12 +322,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_LBA_HIGH_EXT = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -353,15 +330,15 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_FULL_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
+                uint64_t fullLBA = 0;
+                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &fullLBA) && fullLBA <= MAX_48_BIT_LBA)
                 {
-                    RAW_TFR_LBA_LOW = M_Byte0(temp);
-                    RAW_TFR_LBA_MID = M_Byte1(temp);
-                    RAW_TFR_LBA_HIGH = M_Byte2(temp);
-                    RAW_TFR_LBA_LOW_EXT = M_Byte3(temp);
-                    RAW_TFR_LBA_MID_EXT = M_Byte4(temp);
-                    RAW_TFR_LBA_HIGH_EXT = M_Byte5(temp);
+                    RAW_TFR_LBA_LOW = M_Byte0(fullLBA);
+                    RAW_TFR_LBA_MID = M_Byte1(fullLBA);
+                    RAW_TFR_LBA_HIGH = M_Byte2(fullLBA);
+                    RAW_TFR_LBA_LOW_EXT = M_Byte3(fullLBA);
+                    RAW_TFR_LBA_MID_EXT = M_Byte4(fullLBA);
+                    RAW_TFR_LBA_HIGH_EXT = M_Byte5(fullLBA);
                     //TODO: On a 28bit command, we may need to set the lower nibble of device/head for the high bits of the LBA value
                 }
                 else
@@ -372,12 +349,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_DEVICE_HEAD = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_DEVICE_HEAD))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -389,12 +361,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_SECTOR_COUNT = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -402,12 +369,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_SECTOR_COUNT_EXT = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -415,11 +377,11 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
+                uint16_t fullseccnt = 0;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &fullseccnt))
                 {
-                    RAW_TFR_SECTOR_COUNT = M_Byte0(temp);
-                    RAW_TFR_SECTOR_COUNT_EXT = M_Byte1(temp);
+                    RAW_TFR_SECTOR_COUNT = M_Byte0(fullseccnt);
+                    RAW_TFR_SECTOR_COUNT_EXT = M_Byte1(fullseccnt);
                 }
                 else
                 {
@@ -429,12 +391,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_ICC_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_ICC = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_ICC))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_ICC_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -442,12 +399,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX1_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_AUX1 = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX1))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX1_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -455,12 +407,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX2_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_AUX2 = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX2))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX2_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -468,12 +415,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX3_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_AUX3 = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX3))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX3_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -481,12 +423,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX4_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
-                {
-                    RAW_TFR_AUX4 = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX4))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX4_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -494,13 +431,13 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX_FULL_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(optarg, &temp))
+                uint32_t fullaux = 0;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &fullaux))
                 {
-                    RAW_TFR_AUX1 = M_Byte0(temp);
-                    RAW_TFR_AUX2 = M_Byte1(temp);
-                    RAW_TFR_AUX3 = M_Byte2(temp);
-                    RAW_TFR_AUX4 = M_Byte3(temp);
+                    RAW_TFR_AUX1 = M_Byte0(fullaux);
+                    RAW_TFR_AUX2 = M_Byte1(fullaux);
+                    RAW_TFR_AUX3 = M_Byte2(fullaux);
+                    RAW_TFR_AUX4 = M_Byte3(fullaux);
                 }
                 else
                 {
@@ -599,47 +536,59 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_DATA_LEN_LONG_OPT_STRING) == 0)
             {
-                //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                uint32_t optargInt = C_CAST(uint32_t, atoi(optarg));
-                if (strstr(optarg, "BLOCKS"))
+                char* unit = NULL;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_DATA_LEN_FLAG))
                 {
-                    //the user specified the number as a number of logical blocks, so adjust this after we know the device logical block size
-                    RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = true;
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = true;
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT32_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT32_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT32_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            multiplier = UINT32_C(1073741824);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(RAW_DATA_LEN_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                    RAW_DATA_LEN_FLAG *= multiplier;
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = 1000;
+                    print_Error_In_Cmd_Line_Args(RAW_DATA_LEN_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = 1024;
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = 1000000;
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = 1048576;
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = 1000000000;
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = 1073741824;
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = 1000000000000;
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = 1099511627776;
-                }
-                RAW_DATA_LEN_FLAG = C_CAST(uint32_t, optargInt * multiplier);
             }
             else if (strcmp(longopts[optionIndex].name, RAW_DATA_DIRECTION_LONG_OPT_STRING) == 0)
             {
@@ -664,7 +613,11 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TIMEOUT_LONG_OPT_STRING) == 0)
             {
-                RAW_TIMEOUT_FLAG = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TIMEOUT_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(RAW_TIMEOUT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, RAW_OUTPUT_FILE_LONG_OPT_STRING) == 0)
             {
@@ -680,46 +633,51 @@ int main(int argc, char* argv[])
             {
                 //set the offset to read the file at
                 //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                long int optargInt = (long int)atoll(optarg);
-                if (strstr(optarg, "BLOCKS"))
+                char* unit = NULL;
+                if (get_And_Validate_Integer_Input_L(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
                 {
-                    //the user specified the number as a number of logical blocks, so adjust this after we know the device logical block size
-                    RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = true;
+                    uint64_t multiplier = 1;
+                    if (strstr(optarg, "BLOCKS"))
+                    {
+                        //the user specified the number as a number of logical blocks, so adjust this after we know the device logical block size
+                        RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = true;
+                    }
+                    else if (strstr(optarg, "KB"))
+                    {
+                        multiplier = 1000;
+                    }
+                    else if (strstr(optarg, "KiB"))
+                    {
+                        multiplier = 1024;
+                    }
+                    else if (strstr(optarg, "MB"))
+                    {
+                        multiplier = 1000000;
+                    }
+                    else if (strstr(optarg, "MiB"))
+                    {
+                        multiplier = 1048576;
+                    }
+                    else if (strstr(optarg, "GB"))
+                    {
+                        multiplier = 1000000000;
+                    }
+                    else if (strstr(optarg, "GiB"))
+                    {
+                        multiplier = 1073741824;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    RAW_INPUT_FILE_OFFSET_FLAG = C_CAST(long, C_CAST(uint64_t, RAW_INPUT_FILE_OFFSET_FLAG) * multiplier);
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = 1000;
+                    print_Error_In_Cmd_Line_Args(RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = 1024;
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = 1000000;
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = 1048576;
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = 1000000000;
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = 1073741824;
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = 1000000000000;
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = 1099511627776;
-                }
-                RAW_INPUT_FILE_OFFSET_FLAG = C_CAST(long int, optargInt * multiplier);
             }
             else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
             {
@@ -805,9 +763,10 @@ int main(int argc, char* argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1418,7 +1377,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         //try issuing the command now
-                        switch (scsi_Send_Cdb(&deviceList[deviceIter], RAW_CDB_ARRAY, RAW_CDB_LEN_FLAG, dataBuffer, allocatedDataLength, RAW_DATA_DIRECTION_FLAG, deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, RAW_TIMEOUT_FLAG))
+                        switch (scsi_Send_Cdb(&deviceList[deviceIter], RAW_CDB_ARRAY, C_CAST(eCDBLen, RAW_CDB_LEN_FLAG), dataBuffer, allocatedDataLength, C_CAST(eDataTransferDirection, RAW_DATA_DIRECTION_FLAG), deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, RAW_TIMEOUT_FLAG))
                         {
                         case IN_PROGRESS://separate case so we can save the sense data
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1622,13 +1581,13 @@ int main(int argc, char* argv[])
             passthroughCommand.forceCheckConditionBit = RAW_TFR_CHECK_CONDITION;
 
             //set the protocol
-            passthroughCommand.commadProtocol = RAW_TFR_PROTOCOL;
+            passthroughCommand.commadProtocol = C_CAST(eAtaProtocol, RAW_TFR_PROTOCOL);
 
             //set xfer direction
-            passthroughCommand.commandDirection = RAW_DATA_DIRECTION_FLAG;
+            passthroughCommand.commandDirection = C_CAST(eDataTransferDirection, RAW_DATA_DIRECTION_FLAG);
 
             //set where the length is in the command
-            passthroughCommand.ataCommandLengthLocation = RAW_TFR_XFER_LENGTH_LOCATION;
+            passthroughCommand.ataCommandLengthLocation = C_CAST(eATAPassthroughLength, RAW_TFR_XFER_LENGTH_LOCATION);
 
             //check if we are doing a transfer based on logical blocks
             switch (RAW_TFR_BYTE_BLOCK)
