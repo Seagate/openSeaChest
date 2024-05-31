@@ -3237,7 +3237,7 @@ void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg)
 
 void print_Error_In_Cmd_Line_Args_Short_Opt(char opt, const char * arg)
 {
-    printf("\nError in option --%c. Invalid argument given '%s'.\n", opt, arg);
+    printf("\nError in option -%c. Invalid argument given '%s'.\n", opt, arg);
     printf("Use -h option to view command line help\n");
 }
 
@@ -4323,12 +4323,12 @@ void print_No_Time_Limit_Help(bool shortHelp)
 
 void print_No_Banner_Help(bool shortHelp)
 {
-	printf("\t--%s\n", NO_BANNER_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUse this option to suppress the text banner that displays each time\n");
-		printf("\t\topenSeaChest is run.\n\n");
-	}
+    printf("\t--%s\n", NO_BANNER_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to suppress the text banner that displays each time\n");
+        printf("\t\topenSeaChest is run.\n\n");
+    }
 }
 
 void print_Show_Power_Telemetry_Help(bool shortHelp)
