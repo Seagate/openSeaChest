@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.1.0";
+const char *buildVersion = "3.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -165,6 +165,7 @@ int main(int argc, char *argv[])
         DEPOP_MAX_LBA_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        FORCE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1506,7 +1507,7 @@ int main(int argc, char *argv[])
                 {
                     printf("Set Sector Size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
                 }
-                switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
+                switch (set_Sector_Configuration_With_Force(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE, FORCE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)

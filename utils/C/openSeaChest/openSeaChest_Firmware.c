@@ -30,7 +30,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Firmware";
-const char *buildVersion = "4.1.0";
+const char *buildVersion = "4.2.0";
 
 typedef enum _eSeaChestFirmwareExitCodes
 {
@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
+    SHOW_SCSI_FW_INFO_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -964,6 +965,38 @@ int main(int argc, char *argv[])
                 break;
             }
         }
+
+        if (SHOW_SCSI_FW_INFO_FLAG)
+        {
+            //these live under at least seadragon for now...-TJE
+            seagateSCSIFWNumbers fwNumbers;
+            memset(&fwNumbers, 0, sizeof(seagateSCSIFWNumbers));
+            switch (get_Seagate_SCSI_Firmware_Numbers(&deviceList[deviceIter], &fwNumbers))
+            {
+            case SUCCESS:
+                printf("\n===SCSI Firmware Numbers===\n");
+                printf(" SCSI Firmware Release Number: %s\n", fwNumbers.scsiFirmwareReleaseNumber);
+                printf(" Servo Firmware Release Number: %s\n", fwNumbers.servoFirmwareReleaseNumber);
+                printf(" SAP Block Point Numbers: %s\n", fwNumbers.sapBlockPointNumbers);
+                printf(" Servo Firmware Release Date: %s\n", fwNumbers.servoFirmmwareReleaseDate);
+                printf(" Servo ROM Release Date: %s\n", fwNumbers.servoRomReleaseDate);
+                printf(" SAP Firmware Release Number: %s\n", fwNumbers.sapFirmwareReleaseNumber);
+                printf(" SAP Firmware Release Date: %s\n", fwNumbers.sapFirmwareReleaseDate);
+                printf(" SAP Firmware Release Year: %s\n", fwNumbers.sapFirmwareReleaseYear);
+                printf(" SAP Manufacturing Key: %s\n", fwNumbers.sapManufacturingKey);
+                printf(" Servo Firmware Product Family and Product Family Member IDs: %s\n", fwNumbers.servoFirmwareProductFamilyAndProductFamilyMemberIDs);
+                break;
+            case NOT_SUPPORTED:
+                printf("SCSI Firmware Numbers not supported by this device\n");
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                printf("Failed to retrieve SCSI Firmware Numbers from this device\n");
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
 
 #if defined (_WIN32)
         if (deviceList[deviceIter].drive_info.drive_type == NVME_DRIVE && (FORCE_NVME_COMMIT_ACTION != 0xFF || FORCE_DISABLE_NVME_FW_COMMIT_RESET))

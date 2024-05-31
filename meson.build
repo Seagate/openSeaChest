@@ -238,6 +238,16 @@ if target_machine.system() == 'windows'
   add_project_arguments('-D_CRT_SECURE_NO_WARNINGS', language : 'c')
 endif
 
+usehelp2man = false
+if target_machine.system() != 'windows'
+  if meson.can_run_host_binaries()
+    help2man = find_program('help2man', required : false)
+    if help2man.found()
+      usehelp2man = true
+    endif
+  endif
+endif
+
 opensea_common = subproject('opensea-common')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
@@ -250,11 +260,17 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 incdir = include_directories('include')
 
 exe_src_map = {
-  'Format': 'Format'
+  #This exists to allow mapping an exe from a specific filename to a different output name.
+  #the openSeaChest_Format tool was called openSeaChest_FormatUnit before NVMe was added and needed this map for a while.
+  #This is no longer needed at this time, but may end up used in the future as more utilities are migrated to openSeaChest
 }
 
 foreach p : get_option('tools')
   executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
+  if usehelp2man
+    #use help2man to generate manpages before installing them
+    run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: true)
+  endif
   install_man('docs/man/man8/openSeaChest_' + exe_src_map.get(p, p) + '.8')
 endforeach
 install_man('docs/man/man8/openSeaChest.8')

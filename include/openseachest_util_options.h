@@ -96,6 +96,16 @@ extern "C"
     #define DEVICE_INFO_LONG_OPT_STRING "deviceInfo"
     #define DEVICE_INFO_LONG_OPT { DEVICE_INFO_LONG_OPT_STRING, no_argument, NULL, DEVICE_INFO_SHORT_OPT }
 
+    #define CAPACITY_MODEL_NUMBER_MAPPING_FLAG capModelMapping
+    #define CAPACITY_MODEL_NUMBER_MAPPING_VAR getOptBool CAPACITY_MODEL_NUMBER_MAPPING_FLAG = false;
+    #define CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING "capacityModelNumberMapping"
+    #define CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT { CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING, no_argument, &CAPACITY_MODEL_NUMBER_MAPPING_FLAG, goTrue }
+
+    #define CHANGE_ID_STRING_FLAG changeIdString
+    #define CHANGE_ID_STRING_VAR getOptBool CHANGE_ID_STRING_FLAG = goFalse;
+    #define CHANGE_ID_STRING_LONG_OPT_STRING "changeIdString"
+    #define CHANGE_ID_STRING_LONG_OPT { CHANGE_ID_STRING_LONG_OPT_STRING, no_argument, &CHANGE_ID_STRING_FLAG, goTrue }
+    
     #define PARTITION_INFO_FLAG showPartitionInfo
     #define PARTITION_INFO_VAR getOptBool PARTITION_INFO_FLAG = goFalse;
     #define PARTITION_INFO_LONG_OPT_STRING "partitionInfo"
@@ -2197,6 +2207,286 @@ extern "C"
     #define ATA_DCO_FEATURE_OPTION_EPC                  "epc"
     #define ATA_DCO_DISABLE_FEEATURES_LONG_OPT { ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, required_argument, NULL, 0 }
 
+    //raw CDB related flags
+    #define RAW_CDB_LEN_FLAG rawCDBLength
+    #define RAW_CDB_LEN_VAR \
+    uint8_t RAW_CDB_LEN_FLAG = 0;
+    #define RAW_CDB_LEN_LONG_OPT_STRING "cdbLen"
+    #define RAW_CDB_LEN_LONG_OPT { RAW_CDB_LEN_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_CDB_ARRAY rawCDB
+    #define RAW_CDB_ARRAY_VAR \
+    uint8_t RAW_CDB_ARRAY[UINT8_MAX] = { 0 };
+    #define RAW_CDB_ARRAY_LONG_OPT_STRING "cdb"
+    #define RAW_CDB_ARRAY_LONG_OPT { RAW_CDB_ARRAY_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //raw TFR related flags
+    #define RAW_TFR_SIZE_FLAG rawTFRLength
+    #define RAW_TFR_SIZE_VAR \
+    uint8_t RAW_TFR_SIZE_FLAG = 0; //48 for ext command, and 28 for short command
+    #define RAW_TFR_SIZE_LONG_OPT_STRING "tfrSize"
+    #define RAW_TFR_SIZE_LONG_OPT { RAW_TFR_SIZE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //raw tfr registers
+    #define RAW_TFR_COMMAND tfrCommand
+    #define RAW_TFR_FEATURE tfrFeature
+    #define RAW_TFR_FEATURE_EXT tfrFeatureExt
+    #define RAW_TFR_LBA_LOW tfrLBALo
+    #define RAW_TFR_LBA_MID tfrLBAMid
+    #define RAW_TFR_LBA_HIGH tfrLBAHigh
+    #define RAW_TFR_LBA_LOW_EXT tfrLBALoExt
+    #define RAW_TFR_LBA_MID_EXT tfrLBAMidExt
+    #define RAW_TFR_LBA_HIGH_EXT tfrLBAHighExt
+    #define RAW_TFR_DEVICE_HEAD tfrDeviceHead
+    #define RAW_TFR_SECTOR_COUNT tfrSectorCount
+    #define RAW_TFR_SECTOR_COUNT_EXT tfrSectorCountExt
+    #define RAW_TFR_ICC tfrICC
+    #define RAW_TFR_AUX1 tfrAux1
+    #define RAW_TFR_AUX2 tfrAux2
+    #define RAW_TFR_AUX3 tfrAux3
+    #define RAW_TFR_AUX4 tfrAux4
+    #define RAW_TFR_VARS \
+    uint8_t RAW_TFR_COMMAND = 0;\
+    uint8_t RAW_TFR_FEATURE = 0;\
+    uint8_t RAW_TFR_FEATURE_EXT = 0;\
+    uint8_t RAW_TFR_LBA_LOW = 0;\
+    uint8_t RAW_TFR_LBA_MID = 0;\
+    uint8_t RAW_TFR_LBA_HIGH = 0;\
+    uint8_t RAW_TFR_LBA_LOW_EXT = 0;\
+    uint8_t RAW_TFR_LBA_MID_EXT = 0;\
+    uint8_t RAW_TFR_LBA_HIGH_EXT = 0;\
+    uint8_t RAW_TFR_DEVICE_HEAD = 0xA0/*backwards compatible by default*/;\
+    uint8_t RAW_TFR_SECTOR_COUNT = 0;\
+    uint8_t RAW_TFR_SECTOR_COUNT_EXT = 0;\
+    uint8_t RAW_TFR_ICC = 0;\
+    uint8_t RAW_TFR_AUX1 = 0;\
+    uint8_t RAW_TFR_AUX2 = 0;\
+    uint8_t RAW_TFR_AUX3 = 0;\
+    uint8_t RAW_TFR_AUX4 = 0;
+
+    #define RAW_TFR_COMMAND_LONG_OPT_STRING "command"
+    #define RAW_TFR_FEATURE_LONG_OPT_STRING "feature"
+    #define RAW_TFR_FEATURE_EXT_LONG_OPT_STRING "featureExt"
+    #define RAW_TFR_FEATURE_FULL_LONG_OPT_STRING "featFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_LBA_LOW_LONG_OPT_STRING "lbaLow"
+    #define RAW_TFR_LBA_MID_LONG_OPT_STRING "lbaMid"
+    #define RAW_TFR_LBA_HIGH_LONG_OPT_STRING "lbaHigh"
+    #define RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING "lbaLowExt"
+    #define RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING "lbaMidExt"
+    #define RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING "lbaHighExt"
+    #define RAW_TFR_LBA_FULL_LONG_OPT_STRING "fullLBA" //will be broken apart into all separate sections based on the passed in value...to help simplify cli when they don't need specific bits set to specific things
+/*
+    #define RAW_TFR_SECTOR_NUM_LONG_OPT_STRING "sectorNum"
+    #define RAW_TFR_SECTOR_NUM_LONG_OPT_STRING "sectorNumExt"
+    #define RAW_TFR_CYLINDER_LOW_LONG_OPT_STRING "cylinderLow"
+    #define RAW_TFR_CYLINDER_HIGH_LONG_OPT_STRING "cylinderHigh"
+    #define RAW_TFR_CYLINDER_LOW_EXT_LONG_OPT_STRING "cylinderLowExt"
+    #define RAW_TFR_CYLINDER_HIGH_EXT_LONG_OPT_STRING "cylinderHighExt"
+    #define RAW_TFR_CHS_FULL "chsFull"
+*/
+    #define RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING "deviceHead"
+    #define RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING "sectorCount"
+    #define RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING "sectorCountExt"
+    #define RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING "sectFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_ICC_LONG_OPT_STRING "icc"
+    #define RAW_TFR_AUX1_LONG_OPT_STRING "aux1"
+    #define RAW_TFR_AUX2_LONG_OPT_STRING "aux2"
+    #define RAW_TFR_AUX3_LONG_OPT_STRING "aux3"
+    #define RAW_TFR_AUX4_LONG_OPT_STRING "aux4"
+    #define RAW_TFR_AUX_FULL_LONG_OPT_STRING "auxFull" //will break apart into the two separate feature regs, just allowing this in case it's simpler to use
+    #define RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING "lbaMode" //sets the LBA mode bit in device/head register
+
+//TODO: add other options with legacy names like cylinder, head, sector, etc
+//TODO: multiple count option for read/write multiple commands?
+
+    #define RAW_TFR_COMMAND_LONG_OPT { RAW_TFR_COMMAND_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_LONG_OPT { RAW_TFR_FEATURE_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_EXT_LONG_OPT { RAW_TFR_FEATURE_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_FEATURE_FULL_LONG_OPT { RAW_TFR_FEATURE_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_LOW_LONG_OPT { RAW_TFR_LBA_LOW_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MID_LONG_OPT { RAW_TFR_LBA_MID_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_HIGH_LONG_OPT { RAW_TFR_LBA_HIGH_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_LOW_EXT_LONG_OPT { RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MID_EXT_LONG_OPT { RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_HIGH_EXT_LONG_OPT { RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_FULL_LONG_OPT { RAW_TFR_LBA_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_DEVICE_HEAD_LONG_OPT { RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_LBA_MODE_BIT_LONG_OPT { RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING, no_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_LONG_OPT { RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT { RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT { RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_ICC_LONG_OPT { RAW_TFR_ICC_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX1_LONG_OPT { RAW_TFR_AUX1_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX2_LONG_OPT { RAW_TFR_AUX2_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX3_LONG_OPT { RAW_TFR_AUX3_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX4_LONG_OPT { RAW_TFR_AUX4_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_AUX_FULL_LONG_OPT { RAW_TFR_AUX_FULL_LONG_OPT_STRING, required_argument, NULL, 0 }
+    #define RAW_TFR_REGITER_LONG_OPTS \
+    RAW_TFR_COMMAND_LONG_OPT, RAW_TFR_FEATURE_LONG_OPT, RAW_TFR_FEATURE_EXT_LONG_OPT, RAW_TFR_FEATURE_FULL_LONG_OPT, RAW_TFR_LBA_LOW_LONG_OPT, RAW_TFR_LBA_MID_LONG_OPT, RAW_TFR_LBA_HIGH_LONG_OPT, \
+    RAW_TFR_LBA_LOW_EXT_LONG_OPT, RAW_TFR_LBA_MID_EXT_LONG_OPT, RAW_TFR_LBA_HIGH_EXT_LONG_OPT, RAW_TFR_LBA_FULL_LONG_OPT, RAW_TFR_DEVICE_HEAD_LONG_OPT, RAW_TFR_LBA_MODE_BIT_LONG_OPT, RAW_TFR_SECTOR_COUNT_LONG_OPT, \
+    RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT, RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT, RAW_TFR_ICC_LONG_OPT, RAW_TFR_AUX1_LONG_OPT, RAW_TFR_AUX2_LONG_OPT, RAW_TFR_AUX3_LONG_OPT, RAW_TFR_AUX4_LONG_OPT, RAW_TFR_AUX_FULL_LONG_OPT
+
+    #define RAW_TFR_PROTOCOL tfrProtocol
+    #define RAW_TFR_PROTOCOL_VAR int RAW_TFR_PROTOCOL = -1;
+    #define RAW_TFR_PROTOCOL_LONG_OPT_STRING "tfrProtocol"
+    #define RAW_TFR_PROTOCOL_LONG_OPT { RAW_TFR_PROTOCOL_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TFR_XFER_LENGTH_LOCATION tfrLengthLocation
+    #define RAW_TFR_XFER_LENGTH_LOCATION_VAR int RAW_TFR_XFER_LENGTH_LOCATION = -1;
+    #define RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING "tfrXferLengthReg"
+    #define RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT { RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TFR_CHECK_CONDITION tfrCheckCondition
+    #define RAW_TFR_CHECK_CONDITION_VAR getOptBool RAW_TFR_CHECK_CONDITION = goFalse;
+    #define RAW_TFR_CHECK_CONDITION_LONG_OPT_STRING "tfrSetChkCond"
+    #define RAW_TFR_CHECK_CONDITION_LONG_OPT { RAW_TFR_CHECK_CONDITION_LONG_OPT_STRING, no_argument, &RAW_TFR_CHECK_CONDITION, goTrue }
+
+    #define RAW_TFR_BYTE_BLOCK tfrByteBlock
+    #define RAW_TFR_BYTE_BLOCK_VAR int RAW_TFR_BYTE_BLOCK = -1;//0 will mean no-data, 1 = byte count, 512 = 512B blocks, UINT8_MAX = logical sector size
+    #define RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING "tfrByteBlock"
+    #define RAW_TFR_BYTE_BLOCK_LONG_OPT { RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //shared raw flags
+    #define RAW_DATA_LEN_FLAG rawDataLength
+    #define RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG rawDataLengthBlocks
+    #define RAW_DATA_LEN_VARS \
+    uint32_t RAW_DATA_LEN_FLAG = 0;\
+    bool RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = false;
+    #define RAW_DATA_LEN_LONG_OPT_STRING "dataLen"
+    #define RAW_DATA_LEN_LONG_OPT { RAW_DATA_LEN_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_DATA_DIRECTION_FLAG rawDataDirection
+    #define RAW_DATA_DIRECTION_VAR \
+    int RAW_DATA_DIRECTION_FLAG = -1;//set to somthing invalid. this int should cast to the data direction enum for us just fine....
+    #define RAW_DATA_DIRECTION_LONG_OPT_STRING "dataDir"
+    #define RAW_DATA_DIRECTION_LONG_OPT { RAW_DATA_DIRECTION_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_TIMEOUT_FLAG rawTimeout
+    #define RAW_TIMEOUT_VAR \
+    uint32_t RAW_TIMEOUT_FLAG = 15 * 1000;//15 seconds is the default
+    #define RAW_TIMEOUT_LONG_OPT_STRING "timeout"
+    #define RAW_TIMEOUT_LONG_OPT { RAW_TIMEOUT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_OUTPUT_FILE_FLAG rawOutFile
+    #define RAW_OUTPUT_FILE_NAME_FLAG rawOutFileName
+    #define RAW_OUTPUT_FILE_VARS \
+    const char* RAW_OUTPUT_FILE_NAME_FLAG = NULL;\
+    FILE *RAW_OUTPUT_FILE_FLAG = NULL;
+    #define RAW_OUTPUT_FILE_LONG_OPT_STRING "outputFile"
+    #define RAW_OUTPUT_FILE_LONG_OPT { RAW_OUTPUT_FILE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_INPUT_FILE_FLAG rawInFile
+    #define RAW_INPUT_FILE_NAME_FLAG rawInFileName
+    #define RAW_INPUT_FILE_VARS \
+    const char* RAW_INPUT_FILE_NAME_FLAG = NULL;\
+    FILE *RAW_INPUT_FILE_FLAG = NULL;
+    #define RAW_INPUT_FILE_LONG_OPT_STRING "inputFile"
+    #define RAW_INPUT_FILE_LONG_OPT { RAW_INPUT_FILE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RAW_INPUT_FILE_OFFSET_FLAG rawInFileOffset
+    #define RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG rawInOffsetBlocks
+    #define RAW_INPUT_FILE_OFFSET_VAR \
+    long int RAW_INPUT_FILE_OFFSET_FLAG = SEEK_SET; \
+    getOptBool RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = goFalse;
+    #define RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING "inputOffset"
+    #define RAW_INPUT_FILE_OFFSET_LONG_OPT { RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //check Pending List count
+    #define CHECK_PENDING_LIST_COUNT_FLAG checkPendingListCount
+    #define CHECK_PENDING_LIST_COUNT_VALUE pendlingListCountToCheck
+    #define CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG checkPendingListLogicalCount
+    #define CHECK_PENDING_LIST_COUNT_VARS \
+    bool CHECK_PENDING_LIST_COUNT_FLAG = false;\
+    bool CHECK_PENDING_LIST_COUNT_LOGICAL_FLAG = false; /*By default we check for bad Physical sector counts, but the drive reports in logical, so this is an override flag*/\
+    uint32_t CHECK_PENDING_LIST_COUNT_VALUE = UINT32_MAX;
+    #define CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING "checkPendingListCount"
+    #define CHECK_PENDING_LIST_COUNT_LONG_OPT { CHECK_PENDING_LIST_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+    
+    //check Grown List count
+    #define CHECK_GROWN_LIST_COUNT_FLAG checkGrownListCount
+    #define CHECK_GROWN_LIST_COUNT_VALUE grownListCountToCheck
+    #define CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG checkGrownListLogicalCount
+    #define CHECK_GROWN_LIST_COUNT_VARS \
+    bool CHECK_GROWN_LIST_COUNT_FLAG = false;\
+    bool CHECK_GROWN_LIST_COUNT_LOGICAL_FLAG = false; /*By default we check for bad Physical sector counts, but the drive reports in logical, so this is an override flag*/\
+    uint32_t CHECK_GROWN_LIST_COUNT_VALUE = UINT32_MAX;
+    #define CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING "checkGrownListCount"
+    #define CHECK_GROWN_LIST_COUNT_LONG_OPT { CHECK_GROWN_LIST_COUNT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //show pending list
+    #define SHOW_PENDING_LIST showPendingList
+    #define SHOW_PENDING_LIST_VAR getOptBool SHOW_PENDING_LIST = goFalse;
+    #define SHOW_PENDING_LIST_LONG_OPT_STRING "showPendingList"
+    #define SHOW_PENDING_LIST_LONG_OPT { SHOW_PENDING_LIST_LONG_OPT_STRING, no_argument, &SHOW_PENDING_LIST, goTrue }
+
+    #define CREATE_UNCORRECTABLE_FLAG createUncorrectable
+    #define CREATE_UNCORRECTABLE_VAR \
+    bool CREATE_UNCORRECTABLE_FLAG = false;
+    #define CREATE_UNCORRECTABLE_LBA_FLAG uncorrectableLBA
+    #define CREATE_UNCORRECTABLE_LBA_VAR \
+    uint64_t CREATE_UNCORRECTABLE_LBA_FLAG = UINT64_MAX;
+    #define CREATE_UNCORRECTABLE_LONG_OPT_STRING "psuedoUncorrectable"
+    #define CREATE_UNCORRECTABLE_LONG_OPT { CREATE_UNCORRECTABLE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define UNCORRECTABLE_RANGE_FLAG uncorrectableRange
+    #define UNCORRECTABLE_RANGE_VAR \
+    uint64_t UNCORRECTABLE_RANGE_FLAG = 1;/*set to one for a default value of a single sector*/
+    #define UNCORRECTABLE_RANGE_LONG_OPT_STRING "uncorrectableRange"
+    #define UNCORRECTABLE_RANGE_LONG_OPT { UNCORRECTABLE_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define RANDOM_UNCORRECTABLES_FLAG randomUncorrectableCount
+    #define RANDOM_UNCORRECTABLES_VAR \
+    uint16_t RANDOM_UNCORRECTABLES_FLAG = 0;
+    #define RANDOM_UNCORRECTABLES_LONG_OPT_STRING "randomUncorrectables"
+    #define RANDOM_UNCORRECTABLES_LONG_OPT { RANDOM_UNCORRECTABLES_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define FLAG_UNCORRECTABLES_FLAG flagUncorrectable
+    #define FLAG_UNCORRECTABLES_VAR \
+    getOptBool FLAG_UNCORRECTABLES_FLAG = goFalse;
+    #define FLAG_UNCORRECTABLE_LONG_OPT_STRING "flaggedUncorrectable"
+    #define FLAG_UNCORRECTABLE_LONG_OPT { FLAG_UNCORRECTABLE_LONG_OPT_STRING, no_argument, &FLAG_UNCORRECTABLES_FLAG, goTrue }
+
+    #define READ_UNCORRECTABLES_FLAG readUncorrectables
+    #define READ_UNCORRECTABLES_VAR \
+    bool READ_UNCORRECTABLES_FLAG = true;/*this is set to true by default. The command line flag is used to disable this functionality*/
+    #define DISABLE_READ_UNCORRECTABLES_LONG_OPT_STRING "disableReadUncorrectables"
+    #define DISABLE_READ_UNCORRECTABLES_LONG_OPT { DISABLE_READ_UNCORRECTABLES_LONG_OPT_STRING, no_argument, NULL, 0 }
+
+    #define CORRUPT_LBA_FLAG performCorruptLBA
+    #define CORRUPT_LBA_LBA lbaToCorrupt
+    #define CORRUPT_LBA_VAR \
+    bool CORRUPT_LBA_FLAG = false;\
+    uint64_t CORRUPT_LBA_LBA = 0;
+    #define CORRUPT_LBA_LONG_OPT_STRING "corruptLBA"
+    #define CORRUPT_LBA_LONG_OPT { CORRUPT_LBA_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define CORRUPT_LBA_RANGE_FLAG lbaRangeToCorrupt
+    #define CORRUPT_LBA_RANGE_VAR uint64_t CORRUPT_LBA_RANGE_FLAG = 1;
+    #define CORRUPT_LBA_RANGE_LONG_OPT_STRING "corruptRange"
+    #define CORRUPT_LBA_RANGE_LONG_OPT { CORRUPT_LBA_RANGE_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define CORRUPT_RANDOM_LBAS performCorruptRandomLBAs
+    #define CORRUPT_RANDOM_LBAS_COUNT randomCorruptLBACount
+    #define CORRUPT_RANDOM_LBAS_VAR \
+    bool CORRUPT_RANDOM_LBAS = false;\
+    uint16_t CORRUPT_RANDOM_LBAS_COUNT = 0;
+    #define CORRUPT_RANDOM_LBAS_LONG_OPT_STRING "corruptRandomLBAs"
+    #define CORRUPT_RANDOM_LBAS_LONG_OPT { CORRUPT_RANDOM_LBAS_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    #define BYTES_TO_CORRUPT_FLAG bytesToCorruptForCorrectableHasBeenEnteredByUser
+    #define BYTES_TO_CORRUPT_VAL bytesToCorruptForCorrectable
+    #define BYTES_TO_CORRUPT_VAR \
+    bool BYTES_TO_CORRUPT_FLAG = false;\
+    uint16_t BYTES_TO_CORRUPT_VAL = 0;
+    #define BYTES_TO_CORRUPT_LONG_OPT_STRING "bytesToCorrupt"
+    #define BYTES_TO_CORRUPT_LONG_OPT { BYTES_TO_CORRUPT_LONG_OPT_STRING, required_argument, NULL, 0 }
+
+    //Seagate SCSI/SAS drives only
+    #define SHOW_SCSI_FW_INFO_FLAG showSCSIFWInfo
+    #define SHOW_SCSI_FW_INFO_VAR getOptBool SHOW_SCSI_FW_INFO_FLAG = goFalse;
+    #define SHOW_SCSI_FW_INFO_LONG_OPT_STRING "scsiFWInfo"
+    #define SHOW_SCSI_FW_INFO_LONG_OPT { SHOW_SCSI_FW_INFO_LONG_OPT_STRING, no_argument, &SHOW_SCSI_FW_INFO_FLAG, goTrue }
+
     #define LONG_OPT_TERMINATOR { NULL, 0, NULL, 0 }
 
     extern const char *deviceHandleExample;
@@ -3636,11 +3926,136 @@ extern "C"
     
     void print_DCO_Disable_Features_Help(bool shortHelp);
 
+    void print_Capacity_Model_Number_Mapping_Help(bool shortHelp);
+
+    void print_Change_Id_String_Help(bool shortHelp);
     void print_Show_Phy_Event_Counters_Help(bool shortHelp);
     
     void print_WRV_Help(bool shortHelp);
 
     void print_Refresh_Filesystems_Help(bool shortHelp);
+
+    void print_Raw_CDB_Length_Help(bool shortHelp);
+
+    void print_Raw_CDB_Help(bool shortHelp);
+
+    void print_Raw_TFR_Command_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_Feature_Full_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Low_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mid_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_High_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Low_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mid_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_High_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Full_Help(bool shortHelp);
+    void print_Raw_TFR_Device_Head_Help(bool shortHelp);
+    void print_Raw_TFR_LBA_Mode_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Ext_Help(bool shortHelp);
+    void print_Raw_TFR_Sector_Count_Full_Help(bool shortHelp);
+    void print_Raw_TFR_Byte_Block_Help(bool shortHelp);
+    void print_Raw_TFR_Protocol_Help(bool shortHelp);
+    void print_Raw_TFR_Check_Condition_Help(bool shortHelp);
+    void print_Raw_TFR_Size_Help(bool shortHelp);
+    void print_Raw_TFR_XFer_Length_Register_Help(bool shortHelp);
+    void print_Raw_TFR_ICC_Help(bool shortHelp);
+    void print_Raw_TFR_AUX1_Help(bool shortHelp);
+    void print_Raw_TFR_AUX2_Help(bool shortHelp);
+    void print_Raw_TFR_AUX3_Help(bool shortHelp);
+    void print_Raw_TFR_AUX4_Help(bool shortHelp);
+    void print_Raw_TFR_Aux_Full_Help(bool shortHelp);
+
+    void print_Raw_Data_Length_Help(bool shortHelp);
+
+    void print_Raw_Data_Direction_Help(bool shortHelp);
+
+    void print_Raw_Output_File_Help(bool shortHelp);
+
+    void print_Raw_Input_File_Help(bool shortHelp);
+
+    void print_Raw_Timeout_Help(bool shortHelp);
+
+    void print_Raw_Input_File_Offset_Help(bool shortHelp);
+    
+    void print_Check_Pending_List_Help(bool shortHelp);
+
+    void print_Check_Grown_List_Help(bool shortHelp);
+
+    void print_Show_Pending_List_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Create_Uncorrectable_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the create Uncorrectable option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Create_Uncorrectable_Help(bool shortHelp);
+
+    void print_Flag_Uncorrectable_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Uncorrectable_Range_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the uncorrectable range option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Uncorrectable_Range_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Random_Uncorrectable_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the random uncorrectables option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Random_Uncorrectable_Help(bool shortHelp);
+
+    //-----------------------------------------------------------------------------
+    //
+    //  print_Disable_Read_Uncorrectables_Help()
+    //
+    //! \brief   Description:  This function prints out the short or long help for the disable read uncorrectables option
+    //
+    //  Entry:
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
+    //!
+    //  Exit:
+    //!   \return VOID
+    //
+    //-----------------------------------------------------------------------------
+    void print_Disable_Read_Uncorrectables_Help(bool shortHelp);
+
+    void print_Corrupt_LBA_Help(bool shortHelp);
+
+    void print_Corrupt_Range_Help(bool shortHelp);
+
+    void print_Bytes_To_Corrupt_Help(bool shortHelp);
+
+    void print_Corrupt_Random_LBAs_Help(bool shortHelp);
+
+    void print_SCSI_FW_Info_Help(bool shortHelp);
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
