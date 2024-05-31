@@ -153,13 +153,14 @@ if target_machine.system() == 'windows'
 endif
 
 usehelp2man = false
-if meson.can_run_host_binaries()
-  help2man = find_program('help2man', required : false)
-  if help2man.found()
-    usehelp2man = true
+if target_machine.system() != 'windows'
+  if meson.can_run_host_binaries()
+    help2man = find_program('help2man', required : false)
+    if help2man.found()
+      usehelp2man = true
+    endif
   endif
 endif
-
 
 opensea_common = subproject('opensea-common')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
