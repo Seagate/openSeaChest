@@ -103,7 +103,7 @@ void print_Elevated_Privileges_Text(void)
 #if defined (_WIN32)
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
 #elif defined (__unix__) || defined(__APPLE__)
-    //TODO: handle the various linux/unix/unix-like OSs with more ifdefs here
+    //handle the various linux/unix/unix-like OSs with more ifdefs here
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
     printf("In ESXi, put sudo before the command. This may require inputting your login password.\n");
@@ -118,7 +118,7 @@ void print_Elevated_Privileges_Text(void)
 #elif defined (__sun)
     printf("In Solaris, put sudo before the command. This may require inputting your login password.\n");
     printf("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#else //generic unix/unix-like case //TODO: Add more OS specific ifdefs to customize messages above
+#else //generic unix/unix-like case //Add more OS specific ifdefs to customize messages above
     printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
     printf("In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
@@ -245,7 +245,7 @@ void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSp
     printf("\t%d = Cannot Open File\n", UTIL_EXIT_CANNOT_OPEN_FILE);
     printf("\t%d = File Already Exists\n", UTIL_EXIT_FILE_ALREADY_EXISTS);
     printf("\t%d = Need Elevated Privileges\n", UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-    //TODO: more generic exit code help above this comment. Tool specific exit codes in if statement below
+    //more generic exit code help above this comment. Tool specific exit codes in if statement below
     if (numberOfToolSpecificExitCodes > 0 && toolSpecificExitCodeList)
     {
         printf("\t---%s specific exit codes---\n", toolName);

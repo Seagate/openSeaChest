@@ -54,7 +54,7 @@ extern "C"
         UTIL_EXIT_FILE_ALREADY_EXISTS,
         UTIL_EXIT_NEED_ELEVATED_PRIVILEGES,
         UTIL_EXIT_NOT_ENOUGH_RESOURCES,
-        //TODO: More generic exit codes go here
+        //More generic exit codes go here
         UTIL_EXIT_ERROR_WRITING_FILE, //added 5/19/20
         //Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE = 32,//Use this value in a tool to start the tool's specific error code enumeration
@@ -1821,7 +1821,7 @@ extern "C"
         bool forceUppercase;
         bool forceLowercase;
         bool invertCase;
-        //TODO: add other modifications as we find or hear other that work with some odd BIOS chips.
+        //add other modifications as we find or hear other that work with some odd BIOS chips.
     }ataSecPWModifications;
     #define ATA_SECURITY_PASSWORD_MODIFICATIONS passwordModificationType
     #define ATA_SECURITY_PASSWORD_MODIFICATIONS_VAR ataSecPWModifications ATA_SECURITY_PASSWORD_MODIFICATIONS = { false, false, false, false, false, false, false, false, false, false };
@@ -1840,7 +1840,7 @@ extern "C"
     #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING "ataSecPassType"
     #define ATA_SECURITY_USING_MASTER_PW_LONG_OPT { ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //TODO: This needs to handle the request to do secure erase AND which TYPE of secure erase
+    //This needs to handle the request to do secure erase AND which TYPE of secure erase
     #define ATA_SECURITY_ERASE_OP performATASecurityErase
     #define ATA_SECURITY_ERASE_OP_VARS \
     bool ATA_SECURITY_ERASE_OP = false; \
@@ -1925,7 +1925,7 @@ extern "C"
     #define SCSI_MP_SAVE_LONG_OPT_STRING "scsiMPSave"
     #define SCSI_MP_SAVE_LONG_OPT { SCSI_MP_SAVE_LONG_OPT_STRING, required_argument, NULL, 0 }
 
-    //show scsi mode page (TODO: different output modes) output modes: classic vs "neat" or some other name...
+    //show scsi mode page output modes: classic vs "neat" or some other name...
     #define SCSI_SHOW_MP_OP showSCSIModePage
     #define SCSI_SHOW_MP_PAGE_NUMBER showModePageNumber
     #define SCSI_SHOW_MP_SUBPAGE_NUMBER showModeSubPageNumber
