@@ -162,9 +162,11 @@ elif c.get_id().contains('xlc')
   #This section is for IBM's xlc compiler and warning options it may need.
   #NOTE: xlcclang should be handled above
   #See following links: 
+  #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=reference-individual-xl-compiler-option-descriptions
   #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=reference-supported-xl-compiler-options-by-different-invocations
   #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=end-mapping-legacy-xl-compiler-options-gcc-options
   #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=reference-individual-xl-compiler-option-descriptions
+  #https://www.ibm.com/docs/en/xl-c-and-cpp-aix/16.1?topic=descriptions-qlanglvl-std
   warning_flags = []
 endif
 
