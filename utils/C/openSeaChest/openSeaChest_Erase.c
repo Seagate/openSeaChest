@@ -787,27 +787,50 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *colonLocation = strstr(optarg, ":") + 1;//adding 1 to offset just beyond the colon for parsing the remaining data
-                    if (strncmp("file:", optarg, 5) == 0)
+                    char* colonLocation = strstr(optarg, ":");
+                    if (colonLocation)
                     {
-                        fileExt allowedExt[] = {
+                        colonLocation += 1;//adding 1 to offset just beyond the colon for parsing the remaining data
+                        if (strncmp("file:", optarg, 5) == 0)
+                        {
+                            fileExt allowedExt[] = {
                                 {".bin", false},
                                 {".BIN", false},
                                 {NULL, false} };
-                        secureFileInfo* fileinfo = secure_Open_File(colonLocation, "rb", allowedExt, NULL, NULL);
-                        if (fileinfo)
-                        {
-                            if (fileinfo->error == SEC_FILE_SUCCESS)
+                            secureFileInfo* fileinfo = secure_Open_File(colonLocation, "rb", allowedExt, NULL, NULL);
+                            if (fileinfo)
                             {
-                                if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, NULL))
+                                if (fileinfo->error == SEC_FILE_SUCCESS)
                                 {
-                                    printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
-                                    if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                                    if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, NULL))
                                     {
-                                        printf("secure file structure could not be closed! This is a fatal error!\n");
+                                        if (fileinfo->error == SEC_FILE_END_OF_FILE_REACHED)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
+                                            if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                                            {
+                                                printf("secure file structure could not be closed! This is a fatal error!\n");
+                                            }
+                                            free_Secure_File_Info(&fileinfo);
+                                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                        }
                                     }
-                                    free_Secure_File_Info(&fileinfo);
+                                }
+                                else
+                                {
+                                    printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
+                                if (SEC_FILE_SUCCESS == secure_Close_File(fileinfo))
+                                {
+                                    free_Secure_File_Info(&fileinfo);
+                                }
+                                else
+                                {
+                                    printf("secure file structure could not be closed! This is a fatal error!\n");
                                 }
                             }
                             else
@@ -815,44 +838,39 @@ int main(int argc, char *argv[])
                                 printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
-                            if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                        }
+                        else if (strncmp("increment:", optarg, 10) == 0)
+                        {
+                            uint8_t incrementStart = 0;
+                            if (get_And_Validate_Integer_Input_Uint8(colonLocation, NULL, ALLOW_UNIT_NONE, &incrementStart))
                             {
-                                printf("secure file structure could not be closed! This is a fatal error!\n");
+                                fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                             }
-                            free_Secure_File_Info(&fileinfo);
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
-                        else
+                        else if (strncmp("repeat:", optarg, 7) == 0)
                         {
-                            printf("Unable to open file \"%s\" for pattern\n", colonLocation);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                    }
-                    else if (strncmp("increment:", optarg, 10) == 0)
-                    {
-                        uint8_t incrementStart = 0;
-                        if (get_And_Validate_Integer_Input_Uint8(colonLocation, NULL, ALLOW_UNIT_NONE, &incrementStart))
-                        {
-                            fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            //if final character is a lower case h, it's an hex pattern
+                            if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
+                            {
+                                uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
+                                //TODO: add endianness check before byte swap
+                                byte_Swap_32(&hexPattern);
+                                fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
+                            else
+                            {
+                                fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
                         }
                         else
                         {
                             print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                        }
-                    }
-                    else if (strncmp("repeat:", optarg, 7) == 0)
-                    {
-                        //if final character is a lower case h, it's an hex pattern
-                        if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
-                        {
-                            uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
-                            //TODO: add endianness check before byte swap
-                            byte_Swap_32(&hexPattern);
-                            fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
-                        }
-                        else
-                        {
-                            fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                         }
                     }
                     else

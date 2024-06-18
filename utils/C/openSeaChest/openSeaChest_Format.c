@@ -489,7 +489,7 @@ int main(int argc, char *argv[])
                                     printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                 }
-                                if (secure_Close_File(fileinfo))
+                                if (SEC_FILE_SUCCESS == secure_Close_File(fileinfo))
                                 {
                                     free_Secure_File_Info(&fileinfo);
                                 }
