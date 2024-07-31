@@ -15,8 +15,22 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "secure_file.h"
+#include "precision_timer.h"
+#include "sleep.h"
+#include "math_utils.h"
+#if defined (_WIN32)
+#include "windows_version_detect.h" //for WinAPI checks and functions
+#endif
+
+#include <time.h>
+#include <stdbool.h>
 #if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
 #include <unistd.h>
 #endif
@@ -65,7 +79,7 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     /////////////////
     //  Variables  //
@@ -252,39 +266,39 @@ int main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
-            {
-                NEW_FW_MATCH_FLAG = true;
-                snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
-            }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_NEW_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_NEW_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING) == 0)
+            {
+                NEW_FW_MATCH_FLAG = true;
+                snprintf(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, CHILD_NEW_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_NEW_FW_MATCH_FLAG = true;
                 snprintf(CHILD_NEW_FW_STRING_FLAG, CHILD_NEW_FW_STRING_MATCH_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, FWDL_SEGMENT_SIZE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &FWDL_SEGMENT_SIZE_FLAG))
+                if (get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FWDL_SEGMENT_SIZE_FLAG))
                 {
                     FWDL_SEGMENT_SIZE_FROM_USER = true;
                 }
@@ -296,7 +310,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FIRMWARE_SLOT_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, FIRMWARE_BUFFER_ID_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &FIRMWARE_SLOT_FLAG) || FIRMWARE_SLOT_FLAG > 7)
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FIRMWARE_SLOT_FLAG) || FIRMWARE_SLOT_FLAG > 7)
                 {
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
@@ -307,7 +321,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &FORCE_NVME_COMMIT_ACTION))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FORCE_NVME_COMMIT_ACTION))
                 {
                     print_Error_In_Cmd_Line_Args(FORCE_NVME_COMMIT_ACTION_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -417,7 +431,7 @@ int main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -514,7 +528,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -606,7 +620,7 @@ int main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -649,11 +663,12 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
+
         ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
         if (SUCCESS != ret)
         {
@@ -697,11 +712,11 @@ int main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -719,38 +734,40 @@ int main(int argc, char *argv[])
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
 #endif
-            ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
+                ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) ||
+                if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) &&
-                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                if (((deviceList[handleIter].os_info.fd < 0) &&
+                    (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+                    (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
+                if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    }
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                    if (ret == PERMISSION_DENIED || !is_Running_Elevated())
+                    {
+                        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                    }
+                    else
+                    {
+                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                    }
                 }
-                free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
-                {
-                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-                }
-                else
-                {
-                    exit(UTIL_EXIT_OPERATION_FAILURE);
-                }
-            }
+
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
     for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
+        
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
         {
@@ -767,7 +784,8 @@ int main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -776,6 +794,7 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+
         //check for fw already loaded
         if (NEW_FW_MATCH_FLAG)
         {
@@ -788,6 +807,7 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+
         //check for fw match
         if (FW_MATCH_FLAG)
         {
@@ -804,7 +824,7 @@ int main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1016,13 +1036,13 @@ int main(int argc, char *argv[])
 
         if (DOWNLOAD_FW_FLAG)
         {
-            secureFileInfo* fwfile = secure_Open_File(DOWNLOAD_FW_FILENAME_FLAG, "rb", NULL, NULL, NULL);
+            secureFileInfo* fwfile = secure_Open_File(DOWNLOAD_FW_FILENAME_FLAG, "rb", M_NULLPTR, M_NULLPTR, M_NULLPTR);
             if (fwfile && fwfile->error == SEC_FILE_SUCCESS)
             {
-                uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(fwfile->fileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                uint8_t* firmwareMem = C_CAST(uint8_t*, safe_calloc_aligned(fwfile->fileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    if (SEC_FILE_SUCCESS == secure_Read_File(fwfile, firmwareMem, fwfile->fileSize, sizeof(uint8_t), fwfile->fileSize, NULL))
+                    if (SEC_FILE_SUCCESS == secure_Read_File(fwfile, firmwareMem, fwfile->fileSize, sizeof(uint8_t), fwfile->fileSize, M_NULLPTR))
                     {
                         firmwareUpdateData dlOptions;
                         seatimer_t commandTimer;
@@ -1143,7 +1163,7 @@ int main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free_aligned(firmwareMem)
+                    safe_Free_aligned(C_CAST(void**, &firmwareMem));
                 }
                 else
                 {
@@ -1152,7 +1172,7 @@ int main(int argc, char *argv[])
                     {
                         if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
                         {
-                            printf("secure file structure could not be closed! This is a fatal error!\n");
+                            printf("Error attempting to close file!\n");
                         }
                         free_Secure_File_Info(&fwfile);
                     }
@@ -1171,7 +1191,7 @@ int main(int argc, char *argv[])
             {
                 if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
                 {
-                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                    printf("Error attempting to close file!\n");
                 }
                 free_Secure_File_Info(&fwfile);
             }
@@ -1194,7 +1214,7 @@ int main(int argc, char *argv[])
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
-                dlOptions.firmwareFileMem = NULL;
+                dlOptions.firmwareFileMem = M_NULLPTR;
                 dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                 if (SWITCH_FW_FLAG)
@@ -1294,7 +1314,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -1339,7 +1359,7 @@ void utility_Usage(bool shortUsage)
     printf("============\n");
     //SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE
     int totalErrorCodes = SEACHEST_FIRMWARE_EXIT_MAX_ERROR - SEACHEST_FIRMWARE_EXIT_FIRMWARE_DOWNLOAD_COMPLETE;
-    ptrToolSpecificxitCode seachestFirmwareExitCodes = C_CAST(ptrToolSpecificxitCode, calloc(int_to_sizet(totalErrorCodes), sizeof(toolSpecificxitCode)));
+    ptrToolSpecificxitCode seachestFirmwareExitCodes = C_CAST(ptrToolSpecificxitCode, safe_calloc(int_to_sizet(totalErrorCodes), sizeof(toolSpecificxitCode)));
     //now set up all the exit codes and their meanings
     if (seachestFirmwareExitCodes)
     {
@@ -1375,7 +1395,7 @@ void utility_Usage(bool shortUsage)
             case SEACHEST_FIRMWARE_EXIT_MATCH_FOUND_DEFERRED_SUPPORTED:
                 snprintf(seachestFirmwareExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString, TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Firmware Match Found for update - deferred update supported");
                 break;
-                //TODO: add more exit codes here!
+                //add more exit codes here!
             default://We shouldn't ever hit the default case!
                 break;
             }

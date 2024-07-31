@@ -15,11 +15,13 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -194,7 +196,7 @@ int main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_KEY))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_KEY))
                 {
                     PERSISTENT_RESREVATION_KEY_VALID = true;
                 }
@@ -244,7 +246,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_PREEMPT_KEY))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &PERSISTENT_RESERVATION_PREEMPT_KEY))
                 {
                     PERSISTENT_RESERVATION_PREEMPT = true;
                 }
@@ -378,7 +380,7 @@ int main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -475,7 +477,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -572,7 +574,7 @@ int main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -615,7 +617,7 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -663,11 +665,11 @@ int main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -691,7 +693,7 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -733,7 +735,7 @@ int main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -758,7 +760,7 @@ int main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -914,12 +916,12 @@ int main(int argc, char *argv[])
             {
                 uint16_t fullReservationsCount = 0;
                 size_t fullReservationsDataSize = 0;
-                ptrFullReservationInfo fullInfo = NULL;
+                ptrFullReservationInfo fullInfo = M_NULLPTR;
                 switch (get_Full_Status_Key_Count(&deviceList[deviceIter], &fullReservationsCount))
                 {
                 case SUCCESS:
                     fullReservationsDataSize = sizeof(fullReservationInfo) + (sizeof(fullReservationKeyInfo) * fullReservationsCount);
-                    fullInfo = C_CAST(ptrFullReservationInfo, calloc(fullReservationsDataSize, sizeof(uint8_t)));
+                    fullInfo = C_CAST(ptrFullReservationInfo, safe_calloc(fullReservationsDataSize, sizeof(uint8_t)));
                     if (fullInfo)
                     {
                         fullInfo->size = fullReservationsDataSize;
@@ -944,7 +946,7 @@ int main(int argc, char *argv[])
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
-                        safe_Free(fullInfo);
+                        safe_Free(C_CAST(void**, &fullInfo));
                     }
                     else
                     {
@@ -987,13 +989,13 @@ int main(int argc, char *argv[])
             {
                 uint16_t registrationKeyCount = 0;
                 size_t registrationKeysDataSize = 0;
-                ptrRegistrationKeysData registrationKeys = NULL;
+                ptrRegistrationKeysData registrationKeys = M_NULLPTR;
                 switch (get_Registration_Key_Count(&deviceList[deviceIter], &registrationKeyCount))
                 {
                 case SUCCESS:
                     //allocate memory to read them
                     registrationKeysDataSize = sizeof(registrationKeysData) + (sizeof(uint64_t) * registrationKeyCount);
-                    registrationKeys = C_CAST(ptrRegistrationKeysData, calloc(registrationKeysDataSize, sizeof(uint8_t)));
+                    registrationKeys = C_CAST(ptrRegistrationKeysData, safe_calloc(registrationKeysDataSize, sizeof(uint8_t)));
                     if (registrationKeys)
                     {
                         registrationKeys->size = registrationKeysDataSize;
@@ -1018,7 +1020,7 @@ int main(int argc, char *argv[])
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
-                        safe_Free(registrationKeys);
+                        safe_Free(C_CAST(void**, &registrationKeys));
                     }
                     else
                     {
@@ -1061,13 +1063,13 @@ int main(int argc, char *argv[])
             {
                 uint16_t reservationKeyCount = 0;
                 size_t reservationsDataSize = 0;
-                ptrReservationsData reservations = NULL;
+                ptrReservationsData reservations = M_NULLPTR;
                 switch (get_Reservation_Count(&deviceList[deviceIter], &reservationKeyCount))
                 {
                 case SUCCESS:
                     //allocate memory to read them
                     reservationsDataSize = sizeof(reservationsData) + (sizeof(reservationInfo) * reservationKeyCount);
-                    reservations = C_CAST(ptrReservationsData, calloc(reservationsDataSize, sizeof(uint8_t)));
+                    reservations = C_CAST(ptrReservationsData, safe_calloc(reservationsDataSize, sizeof(uint8_t)));
                     if (reservations)
                     {
                         reservations->size = reservationsDataSize;
@@ -1092,7 +1094,7 @@ int main(int argc, char *argv[])
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
-                        safe_Free(reservations);
+                        safe_Free(C_CAST(void**, &reservations));
                     }
                     else
                     {
@@ -1362,7 +1364,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -1404,7 +1406,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

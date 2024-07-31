@@ -13,20 +13,20 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   #NOTE: 4/4/2024 - adding flags from https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++
   warning_flags = [
   #	'-Wcast-align=strict',
-	'-Wshadow=compatible-local',
-	'-Wvla',
-	'-Wfloat-equal',
-	'-Wnull-dereference',
-	'-Wunused-const-variable',
-	'-Wduplicated-cond',
-	'-Wjump-misses-init',
-	'-Wstringop-overflow',
-	'-Wlogical-op',
+  '-Wshadow=compatible-local',
+  '-Wvla',
+  '-Wfloat-equal',
+  '-Wnull-dereference',
+  '-Wunused-const-variable',
+  '-Wduplicated-cond',
+  '-Wjump-misses-init',
+  '-Wstringop-overflow',
+  '-Wlogical-op',
   '-Wshift-overflow',
   '-Wshift-overflow=1',
-	'-Wshift-overflow=2',
-	'-Wdouble-promotion',
-	'-Wformat-security',
+  '-Wshift-overflow=2',
+  '-Wdouble-promotion',
+  '-Wformat-security',
   '-Wold-style-definition',
   '-Wstrict-prototypes',
   '-Wmissing-declarations',
@@ -53,7 +53,12 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wtrampolines', #GCC only at this time
   '-Werror=implicit',
   '-Werror=incompatible-pointer-types',
-  '-Werror=int-conversion'
+  '-Werror=int-conversion',
+  '-Woverlength-strings',
+  '-Wnewline-eof',
+  '-Wno-c23-extensions',
+  '-Wparentheses',
+  '-Wextra-semi',
   ]
 
   if c.get_id().contains('gcc') and target_machine.system() == 'windows'

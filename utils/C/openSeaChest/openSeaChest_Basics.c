@@ -16,13 +16,16 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "sleep.h"
+#include "secure_file.h"
+
 #include "getopt.h"
-#include "common.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "drive_info.h"
@@ -71,6 +74,8 @@ int main(int argc, char *argv[])
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
+    CAPACITY_MODEL_NUMBER_MAPPING_VAR
+    CHANGE_ID_STRING_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
     POSSIBLE_DATA_ERASE_VAR
@@ -137,6 +142,8 @@ int main(int argc, char *argv[])
         DEVICE_LONG_OPT,
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
+        CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT,
+        CHANGE_ID_STRING_LONG_OPT,
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
@@ -248,7 +255,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &TRIM_UNMAP_RANGE_FLAG))
                 {
                     if (strcmp(longopts[optionIndex].name, TRIM_RANGE_LONG_OPT_STRING) == 0)
                     {
@@ -263,7 +270,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRIM_LONG_OPT_STRING) == 0 || strcmp(longopts[optionIndex].name, UNMAP_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &TRIM_UNMAP_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &TRIM_UNMAP_START_FLAG))
                 {
                     RUN_TRIM_UNMAP_FLAG = true;
                 }
@@ -295,7 +302,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_RANGE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_RANGE_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &OVERWRITE_RANGE_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(OVERWRITE_RANGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -303,7 +310,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OVERWRITE_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &OVERWRITE_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &OVERWRITE_START_FLAG))
                 {
                     RUN_OVERWRITE_FLAG = true;
                 }
@@ -328,7 +335,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(HOURS_TIME_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -336,7 +343,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(MINUTES_TIME_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -344,7 +351,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(SECONDS_TIME_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -399,7 +406,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                 }
@@ -411,7 +418,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SPEED_GEN) && SET_PHY_SPEED_GEN < SET_PHY_SPEED_MAX_GENERATION)
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SPEED_GEN) && SET_PHY_SPEED_GEN < SET_PHY_SPEED_MAX_GENERATION)
                 {
                     SET_PHY_SPEED_FLAG = true;
                 }
@@ -423,7 +430,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
                 {
                     SET_PHY_ALL_PHYS = false;
                 }
@@ -510,7 +517,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -561,7 +568,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), NULL, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -690,7 +697,7 @@ int main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -721,11 +728,11 @@ int main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if (AGRESSIVE_SCAN_FLAG)
+        if(AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-#if defined (__linux__)
+        #if defined (__linux__)
         if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -734,7 +741,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SG_TO_SD;
         }
-#endif
+        #endif
         //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanATA)
         {
@@ -787,7 +794,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -864,6 +871,8 @@ int main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
+        //check for other tool specific options here
+        || CAPACITY_MODEL_NUMBER_MAPPING_FLAG
         || SMART_CHECK_FLAG
         || SHORT_DST_FLAG
         || SMART_ATTRIBUTES_FLAG
@@ -884,7 +893,7 @@ int main(int argc, char *argv[])
         || PROVISION_FLAG
         || RUN_OVERWRITE_FLAG
         || RUN_TRIM_UNMAP_FLAG
-        || (PROGRESS_CHAR != NULL)
+        || (PROGRESS_CHAR != M_NULLPTR)
         || DISPLAY_LBA_FLAG
         || SHOW_CONCURRENT_RANGES
         || LOWLEVEL_INFO_FLAG
@@ -897,7 +906,7 @@ int main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -940,7 +949,7 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -988,11 +997,11 @@ int main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -1016,9 +1025,9 @@ int main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+            (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -1058,7 +1067,7 @@ int main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1083,7 +1092,7 @@ int main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1192,6 +1201,35 @@ int main(int argc, char *argv[])
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
+        if (CAPACITY_MODEL_NUMBER_MAPPING_FLAG)
+        {
+            if (is_Change_Identify_String_Supported(&deviceList[deviceIter]))
+            {
+                ptrcapacityModelNumberMapping capModelMap = get_Capacity_Model_Number_Mapping(&deviceList[deviceIter]);
+                if (capModelMap)
+                {
+                    print_Capacity_Model_Number_Mapping(capModelMap);
+                    delete_Capacity_Model_Number_Mapping(capModelMap);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("ERROR: failed to get Capacity / Model Number Mapping\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Capacity / Model Number Mapping not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
         if (SHOW_CONCURRENT_RANGES)
         {
             concurrentRanges ranges;
@@ -1222,7 +1260,7 @@ int main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+            uint8_t *displaySector = C_CAST(uint8_t*, safe_calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1238,15 +1276,15 @@ int main(int argc, char *argv[])
             }
             if (SUCCESS == read_LBA(&deviceList[deviceIter], DISPLAY_LBA_THE_LBA, false, displaySector, deviceList[deviceIter].drive_info.deviceBlockSize))
             {
-                printf("\nContents of LBA %"PRIu64":\n", DISPLAY_LBA_THE_LBA);
+                printf("\nContents of LBA %" PRIu64 ":\n", DISPLAY_LBA_THE_LBA);
                 print_Data_Buffer(displaySector, deviceList[deviceIter].drive_info.deviceBlockSize, true);
             }
             else
             {
-                printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
+                printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(displaySector)
+            safe_Free_aligned(C_CAST(void**, &displaySector));
         }
 
         if (SPIN_DOWN_FLAG)
@@ -1310,12 +1348,19 @@ int main(int argc, char *argv[])
             {
                 printf("SMART Check\n");
             }
-            ret = run_SMART_Check(&deviceList[deviceIter], NULL);
+            smartTripInfo tripInfo;
+            memset(&tripInfo, 0, sizeof(smartTripInfo));
+            ret = run_SMART_Check(&deviceList[deviceIter], &tripInfo);
             if (FAILURE == ret)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SMART has been tripped!\n");
+                    if (tripInfo.reasonStringLength > 0)
+                    {
+                        printf("\t%s\n", tripInfo.reasonString);
+                    }
+                    print_SMART_Tripped_Message(is_SSD(&deviceList[deviceIter]));
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1331,6 +1376,10 @@ int main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("SMART Warning condition detected!\n");
+                    if (tripInfo.reasonStringLength > 0)
+                    {
+                        printf("\t%s\n", tripInfo.reasonString);
+                    }
                 }
             }
             else
@@ -1472,13 +1521,13 @@ int main(int argc, char *argv[])
 
         if (DOWNLOAD_FW_FLAG)
         {
-            secureFileInfo* fwfile = secure_Open_File(DOWNLOAD_FW_FILENAME_FLAG, "rb", NULL, NULL, NULL);
+            secureFileInfo* fwfile = secure_Open_File(DOWNLOAD_FW_FILENAME_FLAG, "rb", M_NULLPTR, M_NULLPTR, M_NULLPTR);
             if (fwfile && fwfile->error == SEC_FILE_SUCCESS)
             {
-                uint8_t* firmwareMem = C_CAST(uint8_t*, calloc_aligned(fwfile->fileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                uint8_t* firmwareMem = C_CAST(uint8_t*, safe_calloc_aligned(fwfile->fileSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                 if (firmwareMem)
                 {
-                    if (SEC_FILE_SUCCESS == secure_Read_File(fwfile, firmwareMem, fwfile->fileSize, sizeof(uint8_t), fwfile->fileSize, NULL))
+                    if (SEC_FILE_SUCCESS == secure_Read_File(fwfile, firmwareMem, fwfile->fileSize, sizeof(uint8_t), fwfile->fileSize, M_NULLPTR))
                     {
                         firmwareUpdateData dlOptions;
                         memset(&dlOptions, 0, sizeof(firmwareUpdateData));
@@ -1551,7 +1600,7 @@ int main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free_aligned(firmwareMem)
+                    safe_Free_aligned(C_CAST(void**, &firmwareMem));
                 }
                 else
                 {
@@ -1600,7 +1649,7 @@ int main(int argc, char *argv[])
                 dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode = FWDL_UPDATE_MODE_ACTIVATE;
                 dlOptions.segmentSize = 0;
-                dlOptions.firmwareFileMem = NULL;
+                dlOptions.firmwareFileMem = M_NULLPTR;
                 dlOptions.firmwareMemoryLength = 0;
                 dlOptions.firmwareSlot = 0;
                 dlOptions.ignoreStatusOfFinalSegment = false;//NOTE: This flag is not needed or used on products that support deferred download today.
@@ -1928,7 +1977,7 @@ int main(int argc, char *argv[])
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Successfully trimmed/unmapped LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1941,7 +1990,7 @@ int main(int argc, char *argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to trim/unmap LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Failed to trim/unmap LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2005,14 +2054,14 @@ int main(int argc, char *argv[])
                     {
                         localRange = deviceList[deviceIter].drive_info.deviceMaxLba - localStartLBA + 1;
                     }
-                    overwriteRet = erase_Range(&deviceList[deviceIter], localStartLBA, localStartLBA + localRange, NULL, 0, HIDE_LBA_COUNTER);
+                    overwriteRet = erase_Range(&deviceList[deviceIter], localStartLBA, localStartLBA + localRange, M_NULLPTR, 0, HIDE_LBA_COUNTER);
                     switch (overwriteRet)
                     {
                     case SUCCESS:
                         exitCode = 0;
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully overwrote LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Successfully overwrote LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -2025,7 +2074,7 @@ int main(int argc, char *argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to erase LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Failed to erase LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2036,7 +2085,7 @@ int main(int argc, char *argv[])
                     if (overwriteSeconds > 0)
                     {
                         eReturnValues overwriteRet = UNKNOWN;
-                        overwriteRet = erase_Time(&deviceList[deviceIter], OVERWRITE_START_FLAG, overwriteSeconds, NULL, 0, HIDE_LBA_COUNTER);
+                        overwriteRet = erase_Time(&deviceList[deviceIter], OVERWRITE_START_FLAG, overwriteSeconds, M_NULLPTR, 0, HIDE_LBA_COUNTER);
                         switch (overwriteRet)
                         {
                         case SUCCESS:
@@ -2087,17 +2136,20 @@ int main(int argc, char *argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Setting MaxLBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
+                printf("Setting MaxLBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false, CHANGE_ID_STRING_FLAG))
             {
             case SUCCESS:
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0, capacity = 0;
-                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
+                    double mCapacity = 0;
+                    double capacity = 0;
+                    DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
+                    DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
+                    char* mCapUnit = &mCapUnits[0];
+                    char* capUnit = &capUnits[0];
                     mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
@@ -2128,14 +2180,17 @@ int main(int argc, char *argv[])
             {
                 printf("Restoring max LBA\n");
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], 0, true))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], 0, true, CHANGE_ID_STRING_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0, capacity = 0;
-                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], *capUnit = &capUnits[0];
+                    double mCapacity = 0;
+                    double capacity = 0;
+                    DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
+                    DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
+                    char* mCapUnit = &mCapUnits[0];
+                    char* capUnit = &capUnits[0];
                     mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.deviceMaxLba * deviceList[deviceIter].drive_info.deviceBlockSize);
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
@@ -2161,7 +2216,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (PROGRESS_CHAR != NULL)
+        if (PROGRESS_CHAR != M_NULLPTR)
         {
             eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
@@ -2205,7 +2260,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -2263,11 +2318,14 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 1000 --%s 2000\n", util_name, deviceHandleExample, TRIM_LONG_OPT_STRING, TRIM_RANGE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, SET_MAX_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728 --%s\n", util_name, deviceHandleExample, SET_MAX_LBA_LONG_OPT_STRING, CHANGE_ID_STRING_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, RESTORE_MAX_LBA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING);
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");
@@ -2312,6 +2370,8 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     //utility tests/operations go here - alphabetized
     print_Fast_Discovery_Help(shortUsage);
+    print_Capacity_Model_Number_Mapping_Help(shortUsage);
+    print_Change_Id_String_Help(shortUsage);
     print_Check_Power_Mode_Help(shortUsage);
     print_Display_LBA_Help(shortUsage);
     print_Firmware_Activate_Help(shortUsage);

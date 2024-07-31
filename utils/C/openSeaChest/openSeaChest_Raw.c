@@ -14,11 +14,12 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -48,7 +49,7 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
@@ -182,15 +183,15 @@ int main(int argc, char* argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, RAW_CDB_ARRAY_LONG_OPT_STRING) == 0)
             {
-                char* saveptr = NULL;
+                char* saveptr = M_NULLPTR;
                 rsize_t duplen = 0;
                 char* dupoptarg = strdup(optarg);
-                char* token = NULL;
+                char* token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
                 if (dupoptarg)
                 {
-                    duplen = strlen(dupoptarg);
+                    duplen = safe_strlen(dupoptarg);
                     token = common_String_Token(dupoptarg, &duplen, ",", &saveptr);
                 }
                 else
@@ -200,18 +201,18 @@ int main(int argc, char* argv[])
                 while (token && !errorInCL && count < UINT8_MAX)
                 {
                     uint8_t value = 0;
-                    if (get_And_Validate_Integer_Input_Uint8(token, NULL, ALLOW_UNIT_NONE, &value))
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         RAW_CDB_ARRAY[count] = value;
                         ++count;
-                        token = common_String_Token(NULL, &duplen, ",", &saveptr);
+                        token = common_String_Token(M_NULLPTR, &duplen, ",", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
-                safe_Free(dupoptarg)
+                safe_Free(C_CAST(void**, &dupoptarg));
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(RAW_CDB_ARRAY_LONG_OPT_STRING, optarg);
@@ -221,7 +222,7 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, RAW_CDB_LEN_LONG_OPT_STRING) == 0)
             {
                 //set the cdblength
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_CDB_LEN_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_CDB_LEN_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_CDB_LEN_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -235,7 +236,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SIZE_FLAG))
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_SIZE_FLAG))
                     {
                         print_Error_In_Cmd_Line_Args(RAW_TFR_SIZE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -244,7 +245,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_COMMAND_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_COMMAND))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_COMMAND))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_COMMAND_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -252,7 +253,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_FEATURE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -260,7 +261,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_EXT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_FEATURE_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_FEATURE_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -269,7 +270,7 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_FULL_LONG_OPT_STRING) == 0)
             {
                 uint16_t fullfeat = 0;
-                if (!get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &fullfeat))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullfeat))
                 {
                     RAW_TFR_FEATURE = M_Byte0(fullfeat);
                     RAW_TFR_FEATURE_EXT = M_Byte1(fullfeat);
@@ -282,7 +283,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_LOW_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_LOW_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -290,7 +291,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_MID_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_MID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -298,7 +299,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_HIGH_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_HIGH_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -306,7 +307,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_LOW_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_LOW_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -314,7 +315,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING) == 0)
             {
-            if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID_EXT))
+            if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -322,7 +323,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_HIGH_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_HIGH_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -331,7 +332,7 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_FULL_LONG_OPT_STRING) == 0)
             {
                 uint64_t fullLBA = 0;
-                if (get_And_Validate_Integer_Input_Uint64(optarg, NULL, ALLOW_UNIT_NONE, &fullLBA) && fullLBA <= MAX_48_BIT_LBA)
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullLBA) && fullLBA <= MAX_48_BIT_LBA)
                 {
                     RAW_TFR_LBA_LOW = M_Byte0(fullLBA);
                     RAW_TFR_LBA_MID = M_Byte1(fullLBA);
@@ -349,7 +350,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_DEVICE_HEAD))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_DEVICE_HEAD))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_DEVICE_HEAD_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -361,7 +362,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_SECTOR_COUNT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -369,7 +370,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -378,7 +379,7 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING) == 0)
             {
                 uint16_t fullseccnt = 0;
-                if (get_And_Validate_Integer_Input_Uint16(optarg, NULL, ALLOW_UNIT_NONE, &fullseccnt))
+                if (get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullseccnt))
                 {
                     RAW_TFR_SECTOR_COUNT = M_Byte0(fullseccnt);
                     RAW_TFR_SECTOR_COUNT_EXT = M_Byte1(fullseccnt);
@@ -391,7 +392,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_ICC_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_ICC))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_ICC))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_ICC_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -399,7 +400,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX1_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX1))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_AUX1))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX1_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -407,7 +408,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX2_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX2))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_AUX2))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX2_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -415,7 +416,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX3_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX3))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_AUX3))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX3_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -423,7 +424,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX4_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TFR_AUX4))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_AUX4))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_AUX4_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -432,7 +433,7 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX_FULL_LONG_OPT_STRING) == 0)
             {
                 uint32_t fullaux = 0;
-                if (get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &fullaux))
+                if (get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullaux))
                 {
                     RAW_TFR_AUX1 = M_Byte0(fullaux);
                     RAW_TFR_AUX2 = M_Byte1(fullaux);
@@ -536,7 +537,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_DATA_LEN_LONG_OPT_STRING) == 0)
             {
-                char* unit = NULL;
+                char* unit = M_NULLPTR;
                 if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_DATA_LEN_FLAG))
                 {
                     //Check to see if any units were specified, otherwise assume LBAs
@@ -613,7 +614,7 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TIMEOUT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint32(optarg, NULL, ALLOW_UNIT_NONE, &RAW_TIMEOUT_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TIMEOUT_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TIMEOUT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -633,7 +634,7 @@ int main(int argc, char* argv[])
             {
                 //set the offset to read the file at
                 //set the raw data length - but check the units first!
-                char* unit = NULL;
+                char* unit = M_NULLPTR;
                 if (get_And_Validate_Integer_Input_L(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
                 {
                     uint64_t multiplier = 1;
@@ -679,22 +680,22 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -803,7 +804,7 @@ int main(int argc, char* argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -900,7 +901,7 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -920,7 +921,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    //From this point on, we need elevated privileges so we can talk to the drive(s)
     if (!is_Running_Elevated())
     {
         print_Elevated_Privileges_Text();
@@ -995,7 +995,7 @@ int main(int argc, char* argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1027,7 +1027,7 @@ int main(int argc, char* argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -1075,11 +1075,11 @@ int main(int argc, char* argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -1097,14 +1097,13 @@ int main(int argc, char* argv[])
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
 #endif
-
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -1143,11 +1142,10 @@ int main(int argc, char* argv[])
             }
         }
 
-
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1172,7 +1170,7 @@ int main(int argc, char* argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1255,9 +1253,9 @@ int main(int argc, char* argv[])
                         bool showSenseData = true;//set to false upon successful completion only
                         bool outputFileOpened = false;
                         bool inputFileOpened = false;
-                        uint8_t* dataBuffer = NULL;//will be allocated shortly
+                        uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
                         uint32_t allocatedDataLength = 0;
-                        const char* fileAccessMode = NULL;
+                        const char* fileAccessMode = M_NULLPTR;
                         //now based on the data direction we need to allocate memory
                         switch (RAW_DATA_DIRECTION_FLAG)
                         {
@@ -1286,7 +1284,7 @@ int main(int argc, char* argv[])
                                 //allocate based on the data size the user entered
                                 allocatedDataLength = RAW_DATA_LEN_FLAG;
                             }
-                            dataBuffer = C_CAST(uint8_t*, calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                            dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                             if (!dataBuffer)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1323,7 +1321,7 @@ int main(int argc, char* argv[])
                                     //allocate based on the data size the user entered
                                     allocatedDataLength = RAW_DATA_LEN_FLAG;
                                 }
-                                dataBuffer = C_CAST(uint8_t*, calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                                dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                                 if (!dataBuffer)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1342,7 +1340,7 @@ int main(int argc, char* argv[])
                                         {
                                             printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
-                                        safe_Free_aligned(dataBuffer);
+                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
                                     inputFileOpened = true;
@@ -1352,7 +1350,7 @@ int main(int argc, char* argv[])
                                         {
                                             printf("ERROR: Failed to seek to specified offset in file!\n");
                                         }
-                                        safe_Free_aligned(dataBuffer);
+                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
                                     //now copy this data to the data buffer before we send the command
@@ -1362,7 +1360,7 @@ int main(int argc, char* argv[])
                                         {
                                             printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
                                         }
-                                        safe_Free_aligned(dataBuffer);
+                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
                                 }
@@ -1524,7 +1522,7 @@ int main(int argc, char* argv[])
                             printf("\nSense Data:\n");
                             print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
                         }
-                        safe_Free_aligned(dataBuffer);
+                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
                     }
                     else
                     {
@@ -1647,9 +1645,9 @@ int main(int argc, char* argv[])
                     bool showSenseData = true;//set to false upon successfil completion only
                     bool outputFileOpened = false;
                     bool inputFileOpened = false;
-                    uint8_t* dataBuffer = NULL;//will be allocated shortly
+                    uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
                     uint32_t allocatedDataLength = 0;
-                    const char* fileAccessMode = NULL;
+                    const char* fileAccessMode = M_NULLPTR;
                     //now based on the data direction we need to allocate memory
                     switch (RAW_DATA_DIRECTION_FLAG)
                     {
@@ -1679,7 +1677,7 @@ int main(int argc, char* argv[])
                             //allocate based on the data size the user entered
                             allocatedDataLength = RAW_DATA_LEN_FLAG;
                         }
-                        dataBuffer = C_CAST(uint8_t*, calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                        dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                         if (!dataBuffer)
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1716,7 +1714,7 @@ int main(int argc, char* argv[])
                                 //allocate based on the data size the user entered
                                 allocatedDataLength = RAW_DATA_LEN_FLAG;
                             }
-                            dataBuffer = C_CAST(uint8_t*, calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                            dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
                             if (!dataBuffer)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1735,7 +1733,7 @@ int main(int argc, char* argv[])
                                     {
                                         printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                     }
-                                    safe_Free_aligned(dataBuffer);
+                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
                                 inputFileOpened = true;
@@ -1745,7 +1743,7 @@ int main(int argc, char* argv[])
                                     {
                                         printf("ERROR: Failed to seek to specified offset in file!\n");
                                     }
-                                    safe_Free_aligned(dataBuffer);
+                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
                                 //now copy this data to the data buffer before we send the command
@@ -1755,7 +1753,7 @@ int main(int argc, char* argv[])
                                     {
                                         printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
                                     }
-                                    safe_Free_aligned(dataBuffer);
+                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
                             }
@@ -1876,7 +1874,7 @@ int main(int argc, char* argv[])
                                 }
                                 outputFileOpened = false;
                                 fclose(RAW_OUTPUT_FILE_FLAG);
-                                safe_Free_aligned(dataBuffer);
+                                safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                 return ERROR_WRITING_FILE;
                             }
                         }
@@ -1891,7 +1889,7 @@ int main(int argc, char* argv[])
                                 }
                                 outputFileOpened = false;
                                 fclose(RAW_OUTPUT_FILE_FLAG);
-                                safe_Free_aligned(dataBuffer);
+                                safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                 return ERROR_WRITING_FILE;
                             }
                         }
@@ -1903,7 +1901,7 @@ int main(int argc, char* argv[])
                             }
                             outputFileOpened = false;
                             fclose(RAW_OUTPUT_FILE_FLAG);
-                            safe_Free_aligned(dataBuffer);
+                            safe_Free_aligned(C_CAST(void**, &dataBuffer));
                             return ERROR_WRITING_FILE;
                         }
                         fclose(RAW_OUTPUT_FILE_FLAG);
@@ -1947,7 +1945,7 @@ int main(int argc, char* argv[])
                         printf("\nSense Data:\n");
                         print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
                     }
-                    safe_Free_aligned(dataBuffer);
+                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
                 }
                 else
                 {
@@ -1991,7 +1989,7 @@ int main(int argc, char* argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -2018,14 +2016,14 @@ void utility_Usage(bool shortUsage)
     printf("\nExamples\n");
     printf("========\n");
     //example usage
-    printf("\t%s --scan\n", util_name);
-    printf("\t%s -d %s -i\n", util_name, deviceHandleExample);
+    printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
+    printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
     printf("\tIdentify device:\n");
     printf("\t\t-d %s --dataDir in  --dataLen 512  --outputFile ID_dev.bin --tfrByteBlock 512  --tfrProtocol pio  --tfrSize 28  --command ECh --tfrXferLengthReg sectorCount --sectorCount 1\n", deviceHandleExample);
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

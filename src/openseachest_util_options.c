@@ -13,10 +13,14 @@
 // \file openseachest_util_options.c
 // \brief This file defines the functions and macros to make building a utility easier.
 
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "time_utils.h"
+#include "io_utils.h"
+#include "string_utils.h"
+
 #include "openseachest_util_options.h"
-#include "common.h"
-#include <time.h>
-#include <limits.h>
 
 #if defined (__linux__)
 #if defined (VMK_CROSS_COMP)
@@ -33,6 +37,7 @@ const char *deviceHandleExample = "/dev/da<#>";
 const char *deviceHandleName = "<da_device>";
 const char *commandWindowType = "shell";
 #elif defined (_WIN32)
+#include "windows_version_detect.h"
 const char *deviceHandleExample = "PD<#>";
 const char *deviceHandleName = "<physical_device>";
 const char *commandWindowType = "command";
@@ -72,7 +77,7 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
     bool set = false;
     if (requestedLevel && verbosity)
     {
-        char* end = NULL;
+        char* end = M_NULLPTR;
         long temp = strtol(requestedLevel, &end, 10);
         if (!(temp == LONG_MAX && errno == ERANGE) && !(temp == 0 && requestedLevel == end) && strcmp(end, "") == 0 && C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
         {
@@ -94,8 +99,8 @@ void print_Elevated_Privileges_Text(void)
     printf("(admin, root, sudo, etc)");
     printf("\nor be part of a privileged group with disk access.");
 #if defined (__linux__)
-	printf("(disk)");
-//TODO: If other systems have groups which get disk access, list them here. Currently only know about the disk group in Linux
+    printf("(disk)");
+//If other systems have groups which get disk access, list them here. Currently only know about the disk group in Linux
 #endif
 
 #endif
@@ -132,7 +137,7 @@ void print_Elevated_Privileges_Text(void)
 
 char* get_current_year(char *temp_year)
 {
-    size_t len = strlen(__DATE__);
+    size_t len = safe_strlen(__DATE__);
     temp_year[4] = '\0';
     temp_year[3] = __DATE__[len - 1];
     temp_year[2] = __DATE__[len - 2];
@@ -141,22 +146,18 @@ char* get_current_year(char *temp_year)
     return temp_year;
 }
 
-#include "common.h"
-#include "common_platform.h"
+#include "common_types.h"
 
 void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
-    char *year = calloc(CURRENT_YEAR_LENGTH, sizeof(char));
-    char *userName = NULL;
-    time_t currentTimeT = time(NULL);
-#define CURRENT_TIME_STRING_MAX_LENGTH 30
-    char currentTime[CURRENT_TIME_STRING_MAX_LENGTH] = { 0 };
+    char *year = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
+    char *userName = M_NULLPTR;
 #if defined (ENABLE_READ_USERNAME)
     if (SUCCESS != get_Current_User_Name(&userName))
     {
 #define UNKNOWN_USER_NAME_MAX_LENGTH 36
-        userName = C_CAST(char*, calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
+        userName = C_CAST(char*, safe_calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
         if (userName)
         {
             snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
@@ -176,7 +177,7 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
         userName = strdup("current user");
     }
 #endif //ENABLE_READ_USERNAME
-    //char g_timeString[64] = { 0 };
+    //DECLARE_ZERO_INIT_ARRAY(char, g_timeString, 64);
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     printf(" - NVMe Enabled");
@@ -185,19 +186,19 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
-    if (!get_Current_Time_String(&currentTimeT, currentTime, CURRENT_TIME_STRING_MAX_LENGTH))
+    if (get_current_timestamp() == false)
     {
-        snprintf(currentTime, CURRENT_TIME_STRING_MAX_LENGTH, "Unable to get local time");
+        snprintf(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
     }
-    printf(" Today: %s\tUser: %s\n", currentTime, userName);
+    printf(" Today: %s\tUser: %s\n", CURRENT_TIME_STRING, userName);
     printf("==========================================================================================\n");
-    safe_Free(userName)
-    safe_Free(year)
+    safe_Free(C_CAST(void**, &userName));
+    safe_Free(C_CAST(void**, &year));
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
 {
-    char osName[OS_NAME_SIZE] = { 0 };
+    DECLARE_ZERO_INIT_ARRAY(char, osName, OS_NAME_SIZE);
     OSVersionNumber osversionnumber;
     eCompiler compilerUsed = OPENSEA_COMPILER_UNKNOWN;
     compilerVersion compilerVersionInfo;
@@ -209,7 +210,7 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
     printf("Version Info for %s:\n", utilityName);
     printf("\tUtility Version: %s\n", buildVersion);
     printf("\topensea-common Version: %s\n", openseaCommonVersion);
-    printf("\topensea-transport Version: %" PRId32".%" PRId32".%" PRId32"\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
+    printf("\topensea-transport Version: %" PRId32 ".%" PRId32 ".%" PRId32 "\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
     printf("\topensea-operations Version: %s\n", openseaOperationVersion);
     printf("\tBuild Date: %s\n", __DATE__);
     printf("\tCompiled Architecture: ");
@@ -227,9 +228,16 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
     printf("\n\tOperating System Name: %s\n", osName);
 }
 
+//This function is used in at_exit() only.
+//It will flush stdout and stderr after printing one final newline character.
 void print_Final_newline(void)
 {
     printf("\n");
+    //Flushing stdout and stderr 
+    //https://wiki.sei.cmu.edu/confluence/display/c/FIO23-C.+Do+not+exit+with+unflushed+data+in+stdout+or+stderr
+    //NOTE: Links shows checking for EOF for an error....this is at an exit...I have no idea what error handling we would want at this point.
+    fflush(stdout);
+    fflush(stderr);
 }
 
 void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSpecificxitCode toolSpecificExitCodeList, const char * toolName)
@@ -260,55 +268,55 @@ void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSp
 
 void get_Scan_Flags(deviceScanFlags *scanFlags, char *optarg)
 {
-    if(strncmp("ata", optarg, strlen(optarg)) == 0)                 
+    if(strncmp("ata", optarg, safe_strlen(optarg)) == 0)                 
     {                                                                                                   
         scanFlags->scanATA = true;                                                                      
     }                                                                                                   
-    else if (strlen(optarg) == 3 && strncmp("usb", optarg, strlen(optarg)) == 0)            
+    else if (safe_strlen(optarg) == 3 && strncmp("usb", optarg, safe_strlen(optarg)) == 0)            
     {                                                                                                   
         scanFlags->scanUSB = true;                                                                      
     }                                                                                                   
-    else if (strlen(optarg) == 4 && strncmp("scsi", optarg, strlen(optarg)) == 0)           
+    else if (safe_strlen(optarg) == 4 && strncmp("scsi", optarg, safe_strlen(optarg)) == 0)           
     {                                                                                                   
         scanFlags->scanSCSI = true;                                                                     
     }                                                                                                   
-    else if (strlen(optarg) == 4 && strncmp("nvme", optarg, strlen(optarg)) == 0)           
+    else if (safe_strlen(optarg) == 4 && strncmp("nvme", optarg, safe_strlen(optarg)) == 0)           
     {                                                                                                   
         scanFlags->scanNVMe = true;                                                                     
     }                                                                                                   
-    else if (strlen(optarg) == 4 && strncmp("raid", optarg, strlen(optarg)) == 0)           
+    else if (safe_strlen(optarg) == 4 && strncmp("raid", optarg, safe_strlen(optarg)) == 0)           
     {                                                                                                   
         scanFlags->scanRAID = true;                                                                     
     }                                                                                                   
-    else if (strlen(optarg) == 12 && strncmp("interfaceATA", optarg, strlen(optarg)) == 0)  
+    else if (safe_strlen(optarg) == 12 && strncmp("interfaceATA", optarg, safe_strlen(optarg)) == 0)  
     {                                                                                                   
         scanFlags->scanInterfaceATA = true;                                                             
     }                                                                                                   
-    else if (strlen(optarg) == 12 && strncmp("interfaceUSB", optarg, strlen(optarg)) == 0)  
+    else if (safe_strlen(optarg) == 12 && strncmp("interfaceUSB", optarg, safe_strlen(optarg)) == 0)  
     {                                                                                                   
         scanFlags->scanInterfaceUSB = true;                                                             
     }                                                                                                   
-    else if (strlen(optarg) == 13 && strncmp("interfaceSCSI", optarg, strlen(optarg)) == 0) 
+    else if (safe_strlen(optarg) == 13 && strncmp("interfaceSCSI", optarg, safe_strlen(optarg)) == 0) 
     {                                                                                                   
         scanFlags->scanInterfaceSCSI = true;                                                            
     }                                                                                                   
-    else if (strlen(optarg) == 13 && strncmp("interfaceNVME", optarg, strlen(optarg)) == 0) 
+    else if (safe_strlen(optarg) == 13 && strncmp("interfaceNVME", optarg, safe_strlen(optarg)) == 0) 
     {                                                                                                   
         scanFlags->scanInterfaceNVMe = true;                                                            
     }                                                                                                   
-    else if (strlen(optarg) == 2 && strncmp("sd", optarg, strlen(optarg)) == 0)             
+    else if (safe_strlen(optarg) == 2 && strncmp("sd", optarg, safe_strlen(optarg)) == 0)             
     {                                                                                                   
         scanFlags->scanSD = true;                                                                       
     }                                                                                                   
-    else if (strlen(optarg) == 6 && strncmp("sgtosd", optarg, strlen(optarg)) == 0)         
+    else if (safe_strlen(optarg) == 6 && strncmp("sgtosd", optarg, safe_strlen(optarg)) == 0)         
     {                                                                                                   
         scanFlags->scanSDandSG = true;                                                                  
     }                                                                                                   
-    else if (strlen(optarg) == 10 && strncmp("ignoreCSMI", optarg, strlen(optarg)) == 0)    
+    else if (safe_strlen(optarg) == 10 && strncmp("ignoreCSMI", optarg, safe_strlen(optarg)) == 0)    
     {                                                                                                   
         scanFlags->scanIgnoreCSMI = true;                                                                          
     }                                                                                                   
-    else if (strlen(optarg) == 15 && strncmp("allowDuplicates", optarg, strlen(optarg)) == 0) 
+    else if (safe_strlen(optarg) == 15 && strncmp("allowDuplicates", optarg, safe_strlen(optarg)) == 0) 
     {                                                                                                   
         scanFlags->scanAllowDuplicateDevices = true;                                                               
     }              
@@ -1216,7 +1224,7 @@ void print_extSmatLog_Help(bool shortHelp)
     }
 }
 
-void print_pcierr_Help (bool shortHelp)
+void print_pcierr_Help(bool shortHelp)
 {
     printf("\t--%s\n", CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT_STRING);
     if (!shortHelp)
@@ -1583,11 +1591,11 @@ void print_Test_Unit_Ready_Help(bool shortHelp)
 
 void print_Fast_Discovery_Help(bool shortHelp)
 {
-	printf("\t--%s\n", FAST_DISCOVERY_LONG_OPT_STRING);
-	if (!shortHelp)
-	{
-		printf("\t\tUse this option  to issue a fast scan on the specified drive. \n\n");
-	}
+    printf("\t--%s\n", FAST_DISCOVERY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option  to issue a fast scan on the specified drive. \n\n");
+    }
 }
 
 void print_Firmware_Download_Help(bool shortHelp)
@@ -2428,9 +2436,9 @@ void print_Format_Unit_Help(bool shortHelp)
         printf("\t\tsupported/required sector sizes!\n\n");
         printf("\t\tWARNING: Format Unit may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
-		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
-		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
-		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
+        printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+        printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+        printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 
@@ -2690,9 +2698,9 @@ void print_Show_Supported_Formats_Help(bool shortHelp)
         printf("\t\tand later) On SATA, this is the sector configuration log. (ACS4\n");
         printf("\t\tand later) If the device does not report supported sector\n");
         printf("\t\tsizes, please consult your product manual.\n\n");
-		printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
-		printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
-		printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
+        printf("\t\tWARNING: Customer unique firmware may have specific requirements that \n");
+        printf("\t\t         restrict sector sizes on some products. It may not be possible to format/ \n");
+        printf("\t\t         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
     }
 }
 
@@ -3270,7 +3278,7 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         return 254;//one of the required parameters is missing. handleList is checked below...
     }
     /*get the number out of optarg to tack onto the device handle*/
-    if (NULL != optarg)
+    if (M_NULLPTR != optarg)
     {
         if (strcmp(optarg, "all") == 0)
         {
@@ -3282,70 +3290,70 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             *userHandleProvided = true;
 #if defined(_WIN32)
 #define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
-	        char windowsHandle[WINDOWS_MAX_HANDLE_STRING_LENGTH] = { 0 };
-	        char *deviceHandle = &windowsHandle[0];
-	        char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
-	        /*make sure the user gave us "PD" for the device handle...*/
-	        if (_strnicmp(optarg, "PD", 2) == 0)
-	        {
-	            physicalDeviceNumber = strpbrk(optarg, "0123456789");
-	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
-	        }
+            DECLARE_ZERO_INIT_ARRAY(char, windowsHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH);
+            char *deviceHandle = &windowsHandle[0];
+            char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
+            /*make sure the user gave us "PD" for the device handle...*/
+            if (_strnicmp(optarg, "PD", 2) == 0)
+            {
+                physicalDeviceNumber = strpbrk(optarg, "0123456789");
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+            }
 #if defined(ENABLE_CSMI)
-	        else if (strncmp(optarg, "csmi", 4) == 0)
-	        {
-	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-	        }
+            else if (strncmp(optarg, "csmi", 4) == 0)
+            {
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+            }
 #endif
-	        else if (strncmp(optarg, "\\\\.\\", 4) == 0)
-	        {
-	            snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
-	        }
-	        /*If we want to add another format for accepting a handle, then add an else-if here*/
-	        else /*we have an invalid handle*/
-	        {
-	            printf("Error: %s is an invalid handle format for this tool.\n", optarg);
-	            exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
-	        }
+            else if (strncmp(optarg, "\\\\.\\", 4) == 0)
+            {
+                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+            }
+            /*If we want to add another format for accepting a handle, then add an else-if here*/
+            else /*we have an invalid handle*/
+            {
+                printf("Error: %s is an invalid handle format for this tool.\n", optarg);
+                exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+            }
 #else
-	        char *deviceHandle = optarg;
+            char *deviceHandle = optarg;
 #endif
 
-	        ++(*deviceCount);/*increment this variable if we've made it this far.*/
-	        /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
-	        if (!*handleList)
-	        {
-	            /*allocate the list and add this handle to it.*/
-	            *handleList = C_CAST(char**, calloc((*deviceCount), sizeof(char*)));
-	            if (!*handleList)
-	            {
-	                perror("error allocating memory for handle list\n");
-	                return 255;
-	            }
-	        }
-	        else
-	        {
-	            /*list already allocated, so reallocate and add this next handle to it.*/
-	            char **temp = C_CAST(char**, realloc(*handleList, (*deviceCount) * sizeof(char*)));
-	            if (!temp)
-	            {
-	                perror("error reallocating memory for handle list\n");
-	                return 255;
-	            }
-	            *handleList = temp;
-	        }
-	        /*the list has been allocated, now put the handle we've received into the list*/
-	        /*start by allocating memory for the handle at the new list location*/
-	        size_t handleListNewHandleLength = strlen(deviceHandle) + 1;
-	        (*handleList)[(*deviceCount) - 1] = C_CAST(char*, calloc(handleListNewHandleLength, sizeof(char)));
-	        if (!(*handleList)[(*deviceCount) - 1])
-	        {
-	            perror("error allocating memory for adding device handle to list\n");
-	            return 255;
-	        }
-	        /*copy the handle into memory*/
-	        snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
-		}
+            ++(*deviceCount);/*increment this variable if we've made it this far.*/
+            /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
+            if (!*handleList)
+            {
+                /*allocate the list and add this handle to it.*/
+                *handleList = C_CAST(char**, safe_calloc((*deviceCount), sizeof(char*)));
+                if (!*handleList)
+                {
+                    perror("error allocating memory for handle list\n");
+                    return 255;
+                }
+            }
+            else
+            {
+                /*list already allocated, so reallocate and add this next handle to it.*/
+                char **temp = C_CAST(char**, safe_reallocf(C_CAST(void**, handleList), (*deviceCount) * sizeof(char*)));
+                if (!temp)
+                {
+                    perror("error reallocating memory for handle list\n");
+                    return 255;
+                }
+                *handleList = temp;
+            }
+            /*the list has been allocated, now put the handle we've received into the list*/
+            /*start by allocating memory for the handle at the new list location*/
+            size_t handleListNewHandleLength = safe_strlen(deviceHandle) + 1;
+            (*handleList)[(*deviceCount) - 1] = C_CAST(char*, safe_calloc(handleListNewHandleLength, sizeof(char)));
+            if (!(*handleList)[(*deviceCount) - 1])
+            {
+                perror("error allocating memory for adding device handle to list\n");
+                return 255;
+            }
+            /*copy the handle into memory*/
+            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+        }
     }
     return 0;
 }
@@ -3356,9 +3364,9 @@ void free_Handle_List(char ***handleList, uint32_t listCount)
     {
         for (uint32_t handleIter = 0; handleIter < listCount; ++handleIter)
         {
-            safe_Free((*handleList)[handleIter])
+            safe_Free(C_CAST(void**, &(*handleList)[handleIter]));
         }
-        safe_Free((*handleList))
+        safe_Free(C_CAST(void**, (*handleList)));
     }
 }
 
@@ -5403,5 +5411,25 @@ void print_SCSI_FW_Info_Help(bool shortHelp)
         printf("\t\tThis option will show the SCSI Firmware info from\n");
         printf("\t\ta Seagate SAS drive. This is the extended firmware build\n");
         printf("\t\tinformation.\n\n");
+    }
+}
+
+void print_Capacity_Model_Number_Mapping_Help(bool shortHelp)
+{
+    printf("\t--%s\n", CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to display the capacity model number mapping\n");
+        printf("\t\tTBD\n\n");
+    }
+}
+
+void print_Change_Id_String_Help(bool shortHelp)
+{
+    printf("\t--%s\n", CHANGE_ID_STRING_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change ID string according to capacity - model number\n");
+        printf("\t\tmapping. Need to use together with --%s or --%s\n\n", SET_MAX_LBA_LONG_OPT_STRING, RESTORE_MAX_LBA_LONG_OPT_STRING);
     }
 }
