@@ -1232,7 +1232,7 @@ int main(int argc, char *argv[])
                                 if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(&deviceList[deviceIter], &secureFile, NAMING_SERIAL_NUMBER_DATE_TIME,
                                     M_NULLPTR, logName, "bin"))
                                 {
-                                    if (SEC_FILE_SUCCESS == secure_Write_File(secureFile, logBuffer, size, sizeof(uint8_t), size, M_NULLPTR))
+                                    if (SEC_FILE_SUCCESS == secure_Write_File(secureFile, logBuffer, uint64_to_sizet(size), sizeof(uint8_t), uint64_to_sizet(size), M_NULLPTR))
                                     {
                                         secure_Flush_File(secureFile);
                                         if (VERBOSITY_QUIET < toolVerbosity)
