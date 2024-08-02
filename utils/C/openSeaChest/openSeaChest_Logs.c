@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
@@ -15,11 +16,14 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "secure_file.h"
+
 #include "getopt.h"
 #include "common_public.h"
 #include "EULA.h"
@@ -29,6 +33,7 @@
 #include "logs.h"
 #include "farm_log.h"
 #include "drive_info.h"
+#include "smart.h"
 
 ////////////////////////
 //  Global Variables  //
@@ -55,13 +60,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     OUTPUTPATH_VAR
@@ -109,7 +114,7 @@ int32_t main(int argc, char *argv[])
     LOG_LENGTH_BYTES_VAR
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -195,13 +200,11 @@ int32_t main(int argc, char *argv[])
         switch (args)
         {
         case 0:
-            if (strncmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING, strlen(GENERIC_LOG_LONG_OPT_STRING)) == 0)
+            if (strcmp(longopts[optionIndex].name, GENERIC_LOG_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
+                if (get_And_Validate_Integer_Input_Uint8(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &GENERIC_LOG_DATA_SET))
                 {
                     GENERIC_LOG_PULL_FLAG = true;
-                    GENERIC_LOG_DATA_SET = C_CAST(uint8_t, temp);
                 }
                 else
                 {
@@ -209,23 +212,17 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, strlen(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    //no need to do anything...this option requires that the page is also given
-                    GENERIC_LOG_SUBPAGE_DATA_SET = C_CAST(uint8_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint8(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &GENERIC_LOG_SUBPAGE_DATA_SET))
                 {
                     print_Error_In_Cmd_Line_Args(GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, GENERIC_ERROR_HISTORY_LONG_OPT_STRING, strlen(GENERIC_ERROR_HISTORY_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, GENERIC_ERROR_HISTORY_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &GENERIC_ERROR_HISTORY_BUFFER_ID))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &GENERIC_ERROR_HISTORY_BUFFER_ID))
                 {
                     GENERIC_ERROR_HISTORY_PULL_FLAG = true;
                 }
@@ -235,95 +232,111 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, strlen(LOG_TRANSFER_LENGTH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING) == 0)
             {
-                //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                uint64_t optargInt = C_CAST(uint64_t, atoll(optarg));
-                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &LOG_TRANSFER_LENGTH_BYTES))
                 {
-                    //they specified blocks. For log transfers this means a number of 512B sectors
-                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    LOG_TRANSFER_LENGTH_BYTES *= multiplier;
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = UINT64_C(1000);
+                    print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = UINT64_C(1024);
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = UINT64_C(1099511627776);
-                }
-                LOG_TRANSFER_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
             else if (strcmp(longopts[optionIndex].name, LOG_LENGTH_LONG_OPT_STRING) == 0)
             {
-                //set the raw data length - but check the units first!
-                uint64_t multiplier = 1;
-                uint32_t optargInt = C_CAST(uint32_t, atoi(optarg));
-                if (strstr(optarg, "BLOCKS") || strstr(optarg, "SECTORS"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &LOG_LENGTH_BYTES))
                 {
-                    //they specified blocks. For log transfers this means a number of 512B sectors
-                    multiplier = LEGACY_DRIVE_SEC_SIZE;
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT32_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT32_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT32_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            multiplier = UINT32_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            multiplier = UINT32_C(1073741824);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(LOG_LENGTH_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    LOG_LENGTH_BYTES *= multiplier;
                 }
-                else if (strstr(optarg, "KB"))
+                else
                 {
-                    multiplier = 1000;
+                    print_Error_In_Cmd_Line_Args(LOG_LENGTH_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "KiB"))
-                {
-                    multiplier = 1024;
-                }
-                else if (strstr(optarg, "MB"))
-                {
-                    multiplier = 1000000;
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    multiplier = 1048576;
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    multiplier = 1000000000;
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    multiplier = 1073741824;
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    multiplier = 1000000000000;
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    multiplier = 1099511627776;
-                }
-                LOG_LENGTH_BYTES = C_CAST(uint32_t, optargInt * multiplier);
             }
-            else if (strncmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING, strlen(longopts[optionIndex].name)) == 0)
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
             {
                 OUTPUTPATH_PARSE
                 if (!os_Directory_Exists(OUTPUTPATH_FLAG))
@@ -331,29 +344,28 @@ int32_t main(int argc, char *argv[])
                     printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, strlen(MODEL_MATCH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, strlen(FW_MATCH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, strlen(CHILD_FW_MATCH_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, PULL_LOG_MODE_LONG_OPT_STRING, strlen(PULL_LOG_MODE_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, PULL_LOG_MODE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "raw") == 0)
                 {
@@ -378,7 +390,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SATA_FARM_COPY_TYPE_LONG_OPT_STRING, strlen(SATA_FARM_COPY_TYPE_LONG_OPT_STRING)) == 0)
+            else if (strcmp(longopts[optionIndex].name, SATA_FARM_COPY_TYPE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "disc") == 0)
                 {
@@ -394,7 +406,6 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            //parse long options that have required args here.
             break;
         case DEVICE_SHORT_OPT: //device
             if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT, &HANDLE_LIST))
@@ -421,9 +432,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -460,7 +472,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -491,7 +503,7 @@ int32_t main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
@@ -557,7 +569,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -613,8 +625,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -634,7 +646,7 @@ int32_t main(int argc, char *argv[])
     //check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG
         || TEST_UNIT_READY_FLAG
-		|| LOWLEVEL_INFO_FLAG
+        || LOWLEVEL_INFO_FLAG
         || LIST_LOGS_FLAG
         || LIST_ERROR_HISTORY_FLAG
         || GENERIC_LOG_PULL_FLAG
@@ -654,7 +666,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -697,7 +709,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -745,11 +757,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
-#elif  !defined(_WIN32)
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
+#elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -767,33 +779,34 @@ int32_t main(int argc, char *argv[])
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
 #endif
-            ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
+
+                ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) ||
+                if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                if (((deviceList[handleIter].os_info.fd < 0) &&
+                    (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                    (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
+                if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    }
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                    if (ret == PERMISSION_DENIED || !is_Running_Elevated())
+                    {
+                        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                    }
+                    else
+                    {
+                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                    }
                 }
-                free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-                {
-                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-                }
-                else
-                {
-                    exit(UTIL_EXIT_OPERATION_FAILURE);
-                }
-            }
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -815,7 +828,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -839,7 +852,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -924,7 +937,7 @@ int32_t main(int argc, char *argv[])
             if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
             {
                 printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
-            }     
+            }
         }
 
         //now start looking at what operations are going to be performed and kick them off
@@ -1024,7 +1037,7 @@ int32_t main(int argc, char *argv[])
                     }
                     else
                     {
-                        printf("\nLog %" PRIu8 " not supported by %s\n",\
+                        printf("\nLog %" PRIu8 " not supported by %s\n", \
                             GENERIC_LOG_DATA_SET, deviceList[deviceIter].drive_info.serialNumber);
                     }
                 }
@@ -1080,7 +1093,7 @@ int32_t main(int argc, char *argv[])
             case MEMORY_FAILURE:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nFailed to allocate memory for buffer ID %"PRIu64"\n", GENERIC_ERROR_HISTORY_BUFFER_ID);
+                    printf("\nFailed to allocate memory for buffer ID %" PRIu64 "\n", GENERIC_ERROR_HISTORY_BUFFER_ID);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1095,7 +1108,8 @@ int32_t main(int argc, char *argv[])
 
         if (FARM_PULL_FLAG)
         {
-            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_MODE))
+            //PULL_FARM_FACTORY_PAGE_FLAG
+            switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0, SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_BIN_FILE_MODE))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1109,7 +1123,14 @@ int32_t main(int argc, char *argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("FARM log not supported on this device\n");
+                    // if (0)
+                    // {
+                    //     printf("Factory FARM Page not supported on this device\n");
+                    // }
+                    // else
+                    {
+                        printf("FARM log not supported on this device\n");
+                    }
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1283,9 +1304,10 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
+
 //-----------------------------------------------------------------------------
 //
 //  Utility_usage()
@@ -1306,7 +1328,7 @@ void utility_Usage(bool shortUsage)
     printf("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
+    printf("\nExamples\n");
     printf("========\n");
     //example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
@@ -1315,7 +1337,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s logs --%s pipe\n", util_name, deviceHandleExample, FARM_LONG_OPT_STRING, PATH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s 64KiB --%s bin\n", util_name, deviceHandleExample, FARM_COMBINED_LONG_OPT_STRING, LOG_TRANSFER_LENGTH_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, DEVICE_STATISTICS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LIST_LOGS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s C6h\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 0Dh --%s 01h --%s bin\n", util_name, deviceHandleExample, GENERIC_LOG_LONG_OPT_STRING, GENERIC_LOG_SUBPAGE_LONG_OPT_STRING, PULL_LOG_MODE_LONG_OPT_STRING);
@@ -1325,7 +1347,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

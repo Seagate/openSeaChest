@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
@@ -14,11 +15,14 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "time_utils.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -51,13 +55,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -217,11 +221,11 @@ int32_t main(int argc, char *argv[])
 
             if (strcmp(longopts[optionIndex].name, EPC_ENABLED_LONG_OPT_STRING) == 0)
             {
-                if (strncmp("enable", optarg, strlen(optarg)) == 0)
+                if (strcmp("enable", optarg) == 0)
                 {
                     EPC_ENABLED_IDENTIFIER = ENABLE_EPC;
                 }
-                else if (strncmp("disable", optarg, strlen(optarg)) == 0)
+                else if (strcmp("disable", optarg) == 0)
                 {
                     EPC_ENABLED_IDENTIFIER = DISABLE_EPC;
                 }
@@ -233,12 +237,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = UINT64_MAX;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &temp) && temp < INT32_MAX)
-                {
-                    TRANSITION_POWER_STATE_TO = C_CAST(int32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Int32(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &TRANSITION_POWER_STATE_TO))
                 {
                     print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -318,11 +317,7 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //set the value to change to (watts)
-                    //use the lf specifier otherwise it thinks it's a standard float and you won't get the right value.
-                    int scanRet = sscanf(optarg, "%lf", &SET_POWER_CONSUMPTION_WATTS_VALUE);
-//ctc the check down here needed to change scanRet!=EOF to scanRet==EOF, otherwise command line inputs weren't processed!
-                    if (scanRet == 0 || scanRet == EOF)
+                    if (!get_And_Validate_Double_Input(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_POWER_CONSUMPTION_WATTS_VALUE))
                     {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -331,8 +326,15 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_APM_LEVEL_LONG_OPT_STRING) == 0)
             {
-                SET_APM_LEVEL_FLAG = true;
-                SET_APM_LEVEL_VALUE_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_APM_LEVEL_VALUE_FLAG))
+                {
+                    SET_APM_LEVEL_FLAG = true;
+                }
+                else 
+                {
+                    print_Error_In_Cmd_Line_Args(SET_APM_LEVEL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, SEAGATE_POWER_BALANCE_LONG_OPT_STRING) == 0)
             {
@@ -429,7 +431,7 @@ int32_t main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(SAS_PARTIAL_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, SAS_SLUMBER_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
@@ -451,10 +453,14 @@ int32_t main(int argc, char *argv[])
                     print_Error_In_Cmd_Line_Args(SAS_SLUMBER_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_A_LONG_OPT_STRING) == 0)
             {
@@ -473,10 +479,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_A_TIMER_VALID = true;
-                    IDLE_A_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_A_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_A_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_A_TIMER_VALID = true;
+                        IDLE_A_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_B_LONG_OPT_STRING) == 0)
@@ -496,10 +537,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_B_TIMER_VALID = true;
-                    IDLE_B_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_B_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_B_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_B_TIMER_VALID = true;
+                        IDLE_B_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, IDLE_C_LONG_OPT_STRING) == 0)
@@ -519,10 +595,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    IDLE_C_TIMER_VALID = true;
-                    IDLE_C_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_C_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                IDLE_C_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        IDLE_C_TIMER_VALID = true;
+                        IDLE_C_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Z_LONG_OPT_STRING) == 0)
@@ -542,10 +653,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    STANDBY_Z_TIMER_VALID = true;
-                    STANDBY_Z_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Z_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                STANDBY_Z_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        STANDBY_Z_TIMER_VALID = true;
+                        STANDBY_Z_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, STANDBY_Y_LONG_OPT_STRING) == 0)
@@ -565,10 +711,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    STANDBY_Y_TIMER_VALID = true;
-                    STANDBY_Y_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Y_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                STANDBY_Y_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        STANDBY_Y_TIMER_VALID = true;
+                        STANDBY_Y_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_IDLE_LONG_OPT_STRING) == 0)
@@ -588,10 +769,45 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    LEGACY_IDLE_TIMER_VALID = true;
-                    LEGACY_IDLE_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_IDLE_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                LEGACY_IDLE_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        LEGACY_IDLE_TIMER_VALID = true;
+                        LEGACY_IDLE_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, LEGACY_STANDBY_LONG_OPT_STRING) == 0)
@@ -611,33 +827,59 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    //the set function expects time in 100 millisecond units
-                    //Take the input millisecond time and divide it by 100
-                    LEGACY_STANDBY_TIMER_VALID = true;
-                    LEGACY_STANDBY_POWER_MODE_TIMER = C_CAST(uint32_t, atoi(optarg)) / 100;
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_STANDBY_POWER_MODE_TIMER))
+                    {
+                        if (unit)
+                        {
+                            //convert to milliseconds
+                            if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
+                            {
+                                //nothing to do as no unit specified or already set milliseconds value
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                LEGACY_STANDBY_POWER_MODE_TIMER *= UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                //invalid unit
+                                print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        //the set function expects time in 100 millisecond units
+                        //Take the input millisecond time and divide it by 100
+                        LEGACY_STANDBY_TIMER_VALID = true;
+                        LEGACY_STANDBY_POWER_MODE_TIMER /= 100;
+                    }
+                    else 
+                    {
+                        print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING) == 0)
             {
-                uint64_t measurementTime = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char*, optarg), &measurementTime))
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS))
                 {
                     REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
-                    if (measurementTime > 65535)
-                    {
-                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = 65535;
-                    }
-                    else
-                    {
-                        REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS = C_CAST(uint16_t, measurementTime);
-                    }
                 }
                 else
                 {
                     print_Error_In_Cmd_Line_Args(REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-            } 
+            }
             else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp("all", optarg) == 0)
@@ -769,9 +1011,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -808,7 +1051,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -905,7 +1148,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -961,8 +1204,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-	|| (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-	|| (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1024,7 +1267,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1069,7 +1312,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -1117,11 +1360,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -1145,7 +1388,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -1187,7 +1430,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1212,7 +1455,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1493,7 +1736,7 @@ int32_t main(int argc, char *argv[])
         {
             nvmeSupportedPowerStates ps;
             memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
-            switch(get_NVMe_Power_States(&deviceList[deviceIter], &ps))
+            switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
             {
             case SUCCESS:
                 print_NVM_Power_States(&ps);
@@ -1872,9 +2115,9 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            int idleRet = SUCCESS;
-                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
-                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            eReturnValues idleRet = SUCCESS;
+                            DECLARE_ZERO_INIT_ARRAY(char, modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN);
+                            DECLARE_ZERO_INIT_ARRAY(char, modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN);
                             switch (LEGACY_IDLE_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
@@ -1970,9 +2213,9 @@ int32_t main(int argc, char *argv[])
                     {
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
-                            int standbyRet = SUCCESS;
-                            char modeChangeStrSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
-                            char modeChangeStrNotSuccess[LEGACY_POWER_MODE_CHANGE_STR_LEN] = { 0 };
+                            eReturnValues standbyRet = SUCCESS;
+                            DECLARE_ZERO_INIT_ARRAY(char, modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN);
+                            DECLARE_ZERO_INIT_ARRAY(char, modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN);
                             switch (LEGACY_STANDBY_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
@@ -2144,7 +2387,7 @@ int32_t main(int argc, char *argv[])
         {
             epcSettings deviceEPCSettings;
             memset(&deviceEPCSettings, 0, sizeof(epcSettings));
-            switch(get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
+            switch (get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
             {
             case SUCCESS:
                 print_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings);
@@ -2194,7 +2437,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_POWER_CONSUMPTION_FLAG)
         {
-            int pcRet = SUCCESS;
+            eReturnValues pcRet = SUCCESS;
             if (SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(&deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
@@ -2239,9 +2482,9 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(SET_APM_LEVEL_FLAG)
+        if (SET_APM_LEVEL_FLAG)
         {
-            switch(set_APM_Level(&deviceList[deviceIter], SET_APM_LEVEL_VALUE_FLAG))
+            switch (set_APM_Level(&deviceList[deviceIter], SET_APM_LEVEL_VALUE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2295,29 +2538,29 @@ int32_t main(int argc, char *argv[])
 
         if (SHOW_APM_LEVEL_FLAG)
         {
-            switch(get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
+            switch (get_APM_Level(&deviceList[deviceIter], &SHOW_APM_LEVEL_VALUE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Current APM Level is %"PRIu8" (", SHOW_APM_LEVEL_VALUE_FLAG);
-                    if(SHOW_APM_LEVEL_VALUE_FLAG == 0x01)
+                    printf("Current APM Level is %" PRIu8 " (", SHOW_APM_LEVEL_VALUE_FLAG);
+                    if (SHOW_APM_LEVEL_VALUE_FLAG == 0x01)
                     {
                         printf("Minimum power consumption with Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG >= 0x02 && SHOW_APM_LEVEL_VALUE_FLAG <= 0x7F)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x02 && SHOW_APM_LEVEL_VALUE_FLAG <= 0x7F)
                     {
                         printf("Intermediate power management with Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG == 0x80)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG == 0x80)
                     {
                         printf("Minimum power consumption without Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG >= 0x81 && SHOW_APM_LEVEL_VALUE_FLAG <= 0xFD)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x81 && SHOW_APM_LEVEL_VALUE_FLAG <= 0xFD)
                     {
                         printf("Intermediate power management without Standby mode");
                     }
-                    else if(SHOW_APM_LEVEL_VALUE_FLAG == 0xFE)
+                    else if (SHOW_APM_LEVEL_VALUE_FLAG == 0xFE)
                     {
                         printf("Maximum Performance");
                     }
@@ -2410,7 +2653,8 @@ int32_t main(int argc, char *argv[])
             }
             else
             {
-                bool powerBalanceSupported = false, powerBalanceEnabled = false;
+                bool powerBalanceSupported = false;
+                bool powerBalanceEnabled = false;
                 switch (seagate_Get_Power_Balance(&deviceList[deviceIter], &powerBalanceSupported, &powerBalanceEnabled))
                 {
                 case SUCCESS:
@@ -2488,7 +2732,8 @@ int32_t main(int argc, char *argv[])
         }
         if (SATA_DIPM_INFO_FLAG)
         {
-            bool dipmSupported = false, dipmEnabled = false;
+            bool dipmSupported = false;
+            bool dipmEnabled = false;
             switch (sata_Get_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter], &dipmSupported, &dipmEnabled))
             {
             case SUCCESS:
@@ -2565,7 +2810,8 @@ int32_t main(int argc, char *argv[])
 
         if (SATA_DAPS_INFO_FLAG)
         {
-            bool dapsSupported = false, dapsEnabled = false;
+            bool dapsSupported = false;
+            bool dapsEnabled = false;
             switch (sata_Get_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported, &dapsEnabled))
             {
             case SUCCESS:
@@ -2609,7 +2855,7 @@ int32_t main(int argc, char *argv[])
         if (SAS_PARTIAL_FLAG || SAS_SLUMBER_FLAG)
         {
 #define SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH 40
-            char partialSlumberString[SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH] = { 0 };
+            DECLARE_ZERO_INIT_ARRAY(char, partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH);
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
                 snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial & Slumber");
@@ -2653,7 +2899,7 @@ int32_t main(int argc, char *argv[])
 
         if (SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_INFO_FLAG)
         {
-            int result = SUCCESS;
+            eReturnValues result = SUCCESS;
             uint8_t phyListSize = 1;
             if (SET_PHY_SAS_PHY_IDENTIFIER == 0xFF)
             {
@@ -2661,7 +2907,7 @@ int32_t main(int argc, char *argv[])
             }
             if (SUCCESS == result)
             {
-                ptrSasEnhPhyControl phyData = C_CAST(ptrSasEnhPhyControl, calloc(phyListSize, sizeof(sasEnhPhyControl)));
+                ptrSasEnhPhyControl phyData = C_CAST(ptrSasEnhPhyControl, safe_calloc(phyListSize, sizeof(sasEnhPhyControl)));
                 if (phyData)
                 {
                     //get the information needed, then show it
@@ -2686,7 +2932,7 @@ int32_t main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     }
-                    safe_Free(phyData);
+                    safe_Free(C_CAST(void**, &phyData));
                 }
                 else
                 {
@@ -2728,9 +2974,9 @@ int32_t main(int argc, char *argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Successfully requested a power measurement.\n");
-                            time_t currentTime = time(NULL);
+                            time_t currentTime = time(M_NULLPTR);
                             time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
-                            char timeFormat[TIME_STRING_LENGTH] = { 0 };
+                            DECLARE_ZERO_INIT_ARRAY(char, timeFormat, TIME_STRING_LENGTH);
                             printf("\n\tCurrent Time: %s\n", get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat, TIME_STRING_LENGTH));
                             memset(timeFormat, 0, TIME_STRING_LENGTH);
                             printf("\tEstimated completion Time : %s", get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat, TIME_STRING_LENGTH));
@@ -2817,7 +3063,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -2870,7 +3116,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 #
 # Do NOT modify or remove this copyright and license
 #

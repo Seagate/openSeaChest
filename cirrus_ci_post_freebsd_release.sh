@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# SPDX-License-Identifier: MPL-2.0
+
 #This script is based on the original example found here: https://cirrus-ci.org/examples/#release-assets
 #modifications made to upload only the single artificate necessary from each freeBSD build of
 #openSeaChest. This script should be run after the tar.xz file is created by a successful build

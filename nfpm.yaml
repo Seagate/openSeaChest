@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 name: "openseachest"
 arch: "amd64"
 platform: "linux"
@@ -14,9 +15,9 @@ homepage: "https://www.github.com/Seagate/openSeaChest"
 license: "MPL"
 contents:
   - src: openSeaChest_*
-    dst: /usr/bin/openSeaChest
+    dst: /usr/local/bin/openSeaChest
     file_info:
       # Make sure that the mode is specified in octal, e.g. 0644 instead of 644.
       mode: 0755
   - src: man/man8/openSeaChest_*.8
-    dst: /usr/bin/openSeaChest/man/man8/
+    dst: /usr/local/share/man/man8/

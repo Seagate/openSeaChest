@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
@@ -14,11 +15,15 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "time_utils.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -53,13 +58,13 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
+    eReturnValues ret = SUCCESS;
     int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
@@ -216,13 +221,13 @@ int32_t main(int argc, char *argv[])
         {
         case 0:
             //parse long options that have no short option and required arguments here
-            if (strncmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CONFIRM_LONG_OPT_STRING))) == 0)
+            if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(LONG_TEST_ACCEPT_STRING) && strncmp(optarg, LONG_TEST_ACCEPT_STRING, strlen(LONG_TEST_ACCEPT_STRING)) == 0)
+                if (strcmp(optarg, LONG_TEST_ACCEPT_STRING) == 0)
                 {
                     LONG_TEST_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING, strlen(SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strcmp(optarg, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     SINGLE_SECTOR_DATA_ERASE_FLAG = true;
                 }
@@ -232,7 +237,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING) == 0)
             {
                 RUN_IDD_FLAG = true;
                 if (strcmp(optarg, "short") == 0)
@@ -247,8 +252,7 @@ int32_t main(int argc, char *argv[])
                 {
                     //read in the argument as a hex value instead of an integer
                     uint32_t iddTestNumber = 0;
-                    int res = sscanf(optarg, "%"SCNx32, &iddTestNumber);
-                    if (res != EOF && res > 0)
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &iddTestNumber))
                     {
                         switch (iddTestNumber)
                         {
@@ -271,15 +275,35 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING) == 0)
             {
-                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
-                if(strstr(optarg, "l"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &ERROR_LIMIT_FLAG))
                 {
-                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = true;
+                        }
+                        else if (strcmp(unit, "p") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTRIBUTES_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING) == 0)
             {
                 SMART_ATTRIBUTES_FLAG = true;
                 if (strcmp(optarg, "raw") == 0)
@@ -300,14 +324,14 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_FEATURE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_FEATURE_LONG_OPT_STRING) == 0)
             {
                 SMART_FEATURE_FLAG = true;
-                if(strcmp(optarg, "enable") == 0)
+                if (strcmp(optarg, "enable") == 0)
                 {
                     SMART_FEATURE_STATE_FLAG = true;
                 }
-                else if(strcmp(optarg, "disable") == 0)
+                else if (strcmp(optarg, "disable") == 0)
                 {
                     SMART_FEATURE_STATE_FLAG = false;
                 }
@@ -317,26 +341,30 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_MRIE_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MRIE_MODE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_MRIE_MODE_LONG_OPT_STRING) == 0)
             {
                 SET_MRIE_MODE_FLAG = true;
-                if(strcmp(optarg, "default") == 0)
+                if (strcmp(optarg, "default") == 0)
                 {
                     SET_MRIE_MODE_DEFAULT = true;
                 }
                 else
                 {
-                    SET_MRIE_MODE_VALUE = C_CAST(uint8_t, atoi(optarg));
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_MRIE_MODE_VALUE))
+                    {
+                        print_Error_In_Cmd_Line_Args(SET_MRIE_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING) == 0)
             {
                 SMART_ATTR_AUTOSAVE_FEATURE_FLAG = true;
-                if(strcmp(optarg, "enable") == 0)
+                if (strcmp(optarg, "enable") == 0)
                 {
                     SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG = true;
                 }
-                else if(strcmp(optarg, "disable") == 0)
+                else if (strcmp(optarg, "disable") == 0)
                 {
                     SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG = false;
                 }
@@ -346,7 +374,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_AUTO_OFFLINE_FEATURE_LONG_OPT_STRING) == 0)
             {
                 SMART_AUTO_OFFLINE_FEATURE_FLAG = true;
                 if (strcmp(optarg, "enable") == 0)
@@ -363,11 +391,11 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING) == 0)
             {
                 size_t counter = 0;
                 SCSI_DEFECTS_FLAG = true;
-                while (counter < strlen(optarg))
+                while (counter < safe_strlen(optarg))
                 {
                     if (optarg[counter] == 'p' || optarg[counter] == 'P')
                     {
@@ -386,14 +414,9 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING) == 0)
             {
-                //check for integer value or string that specifies the correct mode.
-                if (strlen(optarg) == 1 && isdigit(optarg[0]))
-                {
-                    SCSI_DEFECTS_DESCRIPTOR_MODE = atoi(optarg);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_I(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SCSI_DEFECTS_DESCRIPTOR_MODE))
                 {
                     if (strcmp("shortBlock", optarg) == 0)
                     {
@@ -426,7 +449,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SHOW_SMART_ERROR_LOG_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SHOW_SMART_ERROR_LOG_LONG_OPT_STRING) == 0)
             {
                 SHOW_SMART_ERROR_LOG_FLAG = true;
                 if (strcmp("summary", optarg) == 0)
@@ -444,7 +467,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING) == 0)
             {
                 if (strcmp("raw", optarg) == 0 || strcmp("generic", optarg) == 0)
                 {
@@ -460,22 +483,22 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -487,14 +510,14 @@ int32_t main(int argc, char *argv[])
             {
             case 0:
                 //check long options for missing arguments
-                if (strncmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CONFIRM_LONG_OPT_STRING))) == 0)
+                if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("You must add a confirmation string to the confirm option\n");
                     }
                 }
-                else if (strncmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(IDD_TEST_LONG_OPT_STRING))) == 0)
+                else if (strcmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING) == 0)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
@@ -540,7 +563,7 @@ int32_t main(int argc, char *argv[])
             }
             break;
         case PROGRESS_SHORT_OPT://progress [test]
-            PROGRESS_CHAR = strdup(optarg);
+            PROGRESS_CHAR = optarg;
             break;
         case DEVICE_SHORT_OPT: //device
             if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT, &HANDLE_LIST))
@@ -567,9 +590,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -606,7 +630,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -703,7 +727,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -759,8 +783,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-    || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-    || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -787,7 +811,7 @@ int32_t main(int argc, char *argv[])
         || LONG_DST_FLAG
         || ABORT_DST_FLAG
         || ABORT_IDD_FLAG
-        || (PROGRESS_CHAR != NULL)
+        || (PROGRESS_CHAR != M_NULLPTR)
         || RUN_IDD_FLAG
         || DST_AND_CLEAN_FLAG
         || SMART_FEATURE_FLAG
@@ -811,7 +835,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -854,7 +878,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -902,11 +926,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -930,9 +954,9 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
@@ -942,7 +966,7 @@ int32_t main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -972,7 +996,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -997,7 +1021,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1127,8 +1151,8 @@ int32_t main(int argc, char *argv[])
 
         if (SCSI_DEFECTS_FLAG)
         {
-            ptrSCSIDefectList defects = NULL;
-            switch (get_SCSI_Defect_List(&deviceList[deviceIter], SCSI_DEFECTS_DESCRIPTOR_MODE, SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
+            ptrSCSIDefectList defects = M_NULLPTR;
+            switch (get_SCSI_Defect_List(&deviceList[deviceIter], C_CAST(eSCSIAddressDescriptors, SCSI_DEFECTS_DESCRIPTOR_MODE), SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
                 print_SCSI_Defect_List(defects);
@@ -1168,6 +1192,7 @@ int32_t main(int argc, char *argv[])
                     {
                         printf("\t%s\n", tripInfo.reasonString);
                     }
+                    print_SMART_Tripped_Message(is_SSD(&deviceList[deviceIter]));
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1201,7 +1226,7 @@ int32_t main(int argc, char *argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (print_SMART_Attributes(&deviceList[deviceIter], SMART_ATTRIBUTES_MODE_FLAG))
+            switch (print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
             {
             case SUCCESS:
                 //nothing to print here since if it was successful, the attributes will be printed to the screen
@@ -1302,7 +1327,7 @@ int32_t main(int argc, char *argv[])
                     break;
                 }
             }
-                break;
+            break;
             default://error
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1315,7 +1340,7 @@ int32_t main(int argc, char *argv[])
 
         if (ABORT_DST_FLAG)
         {
-            int abortResult = UNKNOWN;
+            eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Aborting DST\n");
@@ -1356,7 +1381,7 @@ int32_t main(int argc, char *argv[])
 
         if (ABORT_IDD_FLAG)
         {
-            int abortResult = UNKNOWN;
+            eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Aborting IDD\n");
@@ -1437,7 +1462,7 @@ int32_t main(int argc, char *argv[])
 
         if (SHORT_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Short DST\n");
@@ -1499,7 +1524,7 @@ int32_t main(int argc, char *argv[])
 
         if (CONVEYANCE_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Conveyance DST\n");
@@ -1561,7 +1586,7 @@ int32_t main(int argc, char *argv[])
 
         if (LONG_DST_FLAG)
         {
-            int32_t DSTResult = UNKNOWN;
+            eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Long DST\n");
@@ -1572,7 +1597,7 @@ int32_t main(int argc, char *argv[])
                     printf("Drive reported long DST time as ");
                     if (hours > 0)
                     {
-                        printf("%"PRIu8" hour", hours);
+                        printf("%" PRIu8 " hour", hours);
                         if (hours > 1)
                         {
                             printf("s ");
@@ -1582,7 +1607,7 @@ int32_t main(int argc, char *argv[])
                             printf(" ");
                         }
                     }
-                    printf("%"PRIu8" minute", minutes);
+                    printf("%" PRIu8 " minute", minutes);
                     if (minutes > 1)
                     {
                         printf("s");
@@ -1664,15 +1689,17 @@ int32_t main(int argc, char *argv[])
 
         if (RUN_IDD_FLAG)
         {
-            int32_t IDDResult = UNKNOWN;
+            eReturnValues IDDResult = UNKNOWN;
             eSeagateFamily family = is_Seagate_Family(&deviceList[deviceIter]);
             if (family == SEAGATE)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     uint64_t iddTimeSeconds = 0;
-                    uint8_t hours = 0, minutes = 0, seconds = 0;
-                    get_Approximate_IDD_Time(&deviceList[deviceIter], IDD_TEST_FLAG, &iddTimeSeconds);
+                    uint8_t hours = 0;
+                    uint8_t minutes = 0;
+                    uint8_t seconds = 0;
+                    get_Approximate_IDD_Time(&deviceList[deviceIter], C_CAST(eIDDTests, IDD_TEST_FLAG), &iddTimeSeconds);
                     if (iddTimeSeconds == UINT64_MAX)
                     {
                         printf("A time estimate is not available for this IDD operation");
@@ -1680,12 +1707,12 @@ int32_t main(int argc, char *argv[])
                     else
                     {
                         printf("The In Drive Diagnostics (IDD) test will take approximately ");
-                        convert_Seconds_To_Displayable_Time(iddTimeSeconds, NULL, NULL, &hours, &minutes, &seconds);
-                        print_Time_To_Screen(NULL, NULL, &hours, &minutes, &seconds);
+                        convert_Seconds_To_Displayable_Time(iddTimeSeconds, M_NULLPTR, M_NULLPTR, &hours, &minutes, &seconds);
+                        print_Time_To_Screen(M_NULLPTR, M_NULLPTR, &hours, &minutes, &seconds);
                     }
                     printf("\n");
                 }
-                IDDResult = run_IDD(&deviceList[deviceIter], IDD_TEST_FLAG, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
+                IDDResult = run_IDD(&deviceList[deviceIter], C_CAST(eIDDTests, IDD_TEST_FLAG), POLL_FLAG, CAPTIVE_FOREGROUND_FLAG);
                 switch (IDDResult)
                 {
                 case UNKNOWN:
@@ -1799,11 +1826,11 @@ int32_t main(int argc, char *argv[])
                 {
                     printf("DST And Clean\n");
                 }
-                if(ERROR_LIMIT_LOGICAL_COUNT)
+                if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (run_DST_And_Clean(&deviceList[deviceIter], ERROR_LIMIT_FLAG, NULL, NULL, NULL, NULL))
+                switch (run_DST_And_Clean(&deviceList[deviceIter], ERROR_LIMIT_FLAG, M_NULLPTR, M_NULLPTR, M_NULLPTR, M_NULLPTR))
                 {
                 case UNKNOWN:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1884,7 +1911,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(SMART_FEATURE_FLAG)
+        if (SMART_FEATURE_FLAG)
         {
             switch (enable_Disable_SMART_Feature(&deviceList[deviceIter], SMART_FEATURE_STATE_FLAG))
             {
@@ -1892,7 +1919,7 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully ");
-                    if(SMART_FEATURE_STATE_FLAG)
+                    if (SMART_FEATURE_STATE_FLAG)
                     {
                         printf("Enabled");
                     }
@@ -1927,7 +1954,7 @@ int32_t main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully set MRIE mode to %" PRIu8"\n", SET_MRIE_MODE_VALUE);
+                    printf("Successfully set MRIE mode to %" PRIu8 "\n", SET_MRIE_MODE_VALUE);
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1951,7 +1978,7 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(SMART_ATTR_AUTOSAVE_FEATURE_FLAG)
+        if (SMART_ATTR_AUTOSAVE_FEATURE_FLAG)
         {
             switch (enable_Disable_SMART_Attribute_Autosave(&deviceList[deviceIter], SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG))
             {
@@ -1959,7 +1986,7 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Successfully ");
-                    if(SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG)
+                    if (SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG)
                     {
                         printf("Enabled");
                     }
@@ -2049,9 +2076,9 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (PROGRESS_CHAR != NULL)
+        if (PROGRESS_CHAR != M_NULLPTR)
         {
-            int result = UNKNOWN;
+            eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
             convert_String_To_Upper_Case(progressTest);
             //do some string comparisons to figure out what we are checking for progress on
@@ -2068,7 +2095,7 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(progressTest, "IDD") == 0)
             {
                 uint8_t iddStatus = 0;
-                char iddStatusString[MAX_DST_STATUS_STRING_LENGTH + 1] = { 0 };
+                DECLARE_ZERO_INIT_ARRAY(char, iddStatusString, MAX_DST_STATUS_STRING_LENGTH + 1);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Getting IDD progress.\n");
@@ -2105,7 +2132,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    safe_Free(C_CAST(void**, &DEVICE_LIST));
     exit(exitCode);
 }
 
@@ -2135,11 +2162,11 @@ void utility_Usage(bool shortUsage)
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SMART_CHECK_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, SHORT_DST_LONG_OPT_STRING, CAPTIVE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, CONVEYANCE_DST_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, LONG_DST_LONG_OPT_STRING, POLL_LONG_OPT_STRING); 
+    printf("\t%s -d %s --%s --%s\n", util_name, deviceHandleExample, LONG_DST_LONG_OPT_STRING, POLL_LONG_OPT_STRING);
     printf("\t%s -d %s --%s short\n", util_name, deviceHandleExample, IDD_TEST_LONG_OPT_STRING);
     printf("\t%s -d %s --%s long --%s\n", util_name, deviceHandleExample, IDD_TEST_LONG_OPT_STRING, CAPTIVE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ABORT_DST_LONG_OPT_STRING);
@@ -2156,11 +2183,11 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s summary --%s raw\n", util_name, deviceHandleExample, SHOW_SMART_ERROR_LOG_LONG_OPT_STRING, SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
     printf("\t%s -d %s --%s g --%s bfi\n", util_name, deviceHandleExample, SCSI_DEFECTS_LONG_OPT_STRING, SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s 40\n", util_name, deviceHandleExample, DST_AND_CLEAN_LONG_OPT_STRING, ERROR_LIMIT_LONG_OPT_STRING);
-    
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("Utility Options\n");

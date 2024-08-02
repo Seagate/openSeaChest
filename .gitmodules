@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 [submodule "opensea-common"]
 	path = subprojects/opensea-common
 	url = https://github.com/Seagate/opensea-common.git
