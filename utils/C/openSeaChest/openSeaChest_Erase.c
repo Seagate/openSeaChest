@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     char *colonLocation = strstr(optarg, ":") + 1;//adding 1 to offset just beyond the colon for parsing the remaining data
-                    if (strncmp("file:", optarg, 5) == 0)
+                    if (strncmp("file:", optarg, 5) == 0 && colonLocation)
                     {
                         fileExt allowedExt[] = {
                                 {".bin", false},
@@ -833,7 +833,7 @@ int main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                     }
-                    else if (strncmp("increment:", optarg, 10) == 0)
+                    else if (strncmp("increment:", optarg, 10) == 0 && colonLocation)
                     {
                         uint8_t incrementStart = 0;
                         if (get_And_Validate_Integer_Input_Uint8(colonLocation, M_NULLPTR, ALLOW_UNIT_NONE, &incrementStart))
@@ -846,7 +846,7 @@ int main(int argc, char *argv[])
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
                     }
-                    else if (strncmp("repeat:", optarg, 7) == 0)
+                    else if (strncmp("repeat:", optarg, 7) == 0 && colonLocation)
                     {
                         //if final character is a lower case h, it's an hex pattern
                         if (colonLocation[safe_strlen(colonLocation) - 1] == 'h' && safe_strlen(colonLocation) == 9)
@@ -1141,7 +1141,7 @@ int main(int argc, char *argv[])
         //check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = 0; iter < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
+            for (uint8_t iter = 0; iter < (ATA_SECURITY_MAX_PW_LENGTH - 1); iter += 2)
             {
                 uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -1835,7 +1835,15 @@ int main(int argc, char *argv[])
                     printf("remove the --%s option from the command line and try again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     printf("Erase will not be started while this is failing.\n\n");
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                exitCode = UTIL_EXIT_OPERATION_ABORTED;
+                break;
+            case POWER_CYCLE_REQUIRED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("The device requires a power cycle before the max LBA can be restored all the way.\n");
+                    printf("Please power cycle the device, then run the --%s option again.\n", ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
+                }
+                exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
