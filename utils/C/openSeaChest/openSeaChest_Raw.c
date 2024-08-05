@@ -635,7 +635,7 @@ int main(int argc, char *argv[])
                 //set the offset to read the file at
                 //set the raw data length - but check the units first!
                 char* unit = M_NULLPTR;
-                if (get_And_Validate_Integer_Input_L(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
                 {
                     uint64_t multiplier = 1;
                     if (strstr(optarg, "BLOCKS"))
@@ -672,7 +672,7 @@ int main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    RAW_INPUT_FILE_OFFSET_FLAG = C_CAST(long, C_CAST(uint64_t, RAW_INPUT_FILE_OFFSET_FLAG) * multiplier);
+                    RAW_INPUT_FILE_OFFSET_FLAG = C_CAST(uint64_t, RAW_INPUT_FILE_OFFSET_FLAG) * multiplier;
                 }
                 else
                 {
@@ -1251,8 +1251,6 @@ int main(int argc, char *argv[])
                     if (dataLenValidForTransferDir)
                     {
                         bool showSenseData = true;//set to false upon successful completion only
-                        bool outputFileOpened = false;
-                        bool inputFileOpened = false;
                         uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
                         uint32_t allocatedDataLength = 0;
                         const char* fileAccessMode = M_NULLPTR;
@@ -1333,7 +1331,7 @@ int main(int argc, char *argv[])
                                 if (RAW_INPUT_FILE_NAME_FLAG)
                                 {
                                     fileAccessMode = "rb";
-                                    RAW_INPUT_FILE_FLAG = fopen(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode);
+                                    RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                     if (!RAW_INPUT_FILE_FLAG)
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1343,25 +1341,45 @@ int main(int argc, char *argv[])
                                         safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
-                                    inputFileOpened = true;
-                                    if (fseek(RAW_INPUT_FILE_FLAG, fileOffset, 0))
+                                    eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
+                                    do
                                     {
-                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        if (SEC_FILE_SUCCESS != secure_Seek_File(RAW_INPUT_FILE_FLAG, fileOffset, 0))
                                         {
-                                            printf("ERROR: Failed to seek to specified offset in file!\n");
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("ERROR: Failed to seek to specified offset in file!\n");
+                                            }
+                                            inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
+                                            break;
                                         }
-                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                                        //now copy this data to the data buffer before we send the command
+                                        if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                                        {
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
+                                            }
+                                            inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
+                                            break;
+                                        }
                                     }
-                                    //now copy this data to the data buffer before we send the command
-                                    if (fread(dataBuffer, sizeof(uint8_t), allocatedDataLength, RAW_INPUT_FILE_FLAG))
+                                    while (0);
+
+                                    //close the file now that we are done reading it
+                                    if (SEC_FILE_SUCCESS != secure_Close_File(RAW_INPUT_FILE_FLAG))
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
+                                            printf("ERROR: Unable to close handle to input file!\n");
                                         }
+                                        inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
+                                    }
+                                    free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                    if (inputfilexit != UTIL_EXIT_NO_ERROR)
+                                    {
                                         safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                                        exit(C_CAST(int, inputfilexit));
                                     }
                                 }
                             }
@@ -1386,7 +1404,7 @@ int main(int argc, char *argv[])
                             if (RAW_OUTPUT_FILE_NAME_FLAG)
                             {
                                 fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1395,7 +1413,6 @@ int main(int argc, char *argv[])
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
-                                outputFileOpened = true;
                             }
                             break;
                         case SUCCESS:
@@ -1408,7 +1425,7 @@ int main(int argc, char *argv[])
                             if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                             {
                                 fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1417,7 +1434,6 @@ int main(int argc, char *argv[])
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
-                                outputFileOpened = true;
                             }
                             break;
                         case NOT_SUPPORTED:
@@ -1441,7 +1457,7 @@ int main(int argc, char *argv[])
                             if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG != XFER_DATA_IN)
                             {
                                 fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1450,7 +1466,6 @@ int main(int argc, char *argv[])
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
-                                outputFileOpened = true;
                             }
                             break;
                         default:
@@ -1461,52 +1476,52 @@ int main(int argc, char *argv[])
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
-                        //close the input file now that we are done with it
-                        if (inputFileOpened)
-                        {
-                            fclose(RAW_INPUT_FILE_FLAG);
-                        }
                         //if there is an outputfile, 
-                        if (outputFileOpened)
+                        if (RAW_OUTPUT_FILE_FLAG)
                         {
                             if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                             {
-                                if ((fwrite(dataBuffer, sizeof(uint8_t), allocatedDataLength, RAW_OUTPUT_FILE_FLAG) != allocatedDataLength) || ferror(RAW_OUTPUT_FILE_FLAG))
+                                if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("Error writing data to a file!\n");
                                     }
-                                    fclose(RAW_OUTPUT_FILE_FLAG);
-                                    outputFileOpened = false;
                                     exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                                 }
                             }
                             else
                             {
                                 //save the sense data
-                                if ((fwrite(deviceList[deviceIter].drive_info.lastCommandSenseData, sizeof(uint8_t), SPC3_SENSE_LEN, RAW_OUTPUT_FILE_FLAG) != SPC3_SENSE_LEN) || ferror(RAW_OUTPUT_FILE_FLAG))
+                                if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("Error writing sense data to a file!\n");
                                     }
-                                    fclose(RAW_OUTPUT_FILE_FLAG);
-                                    outputFileOpened = false;
                                     exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                                 }
                             }
-                            if ((fflush(RAW_OUTPUT_FILE_FLAG) != 0) || ferror(RAW_OUTPUT_FILE_FLAG))
+                            if (RAW_OUTPUT_FILE_FLAG && SEC_FILE_SUCCESS != secure_Flush_File(RAW_OUTPUT_FILE_FLAG))
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
                                     printf("Error flushing data!\n");
                                 }
-                                fclose(RAW_OUTPUT_FILE_FLAG);
-                                outputFileOpened = false;
                                 exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
-                            fclose(RAW_OUTPUT_FILE_FLAG);
+                            if (RAW_OUTPUT_FILE_FLAG)
+                            {
+                                //close the file now that we are done reading it
+                                if (SEC_FILE_SUCCESS != secure_Close_File(RAW_OUTPUT_FILE_FLAG))
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("ERROR: Unable to close handle to output file!\n");
+                                    }
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                            }
                         }
 
                         //show the returned data on data in commands when verbosity is less than 3
@@ -1643,8 +1658,6 @@ int main(int argc, char *argv[])
                 if (dataLenValidForTransferDir)
                 {
                     bool showSenseData = true;//set to false upon successfil completion only
-                    bool outputFileOpened = false;
-                    bool inputFileOpened = false;
                     uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
                     uint32_t allocatedDataLength = 0;
                     const char* fileAccessMode = M_NULLPTR;
@@ -1726,7 +1739,7 @@ int main(int argc, char *argv[])
                             if (RAW_INPUT_FILE_NAME_FLAG)
                             {
                                 fileAccessMode = "rb";
-                                RAW_INPUT_FILE_FLAG = fopen(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode);
+                                RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_INPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1736,25 +1749,44 @@ int main(int argc, char *argv[])
                                     safe_Free_aligned(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
-                                inputFileOpened = true;
-                                if (fseek(RAW_INPUT_FILE_FLAG, fileOffset, 0))
+                                eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
+                                do
+                                {
+                                    if (SEC_FILE_SUCCESS != secure_Seek_File(RAW_INPUT_FILE_FLAG, fileOffset, 0))
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("ERROR: Failed to seek to specified offset in file!\n");
+                                        }
+                                        inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
+                                        break;
+                                    }
+                                    //now copy this data to the data buffer before we send the command
+                                    if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
+                                        }
+                                        inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
+                                        break;
+                                    }
+                                } while (0);
+
+                                //close the file now that we are done reading it
+                                if (SEC_FILE_SUCCESS != secure_Close_File(RAW_INPUT_FILE_FLAG))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to seek to specified offset in file!\n");
+                                        printf("ERROR: Unable to close handle to input file!\n");
                                     }
-                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                                    inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                 }
-                                //now copy this data to the data buffer before we send the command
-                                if (fread(dataBuffer, sizeof(uint8_t), allocatedDataLength, RAW_INPUT_FILE_FLAG))
+                                free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                if (inputfilexit != UTIL_EXIT_NO_ERROR)
                                 {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
-                                    }
                                     safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                    exit(UTIL_EXIT_OPERATION_FAILURE);
+                                    exit(C_CAST(int, inputfilexit));
                                 }
                             }
                         }
@@ -1781,7 +1813,7 @@ int main(int argc, char *argv[])
                         if (RAW_OUTPUT_FILE_NAME_FLAG)
                         {
                             fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1790,7 +1822,6 @@ int main(int argc, char *argv[])
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
-                            outputFileOpened = true;
                         }
                         break;
                     case SUCCESS:
@@ -1803,7 +1834,7 @@ int main(int argc, char *argv[])
                         if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                         {
                             fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1812,7 +1843,6 @@ int main(int argc, char *argv[])
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
-                            outputFileOpened = true;
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -1829,14 +1859,14 @@ int main(int argc, char *argv[])
                     case FROZEN:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Command completed with a failing status. See sense data/rtfrs.\n");
+                            printf("Command completed with a failing status. See sense data.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         //check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG != XFER_DATA_IN)
                         {
                             fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = fopen(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode);
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1845,7 +1875,6 @@ int main(int argc, char *argv[])
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
-                            outputFileOpened = true;
                         }
                         break;
                     default:
@@ -1856,56 +1885,54 @@ int main(int argc, char *argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     }
-                    //close the input file now that we are done with it
-                    if (inputFileOpened)
-                    {
-                        fclose(RAW_INPUT_FILE_FLAG);
-                    }
                     //if there is an outputfile, 
-                    if (outputFileOpened)
+                    if (RAW_OUTPUT_FILE_FLAG)
                     {
                         if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                         {
-                            if ((fwrite(dataBuffer, sizeof(uint8_t), allocatedDataLength, RAW_OUTPUT_FILE_FLAG) != allocatedDataLength) || ferror(RAW_OUTPUT_FILE_FLAG))
+                            if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
                             {
-                                if ((VERBOSITY_QUIET < toolVerbosity))
+                                if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    perror("Error writing data to a file!\n");
+                                    printf("Error writing data to a file!\n");
                                 }
-                                outputFileOpened = false;
-                                fclose(RAW_OUTPUT_FILE_FLAG);
-                                safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                return ERROR_WRITING_FILE;
+                                exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
                         }
                         else
                         {
                             //save the sense data
-                            if ((fwrite(deviceList[deviceIter].drive_info.lastCommandSenseData, sizeof(uint8_t), SPC3_SENSE_LEN, RAW_OUTPUT_FILE_FLAG) != SPC3_SENSE_LEN) || ferror(RAW_OUTPUT_FILE_FLAG))
+                            if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
                             {
-                                if ((VERBOSITY_QUIET < toolVerbosity))
+                                if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    perror("Error writing data to a file!\n");
+                                    printf("Error writing sense data to a file!\n");
                                 }
-                                outputFileOpened = false;
-                                fclose(RAW_OUTPUT_FILE_FLAG);
-                                safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                                return ERROR_WRITING_FILE;
+                                exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
                         }
-                        if ((fflush(RAW_OUTPUT_FILE_FLAG) != 0) || ferror(RAW_OUTPUT_FILE_FLAG))
+                        if (RAW_OUTPUT_FILE_FLAG && SEC_FILE_SUCCESS != secure_Flush_File(RAW_OUTPUT_FILE_FLAG))
                         {
-                            if ((VERBOSITY_QUIET < toolVerbosity))
+                            if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                perror("Error flushing data!\n");
+                                printf("Error flushing data!\n");
                             }
-                            outputFileOpened = false;
-                            fclose(RAW_OUTPUT_FILE_FLAG);
-                            safe_Free_aligned(C_CAST(void**, &dataBuffer));
-                            return ERROR_WRITING_FILE;
+                            exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                         }
-                        fclose(RAW_OUTPUT_FILE_FLAG);
+                        if (RAW_OUTPUT_FILE_FLAG)
+                        {
+                            //close the file now that we are done reading it
+                            if (SEC_FILE_SUCCESS != secure_Close_File(RAW_OUTPUT_FILE_FLAG))
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("ERROR: Unable to close handle to output file!\n");
+                                }
+                            }
+                            free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                        }
                     }
+
 
                     //show the returned data on data in commands when verbosity is less than 3
                     if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN && toolVerbosity < VERBOSITY_BUFFERS)

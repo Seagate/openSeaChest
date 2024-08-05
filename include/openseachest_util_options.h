@@ -33,6 +33,7 @@ extern "C"
     #include "common_types.h"
     #include "opensea_common_version.h"
     #include "opensea_operation_version.h"
+    #include "secure_file.h"
 
     //this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack corruption at runtime
     //This type should only be used where a boolean is desired when using the getopt parser (which expects an int), otherwise bool will do just fine
@@ -2370,7 +2371,7 @@ extern "C"
     #define RAW_OUTPUT_FILE_NAME_FLAG rawOutFileName
     #define RAW_OUTPUT_FILE_VARS \
     const char* RAW_OUTPUT_FILE_NAME_FLAG = M_NULLPTR;\
-    FILE *RAW_OUTPUT_FILE_FLAG = M_NULLPTR;
+    secureFileInfo *RAW_OUTPUT_FILE_FLAG = M_NULLPTR;
     #define RAW_OUTPUT_FILE_LONG_OPT_STRING "outputFile"
     #define RAW_OUTPUT_FILE_LONG_OPT { RAW_OUTPUT_FILE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0 }
 
@@ -2378,14 +2379,14 @@ extern "C"
     #define RAW_INPUT_FILE_NAME_FLAG rawInFileName
     #define RAW_INPUT_FILE_VARS \
     const char* RAW_INPUT_FILE_NAME_FLAG = M_NULLPTR;\
-    FILE *RAW_INPUT_FILE_FLAG = M_NULLPTR;
+    secureFileInfo *RAW_INPUT_FILE_FLAG = M_NULLPTR;
     #define RAW_INPUT_FILE_LONG_OPT_STRING "inputFile"
     #define RAW_INPUT_FILE_LONG_OPT { RAW_INPUT_FILE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0 }
 
     #define RAW_INPUT_FILE_OFFSET_FLAG rawInFileOffset
     #define RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG rawInOffsetBlocks
     #define RAW_INPUT_FILE_OFFSET_VAR \
-    long int RAW_INPUT_FILE_OFFSET_FLAG = SEEK_SET; \
+    uint64_t RAW_INPUT_FILE_OFFSET_FLAG = 0; \
     getOptBool RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = goFalse;
     #define RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING "inputOffset"
     #define RAW_INPUT_FILE_OFFSET_LONG_OPT { RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, required_argument, M_NULLPTR, 0 }
