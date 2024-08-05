@@ -635,9 +635,9 @@ int main(int argc, char *argv[])
                 //set the offset to read the file at
                 //set the raw data length - but check the units first!
                 char* unit = M_NULLPTR;
-                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
+                if (get_And_Validate_Integer_Input_Int64(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
                 {
-                    uint64_t multiplier = 1;
+                    int64_t multiplier = 1;
                     if (strstr(optarg, "BLOCKS"))
                     {
                         //the user specified the number as a number of logical blocks, so adjust this after we know the device logical block size
@@ -672,7 +672,7 @@ int main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    RAW_INPUT_FILE_OFFSET_FLAG = C_CAST(uint64_t, RAW_INPUT_FILE_OFFSET_FLAG) * multiplier;
+                    RAW_INPUT_FILE_OFFSET_FLAG = RAW_INPUT_FILE_OFFSET_FLAG * multiplier;
                 }
                 else
                 {
@@ -1304,7 +1304,7 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                long int fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
+                                int64_t fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
                                 if (RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG)
                                 {
                                     fileOffset = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
@@ -1712,7 +1712,7 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            long int fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
+                            int64_t fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
                             if (RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG)
                             {
                                 fileOffset = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
