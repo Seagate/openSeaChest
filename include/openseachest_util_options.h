@@ -2495,7 +2495,7 @@ extern "C"
 
     char* get_current_year(char *temp_year);
 
-    void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion);
+    void openseachest_utility_Info(const char *utilityName, const char *buildVersion, const char *seaCPublicVersion);
 
     void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion);
 
@@ -2897,7 +2897,7 @@ extern "C"
 
     //
     //-----------------------------------------------------------------------------
-    void print_Progress_Help(bool shortHelp, char* testsTogetProgressFor);
+    void print_Progress_Help(bool shortHelp, const char* testsTogetProgressFor);
 
     #define TOOL_EXIT_CODE_STRING_MAX_LENGTH 60 //60 characters SHOULD be plenty, but increase this if we do need more characters for the string. Must be M_NULLPTR terminated.
     typedef struct _toolSpecificExitCode

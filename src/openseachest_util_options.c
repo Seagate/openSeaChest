@@ -148,7 +148,7 @@ char* get_current_year(char *temp_year)
 
 #include "common_types.h"
 
-void openseachest_utility_Info(const char *utilityName, const char *buildVersion, char *seaCPublicVersion)
+void openseachest_utility_Info(const char *utilityName, const char *buildVersion, const char *seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     char *year = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
@@ -825,7 +825,7 @@ void print_RevertSP_Help(bool shortHelp)
     }
 }
 
-void print_Progress_Help(bool shortHelp, char* testsTogetProgressFor)
+void print_Progress_Help(bool shortHelp, const char* testsTogetProgressFor)
 {
     printf("\t--%s [%s]\n", PROGRESS_LONG_OPT_STRING, testsTogetProgressFor);
     if (!shortHelp)

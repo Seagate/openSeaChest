@@ -18,6 +18,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wfloat-equal',
   '-Wnull-dereference',
   '-Wunused-const-variable',
+  '-Wunused-parameter',
+  '-Wunused-value',
   '-Wduplicated-cond',
   '-Wjump-misses-init',
   '-Wstringop-overflow',
@@ -35,14 +37,12 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wundef',
   '-Wformat',
   '-Wformat=2',
-  #'-Wconversion', #<-this is disabled because it is far too noisy with many cases resulting in no real resolution to the errors. Instead, the following conversion warnings are enabled for those that can be handled.
   '-Wsign-conversion',
   '-Wint-conversion',#-Warith-conversion
   '-Wenum-conversion',
   '-Wfloat-conversion',
+  '-Wint-to-pointer-cast',
   '-Wimplicit-fallthrough',
-  '-U_FORTIFY_SOURCE',
-  '-D_FORTIFY_SOURCE=3',
   '-D_GLIBCXX_ASSERTIONS',
   '-fstrict-flex-arrays=1', #NOTE: Using level 1 since Windows often uses [1] at the end of it's structures. opensea-*libs has used this in a few places too.
   '-fstack-protector-strong',
@@ -53,12 +53,29 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wtrampolines', #GCC only at this time
   '-Werror=implicit',
   '-Werror=incompatible-pointer-types',
+  '-Wincompatible-pointer-types-discards-qualifiers',
   '-Werror=int-conversion',
+  '-Werror=implicit-int',
   '-Woverlength-strings',
   '-Wnewline-eof',
-  '-Wno-c23-extensions',
+  '-Wno-c23-extensions', #We do not want this warning since we are already checking for when C23 extensions are available before we use them. If not, we use a compiler specific definition, or make it an empty definition.
   '-Wparentheses',
   '-Wextra-semi',
+  '-Wcast-qual',
+  '-Werror=sometimes-uninitialized',
+  '-Wuninitialized',
+  '-Wunevaluated-expression',
+  '-Wunsequenced',
+  '-Wvarargs',
+  '-Wwrite-strings',
+  '-Wrestrict',
+  '-Wstringop-truncation',
+  '-Werror=trigraphs',
+  '-Wunreachable-code',
+  '-Wcomment',
+  '-Wsequence-point',
+  '-Wreturn-type',
+  '-fvisibility=hidden', #to work similarly to Window's DLL import/export
   ]
 
   if c.get_id().contains('gcc') and target_machine.system() == 'windows'

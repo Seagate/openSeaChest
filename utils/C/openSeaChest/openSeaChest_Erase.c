@@ -668,7 +668,7 @@ int main(int argc, char *argv[])
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                     //printf("User entered \"%s\" for their password\n", optarg);
-                    memcpy(ATA_SECURITY_PASSWORD, optarg, M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
+                    safe_memcpy(ATA_SECURITY_PASSWORD, 32, optarg, safe_strlen(optarg));//make sure we don't try copying over a null terminator because we just need to store the 32bytes of characters provided.
                     ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
             }

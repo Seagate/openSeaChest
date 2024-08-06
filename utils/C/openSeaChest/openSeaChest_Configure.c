@@ -3394,7 +3394,7 @@ int main(int argc, char *argv[])
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
-                fill_Drive_Info_Data(&deviceList[deviceIter]);
+                fill_Drive_Info_Data(&deviceList[deviceIter]);//refresh stale data
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     double mCapacity = 0;
@@ -3414,13 +3414,15 @@ int main(int argc, char *argv[])
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
                     capacity_Unit_Convert(&capacity, &capUnit);
-                    printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
+                    printf("Successfully restored maxLBA to highest possible user addressable LBA!\n");
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                     if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
-                        printf("         A reboot is strongly recommended to make sure the system works without\n");
-                        printf("         errors with the drive at its new capacity.\n\n");
+                        printf("         If using a drive managed erase, this will not be an issue since the\n");
+                        printf("         drive firmware will handle this change properly.\n");
+                        printf("         If performing a manual overwrite, such as --%s, then a power cycle\n", OVERWRITE_LONG_OPT_STRING);
+                        printf("         is strongly recommended to make sure all writes complete without error.\n");
                     }
                 }
                 break;
