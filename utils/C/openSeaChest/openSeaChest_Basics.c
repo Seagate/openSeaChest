@@ -43,7 +43,7 @@
 ////////////////////////
 const char *util_name = "openSeaChest_Basics";
 
-const char *buildVersion = "3.6.1";
+const char *buildVersion = "3.6.2";
 
 ////////////////////////////
 //  functions to declare  //
