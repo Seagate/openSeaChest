@@ -3414,7 +3414,7 @@ int main(int argc, char *argv[])
                     capacity = mCapacity;
                     metric_Unit_Convert(&mCapacity, &mCapUnit);
                     capacity_Unit_Convert(&capacity, &capUnit);
-                    printf("Successfully restored maxLBA to highest possible user addressable LBA!\n");
+                    printf("Successfully set the max LBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
                     printf("New Drive Capacity (%s/%s): %0.02f/%0.02f\n", mCapUnit, capUnit, mCapacity, capacity);
                     if (!scsiAtaInSync)
                     {
