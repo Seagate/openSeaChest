@@ -1175,7 +1175,7 @@ int main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
-                safe_Free(C_CAST(void**, &pendingLBAs));
+                safe_free_pending_defect(&pendingLBAs);
             }
             else
             {
@@ -1553,7 +1553,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 

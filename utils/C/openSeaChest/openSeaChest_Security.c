@@ -806,7 +806,7 @@ int main(int argc, char *argv[])
         //check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = 0; iter < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
+            for (uint8_t iter = 0; (iter + 1) < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
             {
                 uint8_t temp = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -1329,7 +1329,7 @@ int main(int argc, char *argv[])
                 printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(C_CAST(void**, &displaySector));
+            safe_free_aligned(&displaySector);
         }
 
 #if !defined(DISABLE_TCG_SUPPORT)
@@ -1781,7 +1781,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 

@@ -192,8 +192,8 @@ void openseachest_utility_Info(const char *utilityName, const char *buildVersion
     }
     printf(" Today: %s\tUser: %s\n", CURRENT_TIME_STRING, userName);
     printf("==========================================================================================\n");
-    safe_Free(C_CAST(void**, &userName));
-    safe_Free(C_CAST(void**, &year));
+    safe_free(&userName);
+    safe_free(&year);
 }
 
 void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
@@ -3364,9 +3364,9 @@ void free_Handle_List(char ***handleList, uint32_t listCount)
     {
         for (uint32_t handleIter = 0; handleIter < listCount; ++handleIter)
         {
-            safe_Free(C_CAST(void**, &(*handleList)[handleIter]));
+            safe_free(&(*handleList)[handleIter]);
         }
-        safe_Free(C_CAST(void**, (*handleList)));
+        safe_free((*handleList));
     }
 }
 

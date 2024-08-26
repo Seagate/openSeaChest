@@ -1284,7 +1284,7 @@ int main(int argc, char *argv[])
                 printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(C_CAST(void**, &displaySector));
+            safe_free_aligned(&displaySector);
         }
 
         if (SPIN_DOWN_FLAG)
@@ -1600,7 +1600,7 @@ int main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    safe_Free_aligned(C_CAST(void**, &firmwareMem));
+                    safe_free_aligned(&firmwareMem);
                 }
                 else
                 {
@@ -2147,7 +2147,7 @@ int main(int argc, char *argv[])
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
-                fill_Drive_Info_Data(&deviceList[deviceIter]);//refresh stale data
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     double mCapacity = 0;
@@ -2172,10 +2172,8 @@ int main(int argc, char *argv[])
                     if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
-                        printf("         If using a drive managed erase, this will not be an issue since the\n");
-                        printf("         drive firmware will handle this change properly.\n");
-                        printf("         If performing a manual overwrite, such as --%s, then a power cycle\n", OVERWRITE_LONG_OPT_STRING);
-                        printf("         is strongly recommended to make sure all writes complete without error.\n");
+                        printf("         A reboot is strongly recommended to make sure the system works without\n");
+                        printf("         errors with the drive at its new capacity.\n\n");
                     }
                 }
                 break;
@@ -2197,11 +2195,11 @@ int main(int argc, char *argv[])
         }
         if (RESTORE_MAX_LBA_FLAG)
         {
+            bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Restoring max LBA\n");
             }
-            bool scsiAtaInSync = false;
             switch (set_Max_LBA_2(&deviceList[deviceIter], 0, true, CHANGE_ID_STRING_FLAG))
             {
             case SUCCESS:
@@ -2297,7 +2295,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
