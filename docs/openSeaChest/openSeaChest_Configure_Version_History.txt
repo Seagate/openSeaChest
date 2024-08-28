@@ -188,3 +188,16 @@ v2.5.0  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      response to SAT A1h CDB.
                      Fixed a bug in FreeBSD causing non-data ATA commands to report
                      all zeroes instead of expected output in RTFRs.
+v2.7.1  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+                     Added new options to change a device's MN when changing the maxLBA to.
+                     This new feature is supported only on new products with ACS-6 
+                     that support changing the MN. A log page describes the other MN's
+                     available at different capacities that can be used.
+                     Updated PUIS feature set options. Note: This will be removed from
+                     configure and is available in PowerControl going forward.
+                     Added options to configure ATA Write-read-verify feature.
+                     Changing SCSI Mode pages from a file now requires secured directories.
+                     These directories (and those above it) must only be available to the user/root/admin
+                     and not writable by other users or groups.
+                     

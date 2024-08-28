@@ -205,3 +205,11 @@ v4.0.0  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      response to SAT A1h CDB.
                      Fixed a bug in FreeBSD causing non-data ATA commands to report
                      all zeroes instead of expected output in RTFRs.
+v4.2.0  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+                     All firmware files must now be loaded from secured directories.
+                     Secured directories are owned by the user or root and do not allow writing to other users/groups.
+                     Fixed incorrect parameter for activate option. Backwards compatibility in 
+                     the API was able to catch this without causing an error.
+                     Added show SCSI FW info option which is based on Seagate's public
+                     SCSI commands reference manual and show more fields unique to Seagate firmware.
