@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2018 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -760,7 +761,7 @@ void print_Open_Source_Licenses(void)
         #endif
     #endif
 #elif defined (__sun) || defined (_AIX)
-    //TODO: Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
+    //Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
 	#error Please update #if for system library licenses!
 #endif

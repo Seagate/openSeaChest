@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,26 +15,31 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "secure_file.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "power_control.h"//PUIS. transitions users to using openSeaChest_PowerControl for this feature.
 #include "drive_info.h"
 #include "set_max_lba.h"
 #include "trim_unmap.h"
 #include "smart.h"
 #include "logs.h"
 #include "ata_device_config_overlay.h"
+#include "power_control.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Configure";
-const char *buildVersion = "2.5.0";
+const char *buildVersion = "2.7.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -53,16 +59,18 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
+    CAPACITY_MODEL_NUMBER_MAPPING_VAR
+    CHANGE_ID_STRING_VAR
     SAT_INFO_VAR
     DATA_ERASE_VAR
     POSSIBLE_DATA_ERASE_VAR
@@ -107,6 +115,7 @@ int32_t main(int argc, char *argv[])
 #endif
     SCT_ERROR_RECOVERY_CONTROL_VARS
     FREE_FALL_VARS
+    WRV_VARS
 
     SCSI_MP_RESET_VARS
     SCSI_MP_RESTORE_VARS
@@ -132,6 +141,8 @@ int32_t main(int argc, char *argv[])
         DEVICE_LONG_OPT,
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
+        CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT,
+        CHANGE_ID_STRING_LONG_OPT,
         SAT_INFO_LONG_OPT,
         USB_CHILD_INFO_LONG_OPT,
         SCAN_LONG_OPT,
@@ -188,6 +199,7 @@ int32_t main(int argc, char *argv[])
         ATA_DCO_SETMAXLBA_LONG_OPT,
         ATA_DCO_SETMAXMODE_LONG_OPT,
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
+        WRV_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -226,11 +238,11 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
+                if (strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
-                else if (strlen(optarg) == strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING, strlen(POSSIBLE_DATA_ERASE_ACCEPT_STRING)) == 0)
+                else if (strcmp(optarg, POSSIBLE_DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     POSSIBLE_DATA_ERASE_FLAG = true;
                 }
@@ -240,9 +252,9 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_MAX_LBA_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                 }
@@ -252,17 +264,31 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SPEED_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SPEED_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_SPEED_FLAG = true;
-                SET_PHY_SPEED_GEN = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SPEED_GEN) && SET_PHY_SPEED_GEN < SET_PHY_SPEED_MAX_GENERATION)
+                {
+                    SET_PHY_SPEED_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SPEED_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_PHY_SAS_PHY_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                SET_PHY_ALL_PHYS = false;
-                SET_PHY_SAS_PHY_IDENTIFIER = C_CAST(uint8_t, atoi(optarg));
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                {
+                    SET_PHY_ALL_PHYS = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if ((strncmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_READY_LED_LONG_OPT_STRING))) == 0))
+            else if ((strcmp(longopts[optionIndex].name, SET_READY_LED_LONG_OPT_STRING) == 0))
             {
                 if (strcmp(optarg, "default") == 0)
                 {
@@ -289,7 +315,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, NV_CACHE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(NV_CACHE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, NV_CACHE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -313,7 +339,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(READ_LOOK_AHEAD_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, READ_LOOK_AHEAD_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -337,7 +363,7 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, WRITE_CACHE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(WRITE_CACHE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, WRITE_CACHE_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "info") == 0)
                 {
@@ -361,9 +387,9 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(PROVISION_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, PROVISION_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &SET_MAX_LBA_VALUE))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &SET_MAX_LBA_VALUE))
                 {
                     SET_MAX_LBA_FLAG = true;
                     //now, based on the new MaxLBA, set the TRIM/UNMAP start flag to get rid of the LBAs that will not be above the new maxLBA (the range will be set later)
@@ -375,7 +401,7 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, LOW_CURRENT_SPINUP_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(LOW_CURRENT_SPINUP_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, LOW_CURRENT_SPINUP_LONG_OPT_STRING) == 0)
             {
                 LOW_CURRENT_SPINUP_FLAG = true;
                 if (strcmp(optarg, "low") == 0)
@@ -455,13 +481,23 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, PUIS_FEATURE_LONG_OPT_STRING) == 0)
             {
                 PUIS_FEATURE_FLAG = true;
-                if (strcmp(optarg, "enable") == 0)
+                if (strcmp(optarg, "info") == 0)
+                {
+                    PUIS_FEATURE_INFO_FLAG = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = true;
+                    PUIS_STATE_VALID_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = false;
+                    PUIS_STATE_VALID_FLAG = true;
+                }
+                else if (strcmp(optarg, "spinup") == 0)
+                {
+                    PUIS_FEATURE_SPINUP_FLAG = true;
                 }
                 else
                 {
@@ -509,26 +545,43 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint32_t multiplier = 100;//100 millisecond conversion
-                    //first check is a unit is provided.
-                    if (strstr(optarg, "ms"))
+                    uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
                     {
-                        multiplier = UINT32_C(1);
+                        //first check is a unit is provided.
+                        if (unit)
+                        {
+                            if (strcmp(unit, "ms") == 0)
+                            {
+                                multiplier = UINT32_C(1);
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                multiplier = UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                multiplier = UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                multiplier = UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
+                        SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE *= multiplier;
                     }
-                    else if (strstr(optarg, "s"))
+                    else
                     {
-                        multiplier = UINT32_C(1000);
+                        print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    else if (strstr(optarg, "m"))
-                    {
-                        multiplier = UINT32_C(60000);
-                    }
-                    else if (strstr(optarg, "h"))
-                    {
-                        multiplier = UINT32_C(3600000);
-                    }
-                    SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING) == 0)
@@ -543,26 +596,43 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint32_t multiplier = 100;//100 millisecond conversion
-                    //first check is a unit is provided.
-                    if (strstr(optarg, "ms"))
+                    uint32_t multiplier = UINT32_C(100);//100 millisecond conversion
+                    char *unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &SCT_ERROR_RECOVERY_CONTROL_READ_TIMER_VALUE))
                     {
-                        multiplier = UINT32_C(1);
+                        //first check is a unit is provided.
+                        if (unit)
+                        {
+                            if (strcmp(unit, "ms") == 0)
+                            {
+                                multiplier = UINT32_C(1);
+                            }
+                            else if (strcmp(unit, "s") == 0)
+                            {
+                                multiplier = UINT32_C(1000);
+                            }
+                            else if (strcmp(unit, "m") == 0)
+                            {
+                                multiplier = UINT32_C(60000);
+                            }
+                            else if (strcmp(unit, "h") == 0)
+                            {
+                                multiplier = UINT32_C(3600000);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
+                        }
+                        SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
+                        SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE *=multiplier;
                     }
-                    else if (strstr(optarg, "s"))
+                    else
                     {
-                        multiplier = UINT32_C(1000);
+                        print_Error_In_Cmd_Line_Args(SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    else if (strstr(optarg, "m"))
-                    {
-                        multiplier = UINT32_C(60000);
-                    }
-                    else if (strstr(optarg, "h"))
-                    {
-                        multiplier = UINT32_C(3600000);
-                    }
-                    SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER = true;
-                    SCT_ERROR_RECOVERY_CONTROL_WRITE_TIMER_VALUE = C_CAST(uint32_t, atoi(optarg) * multiplier);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, FREE_FALL_LONG_OPT_STRING) == 0)
@@ -578,57 +648,66 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    uint64_t value = 0;
                     //this is a value to read in.
-                    if (get_And_Validate_Integer_Input(optarg, &value))
+                    if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FREE_FALL_SENSITIVITY))
                     {
                         print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    if (value > UINT8_MAX)
+                    else
                     {
-                        print_Error_In_Cmd_Line_Args(FREE_FALL_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        FREE_FALL_FLAG = true;
                     }
-                    FREE_FALL_FLAG = true;
-                    FREE_FALL_SENSITIVITY = C_CAST(uint8_t, value);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESET_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_RESET_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = M_NULLPTR;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = safe_strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESET_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESET_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESET_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESET_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESET_LONG_OPT_STRING, optarg);
@@ -638,38 +717,51 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_RESTORE_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_RESTORE_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = M_NULLPTR;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = safe_strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_RESTORE_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESTORE_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_RESTORE_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESTORE_LONG_OPT_STRING, optarg);
@@ -679,38 +771,51 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_MP_SAVE_LONG_OPT_STRING) == 0)
             {
                 SCSI_MP_SAVE_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = M_NULLPTR;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = safe_strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_MP_SAVE_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_SAVE_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_MP_SAVE_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_MP_SAVE_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_SAVE_LONG_OPT_STRING, optarg);
@@ -720,38 +825,51 @@ int32_t main(int argc, char *argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_SHOW_MP_LONG_OPT_STRING) == 0)
             {
                 SCSI_SHOW_MP_OP = true;
-                char * token = strtok(optarg, "-");
+                char *saveptr = M_NULLPTR;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = safe_strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_SHOW_MP_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_SHOW_MP_PAGE_NUMBER = value;
                             if (value > MP_RETURN_ALL_PAGES)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_SHOW_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_SHOW_MP_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_SHOW_MP_LONG_OPT_STRING, optarg);
@@ -762,92 +880,108 @@ int32_t main(int argc, char *argv[])
             {
                 SCSI_SET_MP_OP = true;
                 //first check if they are specifying a file!
-                if (strncmp(optarg, "file", 4) == 0)
+                if (strncmp(optarg, "file=", 5) == 0)
                 {
                     //format is file=filename.txt
-                    int sscanfRes = sscanf(optarg, SCSI_SET_MP_SSCANF_FILE_FORMAT_STR , SCSI_SET_MP_FILENAME);
-                    if (sscanfRes < 1 || sscanfRes == EOF)
+                    char *filenameptr = strstr(optarg, "=");
+                    if (filenameptr && safe_strlen(filenameptr) > 1)
                     {
-                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        filenameptr += 1;//go past the =
+                        if (snprintf(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, "%s", filenameptr) <= 0)
+                        {
+                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     else
                     {
-                        if (!os_File_Exists(SCSI_SET_MP_FILENAME))
-                        {
-                            //TODO: print file open error instead???
-                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                        }
-                        //else we open the file later to use
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
                 else
                 {
                     //formatted as mp[-sp]:byte:highbit:fieldWidth=value
-                    #define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
-                    char pageAndSubpage[PARSE_MP_PAGE_AND_SUBPAGE_LENGTH] = { 0 };
-                    char *token = strtok(optarg, ":=");
-                    uint8_t tokenCounter = 0;
-                    while (token && tokenCounter < 5)
+#define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
+                    DECLARE_ZERO_INIT_ARRAY(char, pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH);
+                    char *saveptr = M_NULLPTR;
+                    rsize_t duplen = 0;
+                    char *dupoptarg = strdup(optarg);
+                    if (dupoptarg)
                     {
-                        //go through each string and convert it from a string into a value we can use in this tool
-                        //start with page and subpage
-                        switch (tokenCounter)
+                        duplen = safe_strlen(dupoptarg);
+                        char *token = common_String_Token(dupoptarg, &duplen, ":=", &saveptr);
+                        uint8_t tokenCounter = 0;
+                        while (token && tokenCounter < 5)
                         {
-                        case 0://page-subpage
-                        {
-                            snprintf(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
-                            //parse later outside this loop. If we use strtok again in here, we'll break the way the parsing works... :(
+                            //go through each string and convert it from a string into a value we can use in this tool
+                            //start with page and subpage
+                            switch (tokenCounter)
+                            {
+                            case 0://page-subpage
+                            {
+                                snprintf(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
+                                //parse later outside this loop. If we tokenize again in here, we'll break the way the parsing works... :(
+                            }
+                            break;
+                            case 1://byte
+                                if (!get_And_Validate_Integer_Input_Uint16(token, M_NULLPTR, ALLOW_UNIT_NONE, &SCSI_SET_MP_BYTE))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 2://bit
+                                if (!get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &SCSI_SET_MP_BIT) && SCSI_SET_MP_BIT > 7)
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 3://field width
+                                if (!get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &SCSI_SET_MP_FIELD_LEN_BITS) && SCSI_SET_MP_FIELD_LEN_BITS > 64)
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            case 4://value
+                                if (!get_And_Validate_Integer_Input_Uint64(token, M_NULLPTR, ALLOW_UNIT_NONE, &SCSI_SET_MP_FIELD_VALUE))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                                break;
+                            default:
+                                //shouldn't get here!!! throw an error?!
+                                break;
+                            }
+                            ++tokenCounter;
+                            token = common_String_Token(M_NULLPTR, &duplen, ":=", &saveptr);
                         }
-                        break;
-                        case 1://byte
-                            SCSI_SET_MP_BYTE = C_CAST(uint16_t, atoi(token));
-                            break;
-                        case 2://bit
-                            if (atoi(token) > 7)
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            SCSI_SET_MP_BIT = C_CAST(uint8_t, atoi(token));
-                            break;
-                        case 3://field width
-                            if (atoi(token) > 64)
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            SCSI_SET_MP_FIELD_LEN_BITS = C_CAST(uint8_t, atoi(token));
-                            break;
-                        case 4://value
-                            if (!get_And_Validate_Integer_Input(token, &SCSI_SET_MP_FIELD_VALUE))
-                            {
-                                print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
-                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                            }
-                            break;
-                        default:
-                            //shouldn't get here!!! throw an error?!
-                            break;
-                        }
-                        ++tokenCounter;
-                        token = strtok(NULL, ":=");
                     }
-                    char *pagetoken = strtok(pageAndSubpage, "-");
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                    safe_free(&dupoptarg);
+                    saveptr = M_NULLPTR;
+                    rsize_t pageSPlen = safe_strlen(pageAndSubpage);
+                    char *pagetoken = common_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
                     if (pagetoken)
                     {
-                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
-                        pagetoken = strtok(NULL, "-");
+                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
+                        pagetoken = common_String_Token(M_NULLPTR, &pageSPlen, "-", &saveptr);
                         if (pagetoken)
                         {
-                            SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, NULL, 16));
+                            SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
                         }
                     }
-                    else //should this be an error condition since strtok failed?
+                    else //should this be an error condition since tokenize failed?
                     {
                         //no subpage
-                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pageAndSubpage, NULL, 16));
+                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pageAndSubpage, M_NULLPTR, 16));
                         SCSI_SET_MP_SUBPAGE_NUMBER = 0;
                     }
                     if (SCSI_SET_MP_PAGE_NUMBER > 0x3F)
@@ -927,38 +1061,51 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_RESET_LP_PAGE_LONG_OPT_STRING) == 0)
             {
-                char * token = strtok(optarg, "-");
+                char *saveptr = M_NULLPTR;
+                rsize_t duplen = 0;
+                char* dupoptarg = strdup(optarg);
+                char * token = M_NULLPTR;
                 uint8_t count = 0;
                 bool errorInCL = false;
+                if (dupoptarg)
+                {
+                    duplen = safe_strlen(dupoptarg);
+                    token = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                }
+                else
+                {
+                    errorInCL = true;
+                }
                 while (token && !errorInCL && count < 2)
                 {
-                    uint64_t value = 0;
-                    if (get_And_Validate_Integer_Input(token, &value))
+                    uint8_t value = 0;
+                    if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         switch (count)
                         {
                         case 0:
-                            SCSI_RESET_LP_PAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_RESET_LP_PAGE_NUMBER = value;
                             if (value > 0x3F)
                             {
                                 errorInCL = true;
                             }
                             break;
                         case 1:
-                            SCSI_RESET_LP_SUBPAGE_NUMBER = C_CAST(uint8_t, value);
+                            SCSI_RESET_LP_SUBPAGE_NUMBER = value;
                             break;
                         default:
                             errorInCL = true;
                             break;
                         }
                         ++count;
-                        token = strtok(NULL, "-");
+                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
                         errorInCL = true;
                     }
                 }
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_PAGE_LONG_OPT_STRING, optarg);
@@ -967,11 +1114,9 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, ATA_DCO_SETMAXLBA_LONG_OPT_STRING) == 0)
             {
-                uint64_t dcoMaxLBA = 0;
-                if (get_And_Validate_Integer_Input(optarg, &dcoMaxLBA))
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &ATA_DCO_SETMAXLBA_VALUE))
                 {
                     ATA_DCO_SETMAXLBA = true;
-                    ATA_DCO_SETMAXLBA_VALUE = dcoMaxLBA;
                 }
                 else
                 {
@@ -1039,7 +1184,9 @@ int32_t main(int argc, char *argv[])
                 char* dcoDisableFeatList = strdup(optarg);
                 if (dcoDisableFeatList)
                 {
-                    char* dcoFeatToken = strtok(dcoDisableFeatList, ",");
+                    char *saveptr = M_NULLPTR;
+                    rsize_t featlistlen = safe_strlen(dcoDisableFeatList);
+                    char* dcoFeatToken = common_String_Token(dcoDisableFeatList, &featlistlen, ",", &saveptr);
                     ATA_DCO_DISABLE_FEATURES = true;
                     while (dcoFeatToken)
                     {
@@ -1155,14 +1302,14 @@ int32_t main(int argc, char *argv[])
                         else
                         {
                             //error, unknown option
-                            safe_Free(dcoDisableFeatList)
+                            safe_free(&dcoDisableFeatList);
                             ATA_DCO_DISABLE_FEATURES = false;
                             print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
-                        dcoFeatToken = strtok(NULL, ",");
+                        dcoFeatToken = common_String_Token(M_NULLPTR, &featlistlen, ",", &saveptr);
                     }
-                    safe_Free(dcoDisableFeatList)
+                    safe_free(&dcoDisableFeatList);
                 }
                 else
                 {
@@ -1171,22 +1318,53 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, WRV_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    WRV_INFO = true;
+                }
+                else if (strcmp(optarg, "all") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_ALL = true;
+                }
+                else if (strcmp(optarg, "vendor") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_VENDOR = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    WRV_FLAG = true;
+                    WRV_DISABLE = true;
+                }
+                else if (get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &WRV_USER_VALUE))
+                {
+                    WRV_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(WRV_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -1255,9 +1433,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -1294,7 +1473,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -1391,7 +1570,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1447,6 +1626,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -1468,6 +1649,7 @@ int32_t main(int argc, char *argv[])
         || TEST_UNIT_READY_FLAG
         || LOWLEVEL_INFO_FLAG
         //check for other tool specific options here
+        || CAPACITY_MODEL_NUMBER_MAPPING_FLAG
         || RESTORE_MAX_LBA_FLAG
         || SET_MAX_LBA_FLAG
         || SET_PHY_SPEED_FLAG
@@ -1508,6 +1690,8 @@ int32_t main(int argc, char *argv[])
         || ATA_DCO_IDENTIFY
         || ATA_DCO_FREEZE
         || ATA_DCO_RESTORE
+        || WRV_FLAG
+        || WRV_INFO
         ))
     {
         utility_Usage(true);
@@ -1516,7 +1700,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1559,7 +1743,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -1607,11 +1791,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -1635,7 +1819,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -1677,7 +1861,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1702,7 +1886,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1740,6 +1924,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)
@@ -1802,6 +1995,35 @@ int32_t main(int argc, char *argv[])
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
+        if (CAPACITY_MODEL_NUMBER_MAPPING_FLAG)
+        {
+            if (is_Change_Identify_String_Supported(&deviceList[deviceIter]))
+            {
+                ptrcapacityModelNumberMapping capModelMap = get_Capacity_Model_Number_Mapping(&deviceList[deviceIter]);
+                if (capModelMap)
+                {
+                    print_Capacity_Model_Number_Mapping(capModelMap);
+                    delete_Capacity_Model_Number_Mapping(capModelMap);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("ERROR: failed to get Capacity / Model Number Mapping\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("ERROR: Capacity / Model Number Mapping not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
         if (SCSI_SHOW_MP_OP)
         {
             if (SCSI_SHOW_MP_MPC_VALUE > 3)
@@ -1812,7 +2034,7 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //show the specific MPC value
-                show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, SCSI_SHOW_MP_MPC_VALUE, SCSI_SHOW_MP_BUFFER_MODE);
+                show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER, C_CAST(eScsiModePageControl, SCSI_SHOW_MP_MPC_VALUE), SCSI_SHOW_MP_BUFFER_MODE);
             }
         }
 
@@ -1820,7 +2042,7 @@ int32_t main(int argc, char *argv[])
         {
             dcoData dco;
             memset(&dco, 0, sizeof(dcoData));
-            switch(dco_Identify(&deviceList[deviceIter], &dco))
+            switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
                 show_DCO_Identify_Data(&dco);
@@ -1939,34 +2161,34 @@ int32_t main(int argc, char *argv[])
                     {
                     case 10://udma6
                         dco.udma.udma6 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 9://udma5
                         dco.udma.udma5 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 8://udma4
                         dco.udma.udma4 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 7://udma3
                         dco.udma.udma3 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 6://udma2
                         dco.udma.udma2 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 5://udma1
                         dco.udma.udma1 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 4://udma0
                         dco.udma.udma0 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 3://mwdma2
                         dco.mwdma.mwdma2 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 2://mwdma1
                         dco.mwdma.mwdma1 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 1://mwdma0
                         dco.mwdma.mwdma0 = true;
-                        M_FALLTHROUGH
+                        M_FALLTHROUGH;
                     case 0://no DMA modes at all
                         break;
                     }
@@ -2271,7 +2493,7 @@ int32_t main(int argc, char *argv[])
 
         if (SET_SSC_FLAG)
         {
-            switch (set_SSC_Feature_SATA(&deviceList[deviceIter], SSC_MODE))
+            switch (set_SSC_Feature_SATA(&deviceList[deviceIter], C_CAST(eSSCFeatureState, SSC_MODE)))
             {
             case SUCCESS:
                 printf("Successfully set SSC feature to ");
@@ -2466,7 +2688,6 @@ int32_t main(int argc, char *argv[])
         {
             uint16_t sctFlags = 0;
             uint16_t state = 0;
-            //TODO: switch to sct_Get_Feature_Control since it is the correct call to use for this info
             if (SUCCESS == sct_Get_Feature_Control(&deviceList[deviceIter], SCT_FEATURE_CONTROL_WRITE_CACHE_STATE, &SCT_WRITE_CACHE_SETTING, &SCT_WRITE_CACHE_SET_DEFAULT, &state, &sctFlags))
             {
                 if (state == 0 || state > 0x0003)
@@ -2582,7 +2803,6 @@ int32_t main(int argc, char *argv[])
         {
             uint16_t sctFlags = 0;
             uint16_t state = 0;
-            //TODO: switch to sct_Get_Feature_Control since it is the correct call to use for this info
             if (SUCCESS == sct_Get_Feature_Control(&deviceList[deviceIter], SCT_FEATURE_CONTROL_WRITE_CACHE_REORDERING, &SCT_WRITE_CACHE_REORDER_SETTING, &SCT_WRITE_CACHE_REORDER_SET_DEFAULT, &state, &sctFlags))
             {
                 if (state == 0 || state > 0x0002)
@@ -3123,7 +3343,7 @@ int32_t main(int argc, char *argv[])
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully trimmed/unmapped LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Successfully trimmed/unmapped LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         break;
                     case NOT_SUPPORTED:
@@ -3136,7 +3356,7 @@ int32_t main(int argc, char *argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to trim/unmap LBAs %"PRIu64" to %"PRIu64"\n", localStartLBA, localStartLBA + localRange - 1);
+                            printf("Failed to trim/unmap LBAs %" PRIu64 " to %" PRIu64 "\n", localStartLBA, localStartLBA + localRange - 1);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3168,18 +3388,21 @@ int32_t main(int argc, char *argv[])
             bool scsiAtaInSync = false;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Setting MaxLBA to %"PRIu64"\n", SET_MAX_LBA_VALUE);
+                printf("Setting MaxLBA to %" PRIu64 "\n", SET_MAX_LBA_VALUE);
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], SET_MAX_LBA_VALUE, false, CHANGE_ID_STRING_FLAG))
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0, capacity = 0;
-                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    double mCapacity = 0;
+                    double capacity = 0;
+                    DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
+                    DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
+                    char* mCapUnit = &mCapUnits[0];
+                    char* capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
@@ -3224,16 +3447,19 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Restoring max LBA\n");
             }
-            switch (set_Max_LBA(&deviceList[deviceIter], 0, true))
+            switch (set_Max_LBA_2(&deviceList[deviceIter], 0, true, CHANGE_ID_STRING_FLAG))
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0, capacity = 0;
-                    char mCapUnits[UNIT_STRING_LENGTH] = { 0 }, capUnits[UNIT_STRING_LENGTH] = { 0 };
-                    char* mCapUnit = &mCapUnits[0], * capUnit = &capUnits[0];
+                    double mCapacity = 0;
+                    double capacity = 0;
+                    DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
+                    DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
+                    char* mCapUnit = &mCapUnits[0];
+                    char* capUnit = &capUnits[0];
                     if (deviceList[deviceIter].drive_info.bridge_info.isValid)
                     {
                         mCapacity = C_CAST(double, deviceList[deviceIter].drive_info.bridge_info.childDeviceMaxLba * deviceList[deviceIter].drive_info.bridge_info.childDeviceBlockSize);
@@ -3324,51 +3550,158 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if(PUIS_FEATURE_FLAG)
+        if (PUIS_FEATURE_FLAG)
         {
-            switch (enable_Disable_PUIS_Feature(&deviceList[deviceIter], PUIS_FEATURE_STATE_FLAG))
+            printf("\nPlease switch use of PUIS options to openSeaChest_PowerControl.\n");
+            printf("These options will be removed from openSeaChest_Configure in a future release.\n");
+            puisInfo info;
+            memset(&info, 0, sizeof(puisInfo));
+            eReturnValues puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
+            if (PUIS_FEATURE_SPINUP_FLAG)
             {
-            case SUCCESS:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (info.puisEnabled)
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                    switch (puis_Spinup(&deviceList[deviceIter]))
                     {
-                        printf("PUIS feature successfully enabled!\n");
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("\nSuccessfully performed PUIS spinup command\n");
+                            printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS spinup command is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Failed to perform the PUIS spinup command\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (info.puisSupported)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS feature is not enabled. Nothing to do.\n");
+                        }
                     }
                     else
                     {
-                        printf("PUIS feature successfully disabled!\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("PUIS spinup command is not supported on this device.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     }
                 }
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
+            }
+            if (PUIS_FEATURE_INFO_FLAG)
+            {
+                switch (puisInfoRet)
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Enabling PUIS feature not supported on this device.\n");
+                        printf("===PUIS Info===\n");
+                        if (info.puisSupported)
+                        {
+                            if (info.puisEnabled)
+                            {
+                                printf("\tPUIS is supported and enabled\n");
+                            }
+                            else
+                            {
+                                printf("\tPUIS is supported\n");
+                            }
+                            if (info.spinupCommandRequired)
+                            {
+                                printf("\tSpin-Up command is required for medium access.\n");
+                            }
+                            else
+                            {
+                                printf("\tAutomatic spin-up as needed for medium access.\n");
+                            }
+                        }
+                        else
+                        {
+                            printf("\tPUIS is not supported on this device.\n");
+                        }
                     }
-                    else
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Disabling PUIS feature not supported on this device.\n");
+                        printf("PUIS is not available on this device type!\n");
                     }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to get PUIS info from this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+            }
+            if (PUIS_STATE_VALID_FLAG)
+            {
+                switch (enable_Disable_PUIS_Feature(&deviceList[deviceIter], PUIS_FEATURE_STATE_FLAG))
                 {
-                    if (PUIS_FEATURE_STATE_FLAG)
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to enable PUIS feature!\n");
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("PUIS feature successfully enabled!\n");
+                        }
+                        else
+                        {
+                            printf("PUIS feature successfully disabled!\n");
+                        }
                     }
-                    else
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to disable PUIS feature!\n");
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Enabling PUIS feature not supported on this device.\n");
+                        }
+                        else
+                        {
+                            printf("Disabling PUIS feature not supported on this device.\n");
+                        }
                     }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        if (PUIS_FEATURE_STATE_FLAG)
+                        {
+                            printf("Failed to enable PUIS feature!\n");
+                        }
+                        else
+                        {
+                            printf("Failed to disable PUIS feature!\n");
+                            printf("If PUIS is enabled with a jumper, it cannot be disabled with this command!\n");
+                            printf("Remove the PUIS jumper to disable the feature in this case.\n");
+                        }
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
 
@@ -3565,13 +3898,13 @@ int32_t main(int argc, char *argv[])
 
         if (SCSI_RESET_LP_OP)
         {
-            int resetLPResult = SUCCESS;
+            eReturnValues resetLPResult = SUCCESS;
             if (SCSI_RESET_LP_LPC > LPC_DEFAULT_CUMULATIVE_VALUES)
             {
                 //requesting to reset all
                 for (SCSI_RESET_LP_LPC = LPC_THRESHOLD_VALUES; SCSI_RESET_LP_LPC <= LPC_DEFAULT_CUMULATIVE_VALUES; ++SCSI_RESET_LP_LPC)
                 {
-                    int resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                    eReturnValues resetLPCommandRet = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
                     if (SUCCESS != resetLPCommandRet)//this is to catch if any LPC reset value creates an error
                     {
                         resetLPResult = resetLPCommandRet;
@@ -3581,7 +3914,7 @@ int32_t main(int argc, char *argv[])
             else
             {
                 //reset just the specified information
-                resetLPResult = reset_SCSI_Log_Page(&deviceList[deviceIter], SCSI_RESET_LP_LPC, SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
+                resetLPResult = reset_SCSI_Log_Page(&deviceList[deviceIter], C_CAST(eScsiLogPageControl, SCSI_RESET_LP_LPC), SCSI_RESET_LP_PAGE_NUMBER, SCSI_RESET_LP_SUBPAGE_NUMBER, !VOLATILE_FLAG);
             }
             switch (resetLPResult)
             {
@@ -3621,82 +3954,96 @@ int32_t main(int argc, char *argv[])
 
         if (SCSI_SET_MP_OP)
         {
-            if (strlen(SCSI_SET_MP_FILENAME) > 0)//file was given to be used to set the MP
+            if (safe_strlen(SCSI_SET_MP_FILENAME) > 0)//file was given to be used to set the MP
             {
                 //need to open the file that was passed, and convert it to an array.
                 //skip all newlines, spaces, underscores, dashes, slashes, etc. We should only be finding hex bytes inside this buffer (no H's or 0x's either)
-                FILE *modePageFile = fopen(SCSI_SET_MP_FILENAME, "r");
-                if (modePageFile)
+                secureFileInfo* modePageFile = secure_Open_File(SCSI_SET_MP_FILENAME, "r", M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                if (modePageFile && modePageFile->error == SEC_FILE_SUCCESS)
                 {
                     //first, figure out the length of the file...this will be useful to help us allocate a big enough buffer for the data
-                    size_t fileLength = C_CAST(size_t, get_File_Size(modePageFile)) + 1;//add 1 so that we have a null terminator once we read in the file.
-                    uint8_t *modePageBuffer = C_CAST(uint8_t*, calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
-                    char *fileBuf = C_CAST(char*, calloc(fileLength, sizeof(char)));
-                    if (modePageBuffer && fileBuf)
+                    if (modePageFile->fileSize > 0)
                     {
-                        //read the file
-                        if ((fileLength - 1) == fread(fileBuf, sizeof(char), (fileLength - 1), modePageFile))//need the -1 since we added an extra 1 space above for a null terminator otherwise this fails. - TJE
+                        size_t fileLength = modePageFile->fileSize + 1;//add 1 so that we have a null terminator once we read in the file.
+                        uint8_t *modePageBuffer = C_CAST(uint8_t*, safe_calloc_aligned(fileLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));//this will allocate more than enough memory for us to read the file...it's extra and that's ok.
+                        char *fileBuf = C_CAST(char*, safe_calloc(fileLength, sizeof(char)));
+                        if (modePageBuffer && fileBuf)
                         {
-                            //parse the file
-                            char *delimiters = " \n\r-_\\/|\t:;";
-                            char *token = strtok(fileBuf, delimiters);//add more to the delimiter list as needed
-                            if (token)
+                            //read the file
+                            size_t modeBytesRead = 0;
+                            if (secure_Read_File(modePageFile, fileBuf, fileLength, sizeof(char), fileLength - 1, &modeBytesRead) == SEC_FILE_SUCCESS && modeBytesRead == fileLength - 1)
                             {
-                                bool invalidCharacterOrMissingSeparator = false;
-                                uint16_t modeBufferElementCount = 0;
-                                do
+                                //parse the file
+                                rsize_t filebuflen = safe_strlen(fileBuf);
+                                char *saveptr = M_NULLPTR;
+                                const char *delimiters = " \n\r-_\\/|\t:;";
+                                char *token = common_String_Token(fileBuf, &filebuflen, delimiters, &saveptr);//add more to the delimiter list as needed
+                                if (token)
                                 {
-                                    if (strlen(token) > 2)
+                                    bool invalidCharacterOrMissingSeparator = false;
+                                    uint16_t modeBufferElementCount = 0;
+                                    do
                                     {
-                                        invalidCharacterOrMissingSeparator = true;
-                                        break;
-                                    }
-                                    if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
-                                    {
-                                        invalidCharacterOrMissingSeparator = true;
-                                        break;
-                                    }
-                                    //not an invalid character or a missing separator, so convert the string to an array value.
-                                    modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, strtoul(token, NULL, 16));
-                                    ++modeBufferElementCount;
-                                    token = strtok(NULL, delimiters);
-                                } while (token);
-                                if (!invalidCharacterOrMissingSeparator)
-                                {
-                                    //file is read, send the change
-                                    switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
-                                    {
-                                    case SUCCESS:
-                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        if (safe_strlen(token) > 2)
                                         {
-                                            printf("Successfully set SCSI mode page!\n");
-                                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                            invalidCharacterOrMissingSeparator = true;
+                                            break;
+                                        }
+                                        if (strpbrk(token, "ghijklmnopqrstuvwxyzGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()+={[}]\"'<>?,.`~"))
+                                        {
+                                            invalidCharacterOrMissingSeparator = true;
+                                            break;
+                                        }
+                                        //not an invalid character or a missing separator, so convert the string to an array value.
+                                        modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, strtoul(token, M_NULLPTR, 16));
+                                        ++modeBufferElementCount;
+                                        token = common_String_Token(M_NULLPTR, &filebuflen, delimiters, &saveptr);
+                                    } while (token);
+                                    if (!invalidCharacterOrMissingSeparator)
+                                    {
+                                        //file is read, send the change
+                                        switch (scsi_Set_Mode_Page(&deviceList[deviceIter], modePageBuffer, modeBufferElementCount, !VOLATILE_FLAG))
+                                        {
+                                        case SUCCESS:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                                printf("Successfully set SCSI mode page!\n");
+                                                if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                                                {
+                                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                                }
                                             }
+                                            break;
+                                        case NOT_SUPPORTED:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
+                                            }
+                                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                                            break;
+                                        default:
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("Failed to set the mode page changes that were requested.\n");
+                                            }
+                                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                            break;
                                         }
-                                        break;
-                                    case NOT_SUPPORTED:
+                                    }
+                                    else
+                                    {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("Unable to change the requested values in the mode page. These may not be changable or are an invalid combination.\n");
-                                        }
-                                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                                        break;
-                                    default:
-                                        if (VERBOSITY_QUIET < toolVerbosity)
-                                        {
-                                            printf("Failed to set the mode page changes that were requested.\n");
+                                            printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                        break;
                                     }
                                 }
                                 else
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("An error occurred while trying to parse the file. Please check the file format and make sure no invalid characters are provided.\n");
+                                        printf("An error occurred while trying to parse the file. Please check the file format.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -3705,20 +4052,22 @@ int32_t main(int argc, char *argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An error occurred while trying to parse the file. Please check the file format.\n");
+                                    printf("Error reading contents of mode page file!\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
+                            safe_free_aligned(&modePageBuffer);
                         }
                         else
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Error reading contents of mode page file!\n");
+                                printf("Unable to allocate memory to read the file. Cannot set the mode page.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
-                        safe_Free_aligned(modePageBuffer)
+                        safe_free_aligned(&modePageBuffer);
+                        safe_free(&fileBuf);
                     }
                     else
                     {
@@ -3728,9 +4077,13 @@ int32_t main(int argc, char *argv[])
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    fclose(modePageFile);
-                    safe_Free_aligned(modePageBuffer)
-                    safe_Free(fileBuf);
+                    if (SEC_FILE_SUCCESS != secure_Close_File(modePageFile))
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            perror("Fatal error while closing mode page file\n");
+                        }
+                    }
                 }
                 else
                 {
@@ -3740,6 +4093,7 @@ int32_t main(int argc, char *argv[])
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
+                free_Secure_File_Info(&modePageFile);
             }
             else
             {
@@ -3748,18 +4102,23 @@ int32_t main(int argc, char *argv[])
                 uint32_t rawModePageSize = 0;
                 if (SUCCESS == get_SCSI_Mode_Page_Size(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, &rawModePageSize))
                 {
-                    uint8_t *rawmodePageBuffer = C_CAST(uint8_t*, calloc(rawModePageSize, sizeof(uint8_t)));
+                    uint8_t *rawmodePageBuffer = C_CAST(uint8_t*, safe_calloc(rawModePageSize, sizeof(uint8_t)));
                     if (rawmodePageBuffer)
                     {
                         bool usedSizeByteCmd = false;
-                        if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, NULL, NULL, true, rawmodePageBuffer, rawModePageSize, NULL, &usedSizeByteCmd))
+                        if (SUCCESS == get_SCSI_Mode_Page(&deviceList[deviceIter], MPC_CURRENT_VALUES, SCSI_SET_MP_PAGE_NUMBER, SCSI_SET_MP_SUBPAGE_NUMBER, M_NULLPTR, M_NULLPTR, true, rawmodePageBuffer, rawModePageSize, M_NULLPTR, &usedSizeByteCmd))
                         {
                             uint32_t modeHeaderLen = usedSizeByteCmd ? MODE_PARAMETER_HEADER_6_LEN : MODE_PARAMETER_HEADER_10_LEN;
-                            uint32_t blockDescriptorLength = (deviceList[deviceIter].drive_info.scsiVersion < SCSI_VERSION_SCSI2) ? SHORT_LBA_BLOCK_DESCRIPTOR_LEN : 0;//the get_SCSI_MP function will only pull a block descriptor on old drives for compatibility using mode sense 6 commands, which is why this check is minimal
+                            uint32_t blockDescriptorLength = usedSizeByteCmd ? rawmodePageBuffer[2] : M_BytesTo2ByteValue(rawmodePageBuffer[6], rawmodePageBuffer[7]);
                             uint32_t dataLengthAdjustment = modeHeaderLen + blockDescriptorLength;
                             uint32_t modePageSize = rawModePageSize - dataLengthAdjustment;
                             uint8_t* modePageBuffer = rawmodePageBuffer + dataLengthAdjustment;
                             //TODO: some of this code can probably be simplified a bit more than it currently is.
+                            if (blockDescriptorLength > 0)
+                            {
+                                //Before going too far, clear the block descriptor to zeroes to make sure we are clearly communicating that no changes are requested.
+                                memset(&rawmodePageBuffer[modeHeaderLen], 0, blockDescriptorLength);
+                            }
                             //now we have the data, we can begin modifying the field requested.
                             if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
                             {
@@ -3778,7 +4137,7 @@ int32_t main(int argc, char *argv[])
                                     }
                                     //check how many full bytes worth of bits we'll be setting.
                                     uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                    remainingBits -= fullBytesToSet * BITSPERBYTE;
+                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet * BITSPERBYTE);
                                     lowUnalignedBits = remainingBits;
                                     //now we know how we need to set things, so lets start at the end (lsb) and work up from there.
                                     //as we set the necessary bits, we will shift the original value to the right to make it easy to set each piece of the bits.
@@ -3788,11 +4147,11 @@ int32_t main(int argc, char *argv[])
                                     {
                                         ++offset;//add one to the offset since these bits are on another byte past the starting offset and any full bytes we need to set
                                         //need to create a mask and take the lowest bits that we need and place then in this byte starting at bit 7
-                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1);
+                                        uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1)) << (7 - lowUnalignedBits + 1));
                                         //clear the requested bits first
-                                        modePageBuffer[offset] &= ~(mask);
+                                        modePageBuffer[offset] &= C_CAST(uint8_t, ~(mask));
                                         //now set them as requested
-                                        modePageBuffer[offset] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1)));
+                                        modePageBuffer[offset] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (7 - lowUnalignedBits + 1))));
                                         //bits are set, decrease the offset for the next operation
                                         --offset;
                                         SCSI_SET_MP_FIELD_VALUE >>= lowUnalignedBits;
@@ -3807,21 +4166,21 @@ int32_t main(int argc, char *argv[])
                                     if (highUnalignedBits > 0)
                                     {
                                         //need to create a mask and take the highest bits (only ones remaining at this point) that we need and place then in this byte starting at bit 0
-                                        uint8_t mask = M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1);
+                                        uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1), (highUnalignedBits - 1) - (highUnalignedBits - 1)) << ((highUnalignedBits - 1) - highUnalignedBits + 1));
                                         //clear the requested bits first
-                                        modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                        modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                         //now set them as requested
-                                        modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1)));
+                                        modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << ((highUnalignedBits - 1) - highUnalignedBits + 1))));
                                     }
                                 }
                                 else
                                 {
                                     //setting bits within a single byte.
-                                    uint8_t mask = M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
+                                    uint8_t mask = C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT, SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1)) << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1));
                                     //clear the requested bits first
-                                    modePageBuffer[SCSI_SET_MP_BYTE] &= ~(mask);
+                                    modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                     //now set them as requested
-                                    modePageBuffer[SCSI_SET_MP_BYTE] |= (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1)));
+                                    modePageBuffer[SCSI_SET_MP_BYTE] |= C_CAST(uint8_t, (mask & (SCSI_SET_MP_FIELD_VALUE << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1))));
                                 }
                             }
                             else
@@ -3831,7 +4190,7 @@ int32_t main(int argc, char *argv[])
                                 uint8_t byteNumber = 0;
                                 while (fieldWidthBytes >= 1)
                                 {
-                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = C_CAST(uint8_t, (M_ByteN(byteNumber) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
+                                    modePageBuffer[SCSI_SET_MP_BYTE + (fieldWidthBytes - 1)] = C_CAST(uint8_t, (C_CAST(uint64_t, M_ByteN(byteNumber)) & SCSI_SET_MP_FIELD_VALUE) >> (BITSPERBYTE * byteNumber));
                                     --fieldWidthBytes;
                                     ++byteNumber;
                                 }
@@ -3873,7 +4232,7 @@ int32_t main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
-                        safe_Free(rawmodePageBuffer);
+                        safe_free(&rawmodePageBuffer);
                     }
                     else
                     {
@@ -3894,10 +4253,94 @@ int32_t main(int argc, char *argv[])
                 }
             }
         }
+
+        if (WRV_INFO)
+        {
+            wrvInfo info;
+            memset(&info, 0, sizeof(wrvInfo));
+            switch (get_Write_Read_Verify_Info(&deviceList[deviceIter], &info))
+            {
+            case SUCCESS:
+                print_Write_Read_Verify_Info(&info);
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Write-Read-Verify feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to get Write-Read-Verify feature infomation.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (WRV_FLAG)
+        {
+            if (WRV_DISABLE)
+            {
+                switch (disable_Write_Read_Verify(&deviceList[deviceIter]))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully disabled Write-Read-Verify feature\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Write-Read-Verify feature is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to disable Write-Read-Verify feature.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
+                switch (set_Write_Read_Verify(&deviceList[deviceIter], WRV_ALL, WRV_VENDOR, WRV_USER_VALUE))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Successfully enabled Write-Read-Verify feature\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Write-Read-Verify feature is not supported on this device.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to enable Write-Read-Verify feature.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+        }
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -3954,6 +4397,8 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 08:2:2:1=0\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
     printf("\t%s -d %s --%s file=modePageToChange.txt\n", util_name, deviceHandleExample, SCSI_SET_MP_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 134217728\n", util_name, deviceHandleExample, PROVISION_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 134217728 --%s\n", util_name, deviceHandleExample, SET_MAX_LBA_LONG_OPT_STRING, CHANGE_ID_STRING_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_IDENTIFY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_RESTORE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, ATA_DCO_FREEZE_LONG_OPT_STRING);
@@ -3961,7 +4406,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");
@@ -4001,6 +4446,8 @@ void utility_Usage(bool shortUsage)
     print_Test_Unit_Ready_Help(shortUsage);
     print_Fast_Discovery_Help(shortUsage);
     //utility tests/operations go here - alphabetized
+    print_Capacity_Model_Number_Mapping_Help(shortUsage);
+    print_Change_Id_String_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
@@ -4023,6 +4470,7 @@ void utility_Usage(bool shortUsage)
     print_SCT_Write_Cache_Help(shortUsage);
     print_SCT_Write_Cache_Reordering_Help(shortUsage);
     print_SCT_Error_Recovery_Write_Help(shortUsage);
+    print_WRV_Help(shortUsage);
 
     //SAS Only Options
     printf("\n\tSAS Only:\n\t========\n");

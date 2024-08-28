@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,11 +15,15 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "time_utils.h"
+#include "math_utils.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -30,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_GenericTests";
-const char *buildVersion = "2.2.2";
+const char *buildVersion = "2.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -50,14 +55,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -205,14 +210,14 @@ int32_t main(int argc, char *argv[])
             //parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, CONFIRM_LONG_OPT_STRING) == 0)
             {
-                if (strlen(optarg) == strlen(DATA_ERASE_ACCEPT_STRING) && strncmp(optarg, DATA_ERASE_ACCEPT_STRING, strlen(DATA_ERASE_ACCEPT_STRING)) == 0)
+                if (safe_strlen(optarg) == safe_strlen(DATA_ERASE_ACCEPT_STRING) && strcmp(optarg, DATA_ERASE_ACCEPT_STRING) == 0)
                 {
                     DATA_ERASE_FLAG = true;
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_START_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_START_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_START_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &USER_GENERIC_START_FLAG))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &USER_GENERIC_START_FLAG))
                 {
                     RUN_USER_GENERIC_TEST = true;
                 }
@@ -235,84 +240,136 @@ int32_t main(int argc, char *argv[])
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(USER_GENERIC_LONG_OPT_RANGE_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, USER_GENERIC_LONG_OPT_RANGE_STRING) == 0)
             {
-                USER_GENERIC_RANGE_FLAG = C_CAST(uint64_t, atoll(optarg));
-                //Check to see if any units were specified, otherwise assume LBAs
-                uint64_t multiplier = 1;
-                if (strstr(optarg, "KB"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &USER_GENERIC_RANGE_FLAG))
                 {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000);
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint64_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1073741824);
+                        }
+                        else if (strcmp(unit, "TB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000000);
+                        }
+                        else if (strcmp(unit, "TiB") == 0)
+                        {
+                            USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1099511627776);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(USER_GENERIC_LONG_OPT_RANGE_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    USER_GENERIC_RANGE_FLAG *= multiplier;
                 }
-                else if (strstr(optarg, "KiB"))
+                else
                 {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1024);
+                    print_Error_In_Cmd_Line_Args(USER_GENERIC_LONG_OPT_RANGE_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "MB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    USER_GENERIC_RANGE_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1099511627776);
-                }
-                USER_GENERIC_RANGE_FLAG *= multiplier;//Later we need to adjust this by the logical sector size...currently this is a value in bytes
             }
-            else if (strncmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ERROR_LIMIT_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, ERROR_LIMIT_LONG_OPT_STRING) == 0)
             {
-                ERROR_LIMIT_FLAG = C_CAST(uint16_t, atoi(optarg));
-                if(strstr(optarg, "l"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint16(optarg, &unit, ALLOW_UNIT_SECTOR_TYPE, &ERROR_LIMIT_FLAG))
                 {
-                    ERROR_LIMIT_LOGICAL_COUNT = true;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "l") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = true;
+                        }
+                        else if (strcmp(unit, "p") == 0)
+                        {
+                            ERROR_LIMIT_LOGICAL_COUNT = false;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(ERROR_LIMIT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(HOURS_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, HOURS_TIME_LONG_OPT_STRING) == 0)
             {
-                HOURS_TIME_FLAG = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &HOURS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(HOURS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MINUTES_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MINUTES_TIME_LONG_OPT_STRING) == 0)
             {
-                MINUTES_TIME_FLAG = C_CAST(uint16_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &MINUTES_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(MINUTES_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SECONDS_TIME_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SECONDS_TIME_LONG_OPT_STRING) == 0)
             {
-                SECONDS_TIME_FLAG = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SECONDS_TIME_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(SECONDS_TIME_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
-            else if (strncmp(longopts[optionIndex].name, GENERIC_TEST_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(GENERIC_TEST_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, GENERIC_TEST_LONG_OPT_STRING) == 0)
             {
-                if (strncmp(optarg, "read", M_Min(4, strlen(optarg))) == 0)
+                if (strcmp(optarg, "read") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_READ;
                 }
-                else if (strncmp(optarg, "write", M_Min(5, strlen(optarg))) == 0)
+                else if (strcmp(optarg, "write") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_WRITE;
                 }
-                else if (strncmp(optarg, "verify", M_Min(6, strlen(optarg))) == 0)
+                else if (strcmp(optarg, "verify") == 0)
                 {
                     GENERIC_TEST_MODE_FLAG = RWV_COMMAND_VERIFY;
                 }
@@ -322,29 +379,29 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -384,50 +441,70 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, OD_MD_ID_TEST_RANGE_LONG_OPT_STRING) == 0)
             {
-                OD_ID_MD_TEST_RANGE = C_CAST(uint64_t, atoll(optarg));
-                //Check to see if any units were specified, otherwise assume LBAs
-                uint64_t multiplier = 1;
-                if (strstr(optarg, "KB"))
+                char *unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint64(optarg, &unit, ALLOW_UNIT_DATASIZE, &OD_ID_MD_TEST_RANGE))
                 {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000);
+                    //Check to see if any units were specified, otherwise assume LBAs
+                    uint64_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1;//no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else if (strcmp(unit, "GB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000);
+                        }
+                        else if (strcmp(unit, "GiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1073741824);
+                        }
+                        else if (strcmp(unit, "TB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1000000000000);
+                        }
+                        else if (strcmp(unit, "TiB") == 0)
+                        {
+                            OD_MD_ID_TEST_UNITS_SPECIFIED = true;
+                            multiplier = UINT64_C(1099511627776);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(OD_MD_ID_TEST_RANGE_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);                            
+                        }
+                    }
+                    OD_ID_MD_TEST_RANGE *= multiplier;
                 }
-                else if (strstr(optarg, "KiB"))
+                else
                 {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1024);
+                    print_Error_In_Cmd_Line_Args(OD_MD_ID_TEST_RANGE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
-                else if (strstr(optarg, "MB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000);
-                }
-                else if (strstr(optarg, "MiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1048576);
-                }
-                else if (strstr(optarg, "GB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000);
-                }
-                else if (strstr(optarg, "GiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1073741824);
-                }
-                else if (strstr(optarg, "TB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1000000000000);
-                }
-                else if (strstr(optarg, "TiB"))
-                {
-                    OD_MD_ID_TEST_UNITS_SPECIFIED = true;
-                    multiplier = UINT64_C(1099511627776);
-                }
-                OD_ID_MD_TEST_RANGE *= multiplier;//Later we need to adjust this by the logical sector size...currently this is a value in bytes
             }
             break;
         case ':'://missing required argument
@@ -493,9 +570,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -532,7 +610,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -629,7 +707,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -685,6 +763,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -723,7 +803,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -766,7 +846,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -814,11 +894,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -842,7 +922,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -884,7 +964,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -909,7 +989,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -947,6 +1027,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)
@@ -1020,7 +1109,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+            uint8_t *displaySector = C_CAST(uint8_t*, safe_calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1036,15 +1125,15 @@ int32_t main(int argc, char *argv[])
             }
             if (SUCCESS == read_LBA(&deviceList[deviceIter], DISPLAY_LBA_THE_LBA, false, displaySector, deviceList[deviceIter].drive_info.deviceBlockSize))
             {
-                printf("\nContents of LBA %"PRIu64":\n", DISPLAY_LBA_THE_LBA);
+                printf("\nContents of LBA %" PRIu64 ":\n", DISPLAY_LBA_THE_LBA);
                 print_Data_Buffer(displaySector, deviceList[deviceIter].drive_info.deviceBlockSize, true);
             }
             else
             {
-                printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
+                printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(displaySector)
+            safe_free_aligned(&displaySector);
         }
 
         if (BUFFER_TEST_FLAG)
@@ -1104,7 +1193,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting short generic test.\n");
             }
-            switch (short_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (short_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1134,7 +1223,7 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting two minute generic test.\n");
             }
-            switch (two_Minute_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (two_Minute_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1164,11 +1253,11 @@ int32_t main(int argc, char *argv[])
             {
                 printf("Starting long generic test.\n");
             }
-            if(ERROR_LIMIT_LOGICAL_COUNT)
+            if (ERROR_LIMIT_LOGICAL_COUNT)
             {
                 ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
             }
-            switch (long_Generic_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (long_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1230,13 +1319,13 @@ int32_t main(int argc, char *argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Starting user generic test starting at LBA %"PRIu64" for the range %"PRIu64"\n", USER_GENERIC_START_FLAG, localRange);
+                        printf("Starting user generic test starting at LBA %" PRIu64 " for the range %" PRIu64 "\n", USER_GENERIC_START_FLAG, localRange);
                     }
-                    if(ERROR_LIMIT_LOGICAL_COUNT)
+                    if (ERROR_LIMIT_LOGICAL_COUNT)
                     {
                         ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                     }
-                    switch (user_Sequential_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                    switch (user_Sequential_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), USER_GENERIC_START_FLAG, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
                     {
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1288,17 +1377,19 @@ int32_t main(int argc, char *argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     uint16_t days = 0;
-                    uint8_t hours = 0, minutes = 0, seconds = 0;
-                    convert_Seconds_To_Displayable_Time(timeInSeconds, NULL, &days, &hours, &minutes, &seconds);
+                    uint8_t hours = 0;
+                    uint8_t minutes = 0;
+                    uint8_t seconds = 0;
+                    convert_Seconds_To_Displayable_Time(timeInSeconds, M_NULLPTR, &days, &hours, &minutes, &seconds);
                     printf("Starting user generic timed test at LBA %" PRIu64 " for", USER_GENERIC_START_FLAG);
-                    print_Time_To_Screen(NULL, &days, &hours, &minutes, &seconds);
+                    print_Time_To_Screen(M_NULLPTR, &days, &hours, &minutes, &seconds);
                     printf("\n");
                 }
                 if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (user_Timed_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                switch (user_Timed_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), USER_GENERIC_START_FLAG, timeInSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1325,12 +1416,12 @@ int32_t main(int argc, char *argv[])
 
         if (RANDOM_READ_TEST_FLAG)
         {
-            time_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t randomReadSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Starting Random test\n");
             }
-            switch (random_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, randomReadSeconds, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (random_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), randomReadSeconds, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1356,12 +1447,12 @@ int32_t main(int argc, char *argv[])
 
         if (BUTTERFLY_READ_TEST_FLAG)
         {
-            time_t butterflyTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t butterflyTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("Starting Buttefly test.\n");
             }
-            switch (butterfly_Test(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, butterflyTestSeconds, NULL, NULL, HIDE_LBA_COUNTER))
+            switch (butterfly_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), butterflyTestSeconds, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1393,18 +1484,18 @@ int32_t main(int argc, char *argv[])
                 //this will convert the byte size to the nearest logical block (rounding up)
                 localRange = ((localRange + deviceList[deviceIter].drive_info.deviceBlockSize) - 1) / deviceList[deviceIter].drive_info.deviceBlockSize;
             }
-            uint64_t OdMdIdTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * 60) + (HOURS_TIME_FLAG * 3600);
+            uint64_t OdMdIdTestSeconds = SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (localRange > 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Starting diameter test\n");
                 }
-                if(ERROR_LIMIT_LOGICAL_COUNT)
+                if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (diameter_Test_Range(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, NULL, NULL, HIDE_LBA_COUNTER))
+                switch (diameter_Test_Range(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, localRange, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1431,11 +1522,11 @@ int32_t main(int argc, char *argv[])
             else if (OdMdIdTestSeconds > 0)
             {
                 //run a timed OD MD ID test
-                if(ERROR_LIMIT_LOGICAL_COUNT)
+                if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
                     ERROR_LIMIT_FLAG *= C_CAST(uint16_t, deviceList[deviceIter].drive_info.devicePhyBlockSize / deviceList[deviceIter].drive_info.deviceBlockSize);
                 }
-                switch (diameter_Test_Time(&deviceList[deviceIter], GENERIC_TEST_MODE_FLAG, PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
+                switch (diameter_Test_Time(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds, ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG, HIDE_LBA_COUNTER))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1471,7 +1562,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -1515,7 +1606,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

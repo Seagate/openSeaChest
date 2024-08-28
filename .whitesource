@@ -1,8 +1,9 @@
 {
-  "checkRunSettings": {
-    "vulnerableCheckRunConclusionLevel": "failure"
+  "settingsInheritedFrom": "Seagate/whitesource-config@main",
+  "scanSettings": {
+    "configMode": "LOCAL"
   },
-  "issueSettings": {
-    "minSeverityLevel": "LOW"
+  "scanSettingsSAST": {
+    "baseBranches": [ "develop" ]
   }
 }

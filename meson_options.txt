@@ -1,6 +1,8 @@
+# SPDX-License-Identifier: MPL-2.0
 option('tools', type : 'array', choices : [
   'Basics',
   'Configure',
+  'Defect',
   'Erase',
   'Firmware',
   'Format',
@@ -10,6 +12,7 @@ option('tools', type : 'array', choices : [
   'NVMe',
   'PassthroughTest',
   'PowerControl',
+  'Raw',
   'Reservations',
   'Security',
   'SMART',

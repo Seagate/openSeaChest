@@ -1,12 +1,12 @@
+# SPDX-License-Identifier: MPL-2.0
 task:
   name: FreeBSD
   env:
-    GITHUB_TOKEN: ENCRYPTED[!9dec9949a2f8e3df89062aa2eaee35279bf7c62a43f6e8a5a4407cde75f05f48ffdb157363d0090a91616da307c71832!]
+    GITHUB_TOKEN: ENCRYPTED[!ee1c9f1da9e4736edb4f543b3d2431949b17e6a86877e95ca4323f677185f7fbaae52c6afeb8145f0735bad487291a27!]
   freebsd_instance:
     matrix:
-      image_family: freebsd-14-0
-      image_family: freebsd-13-2
-      image_family: freebsd-12-4
+      image_family: freebsd-14-1
+      image_family: freebsd-13-3
   install_script: pkg install -y git meson
   submodules_script: git submodule update --init --recursive --progress
   release_script: |

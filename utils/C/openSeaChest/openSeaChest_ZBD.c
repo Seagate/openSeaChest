@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,11 +15,14 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "math_utils.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -29,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_ZBD";
-const char *buildVersion = "2.2.2";
+const char *buildVersion = "2.3.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -49,14 +53,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -90,7 +94,7 @@ int32_t main(int argc, char *argv[])
 #endif
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -168,7 +172,7 @@ int32_t main(int argc, char *argv[])
         {
         case 0:
             //parse long options that have no short option and required arguments here
-            if (strncmp(longopts[optionIndex].name, ZONE_ID_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(ZONE_ID_LONG_OPT_STRING))) == 0)
+            if (strcmp(longopts[optionIndex].name, ZONE_ID_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "all") == 0)
                 {
@@ -176,27 +180,22 @@ int32_t main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &ZONE_ID_FLAG))
+                    if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &ZONE_ID_FLAG))
                     {
                         print_Error_In_Cmd_Line_Args(ZONE_ID_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MAX_ZONES_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MAX_ZONES_LONG_OPT_STRING) == 0)
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    MAX_ZONES_FLAG = C_CAST(uint32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &MAX_ZONES_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(MAX_ZONES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, REPORT_ZONES_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(REPORT_ZONES_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, REPORT_ZONES_LONG_OPT_STRING) == 0)
             {
                 REPORT_ZONES_FLAG = true;
                 if (strcmp(optarg, "all") == 0)
@@ -249,22 +248,22 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -333,9 +332,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case QUIET_SHORT_OPT: //quiet mode
@@ -372,7 +372,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -469,7 +469,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -525,6 +525,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -559,7 +561,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -602,7 +604,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -650,11 +652,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -678,7 +680,7 @@ int32_t main(int argc, char *argv[])
             if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
             if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
             (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
@@ -720,7 +722,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -745,7 +747,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -783,6 +785,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)
@@ -871,7 +882,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (close_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (close_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -882,7 +893,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            printf("Successfully closed zone %"PRIu64"\n", ZONE_ID_FLAG);
+                            printf("Successfully closed zone %" PRIu64 "\n", ZONE_ID_FLAG);
                         }
                     }
                     break;
@@ -919,7 +930,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (finish_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (finish_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -930,7 +941,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            printf("Successfully finished zone %"PRIu64"\n", ZONE_ID_FLAG);
+                            printf("Successfully finished zone %" PRIu64 "\n", ZONE_ID_FLAG);
                         }
                     }
                     break;
@@ -967,7 +978,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (open_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (open_Zone(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -978,7 +989,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            printf("Successfully opened zone %"PRIu64"\n", ZONE_ID_FLAG);
+                            printf("Successfully opened zone %" PRIu64 "\n", ZONE_ID_FLAG);
                         }
                     }
                     break;
@@ -1015,7 +1026,7 @@ int32_t main(int argc, char *argv[])
                 {
                     ZONE_ID_FLAG = 0;
                 }
-                switch (reset_Write_Pointer(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG))
+                switch (reset_Write_Pointer(&deviceList[deviceIter], ZONE_ID_ALL_FLAG, ZONE_ID_FLAG, 0))
                 {
                 case SUCCESS:
                     if (toolVerbosity > VERBOSITY_QUIET)
@@ -1026,7 +1037,7 @@ int32_t main(int argc, char *argv[])
                         }
                         else
                         {
-                            printf("Successfully reset write pointer for zone %"PRIu64"\n", ZONE_ID_FLAG);
+                            printf("Successfully reset write pointer for zone %" PRIu64 "\n", ZONE_ID_FLAG);
                         }
                     }
                     break;
@@ -1054,20 +1065,20 @@ int32_t main(int argc, char *argv[])
             {
                 ZONE_ID_FLAG = 0;
             }
-            if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, &numberOfZones))
+            if (SUCCESS == get_Number_Of_Zones(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
-                ptrZoneDescriptor zoneDescriptors = C_CAST(ptrZoneDescriptor, calloc(numberOfZones, sizeof(zoneDescriptor)));
+                ptrZoneDescriptor zoneDescriptors = C_CAST(ptrZoneDescriptor, safe_calloc(numberOfZones, sizeof(zoneDescriptor)));
                 if (!zoneDescriptors)
                 {
                     perror("cannot allocate memory for zone descriptors");
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
-                int reportRet = get_Zone_Descriptors(&deviceList[deviceIter], REPORT_ZONES_REPORTING_MODE_FLAG, ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
+                eReturnValues reportRet = get_Zone_Descriptors(&deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
                 switch (reportRet)
                 {
                 case SUCCESS:
-                    print_Zone_Descriptors(REPORT_ZONES_REPORTING_MODE_FLAG, numberOfZones, zoneDescriptors);
+                    print_Zone_Descriptors(C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG), numberOfZones, zoneDescriptors);
                     break;
                 case NOT_SUPPORTED:
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1078,7 +1089,7 @@ int32_t main(int argc, char *argv[])
                     printf("Failed to get zones to report!\n");
                     break;
                 }
-                safe_Free(zoneDescriptors);
+                safe_free_zone_descriptor(&zoneDescriptors);
             }
             else
             {
@@ -1089,7 +1100,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -1130,7 +1141,7 @@ void utility_Usage(bool shortUsage)
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

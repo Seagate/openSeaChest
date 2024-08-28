@@ -1,0 +1,30 @@
+#See https://mesonbuild.com/Cross-compilation.html
+#and https://mesonbuild.com/Machine-files.html
+#and https://mesonbuild.com/Reference-tables.html#cpu-families
+#example usage of this file:
+#    meson setup --buildtype=release --cross-file=./meson_crosscompile/msvc_arm64.txt crossbuild_msvc_arm64
+#    ninja -C crossbuild_msvc_arm64
+
+#NOTE: You must execute the vcvarsamd64_arm64.bat to set this environment up first. This is essentially the
+#      setup for the developer command prompt for cross-tool compiling to arm64.
+
+[binaries]
+c = 'cl.exe'
+ld = 'link.exe'
+strip = 'strip'
+
+[properties]
+has_function_printf = true
+skip_sanity_check = true
+
+[host_machine]
+system = 'windows'
+subsystem = 'windows'
+kernel = 'nt'
+cpu_family = 'aarch64'
+cpu = 'armv8'
+endian = 'little'
+
+[built-in options]
+default_library='static'
+

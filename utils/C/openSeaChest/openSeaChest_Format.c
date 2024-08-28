@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: MPL-2.0
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,12 +15,16 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common.h"
-#include "common_platform.h"
-#include <ctype.h>
-#if defined (__unix__) || defined(__APPLE__) //using this definition because linux and unix compilers both define this. Apple does not define this, which is why it has it's own definition
-#include <unistd.h>
-#endif
+#include "common_types.h"
+#include "type_conversion.h"
+#include "memory_safety.h"
+#include "string_utils.h"
+#include "io_utils.h"
+#include "unit_conversion.h"
+#include "secure_file.h"
+#include "pattern_utils.h"
+#include "sleep.h"
+
 #include "getopt.h"
 #include "EULA.h"
 #include "openseachest_util_options.h"
@@ -32,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char *util_name = "openSeaChest_Format";
-const char *buildVersion = "3.0.4";
+const char *buildVersion = "3.2.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -52,14 +57,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int32_t main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
     //common utility variables
-    int                 ret = SUCCESS;
-    eUtilExitCodes      exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -85,7 +90,6 @@ int32_t main(int argc, char *argv[])
     FORCE_VAR
     //scan output flags
     SCAN_FLAGS_UTIL_VARS
-
     FORMAT_UNIT_VARS
     FAST_FORMAT_VAR
     FORMAT_UNIT_OPTION_FLAGS
@@ -101,17 +105,15 @@ int32_t main(int argc, char *argv[])
     REMOVE_PHYSICAL_ELEMENT_VAR
     REPOPULATE_ELEMENTS_VAR
     DEPOP_MAX_LBA_VAR
-
     NVM_FORMAT_VARS
     NVM_FORMAT_OPTION_VARS
-
 #if defined (ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
 
-    int  args = 0;
+    int args = 0;
     int argIndex = 0;
     int optionIndex = 0;
 
@@ -164,6 +166,7 @@ int32_t main(int argc, char *argv[])
         DEPOP_MAX_LBA_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
+        FORCE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -220,22 +223,22 @@ int32_t main(int argc, char *argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
                 snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
                 snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_MODEL_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
                 snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
-            else if (strncmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(CHILD_FW_MATCH_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
@@ -245,26 +248,18 @@ int32_t main(int argc, char *argv[])
                 FORMAT_UNIT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t tempSectorSize = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
-                    {
-                        //set the sector size
-                        FORMAT_SECTOR_SIZE = C_CAST(uint16_t, tempSectorSize);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint16(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &FORMAT_SECTOR_SIZE))
                     {
                         print_Error_In_Cmd_Line_Args(FORMAT_UNIT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
-            else if (strncmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING, M_Min(strlen(longopts[optionIndex].name), strlen(SET_SECTOR_SIZE_LONG_OPT_STRING))) == 0)
+            else if (strcmp(longopts[optionIndex].name, SET_SECTOR_SIZE_LONG_OPT_STRING) == 0)
             {
-                uint64_t tempSectorSize = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &tempSectorSize))
+                if (get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &SET_SECTOR_SIZE_SIZE))
                 {
                     SET_SECTOR_SIZE_FLAG = true;
-                    SET_SECTOR_SIZE_SIZE = C_CAST(uint32_t, tempSectorSize);
                 }
                 else
                 {
@@ -274,7 +269,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DISPLAY_LBA_THE_LBA))
+                if (get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &DISPLAY_LBA_THE_LBA))
                 {
                     DISPLAY_LBA_FLAG = true;
                 }
@@ -299,21 +294,39 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, FAST_FORMAT_LONG_OPT_STRING) == 0)
             {
-                FAST_FORMAT_FLAG = C_CAST(eFormatType, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_I(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FAST_FORMAT_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(FAST_FORMAT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_TYPE = C_CAST(uint8_t, atoi(optarg));
-                FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FORMAT_UNIT_PROTECTION_TYPE))
+                {
+                    FORMAT_UNIT_PROECTION_TYPE_FROM_USER = true;
+                }
+                else
+                {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_PROTECTION_TYPE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING) == 0)
             {
-                FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT = C_CAST(uint8_t, atoi(optarg));
-                FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
+                if (get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT))
+                {
+                    FORMAT_UNIT_PROECTION_INTERVAL_EXPONENT_FROM_USER = true;
+                }
+                else
+                {
+                        print_Error_In_Cmd_Line_Args(FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &FORMAT_UNIT_NEW_MAX_LBA))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &FORMAT_UNIT_NEW_MAX_LBA))
                 {
                     print_Error_In_Cmd_Line_Args(FORMAT_UNIT_NEW_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -321,7 +334,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DEPOP_MAX_LBA_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &DEPOP_MAX_LBA_FLAG))
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &DEPOP_MAX_LBA_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(DEPOP_MAX_LBA_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -329,12 +342,7 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)//REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
             {
-                uint64_t temp = 0;
-                if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                {
-                    REMOVE_PHYSICAL_ELEMENT_FLAG = C_CAST(uint32_t, temp);
-                }
-                else
+                if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &REMOVE_PHYSICAL_ELEMENT_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -345,12 +353,7 @@ int32_t main(int argc, char *argv[])
                 NVM_FORMAT_FLAG = true;
                 if (strcmp(optarg, "current") != 0)
                 {
-                    uint64_t temp = 0;
-                    if (get_And_Validate_Integer_Input(C_CAST(const char *, optarg), &temp))
-                    {
-                        NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM = C_CAST(uint32_t, temp);
-                    }
-                    else
+                    if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char *, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM))
                     {
                         print_Error_In_Cmd_Line_Args(NVM_FORMAT_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -395,7 +398,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_PI_TYPE = C_CAST(uint8_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &NVM_FORMAT_PI_TYPE) || NVM_FORMAT_PI_TYPE > 3)
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_PI_TYPE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_PI_LOCATION_LONG_OPT_STRING) == 0)
             {
@@ -415,7 +422,11 @@ int32_t main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING) == 0)
             {
-                NVM_FORMAT_METADATA_SIZE = C_CAST(uint32_t, atoi(optarg));
+                if (!get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &NVM_FORMAT_METADATA_SIZE))
+                {
+                    print_Error_In_Cmd_Line_Args(NVM_FORMAT_METADATA_SIZE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NVM_FORMAT_METADATA_SETTING_LONG_OPT_STRING) == 0)
             {
@@ -448,49 +459,78 @@ int32_t main(int argc, char *argv[])
                         colonLocation += 1;//adding 1 to offset just beyond the colon for parsing the remaining data
                         if (strncmp("file:", optarg, 5) == 0)
                         {
-                            FILE *patternFile = NULL;
-                            size_t filenameLength = strlen(colonLocation) + 1;
-                            char *filename = C_CAST(char*, calloc(filenameLength, sizeof(char)));
-                            if (!filename)
+                            fileExt allowedExt[] = {
+                                {".bin", false},
+                                {".BIN", false},
+                                {M_NULLPTR, false} };
+                            secureFileInfo* fileinfo = secure_Open_File(colonLocation, "rb", allowedExt, M_NULLPTR, M_NULLPTR);
+                            if (fileinfo)
                             {
+                                if (fileinfo->error == SEC_FILE_SUCCESS)
+                                {
+                                    if (SEC_FILE_SUCCESS != secure_Read_File(fileinfo, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH, sizeof(uint8_t), fileinfo->fileSize, M_NULLPTR))
+                                    {
+                                        if (fileinfo->error == SEC_FILE_END_OF_FILE_REACHED)
+                                        {
+                                        }
+                                        else
+                                        {
+                                            printf("Unable to read contents of the file \"%s\" for the pattern.\n", fileinfo->filename);
+                                            if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
+                                            {
+                                                printf("secure file structure could not be closed! This is a fatal error!\n");
+                                            }
+                                            free_Secure_File_Info(&fileinfo);
+                                            exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    printf("Unable to open file \"%s\" for pattern\n", colonLocation);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
+                                if (SEC_FILE_SUCCESS == secure_Close_File(fileinfo))
+                                {
+                                    free_Secure_File_Info(&fileinfo);
+                                }
+                                else
+                                {
+                                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                                }
+                            }
+                            else
+                            {
+                                printf("Unable to open file \"%s\" for pattern\n", colonLocation);
                                 exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
-                            snprintf(filename, filenameLength, "%s", colonLocation);
-                            //open file
-                            if (NULL == (patternFile = fopen(filename, "rb")))
-                            {
-                                printf("Unable to open file \"%s\" for pattern\n", filename);
-                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                            }
-                            //read contents into buffer
-                            if (0 == fread(PATTERN_BUFFER, sizeof(uint8_t), M_Min(PATTERN_BUFFER_LENGTH, get_File_Size(patternFile)), patternFile))
-                            {
-                                printf("Unable to read contents of the file \"%s\" for the pattern.\n", filename);
-                                fclose(patternFile);
-                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
-                            }
-                            //close file
-                            fclose(patternFile);
-                            safe_Free(filename);
                         }
                         else if (strncmp("increment:", optarg, 10) == 0)
                         {
-                            uint8_t incrementStart = C_CAST(uint8_t, atoi(colonLocation));
-                            fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            uint8_t incrementStart = 0;
+                            if (get_And_Validate_Integer_Input_Uint8(colonLocation, M_NULLPTR, ALLOW_UNIT_NONE, &incrementStart))
+                            {
+                                fill_Incrementing_Pattern_In_Buffer(incrementStart, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
                         else if (strncmp("repeat:", optarg, 7) == 0)
                         {
                             //if final character is a lower case h, it's an hex pattern
-                            if (colonLocation[strlen(colonLocation) - 1] == 'h' && strlen(colonLocation) == 9)
+                            if (colonLocation[safe_strlen(colonLocation) - 1] == 'h' && safe_strlen(colonLocation) == 9)
                             {
-                                uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, NULL, 16));
+                                uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, M_NULLPTR, 16));
                                 //TODO: add endianness check before byte swap
                                 byte_Swap_32(&hexPattern);
                                 fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                             }
                             else
                             {
-                                fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                                fill_ASCII_Pattern_In_Buffer(colonLocation, C_CAST(uint32_t, safe_strlen(colonLocation)), PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
                             }
                         }
                         else
@@ -570,9 +610,10 @@ int32_t main(int argc, char *argv[])
             SHOW_BANNER_FLAG = true;
             break;
         case VERBOSE_SHORT_OPT: //verbose
-            if (optarg != NULL)
+            if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
-                toolVerbosity = atoi(optarg);
+                print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
+                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
         case PROGRESS_SHORT_OPT: //get test progress for a specific test
@@ -612,7 +653,7 @@ int32_t main(int argc, char *argv[])
         int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
-            if (strncmp(argv[commandLineIter], "--echoCommandLine", strlen(argv[commandLineIter])) == 0)
+            if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
             {
                 continue;
             }
@@ -643,7 +684,7 @@ int32_t main(int argc, char *argv[])
             print_Elevated_Privileges_Text();
         }
         unsigned int scanControl = DEFAULT_SCAN;
-        if(AGRESSIVE_SCAN_FLAG)
+        if (AGRESSIVE_SCAN_FLAG)
         {
             scanControl |= AGRESSIVE_SCAN;
         }
@@ -709,7 +750,7 @@ int32_t main(int argc, char *argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, NULL, toolVerbosity);
+        scan_And_Print_Devs(scanControl, toolVerbosity);
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -765,6 +806,8 @@ int32_t main(int argc, char *argv[])
     }
 
     if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
+        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
+        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
         || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
@@ -788,7 +831,7 @@ int32_t main(int argc, char *argv[])
         //check for other tool specific options here
         || FORMAT_UNIT_FLAG
         || DISPLAY_LBA_FLAG
-        || (PROGRESS_CHAR != NULL)
+        || (PROGRESS_CHAR != M_NULLPTR)
         || SHOW_FORMAT_STATUS_LOG_FLAG
         || SET_SECTOR_SIZE_FLAG
         || SHOW_SUPPORTED_FORMATS_FLAG
@@ -804,7 +847,7 @@ int32_t main(int argc, char *argv[])
     }
 
     uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -847,7 +890,7 @@ int32_t main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        //TODO? check for this flag ENABLE_LEGACY_PASSTHROUGH_FLAG. Not sure it is needed here and may not be desirable.
+        
         for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
@@ -895,11 +938,11 @@ int32_t main(int argc, char *argv[])
             deviceList[handleIter].sanity.size = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
 #if defined (UEFI_C_SOURCE)
-            deviceList[handleIter].os_info.fd = NULL;
+            deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif  !defined(_WIN32)
             deviceList[handleIter].os_info.fd = -1;
 #if defined(VMK_CROSS_COMP)
-            deviceList[handleIter].os_info.nvmeFd = NULL;
+            deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
@@ -917,33 +960,34 @@ int32_t main(int argc, char *argv[])
 #if defined(_DEBUG)
             printf("Attempting to open handle \"%s\"\n", HANDLE_LIST[handleIter]);
 #endif
-            ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
+                ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
 #if !defined(VMK_CROSS_COMP)
-            if ((deviceList[handleIter].os_info.fd < 0) ||
+                if ((deviceList[handleIter].os_info.fd < 0) ||
 #else
-            if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == NULL)) ||
+                if (((deviceList[handleIter].os_info.fd < 0) &&
+                    (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #endif
-            (ret == FAILURE || ret == PERMISSION_DENIED))
+                    (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
+                if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
-            {
-                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
+                    }
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+                    if (ret == PERMISSION_DENIED || !is_Running_Elevated())
+                    {
+                        exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                    }
+                    else
+                    {
+                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                    }
                 }
-                free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
-                {
-                    exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-                }
-                else
-                {
-                    exit(UTIL_EXIT_OPERATION_FAILURE);
-                }
-            }
+
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1017,7 +1061,7 @@ int32_t main(int argc, char *argv[])
         //check for model number match
         if (MODEL_MATCH_FLAG)
         {
-            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == NULL)
+            if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1042,7 +1086,7 @@ int32_t main(int argc, char *argv[])
         //check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == NULL)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1080,6 +1124,15 @@ int32_t main(int argc, char *argv[])
                 printf("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
+        }
+
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                printf("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
 
         if (FORCE_ATA_PIO_FLAG)
@@ -1144,7 +1197,7 @@ int32_t main(int argc, char *argv[])
 
         if (DISPLAY_LBA_FLAG)
         {
-            uint8_t *displaySector = C_CAST(uint8_t*, calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+            uint8_t *displaySector = C_CAST(uint8_t*, safe_calloc_aligned(deviceList[deviceIter].drive_info.deviceBlockSize, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
             if (!displaySector)
             {
                 perror("Could not allocate memory to read LBA.");
@@ -1160,22 +1213,22 @@ int32_t main(int argc, char *argv[])
             }
             if (SUCCESS == read_LBA(&deviceList[deviceIter], DISPLAY_LBA_THE_LBA, false, displaySector, deviceList[deviceIter].drive_info.deviceBlockSize))
             {
-                printf("\nContents of LBA %"PRIu64":\n", DISPLAY_LBA_THE_LBA);
+                printf("\nContents of LBA %" PRIu64 ":\n", DISPLAY_LBA_THE_LBA);
                 print_Data_Buffer(displaySector, deviceList[deviceIter].drive_info.deviceBlockSize, true);
             }
             else
             {
-                printf("Error Reading LBA %"PRIu64" for display\n", DISPLAY_LBA_THE_LBA);
+                printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(displaySector)
+            safe_free_aligned(&displaySector);
         }
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
             uint32_t memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
-            ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, malloc(memSize));
+            ptrSupportedFormats formats = C_CAST(ptrSupportedFormats, safe_malloc(memSize));
 
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -1207,7 +1260,7 @@ int32_t main(int argc, char *argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
-                safe_Free(formats);
+                safe_free_supported_formats(&formats);
             }
             else
             {
@@ -1256,7 +1309,7 @@ int32_t main(int argc, char *argv[])
                 get_Number_Of_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
                 if (numberOfDescriptors > 0)
                 {
-                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, malloc(numberOfDescriptors * sizeof(physicalElement)));
+                    ptrPhysicalElement elementList = C_CAST(ptrPhysicalElement, safe_malloc(numberOfDescriptors * sizeof(physicalElement)));
                     memset(elementList, 0, numberOfDescriptors * sizeof(physicalElement));
                     if (SUCCESS == get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
                     {
@@ -1305,11 +1358,11 @@ int32_t main(int argc, char *argv[])
                 {
                     currentBlockSize = false;
                 }
-                formatUnitParameters.formatType = FAST_FORMAT_FLAG;
+                formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
                 formatUnitParameters.currentBlockSize = currentBlockSize;
                 formatUnitParameters.newBlockSize = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.newMaxLBA = FORMAT_UNIT_NEW_MAX_LBA;//if zero, this is ignored
-                formatUnitParameters.gList = NULL;
+                formatUnitParameters.gList = M_NULLPTR;
                 formatUnitParameters.glistSize = 0;
                 formatUnitParameters.completeList = FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG;
                 formatUnitParameters.defaultFormat = true;//Setting this to ture as the default UNLESS one of the format option flags is given!!! - TJE
@@ -1351,7 +1404,7 @@ int32_t main(int argc, char *argv[])
                     formatUnitParameters.protectionIntervalExponent = FORMAT_UNIT_PROTECTION_INTERVAL_EXPONENT;
                 }
                 formatUnitParameters.securityInitialize = false;
-                int formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
+                eReturnValues formatRet = run_Format_Unit(&deviceList[deviceIter], formatUnitParameters, POLL_FLAG);
                 switch (formatRet)
                 {
                 case SUCCESS:
@@ -1456,7 +1509,7 @@ int32_t main(int argc, char *argv[])
                 {
                     printf("Set Sector Size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
                 }
-                switch (set_Sector_Configuration(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE))
+                switch (set_Sector_Configuration_With_Force(&deviceList[deviceIter], SET_SECTOR_SIZE_SIZE, FORCE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1553,10 +1606,9 @@ int32_t main(int argc, char *argv[])
         {
             if (LOW_LEVEL_FORMAT_FLAG)
             {
-                bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], NULL);
+                bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], M_NULLPTR);
                 if (depopSupport)
                 {
-                    //TODO: add an option to allow setting a requested MaxLBA? Lets wait to see if a customer wants that option before we add it - TJE
                     switch (perform_Depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG, DEPOP_MAX_LBA_FLAG, POLL_FLAG))
                     {
                     case SUCCESS:
@@ -1595,7 +1647,7 @@ int32_t main(int argc, char *argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to depopulate element %" PRIu32".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
+                            printf("Failed to depopulate element %" PRIu32 ".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1627,7 +1679,7 @@ int32_t main(int argc, char *argv[])
         {
             if (LOW_LEVEL_FORMAT_FLAG)
             {
-                bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], NULL);
+                bool repopSupport = is_Repopulate_Feature_Supported(&deviceList[deviceIter], M_NULLPTR);
                 if (repopSupport)
                 {
                     switch (perform_Repopulate_Physical_Element(&deviceList[deviceIter], POLL_FLAG))
@@ -1641,7 +1693,7 @@ int32_t main(int argc, char *argv[])
                             }
                             else
                             {
-                                printf("Successfully started repopulation.\n"); 
+                                printf("Successfully started repopulation.\n");
                                 printf("The device may take a long time before it is ready to accept all commands again.\n");
                                 printf("Use \"--%s repop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
                             }
@@ -1773,7 +1825,7 @@ int32_t main(int argc, char *argv[])
                 default:
                     break;
                 }
-                int formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
+                eReturnValues formatRet = run_NVMe_Format(&deviceList[deviceIter], nvmformatParameters, POLL_FLAG);
                 switch (formatRet)
                 {
                 case SUCCESS:
@@ -1832,9 +1884,9 @@ int32_t main(int argc, char *argv[])
             }
         }
 
-        if (PROGRESS_CHAR != NULL)
+        if (PROGRESS_CHAR != M_NULLPTR)
         {
-            int result = UNKNOWN;
+            eReturnValues result = UNKNOWN;
             //first take whatever was entered in progressTest and convert it to uppercase to do fewer string comparisons
             convert_String_To_Upper_Case(progressTest);
             //do some string comparisons to figure out what we are checking for progress on
@@ -1891,7 +1943,7 @@ int32_t main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(DEVICE_LIST);
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -1937,11 +1989,11 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s current --%s --%s user\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING, POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
     //TODO: Format and NVM format with PI
-    
+
     //return codes
     printf("\nReturn codes\n");
     printf("============\n");
-    print_SeaChest_Util_Exit_Codes(0, NULL, util_name);
+    print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     //utility options - alphabetized
     printf("\nUtility Options\n");

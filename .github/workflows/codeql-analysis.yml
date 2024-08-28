@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: MPL-2.0
 # For most projects, this workflow file will not need changing; you simply need
 # to commit it to your repository.
 #
@@ -17,8 +18,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
-
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,15 +27,50 @@ jobs:
         language: ['cpp']
         # Learn more...
         # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
+        config:
+        - {
+          name: "Windows MSVC x64",
+          os: windows-latest,
+          cc: "cl.exe",
+          cxx: "cl.exe",
+          arch: "x64",
+          meson_opts: "-Db_vscrt=static_from_buildtype"
+        }
+        - {
+          name: "Windows MSVC x86",
+          os: windows-latest,
+          cc: "cl.exe",
+          cxx: "cl.exe",
+          arch: "x64_x86",
+          meson_opts: "-Db_vscrt=static_from_buildtype"
+        }
+        - {
+          name: "Ubuntu GCC",
+          os: ubuntu-latest,
+          cc: "gcc",
+          cxx: "g++"
+        }
+        - {
+          name: "Ubuntu Clang",
+          os: ubuntu-latest,
+          cc: "clang",
+          cxx: "clang++"
+          }
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         # We must fetch at least the immediate parents so that if this is
         # a pull request then we can checkout the head.
         fetch-depth: 2
         submodules: recursive
+    
+    - name: Settings vars for MSVC
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.config.arch }}
 
     # If this run was triggered by a pull request event, then checkout
     # the head of the pull request instead of the merge commit.
@@ -44,7 +79,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
@@ -65,11 +100,12 @@ jobs:
     #    uses a compiled language
 
     - name: Configuring and compiling with meson
-      uses: BSFishy/meson-build@v1.0.3
-      with:
-        action: build
-        options: --verbose
-        meson-version: 0.60.1
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        pip install meson ninja
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3

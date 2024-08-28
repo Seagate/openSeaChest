@@ -8,6 +8,7 @@
 #   environment.
 #
 ##
+# SPDX-License-Identifier: MPL-2.0
 
 [Defines]
   PLATFORM_NAME                  = openSeaChestPkg

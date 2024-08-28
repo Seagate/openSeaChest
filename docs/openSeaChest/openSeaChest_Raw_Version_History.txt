@@ -1,0 +1,8 @@
+===============
+Version History - openSeaChest_Raw
+===============
+v0.9.0  28-Aug-2024  Combined 2 internal tools and moved them to openSeaChest_Raw
+                     Internal tools were separate for CDB and TFR so they were
+                     combined to simplify things a bit.
+                     Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)            
