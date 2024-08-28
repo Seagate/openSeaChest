@@ -262,4 +262,20 @@ v3.5.4  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      response to SAT A1h CDB.
                      Fixed a bug in FreeBSD causing non-data ATA commands to report
                      all zeroes instead of expected output in RTFRs.
+v3.6.2  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+                     Fixed capacity output after changing MaxLBA value on SATA and SAS.
+                     dded new options to change a device's MN when changing the maxLBA to.
+                     This new feature is supported only on new products with ACS-6 
+                     that support changing the MN. A log page describes the other MN's
+                     available at different capacities that can be used.
+                     Fixed memory leak in --progress option.
+                     All config files and firmware files must now be loaded from secured directories.
+                     Secured directories are owned by the user or root and do not allow writing to other users/groups.
+                     Fixed incorrect parameter for activate option. Backwards compatibility in 
+                     the API was able to catch this without causing an error.
+                     Added SMART trip reason when SMART trip is detected (As SeaChest_SMART has).
+                     Improved SMART trip detection algorithm when smart return status command
+                     is not available and attributes and thresholds must be used instead.
+                     SMART trip warning is now formatted according to text from SFF-8055.
                      

@@ -1,0 +1,74 @@
+Welcome to Seagate's openSeaChest Defect diagnostic software.
+
+This User Guide file contains important information about openSeaChest Defect.
+Please read this entire file before using this software.
+
+openSeaChest is a comprehensive, easy-to-use command line diagnostic tool that
+helps you quickly determine the health and status of your Seagate storage
+product. It includes several tests that will examine the physical media on your
+Seagate, Samsung or Maxtor disk drive.
+
+openSeaChest_Defect is a utility to display standardized device defect lists
+and create flagged or psuedo uncorrectable errors for testing purposes.
+When creating flagged or psuedo uncorrectable errors, this will cause data loss.
+These commands are meant to test a drive's defect handling capabilities as well
+as how a file system may react to defects on the device.
+
+Tests and commands which are completely data safe will run on any disk drive.
+Tests and commands which change the drive (like firmware download or data
+erasure or setting the maximum capacity, etc) are limited to Seagate disk
+drives (this includes Seagate, Maxtor, Samsung and LaCie). Be careful using
+openSeaChest because some of the features, like the data erasure options, will
+cause data loss. Seagate is not responsible for lost user data.
+
+If this is your drive, you should always keep a current backup of your
+important data.
+
+Important note: Many tests in this tool directly reference storage device data
+sectors, also known as Logical Block Addresses (LBA). Test arguments may
+require a starting LBA or an LBA range.  The predefined variable 'maxLBA'
+refers to the last sector on the drive.  Many older SATA and SAS storage
+controllers (also known as Host Bus Adapters [HBA]) have a maximum addressable
+limit of 4294967295 [FFFFh] LBAs hard wired into their design.  This equates to
+2.1TB using 512 byte sectors.  This also means accessing an LBA beyond the
+2.1TB limitation either will result in an error or simply the last readable LBA
+(usually LBA 4294967295 [FFFFh]) depending on the actual hardware.  This
+limitation can have important consequences.  For example, if you intended to
+erase a 4TB drive, then only the first 2TB will actually get erased (or maybe
+even twice!) and the last 2TB will remain untouched.  You should carefully
+evaluate your system hardware to understand if your storage controllers provide
+support for greater than 2.1TB.
+
+Note: One gigabyte, or GB, equals one billion bytes when referring to hard
+drive capacity. This software may use information provided by the operating
+system to display capacity and volume size. The Windows file system uses a
+binary calculation for gibibyte or GiB (2^30) which causes the abbreviated size
+to appear smaller. The total number of bytes on a disk drive divided by the
+decimal calculation for gigabyte or GB (10^9) shows the expected abbreviated
+size. See this FAQ for more information
+<http://knowledge.seagate.com/articles/en_US/FAQ/172191en?language=en_US>.
+
+NOTE: Windows severely restricts downloading firmware to SATA drives.  Please
+see the section below "Windows Restrictions Over SATA Firmware Downloads".
+openSeaChest_Basics may not be fully functional on non-Seagate drives.
+
+Usage - Linux (run with sudo)
+=============================
+        openSeaChest_Defect [-d <sg_device>] {arguments} {options}
+
+Examples - Linux
+================
+        sudo openSeaChest_Defect --scan
+        sudo openSeaChest_Defect -d /dev/sg2 -i
+        sudo openSeaChest_Defect -d /dev/sg1 --shortDST --poll
+
+Usage - Windows (run as administrator)
+======================================
+        openSeaChest_Defect [-d <PD_device>] {arguments} {options}
+
+Examples - Windows
+==================
+        openSeaChest_Defect --scan
+        openSeaChest_Defect -d PD0 -i
+        openSeaChest_Defect -d PD1 --shortDST --poll
+

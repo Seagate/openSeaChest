@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2019-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2019-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1077,7 +1077,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 
@@ -2194,7 +2194,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                         printf("\tGot Unit Serial Number as %s\n", unitSerialNumber);
                         memcpy(&scsiDevInfo->vpdData.unitSN, unitSerialNumber, M_Min(255, safe_strlen(unitSerialNumber)));
                     }
-                    safe_Free(C_CAST(void**, &unitSerialNumber));
+                    safe_free(&unitSerialNumber);
                 }
                 else
                 {
@@ -2391,7 +2391,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                     memcpy(vendorSpecificID, &pageToRead[designatorOffset + 8], designatorLength - 8);
                                     //TODO: validate that all characters are printable
                                     printf("\t\t\t    Vendor Specific ID: %s\n", vendorSpecificID);
-                                    safe_Free(C_CAST(void**, &vendorSpecificID));
+                                    safe_free(&vendorSpecificID);
                                 }
                             }
                             else
@@ -2624,7 +2624,7 @@ static void scsi_VPD_Pages(tDevice *device, ptrScsiDevInformation scsiDevInfo)
                                 memcpy(scsiNameString, &pageToRead[designatorOffset], designatorLength);
                                 //TODO: validate that all characters are UTF8
                                 printf("\t\t\t    SCSI Name: %s\n", scsiNameString);
-                                safe_Free(C_CAST(void**, &scsiNameString));
+                                safe_free(&scsiNameString);
                             }
                             else
                             {

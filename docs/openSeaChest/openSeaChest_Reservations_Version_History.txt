@@ -1,4 +1,7 @@
 ===============
 Version History - openSeaChest_Reservations
 ===============
-TODO: Review past releases and recreate version history
+v0.0.3  01-May-2021  Initial release of openSeaChest_Reservations utility.
+v0.2.1  01-May-2023  Nobanner, fast discovery, lowlevel info options added.
+v0.3.0  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)

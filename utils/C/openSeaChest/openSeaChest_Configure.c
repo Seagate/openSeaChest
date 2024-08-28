@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -707,7 +707,7 @@ int main(int argc, char *argv[])
                         errorInCL = true;
                     }
                 }
-                safe_Free(C_CAST(void**, &dupoptarg));
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESET_LONG_OPT_STRING, optarg);
@@ -761,7 +761,7 @@ int main(int argc, char *argv[])
                         errorInCL = true;
                     }
                 }
-                safe_Free(C_CAST(void**, &dupoptarg));
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_RESTORE_LONG_OPT_STRING, optarg);
@@ -815,7 +815,7 @@ int main(int argc, char *argv[])
                         errorInCL = true;
                     }
                 }
-                safe_Free(C_CAST(void**, &dupoptarg));
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_MP_SAVE_LONG_OPT_STRING, optarg);
@@ -869,7 +869,7 @@ int main(int argc, char *argv[])
                         errorInCL = true;
                     }
                 }
-                safe_Free(C_CAST(void**, &dupoptarg));
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_SHOW_MP_LONG_OPT_STRING, optarg);
@@ -965,7 +965,7 @@ int main(int argc, char *argv[])
                         print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    safe_Free(C_CAST(void**, &dupoptarg));
+                    safe_free(&dupoptarg);
                     saveptr = M_NULLPTR;
                     rsize_t pageSPlen = safe_strlen(pageAndSubpage);
                     char *pagetoken = common_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
@@ -1105,7 +1105,7 @@ int main(int argc, char *argv[])
                         errorInCL = true;
                     }
                 }
-                safe_Free(C_CAST(void**, &dupoptarg));
+                safe_free(&dupoptarg);
                 if (errorInCL)
                 {
                     print_Error_In_Cmd_Line_Args(SCSI_RESET_LP_PAGE_LONG_OPT_STRING, optarg);
@@ -1302,14 +1302,14 @@ int main(int argc, char *argv[])
                         else
                         {
                             //error, unknown option
-                            safe_Free(C_CAST(void**, &dcoDisableFeatList));
-                                ATA_DCO_DISABLE_FEATURES = false;
+                            safe_free(&dcoDisableFeatList);
+                            ATA_DCO_DISABLE_FEATURES = false;
                             print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
                         dcoFeatToken = common_String_Token(M_NULLPTR, &featlistlen, ",", &saveptr);
                     }
-                    safe_Free(C_CAST(void**, &dcoDisableFeatList));
+                    safe_free(&dcoDisableFeatList);
                 }
                 else
                 {
@@ -3394,7 +3394,7 @@ int main(int argc, char *argv[])
             {
             case SUCCESS:
                 scsiAtaInSync = is_Max_LBA_In_Sync_With_Adapter_Or_Driver(&deviceList[deviceIter], false);
-                fill_Drive_Info_Data(&deviceList[deviceIter]);//refresh stale data
+                fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     double mCapacity = 0;
@@ -3419,10 +3419,8 @@ int main(int argc, char *argv[])
                     if (!scsiAtaInSync)
                     {
                         printf("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
-                        printf("         If using a drive managed erase, this will not be an issue since the\n");
-                        printf("         drive firmware will handle this change properly.\n");
-                        printf("         If performing a manual overwrite, such as --%s, then a power cycle\n", OVERWRITE_LONG_OPT_STRING);
-                        printf("         is strongly recommended to make sure all writes complete without error.\n");
+                        printf("         A reboot is strongly recommended to make sure the system works without\n");
+                        printf("         errors with the drive at its new capacity.\n\n");
                     }
                 }
                 break;
@@ -4058,7 +4056,7 @@ int main(int argc, char *argv[])
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             }
-                            safe_Free_aligned(C_CAST(void**, &modePageBuffer));
+                            safe_free_aligned(&modePageBuffer);
                         }
                         else
                         {
@@ -4068,8 +4066,8 @@ int main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
-                        safe_Free_aligned(C_CAST(void**, &modePageBuffer));
-                        safe_Free(C_CAST(void**, &fileBuf));
+                        safe_free_aligned(&modePageBuffer);
+                        safe_free(&fileBuf);
                     }
                     else
                     {
@@ -4234,7 +4232,7 @@ int main(int argc, char *argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
-                        safe_Free(C_CAST(void**, &rawmodePageBuffer));
+                        safe_free(&rawmodePageBuffer);
                     }
                     else
                     {
@@ -4342,7 +4340,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 

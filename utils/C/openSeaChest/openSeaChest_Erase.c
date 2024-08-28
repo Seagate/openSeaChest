@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -794,7 +794,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     char *colonLocation = strstr(optarg, ":") + 1;//adding 1 to offset just beyond the colon for parsing the remaining data
-                    if (strncmp("file:", optarg, 5) == 0 && colonLocation)
+                    if (colonLocation && strncmp("file:", optarg, 5) == 0)
                     {
                         fileExt allowedExt[] = {
                                 {".bin", false},
@@ -833,7 +833,7 @@ int main(int argc, char *argv[])
                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                         }
                     }
-                    else if (strncmp("increment:", optarg, 10) == 0 && colonLocation)
+                    else if (colonLocation && strncmp("increment:", optarg, 10) == 0)
                     {
                         uint8_t incrementStart = 0;
                         if (get_And_Validate_Integer_Input_Uint8(colonLocation, M_NULLPTR, ALLOW_UNIT_NONE, &incrementStart))
@@ -846,7 +846,7 @@ int main(int argc, char *argv[])
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
                     }
-                    else if (strncmp("repeat:", optarg, 7) == 0 && colonLocation)
+                    else if (colonLocation && strncmp("repeat:", optarg, 7) == 0)
                     {
                         //if final character is a lower case h, it's an hex pattern
                         if (colonLocation[safe_strlen(colonLocation) - 1] == 'h' && safe_strlen(colonLocation) == 9)
@@ -1682,7 +1682,7 @@ int main(int argc, char *argv[])
                 printf("Error Reading LBA %" PRIu64 " for display\n", DISPLAY_LBA_THE_LBA);
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
-            safe_Free_aligned(C_CAST(void**, &displaySector));
+            safe_free_aligned(&displaySector);
         }
 
         //check for fastest erase flag first since it may be used to set other flags for other erase methods
@@ -3264,7 +3264,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 

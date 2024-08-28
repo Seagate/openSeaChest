@@ -1,0 +1,6 @@
+===============
+Version History - openSeaChest_Defect
+===============
+v0.9.0  28-Aug-2024  Combined 2 internal tools and moved them to openSeaChest_Defect
+                     Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)            

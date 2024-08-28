@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1089,7 +1089,7 @@ int main(int argc, char *argv[])
                     printf("Failed to get zones to report!\n");
                     break;
                 }
-                safe_Free(C_CAST(void**, &zoneDescriptors));
+                safe_free_zone_descriptor(&zoneDescriptors);
             }
             else
             {
@@ -1100,7 +1100,7 @@ int main(int argc, char *argv[])
         //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
-    safe_Free(C_CAST(void**, &DEVICE_LIST));
+    free_device_list(&DEVICE_LIST);
     exit(exitCode);
 }
 

@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2022 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -33,11 +33,12 @@ extern "C"
     #include "common_types.h"
     #include "opensea_common_version.h"
     #include "opensea_operation_version.h"
-    #include "secure_file.h"
+	#include "secure_file.h"
+    #include "common_public.h"
 
     //this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack corruption at runtime
     //This type should only be used where a boolean is desired when using the getopt parser (which expects an int), otherwise bool will do just fine
-    #define getOptBool int
+    typedef int getOptBool;
     #define goFalse 0
     #define goTrue !goFalse
     #define CURRENT_YEAR_LENGTH 5
@@ -84,6 +85,12 @@ extern "C"
     #define DEVICE_SHORT_OPT 'd'
     #define DEVICE_LONG_OPT_STRING "device"
     #define DEVICE_LONG_OPT { DEVICE_LONG_OPT_STRING, required_argument, M_NULLPTR, DEVICE_SHORT_OPT }
+
+    //NOTE: This is to clean up the single allocation in the utility layer before it exits - TJE
+    static M_INLINE void free_device_list(tDevice **list)
+    {
+        safe_Free(M_REINTERPRET_CAST(void**, list));
+    }
 
     #define SHOW_HELP_FLAG showHelp
     #define SHOW_HELP_VAR bool SHOW_HELP_FLAG = false;
@@ -3626,7 +3633,7 @@ extern "C"
     int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandleProvided, uint32_t *deviceCount, char ***handleList);
 
     //this call is to free the entire list of handles since they are all dynamically allocated.
-    void free_Handle_List(char ***handleList, uint32_t listCount);
+    void free_Handle_List(char*** handleList, uint32_t listCount);
 
 #if defined (ENABLE_CSMI)
     void print_CSMI_Force_Flags_Help(bool shortHelp);

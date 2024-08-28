@@ -241,3 +241,24 @@ v4.3.6  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      response to SAT A1h CDB.
                      Fixed a bug in FreeBSD causing non-data ATA commands to report
                      all zeroes instead of expected output in RTFRs.
+v4.6.0  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+                     Refactored Sanitize option parsing and handling.
+                     Handle SCSI unique sanitize conditions like write after crypto/block erase
+                     and how PI fields may be invalid after these operations which affects OS
+                     read commands to suggest a user also perform a overwrite.
+                     Added --znr (Zone no reset) and --noDeallocate options for ZBDs and NVMe
+                     devices with Sanitize and ATA security erase to allow for better erase
+                     verification.
+                     Added options to specify number of overwrite passes in Sanitize overwrite
+                     as well as option to invert the patter between overwrite passes.
+                     Added option to allow running sanitize in unrestricted mode.
+                     Better handling for sanitize if in a failure condition to continue/retry a
+                     sanitize operation in failed state instead of exiting.
+                     Changed refresh FS system behavior to only run when utility knows erase fully completed
+                     Added ability to manually refresh file systems from cli option.
+                     Improved sanitization of ATA security erase password after it is done being
+                     used to make sure it is also removed from memory.
+                     Improved logic within --eraseRestoreMaxPrep to handle a few other cases and
+                     feature set interactions that were not previously handled.
+                     

@@ -166,3 +166,6 @@ v2.2.2  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
                      response to SAT A1h CDB.
                      Fixed a bug in FreeBSD causing non-data ATA commands to report
                      all zeroes instead of expected output in RTFRs.
+v2.3.0  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+                     
