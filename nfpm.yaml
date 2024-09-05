@@ -15,7 +15,7 @@ homepage: "https://www.github.com/Seagate/openSeaChest"
 license: "MPL"
 contents:
   - src: openSeaChest_*
-    dst: /usr/local/bin/openSeaChest
+    dst: /usr/local/bin
     file_info:
       # Make sure that the mode is specified in octal, e.g. 0644 instead of 644.
       mode: 0755
