@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name = "openSeaChest_Defect";
-const char* buildVersion = "0.9.0";
+const char* buildVersion = "0.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1640,8 +1640,8 @@ void utility_Usage(bool shortUsage)
 
 
     //data destructive commands - alphabetized
-    printf("Data Destructive Commands (Seagate only)\n");
-    printf("========================================\n");
+    printf("Data Destructive Commands\n");
+    printf("=========================\n");
     //utility data destructive tests/operations go here
     print_Bytes_To_Corrupt_Help(shortUsage);
     print_DST_And_Clean_Help(shortUsage);

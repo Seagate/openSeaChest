@@ -5278,7 +5278,7 @@ void print_Check_Grown_List_Help(bool shortHelp)
 
 void print_Show_Pending_List_Help(bool shortHelp)
 {
-    printf("\t--%s (Seagate Only)\n", SHOW_PENDING_LIST_LONG_OPT_STRING);
+    printf("\t--%s\n", SHOW_PENDING_LIST_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to show the pending defect list\n");
@@ -5289,7 +5289,7 @@ void print_Show_Pending_List_Help(bool shortHelp)
 
 void print_Create_Uncorrectable_Help(bool shortHelp)
 {
-    printf("\t--%s [lba]\t(Seagate Only)\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING);
+    printf("\t--%s [lba]\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to create a uncorrectable error at\n");
@@ -5303,7 +5303,7 @@ void print_Create_Uncorrectable_Help(bool shortHelp)
 
 void print_Flag_Uncorrectable_Help(bool shortHelp)
 {
-    printf("\t--%s\t(Seagate Only)\n", FLAG_UNCORRECTABLE_LONG_OPT_STRING);
+    printf("\t--%s\n", FLAG_UNCORRECTABLE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to flag an uncorrectable error instead of\n");
@@ -5320,7 +5320,7 @@ void print_Flag_Uncorrectable_Help(bool shortHelp)
 
 void print_Uncorrectable_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [range]\t(Seagate Only)\n", UNCORRECTABLE_RANGE_LONG_OPT_STRING);
+    printf("\t--%s [range]\n", UNCORRECTABLE_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a range of LBAs to create an\n");
@@ -5332,7 +5332,7 @@ void print_Uncorrectable_Range_Help(bool shortHelp)
 
 void print_Random_Uncorrectable_Help(bool shortHelp)
 {
-    printf("\t--%s [number of errors]\t(Seagate Only)\n", RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
+    printf("\t--%s [number of errors]\n", RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to create a number of random uncorrectable\n");
@@ -5355,7 +5355,7 @@ void print_Disable_Read_Uncorrectables_Help(bool shortHelp)
 
 void print_Corrupt_LBA_Help(bool shortHelp)
 {
-    printf("\t--%s [lba]\t(Seagate Only)\n", CORRUPT_LBA_LONG_OPT_STRING);
+    printf("\t--%s [lba]\n", CORRUPT_LBA_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to corrupt the data bytes of an LBA. The\n");
@@ -5370,7 +5370,7 @@ void print_Corrupt_LBA_Help(bool shortHelp)
 
 void print_Corrupt_Random_LBAs_Help(bool shortHelp)
 {
-    printf("\t--%s [# of LBAs to corrupt]\t(Seagate Only)\n", CORRUPT_RANDOM_LBAS_LONG_OPT_STRING);
+    printf("\t--%s [# of LBAs to corrupt]\n", CORRUPT_RANDOM_LBAS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will corrupt the specified number of LBAs randomly\n");
@@ -5385,7 +5385,7 @@ void print_Corrupt_Random_LBAs_Help(bool shortHelp)
 
 void print_Corrupt_Range_Help(bool shortHelp)
 {
-    printf("\t--%s [# of LBAs]\t(Seagate Only)\n", CORRUPT_LBA_RANGE_LONG_OPT_STRING);
+    printf("\t--%s [# of LBAs]\n", CORRUPT_LBA_RANGE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is used with the --%s option to\n", CORRUPT_LBA_LONG_OPT_STRING);
@@ -5395,7 +5395,7 @@ void print_Corrupt_Range_Help(bool shortHelp)
 
 void print_Bytes_To_Corrupt_Help(bool shortHelp)
 {
-    printf("\t--%s [# of bytes]\t(Seagate Only)\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
+    printf("\t--%s [# of bytes]\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the number of data bytes to change\n");
@@ -5405,7 +5405,7 @@ void print_Bytes_To_Corrupt_Help(bool shortHelp)
 
 void print_SCSI_FW_Info_Help(bool shortHelp)
 {
-    printf("\t--%s (SAS Only)\n", SHOW_SCSI_FW_INFO_LONG_OPT_STRING);
+    printf("\t--%s (SAS Only) (Seagate Only)\n", SHOW_SCSI_FW_INFO_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will show the SCSI Firmware info from\n");
