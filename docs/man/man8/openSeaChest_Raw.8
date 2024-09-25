@@ -8,8 +8,8 @@ openSeaChest_Raw \- manual page for openSeaChest_Raw ===========================
 openSeaChest_Raw \- openSeaChest drive utilities \- NVMe Enabled
 Copyright (c) 2014\-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 openSeaChest_Raw Version: 0.9.0\-8_0_1 X86_64
-Build Date: Aug 28 2024
-Today: 20240911T100230 User: current user
+Build Date: Sep 19 2024
+Today: 20240925T133707 User: current user
 .PP
 ==========================================================================================
 Usage
@@ -45,6 +45,18 @@ Anything else = unknown error
 .PP
 Utility Options
 ===============
+.HP
+\fB\-\-csmiIgnorePort\fR (Obsolete)
+.IP
+This option is obsolete and will be removed in future versions.
+.HP
+\fB\-\-csmiUsePort\fR (Obsolete)
+.IP
+This option is obsolete and will be removed in future versions.
+.HP
+\fB\-\-csmiVerbose\fR (Obsolete)
+.IP
+This option is obsolete and will be removed in future versions.
 .HP
 \fB\-\-echoCommandLine\fR
 .IP
@@ -153,6 +165,7 @@ Utility Arguments
 .IP
 Use this option with most commands to specify the device
 handle on which to perform an operation. Example: /dev/sg<#>
+CSMI device handles can be specified as <error<#><#><#>>
 To run across all devices detected in the system, use the
 "all" argument instead of a device handle.
 Example: \fB\-d\fR all
@@ -178,6 +191,10 @@ interfaceSCSI \- show devices on a SCSI or SAS interface
 interfaceNVME = show devices on an NVMe interface
 sd \- show sd device handles
 sgtosd \- show the sd and sg device handle mapping
+ignoreCSMI \- do not scan for any CSMI devices
+allowDuplicates \- allow drives with both CSMI and PD handles
+.IP
+to show up multiple times in the list
 .HP
 \fB\-i\fR, \fB\-\-deviceInfo\fR
 .IP
@@ -568,8 +585,8 @@ Some OS's may not support CDBs larger than 16 bytes
 openSeaChest_Raw \- openSeaChest drive utilities \- NVMe Enabled
 Copyright (c) 2014\-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 openSeaChest_Raw Version: 0.9.0\-8_0_1 X86_64
-Build Date: Aug 28 2024
-Today: 20240911T100230 User: current user
+Build Date: Sep 19 2024
+Today: 20240925T133707 User: current user
 .PP
 ==========================================================================================
 Version Info for openSeaChest_Raw:
@@ -577,8 +594,8 @@ Version Info for openSeaChest_Raw:
 Utility Version: 0.9.0
 opensea\-common Version: 4.1.0
 opensea\-transport Version: 8.0.1
-opensea\-operations Version: 8.0.1
-Build Date: Aug 28 2024
+opensea\-operations Version: 8.0.2
+Build Date: Sep 19 2024
 Compiled Architecture: X86_64
 Detected Endianness: Little Endian
 Compiler Used: GCC
