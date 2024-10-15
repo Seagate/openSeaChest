@@ -288,6 +288,22 @@ jobs:
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
+    #NOTE: Moved to before creating tar file due to how we set permissions to create the tar
+    - name: Create packages
+      if: ${{ matrix.config.create_package }}
+      working-directory: ${{ format('build/{0}', env.DESTDIR) }}
+      run: | # https://nfpm.goreleaser.com/install/
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.36.1
+        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
+          version=$(echo ${{ github.ref_name }} | tr -d 'v')
+        else
+          version=$(printf "%s-dev" $(date +'%y.%m.%d'))
+        fi
+        sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
+        nfpm package -f ../../nfpm.yaml -p deb -t ..
+        nfpm package -f ../../nfpm.yaml -p rpm -t ..
+      shell: bash
+
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       run: sudo chown -R root:root build
@@ -314,26 +330,6 @@ jobs:
       with:
         go-version: 'stable'
         cache: false
-
-    - name: Create packages
-      if: ${{ matrix.config.create_package }}
-      working-directory: ${{ format('build/{0}', env.DESTDIR) }}
-      run: | # https://nfpm.goreleaser.com/install/
-        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.36.1
-        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
-          version=$(echo ${{ github.ref_name }} | tr -d 'v')
-        else
-          version=$(printf "%s-dev" $(date +'%y.%m.%d'))
-        fi
-        #Change ownership back before running deb/rpm creation
-        CURRENT_USER=$(whoami)
-        CURRENT_UID=$(getent passwd "$CURRENT_USER" | cut -d: -f3)
-        CURRENT_GID=$(getent passwd "$CURRENT_USER" | cut -d: -f4)
-        sudo chown -R $CURRENT_UID:$CURRENT_GID $DESTDIR
-        sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
-        nfpm package -f ../../nfpm.yaml -p deb -t ..
-        nfpm package -f ../../nfpm.yaml -p rpm -t ..
-      shell: bash
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
