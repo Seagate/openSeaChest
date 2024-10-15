@@ -4,7 +4,7 @@ name: CI for meson build
 on:
   push:
     branches: [ develop, master, release/*, feature/*, hotfix/* ]
-    tags: [ v*, test-ci ]
+    tags: [ v*, test-ci* ]
   pull_request:
     branches: [ develop ]
 
