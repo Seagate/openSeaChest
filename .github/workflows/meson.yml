@@ -260,6 +260,11 @@ jobs:
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
+    - name: Set ownership of executables to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: sudo chown root:root builddir/openSeaChest_*
+      
+
     - name: Packing release
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
