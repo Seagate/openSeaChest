@@ -288,7 +288,13 @@ jobs:
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
-    #NOTE: Moved to before creating tar file due to how we set permissions to create the tar
+    # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
+    - uses: actions/setup-go@v5
+      if: ${{ matrix.config.create_package }}
+      with:
+        go-version: 'stable'
+        cache: false
+
     - name: Create packages
       if: ${{ matrix.config.create_package }}
       working-directory: ${{ format('build/{0}', env.DESTDIR) }}
@@ -323,13 +329,6 @@ jobs:
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       run: sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
-
-    # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
-    - uses: actions/setup-go@v5
-      if: ${{ matrix.config.create_package }}
-      with:
-        go-version: 'stable'
-        cache: false
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
