@@ -79,7 +79,7 @@ jobs:
             cxx: "g++",
             release_name: "linux-x86_64-gcc",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "Ubuntu Clang",
@@ -88,7 +88,7 @@ jobs:
             cxx: "clang++",
             release_name: "linux-x86_64",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile x86_64",
@@ -101,7 +101,7 @@ jobs:
             cross_compiler_arch: "x86_64",
             release_name: "linux-x86_64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile i686",
@@ -113,7 +113,7 @@ jobs:
             cross_compiler_arch: "i686",
             release_name: "linux-i686-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile aarch64",
@@ -125,7 +125,7 @@ jobs:
             cross_compiler_arch: "aarch64",
             release_name: "linux-aarch64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile armv7l",
@@ -137,7 +137,7 @@ jobs:
             cross_compiler_arch: "armv7l",
             release_name: "linux-armv7l-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile armv6",
@@ -149,7 +149,7 @@ jobs:
             cross_compiler_arch: "armv6",
             release_name: "linux-armv6-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile armv5l",
@@ -161,7 +161,7 @@ jobs:
             cross_compiler_arch: "armv5l",
             release_name: "linux-armv5l-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile powerpc64",
@@ -173,7 +173,7 @@ jobs:
             cross_compiler_arch: "powerpc64",
             release_name: "linux-powerpc64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
         - {
             name: "MUSL Cross Compile powerpc64le",
@@ -185,7 +185,7 @@ jobs:
             cross_compiler_arch: "powerpc64le",
             release_name: "linux-powerpc64le-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar --owner=root --group=root -cvfJ"
+            archive_command: "tar cvfJ"
           }
     outputs: #where hashes need to be stored for slsa provenance
       #NOTE: Only doing this for builds with "publish_release: true"
@@ -272,6 +272,10 @@ jobs:
         cd build
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
       shell: bash
+
+    - name: Set ownership of tar archive to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
 
     # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
     - uses: actions/setup-go@v5
