@@ -298,7 +298,11 @@ jobs:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
       run: |
         cd build
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
+          sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        else
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        fi
       shell: bash
 
     - name: Set ownership of tar archive to root:root
