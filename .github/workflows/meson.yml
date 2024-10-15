@@ -223,7 +223,35 @@ jobs:
       if: startsWith(matrix.config.name, 'Windows Clang')
       run: |
         $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
-        echo "LLVM_RELID=$((Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest').Content | ConvertFrom-Json | Select-Object -ExpandProperty id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        $latestRelease = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest'
+        $releaseData = $latestRelease.Content | ConvertFrom-Json
+        $assets = $releaseData.assets | Where-Object { $_.name -like "*win64.exe" }
+        
+        if ($assets) {
+          $downloadUrl = $assets.browser_download_url
+          echo "LLVM_RELID=$($releaseData.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } else {
+          Write-Host "No current Windows build available for the latest release. Searching for previous releases..."
+          $releases = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases'
+          $found = $false
+          
+          foreach ($release in $releases.Content | ConvertFrom-Json) {
+            $assets = $release.assets | Where-Object { $_.name -like "*win64.exe" }
+            if ($assets) {
+              $downloadUrl = $assets.browser_download_url
+              echo "LLVM_RELID=$($release.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              $found = $true
+              break
+            }
+          }
+          
+          if (-not $found) {
+            Write-Host "No Windows build available for any recent releases."
+            exit 0
+          }
+        }
 
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang')
