@@ -329,7 +329,7 @@ jobs:
         CURRENT_USER=$(whoami)
         CURRENT_UID=$(getent passwd "$CURRENT_USER" | cut -d: -f3)
         CURRENT_GID=$(getent passwd "$CURRENT_USER" | cut -d: -f4)
-        sudo chown -R $CURRENT_UID:$CURRENT_GID build
+        sudo chown -R $CURRENT_UID:$CURRENT_GID $DESTDIR
         sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
         nfpm package -f ../../nfpm.yaml -p deb -t ..
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
