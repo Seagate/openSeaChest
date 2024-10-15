@@ -291,7 +291,6 @@ jobs:
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       run: sudo chown -R root:root build
-      
 
     - name: Packing release
       env:
@@ -326,6 +325,10 @@ jobs:
         else
           version=$(printf "%s-dev" $(date +'%y.%m.%d'))
         fi
+        #Change ownership back before running deb/rpm creation
+        CURRENT_UID=$(id -u)
+        CURRENT_GID=$(id -g)
+        sudo chown -R $CURRENT_UID:$CURRENT_GID build
         sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
         nfpm package -f ../../nfpm.yaml -p deb -t ..
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
