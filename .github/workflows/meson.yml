@@ -290,7 +290,7 @@ jobs:
 
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
-      run: sudo chown root:root build/openSeaChest_*
+      run: sudo chown -R root:root build
       
 
     - name: Packing release
