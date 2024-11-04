@@ -452,7 +452,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, &ATA_SECURITY_MASTER_PW_ID))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &ATA_SECURITY_MASTER_PW_ID))
                 {
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
