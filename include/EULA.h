@@ -14,12 +14,12 @@
 
 #pragma once
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C"
 {
 #endif
 
-    #include <stdio.h>
+#include <stdio.h>
 
     //-----------------------------------------------------------------------------
     //
@@ -47,7 +47,6 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Open_Source_Licenses(void);
 
-
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif

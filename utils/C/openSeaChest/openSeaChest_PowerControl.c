@@ -16,26 +16,26 @@
 //  Included files  //
 //////////////////////
 #include "common_types.h"
-#include "type_conversion.h"
+#include "io_utils.h"
 #include "memory_safety.h"
 #include "string_utils.h"
-#include "io_utils.h"
-#include "unit_conversion.h"
 #include "time_utils.h"
+#include "type_conversion.h"
+#include "unit_conversion.h"
 
-#include "getopt.h"
 #include "EULA.h"
+#include "drive_info.h"
+#include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
-#include "drive_info.h"
-#include "seagate_operations.h" //for power telemetry
+#include "seagate_operations.h"                  //for power telemetry
 #include "vendor/seagate/seagate_common_types.h" //power telemetry type
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.6.0";
+const char* util_name    = "openSeaChest_PowerControl";
+const char* buildVersion = "3.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -55,14 +55,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
-    //common utility variables
-    eReturnValues ret = SUCCESS;
-    int exitCode = UTIL_EXIT_NO_ERROR;
+    // common utility variables
+    eReturnValues ret      = SUCCESS;
+    int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -82,9 +82,9 @@ int main(int argc, char *argv[])
     ONLY_SEAGATE_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
-    //scan output flags
+    // scan output flags
     SCAN_FLAGS_UTIL_VARS
-    //utility specific functions
+    // utility specific functions
     CHECK_POWER_VAR
     SPIN_DOWN_VAR
     EPC_ENABLED_VAR
@@ -114,18 +114,19 @@ int main(int argc, char *argv[])
     SHOW_NVM_POWER_STATES_VAR
     PUIS_FEATURE_VARS
 
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
 
-    int args = 0;
-    int argIndex = 0;
+    int args        = 0;
+    int argIndex    = 0;
     int optionIndex = 0;
 
-    struct option longopts[] = {
-        //common command line options
+    struct option longopts[] =
+    {
+        // common command line options
         DEVICE_LONG_OPT,
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
@@ -149,12 +150,12 @@ int main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
         LOWLEVEL_INFO_LONG_OPT,
-        //tool specific options go here
+        // tool specific options go here
         CHECK_POWER_LONG_OPT,
         SHOW_NVM_POWER_STATES_LONG_OPT,
         SPIN_DOWN_LONG_OPT,
@@ -188,11 +189,11 @@ int main(int argc, char *argv[])
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
-#if defined (UEFI_C_SOURCE)
-    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
-    //      This is not necessary on most modern systems other than UEFI. 
-    //      This is not used in linux so that we don't depend on libbsd
-    //      Update the above #define check if we port to another OS that needs this to be done.
+#if defined(UEFI_C_SOURCE)
+    // NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //       This is not necessary on most modern systems other than UEFI.
+    //       This is not used in linux so that we don't depend on libbsd
+    //       Update the above #define check if we port to another OS that needs this to be done.
     setprogname(util_name);
 #endif
 
@@ -206,15 +207,15 @@ int main(int argc, char *argv[])
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    //get options we know we need
-    while (1) //changed to while 1 in order to parse multiple options when longs options are involved
+    // get options we know we need
+    while (1) // changed to while 1 in order to parse multiple options when longs options are involved
     {
         args = getopt_long(argc, argv, "d:hisSF:Vv:q", longopts, &optionIndex);
         if (args == -1)
         {
             break;
         }
-        //printf("Parsing arg <%u>\n", args);
+        // printf("Parsing arg <%u>\n", args);
         switch (args)
         {
         case 0:
@@ -237,17 +238,18 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_STATE_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Int32(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &TRANSITION_POWER_STATE_TO))
+                if (!get_And_Validate_Integer_Input_Int32(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                          &TRANSITION_POWER_STATE_TO))
                 {
                     print_Error_In_Cmd_Line_Args(TRANSITION_POWER_STATE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            //parse long options that have no short option and required arguments here
+            // parse long options that have no short option and required arguments here
             else if (strcmp(longopts[optionIndex].name, TRANSITION_POWER_MODE_LONG_OPT_STRING) == 0)
             {
                 TRANSITION_POWER_MODE_FLAG = true;
-                //set the power mode
+                // set the power mode
                 if (strcmp(POWER_STATE_ACTIVE_STRING, optarg) == 0)
                 {
                     TRANSITION_POWER_MODE_TO_POWER_MODE = PWR_CND_ACTIVE;
@@ -297,7 +299,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_POWER_CONSUMPTION_LONG_OPT_STRING) == 0)
             {
-                //set the flag for making the power consumption change
+                // set the flag for making the power consumption change
                 SET_POWER_CONSUMPTION_FLAG = true;
                 if (strcmp(optarg, "default") == 0)
                 {
@@ -317,7 +319,8 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    if (!get_And_Validate_Double_Input(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_POWER_CONSUMPTION_WATTS_VALUE))
+                    if (!get_And_Validate_Double_Input(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
+                                                       &SET_POWER_CONSUMPTION_WATTS_VALUE))
                     {
                         print_Error_In_Cmd_Line_Args(SET_POWER_CONSUMPTION_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -330,7 +333,7 @@ int main(int argc, char *argv[])
                 {
                     SET_APM_LEVEL_FLAG = true;
                 }
-                else 
+                else
                 {
                     print_Error_In_Cmd_Line_Args(SET_APM_LEVEL_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -344,21 +347,21 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "enable") == 0)
                 {
-                    SEAGATE_POWER_BALANCE_FLAG = true;
+                    SEAGATE_POWER_BALANCE_FLAG        = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = true;
-                    POWER_BALANCE_MODE = POWER_BAL_ENABLE;
+                    POWER_BALANCE_MODE                = POWER_BAL_ENABLE;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    SEAGATE_POWER_BALANCE_FLAG = true;
+                    SEAGATE_POWER_BALANCE_FLAG        = true;
                     SEAGATE_POWER_BALANCE_ENABLE_FLAG = false;
-                    POWER_BALANCE_MODE = POWER_BAL_DISABLE;
+                    POWER_BALANCE_MODE                = POWER_BAL_DISABLE;
                 }
                 else if (strcmp(optarg, "limited") == 0)
                 {
-                    SEAGATE_POWER_BALANCE_FLAG = true;
+                    SEAGATE_POWER_BALANCE_FLAG         = true;
                     SEAGATE_POWER_BALANCE_LIMITED_FLAG = true;
-                    POWER_BALANCE_MODE = POWER_BAL_LIMITED;
+                    POWER_BALANCE_MODE                 = POWER_BAL_LIMITED;
                 }
                 else
                 {
@@ -374,12 +377,12 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "enable") == 0)
                 {
-                    SATA_DIPM_FLAG = true;
+                    SATA_DIPM_FLAG        = true;
                     SATA_DIPM_ENABLE_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    SATA_DIPM_FLAG = true;
+                    SATA_DIPM_FLAG        = true;
                     SATA_DIPM_ENABLE_FLAG = false;
                 }
                 else
@@ -396,12 +399,12 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "enable") == 0)
                 {
-                    SATA_DAPS_FLAG = true;
+                    SATA_DAPS_FLAG        = true;
                     SATA_DAPS_ENABLE_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    SATA_DAPS_FLAG = true;
+                    SATA_DAPS_FLAG        = true;
                     SATA_DAPS_ENABLE_FLAG = false;
                 }
                 else
@@ -418,12 +421,12 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "enable") == 0)
                 {
-                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_FLAG        = true;
                     SAS_PARTIAL_ENABLE_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    SAS_PARTIAL_FLAG = true;
+                    SAS_PARTIAL_FLAG        = true;
                     SAS_PARTIAL_ENABLE_FLAG = false;
                 }
                 else
@@ -440,12 +443,12 @@ int main(int argc, char *argv[])
                 }
                 else if (strcmp(optarg, "enable") == 0)
                 {
-                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_FLAG        = true;
                     SAS_SLUMBER_ENABLE_FLAG = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
-                    SAS_SLUMBER_FLAG = true;
+                    SAS_SLUMBER_FLAG        = true;
                     SAS_SLUMBER_ENABLE_FLAG = false;
                 }
                 else
@@ -456,7 +459,8 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SET_PHY_SAS_PHY_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &SET_PHY_SAS_PHY_IDENTIFIER))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
+                                                          &SET_PHY_SAS_PHY_IDENTIFIER))
                 {
                     print_Error_In_Cmd_Line_Args(SET_PHY_SAS_PHY_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -479,15 +483,15 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
+                    char* unit = M_NULLPTR;
                     if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_A_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -503,17 +507,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         IDLE_A_TIMER_VALID = true;
                         IDLE_A_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(IDLE_A_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -537,15 +541,15 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
+                    char* unit = M_NULLPTR;
                     if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_B_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -561,17 +565,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         IDLE_B_TIMER_VALID = true;
                         IDLE_B_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(IDLE_B_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -595,15 +599,15 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
+                    char* unit = M_NULLPTR;
                     if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &IDLE_C_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -619,17 +623,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         IDLE_C_TIMER_VALID = true;
                         IDLE_C_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(IDLE_C_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -653,15 +657,16 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
-                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Z_POWER_MODE_TIMER))
+                    char* unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME,
+                                                              &STANDBY_Z_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -677,17 +682,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         STANDBY_Z_TIMER_VALID = true;
                         STANDBY_Z_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(STANDBY_Z_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -711,15 +716,16 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
-                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &STANDBY_Y_POWER_MODE_TIMER))
+                    char* unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME,
+                                                              &STANDBY_Y_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -735,17 +741,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         STANDBY_Y_TIMER_VALID = true;
                         STANDBY_Y_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(STANDBY_Y_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -769,15 +775,16 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
-                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_IDLE_POWER_MODE_TIMER))
+                    char* unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME,
+                                                              &LEGACY_IDLE_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -793,17 +800,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         LEGACY_IDLE_TIMER_VALID = true;
                         LEGACY_IDLE_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(LEGACY_IDLE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -827,15 +834,16 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    char *unit = M_NULLPTR;
-                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME, &LEGACY_STANDBY_POWER_MODE_TIMER))
+                    char* unit = M_NULLPTR;
+                    if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_TIME,
+                                                              &LEGACY_STANDBY_POWER_MODE_TIMER))
                     {
                         if (unit)
                         {
-                            //convert to milliseconds
+                            // convert to milliseconds
                             if (strcmp(unit, "") == 0 || strcmp(unit, "ms") == 0)
                             {
-                                //nothing to do as no unit specified or already set milliseconds value
+                                // nothing to do as no unit specified or already set milliseconds value
                             }
                             else if (strcmp(unit, "s") == 0)
                             {
@@ -851,17 +859,17 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //invalid unit
+                                // invalid unit
                                 print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
                                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                             }
                         }
-                        //the set function expects time in 100 millisecond units
-                        //Take the input millisecond time and divide it by 100
+                        // the set function expects time in 100 millisecond units
+                        // Take the input millisecond time and divide it by 100
                         LEGACY_STANDBY_TIMER_VALID = true;
                         LEGACY_STANDBY_POWER_MODE_TIMER /= 100;
                     }
-                    else 
+                    else
                     {
                         print_Error_In_Cmd_Line_Args(LEGACY_STANDBY_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -870,7 +878,8 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING) == 0)
             {
-                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE, &REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS))
+                if (get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                          &REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS))
                 {
                     REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG = true;
                 }
@@ -910,12 +919,12 @@ int main(int argc, char *argv[])
                 else if (strcmp(optarg, "enable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = true;
-                    PUIS_STATE_VALID_FLAG = true;
+                    PUIS_STATE_VALID_FLAG   = true;
                 }
                 else if (strcmp(optarg, "disable") == 0)
                 {
                     PUIS_FEATURE_STATE_FLAG = false;
-                    PUIS_STATE_VALID_FLAG = true;
+                    PUIS_STATE_VALID_FLAG   = true;
                 }
                 else if (strcmp(optarg, "spinup") == 0)
                 {
@@ -948,12 +957,12 @@ int main(int argc, char *argv[])
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
-        case ':'://missing required argument
+        case ':': // missing required argument
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             switch (optopt)
             {
             case 0:
-                //check long options for missing arguments
+                // check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -986,10 +995,11 @@ int main(int argc, char *argv[])
                 exit(exitCode);
             }
             break;
-        case DEVICE_SHORT_OPT: //device
-            if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT, &HANDLE_LIST))
+        case DEVICE_SHORT_OPT: // device
+            if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT,
+                                                  &HANDLE_LIST))
             {
-                //Free any memory allocated so far, then exit.
+                // Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -998,10 +1008,10 @@ int main(int argc, char *argv[])
                 exit(255);
             }
             break;
-        case DEVICE_INFO_SHORT_OPT: //device information
+        case DEVICE_INFO_SHORT_OPT: // device information
             DEVICE_INFO_FLAG = true;
             break;
-        case SCAN_SHORT_OPT: //scan
+        case SCAN_SHORT_OPT: // scan
             SCAN_FLAG = true;
             break;
         case AGRESSIVE_SCAN_SHORT_OPT:
@@ -1010,27 +1020,28 @@ int main(int argc, char *argv[])
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
-        case VERBOSE_SHORT_OPT: //verbose
+        case VERBOSE_SHORT_OPT: // verbose
             if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
                 print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
-        case QUIET_SHORT_OPT: //quiet mode
+        case QUIET_SHORT_OPT: // quiet mode
             toolVerbosity = VERBOSITY_QUIET;
             break;
-        case SCAN_FLAGS_SHORT_OPT://scan flags
+        case SCAN_FLAGS_SHORT_OPT: // scan flags
             get_Scan_Flags(&SCAN_FLAGS, optarg);
             break;
-        case '?': //unknown option
-            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+        case '?': // unknown option
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name,
+                   argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-        case 'h': //help
+        case 'h': // help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
@@ -1048,7 +1059,8 @@ int main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter =
+            1; // start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
@@ -1067,7 +1079,9 @@ int main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION,
+                                  OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION,
+                                  OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -1086,7 +1100,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-#if defined (__linux__)
+#if defined(__linux__)
         if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -1096,7 +1110,7 @@ int main(int argc, char *argv[])
             scanControl |= SG_TO_SD;
         }
 #endif
-        //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
+        // set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanATA)
         {
             scanControl |= ATA_DRIVES;
@@ -1117,7 +1131,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= RAID_DRIVES;
         }
-        //set the interface types to show (if none are set, the lower level code assumes we need to show everything)
+        // set the interface types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanInterfaceATA)
         {
             scanControl |= IDE_INTERFACE_DRIVES;
@@ -1134,7 +1148,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         if (SCAN_FLAGS.scanIgnoreCSMI)
         {
             scanControl |= IGNORE_CSMI;
@@ -1159,7 +1173,7 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_NO_ERROR);
     }
 
-    //print out errors for unknown arguments for remaining args that haven't been processed yet
+    // print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1175,7 +1189,7 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        uint64_t flags = 0;
+        uint64_t flags = UINT64_C(0);
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1196,78 +1210,54 @@ int main(int argc, char *argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
+            printf("You must specify one or more target devices with the --%s option to run this command.\n",
+                   DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
             printf("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
 
-    if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-        || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG)
-        || (FORCE_ATA_FLAG && FORCE_NVME_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_SCSI_FLAG && (FORCE_ATA_PIO_FLAG || FORCE_ATA_DMA_FLAG || FORCE_ATA_UDMA_FLAG))//We may need to remove this. At least when software SAT gets used. (currently only Windows ATA passthrough and FreeBSD ATA passthrough)
-        )
+    if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG) || (FORCE_SCSI_FLAG && FORCE_NVME_FLAG) ||
+        (FORCE_ATA_FLAG && FORCE_NVME_FLAG) || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG) || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_SCSI_FLAG &&
+         (FORCE_ATA_PIO_FLAG || FORCE_ATA_DMA_FLAG ||
+          FORCE_ATA_UDMA_FLAG)) // We may need to remove this. At least when software SAT gets used. (currently only
+                                // Windows ATA passthrough and FreeBSD ATA passthrough)
+    )
     {
         printf("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    //need to make sure this is set when we are asked for SAT Info
+    // need to make sure this is set when we are asked for SAT Info
     if (SAT_INFO_FLAG)
     {
         DEVICE_INFO_FLAG = goTrue;
     }
-    //check that we were given at least one test to perform...if not, show the help and exit
-    if (!(DEVICE_INFO_FLAG
-        || TEST_UNIT_READY_FLAG
-        || LOWLEVEL_INFO_FLAG
-        //check for other tool specific options here
-        || CHECK_POWER_FLAG
-        || SPIN_DOWN_FLAG
-        || TRANSITION_POWER_MODE_FLAG
-        || SHOW_POWER_CONSUMPTION_FLAG
-        || SET_POWER_CONSUMPTION_FLAG
-        || (EPC_ENABLED_IDENTIFIER != ENABLE_EPC_NOT_SET)
-        || SET_APM_LEVEL_FLAG
-        || SHOW_APM_LEVEL_FLAG
-        || SHOW_EPC_SETTINGS_FLAG
-        || DISABLE_APM_FLAG
-        || SEAGATE_POWER_BALANCE_FLAG
-        || SEAGATE_POWER_BALANCE_INFO_FLAG
-        || SATA_DIPM_INFO_FLAG
-        || SATA_DIPM_FLAG
-        || SATA_DAPS_INFO_FLAG
-        || SATA_DAPS_FLAG
-        || SAS_PARTIAL_FLAG
-        || SAS_PARTIAL_INFO_FLAG
-        || SAS_SLUMBER_FLAG
-        || SAS_SLUMBER_INFO_FLAG
-        || IDLE_A_POWER_MODE_FLAG
-        || IDLE_B_POWER_MODE_FLAG
-        || IDLE_C_POWER_MODE_FLAG
-        || STANDBY_Z_POWER_MODE_FLAG
-        || STANDBY_Y_POWER_MODE_FLAG
-        || LEGACY_IDLE_POWER_MODE_FLAG
-        || LEGACY_STANDBY_POWER_MODE_FLAG
-        || (TRANSITION_POWER_STATE_TO >= 0)
-        || SHOW_POWER_TELEMETRY_FLAG
-        || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG
-        || SHOW_NVM_POWER_STATES
-        || PUIS_FEATURE_FLAG
-        ))
+    // check that we were given at least one test to perform...if not, show the help and exit
+    if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG ||
+          LOWLEVEL_INFO_FLAG
+          // check for other tool specific options here
+          || CHECK_POWER_FLAG || SPIN_DOWN_FLAG || TRANSITION_POWER_MODE_FLAG || SHOW_POWER_CONSUMPTION_FLAG ||
+          SET_POWER_CONSUMPTION_FLAG || (EPC_ENABLED_IDENTIFIER != ENABLE_EPC_NOT_SET) || SET_APM_LEVEL_FLAG ||
+          SHOW_APM_LEVEL_FLAG || SHOW_EPC_SETTINGS_FLAG || DISABLE_APM_FLAG || SEAGATE_POWER_BALANCE_FLAG ||
+          SEAGATE_POWER_BALANCE_INFO_FLAG || SATA_DIPM_INFO_FLAG || SATA_DIPM_FLAG || SATA_DAPS_INFO_FLAG ||
+          SATA_DAPS_FLAG || SAS_PARTIAL_FLAG || SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_FLAG || SAS_SLUMBER_INFO_FLAG ||
+          IDLE_A_POWER_MODE_FLAG || IDLE_B_POWER_MODE_FLAG || IDLE_C_POWER_MODE_FLAG || STANDBY_Z_POWER_MODE_FLAG ||
+          STANDBY_Y_POWER_MODE_FLAG || LEGACY_IDLE_POWER_MODE_FLAG || LEGACY_STANDBY_POWER_MODE_FLAG ||
+          (TRANSITION_POWER_STATE_TO >= 0) || SHOW_POWER_TELEMETRY_FLAG || REQUEST_POWER_TELEMETRY_MEASUREMENT_FLAG ||
+          SHOW_NVM_POWER_STATES || PUIS_FEATURE_FLAG))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    uint64_t flags = UINT64_C(0);
+    DEVICE_LIST    = M_REINTERPRET_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1278,13 +1268,12 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    memset(&version, 0, sizeof(versionBlock));
+    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
-    version.size = sizeof(tDevice);
+    version.size    = sizeof(tDevice);
 
-    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG 
-        || (TRANSITION_POWER_STATE_TO >= 0)
-        )
+    if (TEST_UNIT_READY_FLAG || CHECK_POWER_FLAG || TRANSITION_POWER_MODE_FLAG || SPIN_DOWN_FLAG ||
+        (TRANSITION_POWER_STATE_TO >= 0))
     {
         flags = DO_NOT_WAKE_DRIVE;
     }
@@ -1294,7 +1283,7 @@ int main(int argc, char *argv[])
         flags = FAST_SCAN;
     }
 
-    //set flags that can be passed down in get device regarding forcing specific ATA modes.
+    // set flags that can be passed down in get device regarding forcing specific ATA modes.
     if (FORCE_ATA_PIO_FLAG)
     {
         flags |= FORCE_ATA_PIO_ONLY;
@@ -1312,8 +1301,8 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        
-        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+
+        for (uint32_t devi = UINT32_C(0); devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
@@ -1354,18 +1343,18 @@ int main(int argc, char *argv[])
     else
     {
         /*need to go through the handle list and attempt to open each handle.*/
-        for (uint32_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
+        for (uint32_t handleIter = UINT32_C(0); handleIter < DEVICE_LIST_COUNT; ++handleIter)
         {
             /*Initializing is necessary*/
-            deviceList[handleIter].sanity.size = sizeof(tDevice);
+            deviceList[handleIter].sanity.size    = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if defined (UEFI_C_SOURCE)
+#if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
-#elif  !defined(_WIN32)
-            deviceList[handleIter].os_info.fd = -1;
-#if defined(VMK_CROSS_COMP)
+#elif !defined(_WIN32)
+            deviceList[handleIter].os_info.fd     = -1;
+#    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
-#endif
+#    endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
@@ -1375,7 +1364,8 @@ int main(int argc, char *argv[])
 
             if (ENABLE_LEGACY_PASSTHROUGH_FLAG)
             {
-                deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError = true;
+                deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError =
+                    true;
             }
 
             /*get the device for the specified handle*/
@@ -1384,15 +1374,15 @@ int main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-#if !defined(VMK_CROSS_COMP)
+#    if !defined(VMK_CROSS_COMP)
             if ((deviceList[handleIter].os_info.fd < 0) ||
-#else
-            if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
-#endif
+#    else
+            if (((deviceList[handleIter].os_info.fd < 0) && (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
+#    endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1400,7 +1390,7 @@ int main(int argc, char *argv[])
                     printf("Error: Could not open handle to %s\n", HANDLE_LIST[handleIter]);
                 }
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-                if(ret == PERMISSION_DENIED || !is_Running_Elevated())
+                if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
@@ -1412,7 +1402,7 @@ int main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
+    for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
@@ -1421,57 +1411,68 @@ int main(int argc, char *argv[])
             {
                 /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
+                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
+                deviceList[deviceIter].drive_info.product_identification);
                 }*/
                 continue;
             }
         }
 
-        //check for model number match
+        // check for model number match
         if (MODEL_MATCH_FLAG)
         {
             if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                    printf("%s - This drive (%s) does not match the input model number: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
                 }
                 continue;
             }
         }
-        //check for fw match
+        // check for fw match
         if (FW_MATCH_FLAG)
         {
-            if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
+            if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) != 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
+                    printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n",
+                           deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision,
+                           FW_STRING_FLAG);
                 }
                 continue;
             }
         }
 
-        //check for child model number match
+        // check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 ||
+                strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) ==
+                    M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
                 }
                 continue;
             }
         }
-        //check for child fw match
+        // check for child fw match
         if (CHILD_FW_MATCH_FLAG)
         {
-            if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW))
+            if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW) != 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
+                    printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
                 continue;
             }
@@ -1510,12 +1511,12 @@ int main(int argc, char *argv[])
             {
                 printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
-            deviceList[deviceIter].drive_info.ata_Options.dmaSupported = false;
-            deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_NO_DMA;
+            deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
+            deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
             deviceList[deviceIter].drive_info.ata_Options.downloadMicrocodeDMASupported = false;
-            deviceList[deviceIter].drive_info.ata_Options.readBufferDMASupported = false;
-            deviceList[deviceIter].drive_info.ata_Options.readLogWriteLogDMASupported = false;
-            deviceList[deviceIter].drive_info.ata_Options.writeBufferDMASupported = false;
+            deviceList[deviceIter].drive_info.ata_Options.readBufferDMASupported        = false;
+            deviceList[deviceIter].drive_info.ata_Options.readLogWriteLogDMASupported   = false;
+            deviceList[deviceIter].drive_info.ata_Options.writeBufferDMASupported       = false;
         }
 
         if (FORCE_ATA_DMA_FLAG)
@@ -1538,10 +1539,13 @@ int main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name,
+                   deviceList[deviceIter].drive_info.product_identification,
+                   deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision,
+                   print_drive_type(&deviceList[deviceIter]));
         }
 
-        //now start looking at what operations are going to be performed and kick them off
+        // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
             if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
@@ -1610,7 +1614,8 @@ int main(int argc, char *argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish spinning down.\n");
+                    printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
+                           "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         printf("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1635,14 +1640,16 @@ int main(int argc, char *argv[])
 
         if (TRANSITION_POWER_MODE_FLAG)
         {
-            if (TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_NOT_SET && TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_ALL)
+            if (TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_NOT_SET &&
+                TRANSITION_POWER_MODE_TO_POWER_MODE != PWR_CND_ALL)
             {
                 switch (transition_Power_State(&deviceList[deviceIter], TRANSITION_POWER_MODE_TO_POWER_MODE))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
+                        printf(
+                            "\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
                         printf("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
@@ -1697,7 +1704,8 @@ int main(int argc, char *argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not transition to the new power state %" PRIi32 "\n", TRANSITION_POWER_STATE_TO);
+                    printf("ERROR: Could not transition to the new power state %" PRIi32 "\n",
+                           TRANSITION_POWER_STATE_TO);
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1735,7 +1743,7 @@ int main(int argc, char *argv[])
         if (SHOW_NVM_POWER_STATES)
         {
             nvmeSupportedPowerStates ps;
-            memset(&ps, 0, sizeof(nvmeSupportedPowerStates));
+            safe_memset(&ps, sizeof(nvmeSupportedPowerStates), 0, sizeof(nvmeSupportedPowerStates));
             switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
             {
             case SUCCESS:
@@ -1758,7 +1766,8 @@ int main(int argc, char *argv[])
             }
         }
 
-        //this option must come after --transition power so that these two options can be combined on the command line and produce the correct end result
+        // this option must come after --transition power so that these two options can be combined on the command line
+        // and produce the correct end result
         if (CHECK_POWER_FLAG)
         {
             switch (print_Current_Power_Mode(&deviceList[deviceIter]))
@@ -1782,20 +1791,22 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (IDLE_A_POWER_MODE_FLAG || IDLE_B_POWER_MODE_FLAG || IDLE_C_POWER_MODE_FLAG || STANDBY_Z_POWER_MODE_FLAG || STANDBY_Y_POWER_MODE_FLAG)
+        if (IDLE_A_POWER_MODE_FLAG || IDLE_B_POWER_MODE_FLAG || IDLE_C_POWER_MODE_FLAG || STANDBY_Z_POWER_MODE_FLAG ||
+            STANDBY_Y_POWER_MODE_FLAG)
         {
-            //setup the structure and send these changes to the drive.
+            // setup the structure and send these changes to the drive.
             powerConditionTimers powerTimers;
-            memset(&powerTimers, 0, sizeof(powerConditionTimers));
+            safe_memset(&powerTimers, sizeof(powerConditionTimers), 0, sizeof(powerConditionTimers));
             if (IDLE_A_POWER_MODE_FLAG)
             {
                 powerTimers.idle_a.powerConditionValid = true;
                 if (IDLE_A_TIMER_VALID)
                 {
-                    powerTimers.idle_a.timerValid = IDLE_A_TIMER_VALID;
+                    powerTimers.idle_a.timerValid                          = IDLE_A_TIMER_VALID;
                     powerTimers.idle_a.timerInHundredMillisecondIncrements = IDLE_A_POWER_MODE_TIMER;
-                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
-                    powerTimers.idle_a.enable = true;
+                    // If a timer was requested to change, also make sure it is set to enabled. This is a fair
+                    // assumption if the timer is being changed.
+                    powerTimers.idle_a.enable      = true;
                     powerTimers.idle_a.enableValid = true;
                 }
                 else
@@ -1803,19 +1814,19 @@ int main(int argc, char *argv[])
                     switch (IDLE_A_STATE)
                     {
                     case POWER_MODE_STATE_ENABLE:
-                        powerTimers.idle_a.enable = true;
+                        powerTimers.idle_a.enable      = true;
                         powerTimers.idle_a.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DISABLE:
-                        powerTimers.idle_a.enable = false;
+                        powerTimers.idle_a.enable      = false;
                         powerTimers.idle_a.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DEFAULT:
                         powerTimers.idle_a.restoreToDefault = true;
                         break;
                     default:
-                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                        //TODO: Should this throw an error instead???
+                        // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        // TODO: Should this throw an error instead???
                         powerTimers.idle_a.powerConditionValid = false;
                         break;
                     }
@@ -1826,10 +1837,11 @@ int main(int argc, char *argv[])
                 powerTimers.idle_b.powerConditionValid = true;
                 if (IDLE_B_TIMER_VALID)
                 {
-                    powerTimers.idle_b.timerValid = IDLE_B_TIMER_VALID;
+                    powerTimers.idle_b.timerValid                          = IDLE_B_TIMER_VALID;
                     powerTimers.idle_b.timerInHundredMillisecondIncrements = IDLE_B_POWER_MODE_TIMER;
-                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
-                    powerTimers.idle_b.enable = true;
+                    // If a timer was requested to change, also make sure it is set to enabled. This is a fair
+                    // assumption if the timer is being changed.
+                    powerTimers.idle_b.enable      = true;
                     powerTimers.idle_b.enableValid = true;
                 }
                 else
@@ -1837,19 +1849,19 @@ int main(int argc, char *argv[])
                     switch (IDLE_B_STATE)
                     {
                     case POWER_MODE_STATE_ENABLE:
-                        powerTimers.idle_b.enable = true;
+                        powerTimers.idle_b.enable      = true;
                         powerTimers.idle_b.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DISABLE:
-                        powerTimers.idle_b.enable = false;
+                        powerTimers.idle_b.enable      = false;
                         powerTimers.idle_b.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DEFAULT:
                         powerTimers.idle_b.restoreToDefault = true;
                         break;
                     default:
-                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                        //TODO: Should this throw an error instead???
+                        // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        // TODO: Should this throw an error instead???
                         powerTimers.idle_b.powerConditionValid = false;
                         break;
                     }
@@ -1860,10 +1872,11 @@ int main(int argc, char *argv[])
                 powerTimers.idle_c.powerConditionValid = true;
                 if (IDLE_C_TIMER_VALID)
                 {
-                    powerTimers.idle_c.timerValid = IDLE_C_TIMER_VALID;
+                    powerTimers.idle_c.timerValid                          = IDLE_C_TIMER_VALID;
                     powerTimers.idle_c.timerInHundredMillisecondIncrements = IDLE_C_POWER_MODE_TIMER;
-                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
-                    powerTimers.idle_c.enable = true;
+                    // If a timer was requested to change, also make sure it is set to enabled. This is a fair
+                    // assumption if the timer is being changed.
+                    powerTimers.idle_c.enable      = true;
                     powerTimers.idle_c.enableValid = true;
                 }
                 else
@@ -1871,19 +1884,19 @@ int main(int argc, char *argv[])
                     switch (IDLE_C_STATE)
                     {
                     case POWER_MODE_STATE_ENABLE:
-                        powerTimers.idle_c.enable = true;
+                        powerTimers.idle_c.enable      = true;
                         powerTimers.idle_c.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DISABLE:
-                        powerTimers.idle_c.enable = false;
+                        powerTimers.idle_c.enable      = false;
                         powerTimers.idle_c.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DEFAULT:
                         powerTimers.idle_c.restoreToDefault = true;
                         break;
                     default:
-                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                        //TODO: Should this throw an error instead???
+                        // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        // TODO: Should this throw an error instead???
                         powerTimers.idle_c.powerConditionValid = false;
                         break;
                     }
@@ -1894,10 +1907,11 @@ int main(int argc, char *argv[])
                 powerTimers.standby_z.powerConditionValid = true;
                 if (STANDBY_Z_TIMER_VALID)
                 {
-                    powerTimers.standby_z.timerValid = STANDBY_Z_TIMER_VALID;
+                    powerTimers.standby_z.timerValid                          = STANDBY_Z_TIMER_VALID;
                     powerTimers.standby_z.timerInHundredMillisecondIncrements = STANDBY_Z_POWER_MODE_TIMER;
-                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
-                    powerTimers.standby_z.enable = true;
+                    // If a timer was requested to change, also make sure it is set to enabled. This is a fair
+                    // assumption if the timer is being changed.
+                    powerTimers.standby_z.enable      = true;
                     powerTimers.standby_z.enableValid = true;
                 }
                 else
@@ -1905,19 +1919,19 @@ int main(int argc, char *argv[])
                     switch (STANDBY_Z_STATE)
                     {
                     case POWER_MODE_STATE_ENABLE:
-                        powerTimers.standby_z.enable = true;
+                        powerTimers.standby_z.enable      = true;
                         powerTimers.standby_z.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DISABLE:
-                        powerTimers.standby_z.enable = false;
+                        powerTimers.standby_z.enable      = false;
                         powerTimers.standby_z.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DEFAULT:
                         powerTimers.standby_z.restoreToDefault = true;
                         break;
                     default:
-                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                        //TODO: Should this throw an error instead???
+                        // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        // TODO: Should this throw an error instead???
                         powerTimers.standby_z.powerConditionValid = false;
                         break;
                     }
@@ -1928,10 +1942,11 @@ int main(int argc, char *argv[])
                 powerTimers.standby_y.powerConditionValid = true;
                 if (STANDBY_Y_TIMER_VALID)
                 {
-                    powerTimers.standby_y.timerValid = STANDBY_Y_TIMER_VALID;
+                    powerTimers.standby_y.timerValid                          = STANDBY_Y_TIMER_VALID;
                     powerTimers.standby_y.timerInHundredMillisecondIncrements = STANDBY_Y_POWER_MODE_TIMER;
-                    //If a timer was requested to change, also make sure it is set to enabled. This is a fair assumption if the timer is being changed.
-                    powerTimers.standby_y.enable = true;
+                    // If a timer was requested to change, also make sure it is set to enabled. This is a fair
+                    // assumption if the timer is being changed.
+                    powerTimers.standby_y.enable      = true;
                     powerTimers.standby_y.enableValid = true;
                 }
                 else
@@ -1939,26 +1954,30 @@ int main(int argc, char *argv[])
                     switch (STANDBY_Y_STATE)
                     {
                     case POWER_MODE_STATE_ENABLE:
-                        powerTimers.standby_y.enable = true;
+                        powerTimers.standby_y.enable      = true;
                         powerTimers.standby_y.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DISABLE:
-                        powerTimers.standby_y.enable = false;
+                        powerTimers.standby_y.enable      = false;
                         powerTimers.standby_y.enableValid = true;
                         break;
                     case POWER_MODE_STATE_DEFAULT:
                         powerTimers.standby_y.restoreToDefault = true;
                         break;
                     default:
-                        //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                        //TODO: Should this throw an error instead???
+                        // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                        // TODO: Should this throw an error instead???
                         powerTimers.standby_y.powerConditionValid = false;
                         break;
                     }
                 }
             }
-            //At this point, all power timers should be configured, so we can issue the command to the drive
-            switch (set_EPC_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers))
+            // At this point, all power timers should be configured, so we can issue the command to the drive
+            switch (set_EPC_Power_Conditions(&deviceList[deviceIter],
+                                             false /*reset all should only be done if intending to also change CCF and
+                                                      PM_BG_Precedence which is not yet supported in this tool*/
+                                             ,
+                                             &powerTimers))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1990,21 +2009,22 @@ int main(int argc, char *argv[])
 
         if (LEGACY_IDLE_POWER_MODE_FLAG || LEGACY_STANDBY_POWER_MODE_FLAG)
         {
-            if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && LEGACY_IDLE_POWER_MODE_FLAG && LEGACY_STANDBY_POWER_MODE_FLAG)
+            if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && LEGACY_IDLE_POWER_MODE_FLAG &&
+                LEGACY_STANDBY_POWER_MODE_FLAG)
             {
-                //SCSI drive can set both of these timers at the same time
+                // SCSI drive can set both of these timers at the same time
                 powerConditionSettings standbyTimer, idleTimer;
-                uint8_t restoreCount = 0;
-                memset(&standbyTimer, 0, sizeof(powerConditionSettings));
-                memset(&idleTimer, 0, sizeof(powerConditionSettings));
+                uint8_t                restoreCount = UINT8_C(0);
+                safe_memset(&standbyTimer, sizeof(powerConditionSettings), 0, sizeof(powerConditionSettings));
+                safe_memset(&idleTimer, sizeof(powerConditionSettings), 0, sizeof(powerConditionSettings));
                 switch (LEGACY_STANDBY_STATE)
                 {
                 case POWER_MODE_STATE_ENABLE:
-                    standbyTimer.enable = true;
+                    standbyTimer.enable      = true;
                     standbyTimer.enableValid = true;
                     break;
                 case POWER_MODE_STATE_DISABLE:
-                    standbyTimer.enable = false;
+                    standbyTimer.enable      = false;
                     standbyTimer.enableValid = true;
                     break;
                 case POWER_MODE_STATE_DEFAULT:
@@ -2012,25 +2032,25 @@ int main(int argc, char *argv[])
                     ++restoreCount;
                     break;
                 default:
-                    //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                    //TODO: Should this throw an error instead???
+                    // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                    // TODO: Should this throw an error instead???
                     standbyTimer.powerConditionValid = false;
                     break;
                 }
                 if (LEGACY_STANDBY_TIMER_VALID)
                 {
-                    standbyTimer.enable = false;
-                    standbyTimer.enableValid = true;
+                    standbyTimer.enable                              = false;
+                    standbyTimer.enableValid                         = true;
                     standbyTimer.timerInHundredMillisecondIncrements = LEGACY_STANDBY_POWER_MODE_TIMER;
                 }
                 switch (LEGACY_IDLE_STATE)
                 {
                 case POWER_MODE_STATE_ENABLE:
-                    idleTimer.enable = true;
+                    idleTimer.enable      = true;
                     idleTimer.enableValid = true;
                     break;
                 case POWER_MODE_STATE_DISABLE:
-                    idleTimer.enable = false;
+                    idleTimer.enable      = false;
                     idleTimer.enableValid = true;
                     break;
                 case POWER_MODE_STATE_DEFAULT:
@@ -2038,19 +2058,20 @@ int main(int argc, char *argv[])
                     ++restoreCount;
                     break;
                 default:
-                    //This shouldn't happen, but turn the power condition to an invalid state and continue.
-                    //TODO: Should this throw an error instead???
+                    // This shouldn't happen, but turn the power condition to an invalid state and continue.
+                    // TODO: Should this throw an error instead???
                     idleTimer.powerConditionValid = false;
                     break;
                 }
                 if (LEGACY_IDLE_TIMER_VALID)
                 {
-                    idleTimer.enable = false;
-                    idleTimer.enableValid = true;
+                    idleTimer.enable                              = false;
+                    idleTimer.enableValid                         = true;
                     idleTimer.timerInHundredMillisecondIncrements = LEGACY_IDLE_POWER_MODE_TIMER;
                 }
 
-                switch (scsi_Set_Legacy_Power_Conditions(&deviceList[deviceIter], restoreCount == 2 ? true : false, &standbyTimer, &idleTimer))
+                switch (scsi_Set_Legacy_Power_Conditions(&deviceList[deviceIter], restoreCount == 2 ? true : false,
+                                                         &standbyTimer, &idleTimer))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2081,8 +2102,8 @@ int main(int argc, char *argv[])
             else
             {
 #define LEGACY_POWER_MODE_CHANGE_STR_LEN 24
-                //need to check if SCSI since ATA won't allow some of these.
-                //deviceList[deviceIter].drive_info.drive_type
+                // need to check if SCSI since ATA won't allow some of these.
+                // deviceList[deviceIter].drive_info.drive_type
                 if (LEGACY_IDLE_POWER_MODE_FLAG)
                 {
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
@@ -2133,7 +2154,8 @@ int main(int argc, char *argv[])
                             case POWER_MODE_STATE_DEFAULT:
                                 idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                         "restoring the default");
                                 break;
                             default:
                                 break;
@@ -2153,7 +2175,8 @@ int main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("%s idle settings is not supported on this device.\n", modeChangeStrNotSuccess);
+                                    printf("%s idle settings is not supported on this device.\n",
+                                           modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
@@ -2169,7 +2192,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        //not supported
+                        // not supported
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Configuring idle settings is not supported on this device.\n");
@@ -2231,7 +2254,8 @@ int main(int argc, char *argv[])
                             case POWER_MODE_STATE_DEFAULT:
                                 standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
+                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                         "restoring the default");
                                 break;
                             default:
                                 break;
@@ -2251,14 +2275,16 @@ int main(int argc, char *argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("%s standby settings is not supported on this device.\n", modeChangeStrNotSuccess);
+                                    printf("%s standby settings is not supported on this device.\n",
+                                           modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to %s standby settings.\n", modeChangeStrNotSuccess);
+                                    printf("An Error occurred while trying to %s standby settings.\n",
+                                           modeChangeStrNotSuccess);
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -2266,10 +2292,11 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            //not supported
+                            // not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Enabling, disabling, or restoring default standby settings is not supported on this device.\n");
+                                printf("Enabling, disabling, or restoring default standby settings is not supported on "
+                                       "this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
@@ -2280,11 +2307,12 @@ int main(int argc, char *argv[])
 
         if (PUIS_FEATURE_FLAG && !PUIS_FEATURE_SPINUP_FLAG)
         {
-            //handle all other PUIS feature options as spinup is handled above with other powerstate transitioning commands.
+            // handle all other PUIS feature options as spinup is handled above with other powerstate transitioning
+            // commands.
             if (PUIS_FEATURE_INFO_FLAG)
             {
                 puisInfo info;
-                memset(&info, 0, sizeof(puisInfo));
+                safe_memset(&info, sizeof(puisInfo), 0, sizeof(puisInfo));
                 switch (get_PUIS_Info(&deviceList[deviceIter], &info))
                 {
                 case SUCCESS:
@@ -2386,7 +2414,7 @@ int main(int argc, char *argv[])
         if (SHOW_EPC_SETTINGS_FLAG)
         {
             epcSettings deviceEPCSettings;
-            memset(&deviceEPCSettings, 0, sizeof(epcSettings));
+            safe_memset(&deviceEPCSettings, sizeof(epcSettings), 0, sizeof(epcSettings));
             switch (get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
             {
             case SUCCESS:
@@ -2412,7 +2440,7 @@ int main(int argc, char *argv[])
         if (SHOW_POWER_CONSUMPTION_FLAG)
         {
             powerConsumptionIdentifiers identifiers;
-            memset(&identifiers, 0, sizeof(powerConsumptionIdentifiers));
+            safe_memset(&identifiers, sizeof(powerConsumptionIdentifiers), 0, sizeof(powerConsumptionIdentifiers));
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
@@ -2440,11 +2468,13 @@ int main(int argc, char *argv[])
             eReturnValues pcRet = SUCCESS;
             if (SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
-                pcRet = map_Watt_Value_To_Power_Consumption_Identifier(&deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
+                pcRet = map_Watt_Value_To_Power_Consumption_Identifier(
+                    &deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
             }
             if (pcRet == SUCCESS)
             {
-                switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE, SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG))
+                switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
+                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2654,8 +2684,9 @@ int main(int argc, char *argv[])
             else
             {
                 bool powerBalanceSupported = false;
-                bool powerBalanceEnabled = false;
-                switch (seagate_Get_Power_Balance(&deviceList[deviceIter], &powerBalanceSupported, &powerBalanceEnabled))
+                bool powerBalanceEnabled   = false;
+                switch (
+                    seagate_Get_Power_Balance(&deviceList[deviceIter], &powerBalanceSupported, &powerBalanceEnabled))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2696,10 +2727,10 @@ int main(int argc, char *argv[])
             }
         }
 
-
         if (SATA_DIPM_FLAG)
         {
-            switch (sata_Set_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter], SATA_DIPM_ENABLE_FLAG))
+            switch (sata_Set_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter],
+                                                                                SATA_DIPM_ENABLE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2733,8 +2764,9 @@ int main(int argc, char *argv[])
         if (SATA_DIPM_INFO_FLAG)
         {
             bool dipmSupported = false;
-            bool dipmEnabled = false;
-            switch (sata_Get_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter], &dipmSupported, &dipmEnabled))
+            bool dipmEnabled   = false;
+            switch (sata_Get_Device_Initiated_Interface_Power_State_Transitions(&deviceList[deviceIter], &dipmSupported,
+                                                                                &dipmEnabled))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2776,7 +2808,8 @@ int main(int argc, char *argv[])
 
         if (SATA_DAPS_FLAG)
         {
-            switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], SATA_DAPS_ENABLE_FLAG))
+            switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter],
+                                                                               SATA_DAPS_ENABLE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2811,8 +2844,9 @@ int main(int argc, char *argv[])
         if (SATA_DAPS_INFO_FLAG)
         {
             bool dapsSupported = false;
-            bool dapsEnabled = false;
-            switch (sata_Get_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported, &dapsEnabled))
+            bool dapsEnabled   = false;
+            switch (sata_Get_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported,
+                                                                               &dapsEnabled))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2858,7 +2892,8 @@ int main(int argc, char *argv[])
             DECLARE_ZERO_INIT_ARRAY(char, partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH);
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
-                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial & Slumber");
+                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                         "SAS Partial & Slumber");
             }
             else if (SAS_PARTIAL_FLAG)
             {
@@ -2868,7 +2903,9 @@ int main(int argc, char *argv[])
             {
                 snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
             }
-            switch (scsi_Set_Partial_Slumber(&deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG, SAS_SLUMBER_FLAG, SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER))
+            switch (scsi_Set_Partial_Slumber(
+                &deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG,
+                SAS_SLUMBER_FLAG, SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2899,35 +2936,41 @@ int main(int argc, char *argv[])
 
         if (SAS_PARTIAL_INFO_FLAG || SAS_SLUMBER_INFO_FLAG)
         {
-            eReturnValues result = SUCCESS;
-            uint8_t phyListSize = 1;
+            eReturnValues result      = SUCCESS;
+            uint8_t       phyListSize = UINT8_C(1);
             if (SET_PHY_SAS_PHY_IDENTIFIER == 0xFF)
             {
                 result = get_SAS_Enhanced_Phy_Control_Number_Of_Phys(&deviceList[deviceIter], &phyListSize);
             }
             if (SUCCESS == result)
             {
-                ptrSasEnhPhyControl phyData = C_CAST(ptrSasEnhPhyControl, safe_calloc(phyListSize, sizeof(sasEnhPhyControl)));
+                ptrSasEnhPhyControl phyData =
+                    M_REINTERPRET_CAST(ptrSasEnhPhyControl, safe_calloc(phyListSize, sizeof(sasEnhPhyControl)));
                 if (phyData)
                 {
-                    //get the information needed, then show it
-                    result = get_SAS_Enhanced_Phy_Control_Partial_Slumber_Settings(&deviceList[deviceIter], SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false, SET_PHY_SAS_PHY_IDENTIFIER, phyData, phyListSize * sizeof(sasEnhPhyControl));
+                    // get the information needed, then show it
+                    result = get_SAS_Enhanced_Phy_Control_Partial_Slumber_Settings(
+                        &deviceList[deviceIter], SET_PHY_SAS_PHY_IDENTIFIER == 0xFF ? true : false,
+                        SET_PHY_SAS_PHY_IDENTIFIER, phyData, phyListSize * sizeof(sasEnhPhyControl));
                     switch (result)
                     {
                     case SUCCESS:
-                        show_SAS_Enh_Phy_Control_Partial_Slumber(phyData, phyListSize * sizeof(sasEnhPhyControl), SAS_PARTIAL_INFO_FLAG, SAS_SLUMBER_INFO_FLAG);
+                        show_SAS_Enh_Phy_Control_Partial_Slumber(phyData, phyListSize * sizeof(sasEnhPhyControl),
+                                                                 SAS_PARTIAL_INFO_FLAG, SAS_SLUMBER_INFO_FLAG);
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("SAS Enhanced phy control is not supported on this device. Partial and Slumber are not supported.\n");
+                            printf("SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
+                                   "not supported.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber settings!\n");
+                            printf("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber "
+                                   "settings!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2959,7 +3002,8 @@ int main(int argc, char *argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    printf(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2967,22 +3011,29 @@ int main(int argc, char *argv[])
             {
                 if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
                 {
-                    switch (request_Power_Measurement(&deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS, C_CAST(ePowerTelemetryMeasurementOptions, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE)))
+                    switch (request_Power_Measurement(
+                        &deviceList[deviceIter], REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS,
+                        C_CAST(ePowerTelemetryMeasurementOptions, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE)))
                     {
                     case SUCCESS:
-                        //show a time when the measurement is expected to be complete?
+                        // show a time when the measurement is expected to be complete?
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Successfully requested a power measurement.\n");
                             time_t currentTime = time(M_NULLPTR);
-                            time_t futureTime = get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
+                            time_t futureTime =
+                                get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
                             DECLARE_ZERO_INIT_ARRAY(char, timeFormat, TIME_STRING_LENGTH);
-                            printf("\n\tCurrent Time: %s\n", get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat, TIME_STRING_LENGTH));
-                            memset(timeFormat, 0, TIME_STRING_LENGTH);
-                            printf("\tEstimated completion Time : %s", get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat, TIME_STRING_LENGTH));
+                            printf("\n\tCurrent Time: %s\n",
+                                   get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat,
+                                                           TIME_STRING_LENGTH));
+                            safe_memset(timeFormat, TIME_STRING_LENGTH, 0, TIME_STRING_LENGTH);
+                            printf("\tEstimated completion Time : %s",
+                                   get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat,
+                                                           TIME_STRING_LENGTH));
                         }
                         break;
-                    case NOT_SUPPORTED: //unlikely since we checked for support first
+                    case NOT_SUPPORTED: // unlikely since we checked for support first
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Requesting a power measurement is not supported on this device.\n");
@@ -3000,7 +3051,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //power telemetry is not supported
+                    // power telemetry is not supported
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Seagate Power Telemetry is not supported on this device.\n");
@@ -3016,7 +3067,8 @@ int main(int argc, char *argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    printf(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3025,14 +3077,14 @@ int main(int argc, char *argv[])
                 if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
                 {
                     seagatePwrTelemetry pwrTelData;
-                    memset(&pwrTelData, 0, sizeof(seagatePwrTelemetry));
+                    safe_memset(&pwrTelData, sizeof(seagatePwrTelemetry), 0, sizeof(seagatePwrTelemetry));
                     switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
                     {
                     case SUCCESS:
-                        //show it
+                        // show it
                         show_Power_Telemetry_Data(&pwrTelData);
                         break;
-                    case NOT_SUPPORTED: //unlikely to happen due to outside guard
+                    case NOT_SUPPORTED: // unlikely to happen due to outside guard
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Getting a power telemetry data is not supported on this device.\n");
@@ -3050,7 +3102,7 @@ int main(int argc, char *argv[])
                 }
                 else
                 {
-                    //power telemetry is not supported
+                    // power telemetry is not supported
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         printf("Seagate Power Telemetry is not supported on this device.\n");
@@ -3060,7 +3112,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
     free_device_list(&DEVICE_LIST);
@@ -3082,14 +3134,14 @@ int main(int argc, char *argv[])
 //-----------------------------------------------------------------------------
 void utility_Usage(bool shortUsage)
 {
-    //everything needs a help option right?
+    // everything needs a help option right?
     printf("Usage\n");
     printf("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
     printf("Examples\n");
     printf("========\n");
-    //example usage
+    // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
@@ -3102,9 +3154,12 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SPIN_DOWN_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample, IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 5000 --%s 30000 --%s enable --%s disable\n", util_name, deviceHandleExample,
+           IDLE_A_LONG_OPT_STRING, STANDBY_Z_LONG_OPT_STRING, IDLE_B_LONG_OPT_STRING, IDLE_C_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_TELEMETRY_LONG_OPT_STRING);
-    printf("\t%s -d %s --%s 120 --%s 12\n", util_name, deviceHandleExample, REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING, REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 120 --%s 12\n", util_name, deviceHandleExample,
+           REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING,
+           REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s enable\n", util_name, deviceHandleExample, EPC_ENABLED_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 15000\n", util_name, deviceHandleExample, LEGACY_STANDBY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 5000\n", util_name, deviceHandleExample, LEGACY_IDLE_LONG_OPT_STRING);
@@ -3113,15 +3168,15 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 12\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     printf("\t%s -d %s --%s lowest\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
-    //return codes
+    // return codes
     printf("\nReturn codes\n");
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
-    //utility options - alphabetized
+    // utility options - alphabetized
     printf("\nUtility Options\n");
     printf("===============\n");
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
 #endif
@@ -3142,10 +3197,10 @@ void utility_Usage(bool shortUsage)
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
-    //the test options
+    // the test options
     printf("\nUtility Arguments\n");
     printf("=================\n");
-    //Common (across utilities) - alphabetized
+    // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
@@ -3155,7 +3210,7 @@ void utility_Usage(bool shortUsage)
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     print_Fast_Discovery_Help(shortUsage);
-    //utility tests/operations go here - alphabetized
+    // utility tests/operations go here - alphabetized
     print_Check_Power_Mode_Help(shortUsage);
     print_EnableDisableEPC_Help(shortUsage);
     print_Idle_A_Help(shortUsage);
@@ -3172,7 +3227,7 @@ void utility_Usage(bool shortUsage)
     print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
 
-    //SATA Only Options
+    // SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_Disable_APM_Help(shortUsage);
     print_DAPS_Help(shortUsage);
@@ -3180,7 +3235,7 @@ void utility_Usage(bool shortUsage)
     print_PUIS_Feature_Help(shortUsage);
     print_Set_APM_Level_Help(shortUsage);
     print_Show_APM_Level_Help(shortUsage);
-    //SAS Only Options
+    // SAS Only Options
     printf("\n\tSAS Only:\n\t=========\n");
     print_Legacy_Idle_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
@@ -3188,7 +3243,7 @@ void utility_Usage(bool shortUsage)
     print_SAS_Phy_Slumber_Help(shortUsage);
     print_Set_Power_Consumption_Help(shortUsage);
     print_Show_Power_Consumption_Help(shortUsage);
-    //NVMe Only
+    // NVMe Only
     printf("\n\tNVMe Only:\n\t=========\n");
     print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);

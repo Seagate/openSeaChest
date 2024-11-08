@@ -1,0 +1,10 @@
+Checks: '-*,modernize-*,cert-*,bugprone-*,-bugprone-easily-swappable-parameters'
+#other available checks: clang-analyzer-*, performance-*, readability-*, misc-*
+#Disabled checks:
+# -bugprone-easily-swappable-parameters - warns a LOT. Sometimes on functions meant to look like standardized C11 annex k functions
+#                                         While a overall useful thing to consider, it's too noisy right now and it may make the API
+#                                         harder to use to resolve all of these.
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle: 'file'
