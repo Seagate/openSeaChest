@@ -1,9 +1,11 @@
-Checks: '-*,modernize-*,cert-*,bugprone-*,-bugprone-easily-swappable-parameters'
+Checks: '-*,modernize-*,cert-*,bugprone-*,-bugprone-easily-swappable-parameters,clang-analyzer-*,-clang-analyzer-deadcode.DeadStores'
 #other available checks: clang-analyzer-*, performance-*, readability-*, misc-*
 #Disabled checks:
 # -bugprone-easily-swappable-parameters - warns a LOT. Sometimes on functions meant to look like standardized C11 annex k functions
 #                                         While a overall useful thing to consider, it's too noisy right now and it may make the API
 #                                         harder to use to resolve all of these.
+# -clang-analyzer-deadcode.DeadStores   - A lot of warnings related to this. Will be good to cleanup, but due to how many
+#                                         there currently are, it's better to concentrate on other more pressing problems
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
 AnalyzeTemporaryDtors: false
