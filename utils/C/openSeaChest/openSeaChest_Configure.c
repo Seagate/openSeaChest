@@ -684,7 +684,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
                 }
                 else
                 {
@@ -712,7 +712,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
@@ -738,7 +738,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
                 }
                 else
                 {
@@ -766,7 +766,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
@@ -792,7 +792,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
                 }
                 else
                 {
@@ -820,7 +820,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
@@ -846,7 +846,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
                 }
                 else
                 {
@@ -874,7 +874,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
@@ -922,7 +922,7 @@ int main(int argc, char* argv[])
                     if (dupoptarg)
                     {
                         duplen               = safe_strlen(dupoptarg);
-                        char*   token        = common_String_Token(dupoptarg, &duplen, ":=", &saveptr);
+                        char*   token        = safe_String_Token(dupoptarg, &duplen, ":=", &saveptr);
                         uint8_t tokenCounter = UINT8_C(0);
                         while (token && tokenCounter < 5)
                         {
@@ -976,7 +976,7 @@ int main(int argc, char* argv[])
                                 break;
                             }
                             ++tokenCounter;
-                            token = common_String_Token(M_NULLPTR, &duplen, ":=", &saveptr);
+                            token = safe_String_Token(M_NULLPTR, &duplen, ":=", &saveptr);
                         }
                     }
                     else
@@ -987,11 +987,11 @@ int main(int argc, char* argv[])
                     safe_free(&dupoptarg);
                     saveptr           = M_NULLPTR;
                     rsize_t pageSPlen = safe_strlen(pageAndSubpage);
-                    char*   pagetoken = common_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
+                    char*   pagetoken = safe_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
                     if (pagetoken)
                     {
                         SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
-                        pagetoken               = common_String_Token(M_NULLPTR, &pageSPlen, "-", &saveptr);
+                        pagetoken               = safe_String_Token(M_NULLPTR, &pageSPlen, "-", &saveptr);
                         if (pagetoken)
                         {
                             SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
@@ -1091,7 +1091,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, "-", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
                 }
                 else
                 {
@@ -1119,7 +1119,7 @@ int main(int argc, char* argv[])
                             break;
                         }
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, "-", &saveptr);
                     }
                     else
                     {
@@ -1207,7 +1207,7 @@ int main(int argc, char* argv[])
                 {
                     char*   saveptr          = M_NULLPTR;
                     rsize_t featlistlen      = safe_strlen(dcoDisableFeatList);
-                    char*   dcoFeatToken     = common_String_Token(dcoDisableFeatList, &featlistlen, ",", &saveptr);
+                    char*   dcoFeatToken     = safe_String_Token(dcoDisableFeatList, &featlistlen, ",", &saveptr);
                     ATA_DCO_DISABLE_FEATURES = true;
                     while (dcoFeatToken)
                     {
@@ -1330,7 +1330,7 @@ int main(int argc, char* argv[])
                             print_Error_In_Cmd_Line_Args(ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
-                        dcoFeatToken = common_String_Token(M_NULLPTR, &featlistlen, ",", &saveptr);
+                        dcoFeatToken = safe_String_Token(M_NULLPTR, &featlistlen, ",", &saveptr);
                     }
                     safe_free(&dcoDisableFeatList);
                 }
@@ -4046,7 +4046,7 @@ int main(int argc, char* argv[])
                                 rsize_t     filebuflen = safe_strlen(fileBuf);
                                 char*       saveptr    = M_NULLPTR;
                                 const char* delimiters = " \n\r-_\\/|\t:;";
-                                char*       token      = common_String_Token(fileBuf, &filebuflen, delimiters,
+                                char*       token      = safe_String_Token(fileBuf, &filebuflen, delimiters,
                                                                              &saveptr); // add more to the delimiter list as needed
                                 if (token)
                                 {
@@ -4071,7 +4071,7 @@ int main(int argc, char* argv[])
                                         modePageBuffer[modeBufferElementCount] =
                                             C_CAST(uint8_t, strtoul(token, M_NULLPTR, 16));
                                         ++modeBufferElementCount;
-                                        token = common_String_Token(M_NULLPTR, &filebuflen, delimiters, &saveptr);
+                                        token = safe_String_Token(M_NULLPTR, &filebuflen, delimiters, &saveptr);
                                     } while (token);
                                     if (!invalidCharacterOrMissingSeparator)
                                     {

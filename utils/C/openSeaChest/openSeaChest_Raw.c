@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
                 if (dupoptarg)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token  = common_String_Token(dupoptarg, &duplen, ",", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, ",", &saveptr);
                 }
                 else
                 {
@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
                     {
                         RAW_CDB_ARRAY[count] = value;
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, ",", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, ",", &saveptr);
                     }
                     else
                     {
