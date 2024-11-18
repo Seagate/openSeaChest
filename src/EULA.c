@@ -403,7 +403,6 @@ void print_EULA_To_Screen(void)
     printf("  This Source Code Form is \"Incompatible With Secondary Licenses\", as\n");
     printf("  defined by the Mozilla Public License, v. 2.0.\n\n");
     print_Open_Source_Licenses();
-    return;
 }
 
 static void print_Win_Getopt_Licenses(void)
@@ -463,7 +462,6 @@ static void print_Win_Getopt_Licenses(void)
     printf("ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n");
     printf("(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n");
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
-    return;
 }
 
 #if defined(__FreeBSD__)
@@ -655,7 +653,6 @@ static void print_GNU_LGPL_License(void)
     printf("future versions of the GNU Lesser General Public License shall apply, that\n");
     printf("proxy's public statement of acceptance of any version is permanent\n");
     printf("authorization for you to choose that version for the Library.\n\n");
-    return;
 }
 #endif //__GLIBC__
 
@@ -684,7 +681,6 @@ static void print_Musl_MIT_License(void)
            "CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\n"
            "TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n"
            "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n");
-    return;
 }
 #endif // USING_MUSL_LIBC
 
@@ -734,7 +730,6 @@ static void print_Open_Fabrics_NVMe_IOCTL_License(void)
     printf("official policies, either expressed or implied, of Intel Corporation,    \n");
     printf("Integrated Device Technology Inc., or Sandforce Corporation.             \n");
     printf("\n");
-    return;
 }
 #endif //_WIN32
 
@@ -769,5 +764,4 @@ void print_Open_Source_Licenses(void)
 #    error Please update #if for system library licenses!
 #endif
     printf("===========================================================================\n\n");
-    return;
 }

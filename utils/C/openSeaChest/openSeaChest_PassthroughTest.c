@@ -1645,7 +1645,6 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
         // commands. Since these are potentially data-damaging, this will need a flag.
         // multi_Sector_PIO_Test_With_Read_Write(device);
     }
-    return;
 }
 
 static void sat_DMA_UDMA_Protocol_Test(tDevice*           device,
@@ -1716,7 +1715,6 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice*           device,
         printf("ERROR: Unable to allocate memory for DMA/UDMA protocol test\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
-    return;
 }
 
 static void check_Condition_Bit_Test(tDevice* device, bool smartSupported, bool smartLoggingSupported)
@@ -7479,7 +7477,6 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
             *sctSupported = true;
         }
     }
-    return;
 }
 
 static eReturnValues sat_Test_Identify(tDevice* device, uint8_t* ptrData, uint32_t dataSize, uint8_t cdbSize)

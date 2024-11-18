@@ -77,12 +77,10 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
     bool set = false;
     if (requestedLevel && verbosity)
     {
-        char* end  = M_NULLPTR;
-        long  temp = strtol(requestedLevel, &end, 10);
-        if (!(temp == LONG_MAX && errno == ERANGE) && !(temp == 0 && requestedLevel == end) && strcmp(end, "") == 0 &&
-            C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
+        long temp = 0L;
+        if (0 == safe_strtol(&temp, requestedLevel, M_NULLPTR, BASE_10_DECIMAL))
         {
-            *verbosity = C_CAST(eVerbosityLevels, temp);
+            *verbosity = M_STATIC_CAST(eVerbosityLevels, temp);
             set        = true;
         }
     }
@@ -135,7 +133,6 @@ void print_Elevated_Privileges_Text(void)
     printf(
           "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
-    return;
 }
 
 char* get_current_year(char* temp_year)
@@ -149,13 +146,12 @@ char* get_current_year(char* temp_year)
     return temp_year;
 }
 
-#include "common_types.h"
-
 void openseachest_utility_Info(const char* utilityName, const char* buildVersion, const char* seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     char*         year         = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
     char*         userName     = M_NULLPTR;
+    errno_t       userdup      = 0;
 #if defined(ENABLE_READ_USERNAME)
     if (SUCCESS != get_Current_User_Name(&userName))
     {
@@ -165,22 +161,25 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
         {
             snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
+        else
+        {
+            userdup = ENOMEM;
+        }
     }
 #else //! ENABLE_READ_USERNAME
     if (is_Running_Elevated())
     {
 #    if defined(_WIN32)
-          userName = strdup("admin");
+          userdup = safe_strdup(&userName, "admin");
 #    else  //!_WIN32
-        userName = strdup("root");
+        userdup = safe_strdup(&userName, "root");
 #    endif //_WIN32
     }
     else
     {
-          userName = strdup("current user");
+          userdup = safe_strdup(&userName, "current user");
     }
 #endif     // ENABLE_READ_USERNAME
-    // DECLARE_ZERO_INIT_ARRAY(char, g_timeString, 64);
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     printf(" - NVMe Enabled");
@@ -194,8 +193,12 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     {
         snprintf_err_handle(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
     }
-    printf(" Today: %s\tUser: %s\n", CURRENT_TIME_STRING, userName);
-    printf("==========================================================================================\n");
+    printf(" Today: %s", CURRENT_TIME_STRING);
+    if (userdup == 0)
+    {
+        printf("\tUser: %s", userName);
+    }
+    printf("\n==========================================================================================\n");
     safe_free(&userName);
     safe_free(&year);
 }
@@ -283,59 +286,58 @@ void print_SeaChest_Util_Exit_Codes(int                    numberOfToolSpecificE
 
 void get_Scan_Flags(deviceScanFlags* scanFlags, char* optarg)
 {
-    if (strncmp("ata", optarg, safe_strlen(optarg)) == 0)
+    if (strcmp("ata", optarg) == 0)
     {
         scanFlags->scanATA = true;
     }
-    else if (safe_strlen(optarg) == 3 && strncmp("usb", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("usb", optarg) == 0)
     {
         scanFlags->scanUSB = true;
     }
-    else if (safe_strlen(optarg) == 4 && strncmp("scsi", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("scsi", optarg) == 0)
     {
         scanFlags->scanSCSI = true;
     }
-    else if (safe_strlen(optarg) == 4 && strncmp("nvme", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("nvme", optarg) == 0)
     {
         scanFlags->scanNVMe = true;
     }
-    else if (safe_strlen(optarg) == 4 && strncmp("raid", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("raid", optarg) == 0)
     {
         scanFlags->scanRAID = true;
     }
-    else if (safe_strlen(optarg) == 12 && strncmp("interfaceATA", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("interfaceATA", optarg) == 0)
     {
         scanFlags->scanInterfaceATA = true;
     }
-    else if (safe_strlen(optarg) == 12 && strncmp("interfaceUSB", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("interfaceUSB", optarg) == 0)
     {
         scanFlags->scanInterfaceUSB = true;
     }
-    else if (safe_strlen(optarg) == 13 && strncmp("interfaceSCSI", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("interfaceSCSI", optarg) == 0)
     {
         scanFlags->scanInterfaceSCSI = true;
     }
-    else if (safe_strlen(optarg) == 13 && strncmp("interfaceNVME", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("interfaceNVME", optarg) == 0)
     {
         scanFlags->scanInterfaceNVMe = true;
     }
-    else if (safe_strlen(optarg) == 2 && strncmp("sd", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("sd", optarg) == 0)
     {
         scanFlags->scanSD = true;
     }
-    else if (safe_strlen(optarg) == 6 && strncmp("sgtosd", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("sgtosd", optarg) == 0)
     {
         scanFlags->scanSDandSG = true;
     }
-    else if (safe_strlen(optarg) == 10 && strncmp("ignoreCSMI", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("ignoreCSMI", optarg) == 0)
     {
         scanFlags->scanIgnoreCSMI = true;
     }
-    else if (safe_strlen(optarg) == 15 && strncmp("allowDuplicates", optarg, safe_strlen(optarg)) == 0)
+    else if (strcmp("allowDuplicates", optarg) == 0)
     {
         scanFlags->scanAllowDuplicateDevices = true;
     }
-    return;
 }
 
 void print_Scan_Help(bool shortHelp, const char* helpdeviceHandleExample)

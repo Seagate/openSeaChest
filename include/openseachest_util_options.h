@@ -4521,12 +4521,12 @@ extern "C"
     //! \brief   Description:  This function prints out the short or long help for the fast discovery option
     //
     //  Entry:
-    //!   \param[in] shortUsage = bool used to select when to print short or long help
+    //!   \param[in] shortHelp = bool used to select when to print short or long help
     //
     //  Exit:
     //
     //-----------------------------------------------------------------------------
-    void print_Fast_Discovery_Help(bool shortUsage);
+    void print_Fast_Discovery_Help(bool shortHelp);
 
     void print_Firmware_Download_Help(bool shortHelp);
 
@@ -4880,9 +4880,9 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_FARM_Log_Help(bool shortHelp);
 
-    void print_FARM_Combined_Log_Help(bool shortUsage);
+    void print_FARM_Combined_Log_Help(bool shortHelp);
 
-    void print_Sata_FARM_Copy_Type_Flag_Help(bool shortUsage);
+    void print_Sata_FARM_Copy_Type_Flag_Help(bool shortHelp);
 
     void print_Show_SMART_Error_Log_Help(bool shortHelp);
 
@@ -4946,7 +4946,7 @@ extern "C"
 
     void print_No_Time_Limit_Help(bool shortHelp);
 
-    void print_No_Banner_Help(bool shortUsage);
+    void print_No_Banner_Help(bool shortHelp);
 
     void print_SAS_Phy_Partial_Help(bool shortHelp);
 

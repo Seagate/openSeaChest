@@ -676,12 +676,12 @@ int main(int argc, char* argv[])
             {
                 SCSI_MP_RESET_OP  = true;
                 char*   saveptr   = M_NULLPTR;
-                rsize_t duplen    = 0;
-                char*   dupoptarg = strdup(optarg);
+                rsize_t duplen    = RSIZE_T_C(0);
+                char*   dupoptarg = M_NULLPTR;
                 char*   token     = M_NULLPTR;
                 uint8_t count     = UINT8_C(0);
                 bool    errorInCL = false;
-                if (dupoptarg)
+                if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
@@ -690,7 +690,7 @@ int main(int argc, char* argv[])
                 {
                     errorInCL = true;
                 }
-                while (token && !errorInCL && count < 2)
+                while (token && !errorInCL && count < UINT8_C(2))
                 {
                     uint8_t value = UINT8_C(0);
                     if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
@@ -730,12 +730,12 @@ int main(int argc, char* argv[])
             {
                 SCSI_MP_RESTORE_OP = true;
                 char*   saveptr    = M_NULLPTR;
-                rsize_t duplen     = 0;
-                char*   dupoptarg  = strdup(optarg);
+                rsize_t duplen     = RSIZE_T_C(0);
+                char*   dupoptarg  = M_NULLPTR;
                 char*   token      = M_NULLPTR;
                 uint8_t count      = UINT8_C(0);
                 bool    errorInCL  = false;
-                if (dupoptarg)
+                if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
@@ -784,12 +784,12 @@ int main(int argc, char* argv[])
             {
                 SCSI_MP_SAVE_OP   = true;
                 char*   saveptr   = M_NULLPTR;
-                rsize_t duplen    = 0;
-                char*   dupoptarg = strdup(optarg);
+                rsize_t duplen    = RSIZE_T_C(0);
+                char*   dupoptarg = M_NULLPTR;
                 char*   token     = M_NULLPTR;
                 uint8_t count     = UINT8_C(0);
                 bool    errorInCL = false;
-                if (dupoptarg)
+                if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
@@ -798,7 +798,7 @@ int main(int argc, char* argv[])
                 {
                     errorInCL = true;
                 }
-                while (token && !errorInCL && count < 2)
+                while (token && !errorInCL && count < UINT8_C(2))
                 {
                     uint8_t value = UINT8_C(0);
                     if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
@@ -838,12 +838,12 @@ int main(int argc, char* argv[])
             {
                 SCSI_SHOW_MP_OP   = true;
                 char*   saveptr   = M_NULLPTR;
-                rsize_t duplen    = 0;
-                char*   dupoptarg = strdup(optarg);
+                rsize_t duplen    = RSIZE_T_C(0);
+                char*   dupoptarg = M_NULLPTR;
                 char*   token     = M_NULLPTR;
                 uint8_t count     = UINT8_C(0);
                 bool    errorInCL = false;
-                if (dupoptarg)
+                if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
@@ -852,7 +852,7 @@ int main(int argc, char* argv[])
                 {
                     errorInCL = true;
                 }
-                while (token && !errorInCL && count < 2)
+                while (token && !errorInCL && count < UINT8_C(2))
                 {
                     uint8_t value = UINT8_C(0);
                     if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
@@ -917,14 +917,14 @@ int main(int argc, char* argv[])
 #define PARSE_MP_PAGE_AND_SUBPAGE_LENGTH 8
                     DECLARE_ZERO_INIT_ARRAY(char, pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH);
                     char*   saveptr   = M_NULLPTR;
-                    rsize_t duplen    = 0;
-                    char*   dupoptarg = strdup(optarg);
-                    if (dupoptarg)
+                    rsize_t duplen    = RSIZE_T_C(0);
+                    char*   dupoptarg = M_NULLPTR;
+                    if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                     {
                         duplen               = safe_strlen(dupoptarg);
                         char*   token        = safe_String_Token(dupoptarg, &duplen, ":=", &saveptr);
                         uint8_t tokenCounter = UINT8_C(0);
-                        while (token && tokenCounter < 5)
+                        while (token && tokenCounter < UINT8_C(5))
                         {
                             // go through each string and convert it from a string into a value we can use in this tool
                             // start with page and subpage
@@ -990,18 +990,44 @@ int main(int argc, char* argv[])
                     char*   pagetoken = safe_String_Token(pageAndSubpage, &pageSPlen, "-", &saveptr);
                     if (pagetoken)
                     {
-                        SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
-                        pagetoken               = safe_String_Token(M_NULLPTR, &pageSPlen, "-", &saveptr);
-                        if (pagetoken)
+                        unsigned long temp = 0UL;
+                        if (0 == safe_strtoul(&temp, pagetoken, M_NULLPTR, BASE_16_HEX) && temp < UINT8_MAX)
                         {
-                            SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, strtoul(pagetoken, M_NULLPTR, 16));
+                            SCSI_SET_MP_PAGE_NUMBER = C_CAST(uint8_t, temp);
+                            pagetoken               = safe_String_Token(M_NULLPTR, &pageSPlen, "-", &saveptr);
+                            if (pagetoken)
+                            {
+                                if (0 == safe_strtoul(&temp, pagetoken, M_NULLPTR, BASE_16_HEX) && temp < UINT8_MAX)
+                                {
+                                    SCSI_SET_MP_SUBPAGE_NUMBER = C_CAST(uint8_t, temp);
+                                }
+                                else
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                         }
                     }
                     else // should this be an error condition since tokenize failed?
                     {
                         // no subpage
-                        SCSI_SET_MP_PAGE_NUMBER    = C_CAST(uint8_t, strtoul(pageAndSubpage, M_NULLPTR, 16));
-                        SCSI_SET_MP_SUBPAGE_NUMBER = 0;
+                        unsigned long temp = 0UL;
+                        if (0 == safe_strtoul(&temp, pagetoken, M_NULLPTR, BASE_16_HEX) && temp < UINT8_MAX)
+                        {
+                            SCSI_SET_MP_PAGE_NUMBER    = C_CAST(uint8_t, temp);
+                            SCSI_SET_MP_SUBPAGE_NUMBER = 0;
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
                     }
                     if (SCSI_SET_MP_PAGE_NUMBER > 0x3F)
                     {
@@ -1083,12 +1109,12 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_RESET_LP_PAGE_LONG_OPT_STRING) == 0)
             {
                 char*   saveptr   = M_NULLPTR;
-                rsize_t duplen    = 0;
-                char*   dupoptarg = strdup(optarg);
+                rsize_t duplen    = RSIZE_T_C(0);
+                char*   dupoptarg = M_NULLPTR;
                 char*   token     = M_NULLPTR;
                 uint8_t count     = UINT8_C(0);
                 bool    errorInCL = false;
-                if (dupoptarg)
+                if (safe_strdup(&dupoptarg, optarg) == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, "-", &saveptr);
@@ -1097,7 +1123,7 @@ int main(int argc, char* argv[])
                 {
                     errorInCL = true;
                 }
-                while (token && !errorInCL && count < 2)
+                while (token && !errorInCL && count < UINT8_C(2))
                 {
                     uint8_t value = UINT8_C(0);
                     if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
@@ -1202,8 +1228,8 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING) == 0)
             {
                 // this needs to parse a comma separated list of things to disable on the drive
-                char* dcoDisableFeatList = strdup(optarg);
-                if (dcoDisableFeatList)
+                char* dcoDisableFeatList = M_NULLPTR;
+                if (safe_strdup(&dcoDisableFeatList, optarg) == 0 && dcoDisableFeatList != M_NULLPTR)
                 {
                     char*   saveptr          = M_NULLPTR;
                     rsize_t featlistlen      = safe_strlen(dcoDisableFeatList);
@@ -4047,7 +4073,7 @@ int main(int argc, char* argv[])
                                 char*       saveptr    = M_NULLPTR;
                                 const char* delimiters = " \n\r-_\\/|\t:;";
                                 char*       token      = safe_String_Token(fileBuf, &filebuflen, delimiters,
-                                                                             &saveptr); // add more to the delimiter list as needed
+                                                                           &saveptr); // add more to the delimiter list as needed
                                 if (token)
                                 {
                                     bool     invalidCharacterOrMissingSeparator = false;
@@ -4068,8 +4094,16 @@ int main(int argc, char* argv[])
                                         }
                                         // not an invalid character or a missing separator, so convert the string to an
                                         // array value.
-                                        modePageBuffer[modeBufferElementCount] =
-                                            C_CAST(uint8_t, strtoul(token, M_NULLPTR, 16));
+                                        unsigned long temp = 0UL;
+                                        if (0 == safe_strtoul(&temp, token, M_NULLPTR, BASE_16_HEX))
+                                        {
+                                            modePageBuffer[modeBufferElementCount] = C_CAST(uint8_t, temp);
+                                        }
+                                        else
+                                        {
+                                            invalidCharacterOrMissingSeparator = true;
+                                            break;
+                                        }
                                         ++modeBufferElementCount;
                                         token = safe_String_Token(M_NULLPTR, &filebuflen, delimiters, &saveptr);
                                     } while (token);

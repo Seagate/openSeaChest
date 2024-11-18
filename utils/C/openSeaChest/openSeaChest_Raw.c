@@ -185,12 +185,13 @@ int main(int argc, char* argv[])
             if (strcmp(longopts[optionIndex].name, RAW_CDB_ARRAY_LONG_OPT_STRING) == 0)
             {
                 char*   saveptr   = M_NULLPTR;
-                rsize_t duplen    = 0;
-                char*   dupoptarg = strdup(optarg);
+                char*   dupoptarg = M_NULLPTR;
                 char*   token     = M_NULLPTR;
+                rsize_t duplen    = RSIZE_T_C(0);
                 uint8_t count     = UINT8_C(0);
                 bool    errorInCL = false;
-                if (dupoptarg)
+                errno_t duperr    = safe_strdup(&dupoptarg, optarg);
+                if (duperr == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
                     token  = safe_String_Token(dupoptarg, &duplen, ",", &saveptr);

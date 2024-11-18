@@ -880,10 +880,19 @@ int main(int argc, char* argv[])
                         // if final character is a lower case h, it's an hex pattern
                         if (colonLocation[safe_strlen(colonLocation) - 1] == 'h' && safe_strlen(colonLocation) == 9)
                         {
-                            uint32_t hexPattern = C_CAST(uint32_t, strtoul(colonLocation, M_NULLPTR, 16));
-                            // TODO: add endianness check before byte swap
-                            byte_Swap_32(&hexPattern);
-                            fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            unsigned long temp = 0UL;
+                            if (0 == safe_strtoul(&temp, colonLocation, M_NULLPTR, BASE_16_HEX))
+                            {
+                                uint32_t hexPattern = M_STATIC_CAST(uint32_t, temp);
+                                // TODO: add endianness check before byte swap
+                                byte_Swap_32(&hexPattern);
+                                fill_Hex_Pattern_In_Buffer(hexPattern, PATTERN_BUFFER, PATTERN_BUFFER_LENGTH);
+                            }
+                            else
+                            {
+                                print_Error_In_Cmd_Line_Args(PATTERN_LONG_OPT_STRING, optarg);
+                                exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                            }
                         }
                         else
                         {
