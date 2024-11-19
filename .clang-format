@@ -7,7 +7,6 @@ PointerAlignment: Left
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 AlignTrailingComments: true
-AlignConsecutiveMacros: true
 AlignAfterOpenBracket: true
 BinPackParameters: false
 AllowAllParametersOfDeclarationOnNextLine: false
