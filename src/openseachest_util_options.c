@@ -28,9 +28,9 @@ const char* deviceHandleExample = "vmhba<#>";
 const char* deviceHandleName    = "<deviceHandle>";
 const char* commandWindowType   = "terminal";
 #    else
-const char*        deviceHandleExample     = "/dev/sg<#>";
-const char*        deviceHandleName        = "<sg_device>";
-const char*        commandWindowType       = "terminal";
+const char* deviceHandleExample = "/dev/sg<#>";
+const char* deviceHandleName    = "<sg_device>";
+const char* commandWindowType   = "terminal";
 #    endif
 #elif defined(__FreeBSD__)
 const char* deviceHandleExample = "/dev/da<#>";
