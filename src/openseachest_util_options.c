@@ -3409,7 +3409,7 @@ void free_Handle_List(char*** handleList, uint32_t listCount)
         {
             safe_free(&(*handleList)[handleIter]);
         }
-        safe_free((*handleList));
+        safe_free(M_REINTERPRET_CAST(void**, &(*handleList)));
     }
 }
 
