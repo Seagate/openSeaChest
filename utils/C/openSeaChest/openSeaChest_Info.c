@@ -35,6 +35,8 @@
 #endif
 #include "partition_info.h"
 #include "sata_phy.h"
+#include "device_statistics_json.h"
+
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -65,8 +67,8 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
-    eReturnValues ret      = SUCCESS;
-    int           exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -101,9 +103,10 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     PARTITION_INFO_VAR
     SHOW_PHY_EVENT_COUNTERS_VAR
+    OUTPUT_MODE_VAR
 
-    int args        = 0;
-    int argIndex    = 0;
+    int args = 0;
+    int argIndex = 0;
     int optionIndex = 0;
 
     struct option longopts[] =
@@ -145,6 +148,7 @@ int main(int argc, char* argv[])
         SHOW_CONCURRENT_RANGES_LONG_OPT,
         PARTITION_INFO_LONG_OPT,
         SHOW_PHY_EVENT_COUNTERS_LONG_OPT,
+        OUTPUT_MODE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -257,6 +261,18 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "json") == 0)
+                {
+                    OUTPUT_MODE_IDENTIFIER = UTIL_OUTPUT_MODE_JSON;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
@@ -943,19 +959,51 @@ int main(int argc, char* argv[])
             switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
             {
             case SUCCESS:
-                print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
-                // if supported then print Seagate Device Statistics also
+            {
+                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
+                {
+                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                }
+
+                //if supported then print Seagate Device Statistics also
+                bool seagateDeviceStatisticsAvailable = false;
+                seagateDeviceStatistics seagateDeviceStats;
+                safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
+                                sizeof(seagateDeviceStatistics));
                 if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
                 {
-                    seagateDeviceStatistics seagateDeviceStats;
-                    safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
-                                sizeof(seagateDeviceStatistics));
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
                     {
-                        print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
+                        seagateDeviceStatisticsAvailable = true;
+                        if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
+                        {
+                            print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
+                        }
                     }
                 }
-                break;
+
+                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_JSON)
+                {
+                    char *jsonFormatOutput = M_NULLPTR;
+                    ret = create_JSON_File_For_Device_Statistics(&deviceList[deviceIter], &deviceStats, &seagateDeviceStats, seagateDeviceStatisticsAvailable, &jsonFormatOutput);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON format for Device Statistics\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                    else
+                    {
+                        //write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                    }
+
+                    safe_free(&jsonFormatOutput);
+                }
+            }
+            break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1144,6 +1192,7 @@ void utility_Usage(bool shortUsage)
 #endif
     print_Device_Statistics_Help(shortUsage);
     print_Show_Concurrent_Position_Ranges_Help(shortUsage);
+    print_Output_Mode_Help(shortUsage);
     print_Partition_Info_Help(shortUsage);
     // SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");

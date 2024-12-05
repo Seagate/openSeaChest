@@ -1768,7 +1768,7 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
 
 void print_Output_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s   [ raw | binary ]\n", OUTPUT_MODE_LONG_OPT_STRING);
+    printf("\t--%s   [ raw | binary | json ]\n", OUTPUT_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with others options such as --%s\n", GET_NVME_LOG_LONG_OPT_STRING);
@@ -1778,7 +1778,8 @@ void print_Output_Mode_Help(bool shortHelp)
         printf("\t\t\traw    - prints the raw buffer on stdout\n");
         printf("\t\t\t  \n");
         printf("\t\t\tbinary - writes data to a file with device\n");
-        printf("\t\t\t         Serial Number & time stamp\n\n");
+        printf("\t\t\t         Serial Number & time stamp\n");
+        printf("\t\t\tjson   - prints the data into JSON format stdout\n\n");
     }
 }
 
