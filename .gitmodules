@@ -11,3 +11,9 @@
 [submodule "wingetopt"]
 	path = subprojects/wingetopt
 	url = https://github.com/Seagate/wingetopt.git
+[submodule "subprojects/json-c"]
+	path = subprojects/json-c
+	url = https://github.com/json-c/json-c.git
+[submodule "subprojects/opensea-jsonformat"]
+	path = subprojects/opensea-jsonformat
+	url = https://github.com/Seagate/opensea-jsonformat.git
