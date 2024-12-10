@@ -2149,10 +2149,11 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
     printf("=========================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
-    DECLARE_ZERO_INIT_ARRAY(uint8_t, supportedPages, 36);
+    #define SUPPORTED_PAGES_LEN 36
+    DECLARE_ZERO_INIT_ARRAY(uint8_t, supportedPages, SUPPORTED_PAGES_LEN);
     uint8_t dummiedPageCount = UINT8_C(0);
     bool    dummiedPages     = false;
-    if (SUCCESS != scsi_Inquiry(device, supportedPages, 30, SUPPORTED_VPD_PAGES, true, false))
+    if (SUCCESS != scsi_Inquiry(device, supportedPages, SUPPORTED_PAGES_LEN, SUPPORTED_VPD_PAGES, true, false))
     {
         dummiedPages = true;
         set_Console_Colors(true, WARNING_COLOR);
@@ -2161,7 +2162,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
         printf("         and limits which are useful to the host.\n");
         printf("Will dummy up support to see if any pages are supported that are useful.\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-        safe_memset(supportedPages, 32, 0, 36);
+        safe_memset(supportedPages, SUPPORTED_PAGES_LEN, 0, SUPPORTED_PAGES_LEN);
         uint16_t offset = UINT16_C(4); // start of pages to dummy up
         // in here we will set up a fake supported VPD pages buffer so that we try to read the unit serial number page,
         // the SAT page, and device identification page
