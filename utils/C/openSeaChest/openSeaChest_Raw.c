@@ -1646,7 +1646,7 @@ int main(int argc, char* argv[])
             passthroughCommand.tfr.aux4          = RAW_TFR_AUX4;
 
             // set check condition
-            passthroughCommand.forceCheckConditionBit = RAW_TFR_CHECK_CONDITION;
+            passthroughCommand.needRTFRs = RAW_TFR_CHECK_CONDITION;
 
             // set the protocol
             passthroughCommand.commadProtocol = C_CAST(eAtaProtocol, RAW_TFR_PROTOCOL);
