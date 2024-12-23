@@ -34,11 +34,12 @@
 #include "operations.h"
 #include "seagate_operations.h"
 #include "smart.h"
+#include "device_statistics_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_SMART";
-const char* buildVersion = "2.5.1";
+const char *util_name = "openSeaChest_SMART";
+const char *buildVersion = "2.5.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -63,9 +64,9 @@ int main(int argc, char* argv[])
     /////////////////
     //  Variables  //
     /////////////////
-    // common utility variables
-    eReturnValues ret      = SUCCESS;
-    int           exitCode = UTIL_EXIT_NO_ERROR;
+    //common utility variables
+    eReturnValues ret = SUCCESS;
+    int exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -122,6 +123,7 @@ int main(int argc, char* argv[])
     NVME_HEALTH_VAR
     LOWLEVEL_INFO_VAR
     SMART_OFFLINE_SCAN_VAR
+    OUTPUT_MODE_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -186,6 +188,7 @@ int main(int argc, char* argv[])
         DEVICE_STATISTICS_LONG_OPT,
         NVME_HEALTH_LONG_OPT,
         SMART_OFFLINE_SCAN_LONG_OPT,
+        OUTPUT_MODE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -235,6 +238,18 @@ int main(int argc, char* argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "json") == 0)
+                {
+                    OUTPUT_MODE_IDENTIFIER = UTIL_OUTPUT_MODE_JSON;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -2091,8 +2106,50 @@ int main(int argc, char* argv[])
             switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
             {
             case SUCCESS:
-                print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
-                break;
+            {
+                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
+                {
+                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                }
+
+                //if supported then print Seagate Device Statistics also
+                bool seagateDeviceStatisticsAvailable = false;
+                seagateDeviceStatistics seagateDeviceStats;
+                memset(&seagateDeviceStats, 0, sizeof(seagateDeviceStatistics));
+                if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
+                {
+                    if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
+                    {
+                        seagateDeviceStatisticsAvailable = true;
+                        if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
+                        {
+                            print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
+                        }
+                    }
+                }
+
+                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_JSON)
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                    ret = create_JSON_File_For_Device_Statistics(&deviceList[deviceIter], &deviceStats, &seagateDeviceStats, seagateDeviceStatisticsAvailable, &jsonFormatOutput);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON format for Device Statistics\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                    else
+                    {
+                        //write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                    }
+
+                    safe_free(&jsonFormatOutput);
+                }
+            }
+            break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -2277,6 +2334,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Statistics_Help(shortUsage);
     print_Error_Limit_Help(shortUsage);
     print_IDD_Help(shortUsage);
+    print_Output_Mode_Help(shortUsage);
     print_Long_DST_Help(shortUsage, commandWindowType);
     print_Short_DST_Help(shortUsage);
     print_Show_DST_Log_Help(shortUsage);
