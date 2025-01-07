@@ -1377,7 +1377,7 @@ int main(int argc, char* argv[])
                                         {
                                             printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
-                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
                                     eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
@@ -1419,7 +1419,7 @@ int main(int argc, char* argv[])
                                     free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
                                     if (inputfilexit != UTIL_EXIT_NO_ERROR)
                                     {
-                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(C_CAST(int, inputfilexit));
                                     }
                                 }
@@ -1591,7 +1591,7 @@ int main(int argc, char* argv[])
                             print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN,
                                               true);
                         }
-                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                     }
                     else
                     {
@@ -1812,7 +1812,7 @@ int main(int argc, char* argv[])
                                     {
                                         printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                     }
-                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
                                 eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
@@ -1854,7 +1854,7 @@ int main(int argc, char* argv[])
                                 free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
                                 if (inputfilexit != UTIL_EXIT_NO_ERROR)
                                 {
-                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(C_CAST(int, inputfilexit));
                                 }
                             }
@@ -2053,7 +2053,7 @@ int main(int argc, char* argv[])
                         printf("\nSense Data:\n");
                         print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
                     }
-                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                 }
                 else
                 {

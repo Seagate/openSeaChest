@@ -1380,7 +1380,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice* device, bool gpl, uint8_t l
                 {
                     cmdResult = ata_SMART_Write_Log(device, logAddress, log, logSize, false);
                 }
-                safe_Free_aligned(C_CAST(void**, &logR));
+                safe_free_aligned_core(C_CAST(void**, &logR));
             }
             else
             {
@@ -1401,7 +1401,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice* device, bool gpl, uint8_t l
                 {
                     device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode = true;
                     // recursively call this function and try again
-                    safe_Free_aligned(C_CAST(void**, &log));
+                    safe_free_aligned_core(C_CAST(void**, &log));
                     multi_Sector_PIO_Test_With_Logs(device, gpl, logAddress, logSize);
                 }
                 else
@@ -1423,7 +1423,7 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice* device, bool gpl, uint8_t l
                 device->drive_info.passThroughHacks.ataPTHacks.singleSectorPIOOnly = true;
             }
         }
-        safe_Free_aligned(C_CAST(void**, &log));
+        safe_free_aligned_core(C_CAST(void**, &log));
     }
 }
 
@@ -1470,16 +1470,16 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
                             // now check if it's empty so we don't overwrite any data in it.
                             if (is_Empty(log, allocedLogSize))
                             {
-                                safe_Free_aligned(C_CAST(void**, &log));
+                                safe_free_aligned_core(C_CAST(void**, &log));
                                 multi_Sector_PIO_Test_With_Logs(device, true, C_CAST(uint8_t, iter / 2),
                                                                 allocedLogSize);
                                 break;
                             }
-                            safe_Free_aligned(C_CAST(void**, &log));
+                            safe_free_aligned_core(C_CAST(void**, &log));
                         }
                         else
                         {
-                            safe_Free_aligned(C_CAST(void**, &log));
+                            safe_free_aligned_core(C_CAST(void**, &log));
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not "
                                    "compliant with multisector PIO commands\n");
                             if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode &&
@@ -1577,16 +1577,16 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
                             // now check if it's empty so we don't overwrite any data in it.
                             if (is_Empty(log, allocedLogSize))
                             {
-                                safe_Free_aligned(C_CAST(void**, &log));
+                                safe_free_aligned_core(C_CAST(void**, &log));
                                 multi_Sector_PIO_Test_With_Logs(device, false, C_CAST(uint8_t, iter / UINT16_C(2)),
                                                                 allocedLogSize);
                                 break;
                             }
-                            safe_Free_aligned(C_CAST(void**, &log));
+                            safe_free_aligned_core(C_CAST(void**, &log));
                         }
                         else
                         {
-                            safe_Free_aligned(C_CAST(void**, &log));
+                            safe_free_aligned_core(C_CAST(void**, &log));
                             set_Console_Colors(true, WARNING_COLOR);
                             printf("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not "
                                    "compliant with multisector PIO commands\n");
@@ -1707,7 +1707,7 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice*           device,
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
         }
-        safe_Free_aligned(C_CAST(void**, &ptrData));
+        safe_free_aligned_core(C_CAST(void**, &ptrData));
     }
     else
     {
@@ -1773,7 +1773,7 @@ static void check_Condition_Bit_Test(tDevice* device, bool smartSupported, bool 
                     }
                 }
                 // Lastly, try a SMART return status command. This SHOULD
-                safe_Free_aligned(C_CAST(void**, &smartData));
+                safe_free_aligned_core(C_CAST(void**, &smartData));
                 testedSMART = true;
             }
         }
@@ -3887,7 +3887,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
         {
             print_Data_Buffer(pageToRead, vpdPageLength, true);
         }
-        safe_Free_aligned(C_CAST(void**, &pageToRead));
+        safe_free_aligned_core(C_CAST(void**, &pageToRead));
     }
     if (pagesread <= dummiedPageCount && dummiedPages) // less than or equal to 1 because it is possible that the only
                                                        // suppored page is the unit serial number!
@@ -4684,7 +4684,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             M_BytesTo2ByteValue(modeData[offset + 10], modeData[offset + 11]);
         printf("\tExt DST Completion Time (Seconds): %" PRIu16 "\n",
                scsiDevInfo->modeData.controlData.extDSTCompletionTimeSeconds);
-        safe_Free_aligned(C_CAST(void**, &modeData));
+        safe_free_aligned_core(C_CAST(void**, &modeData));
 
         // control extension mode page (not 6 byte, and check if it reports correctly)
         modeDataLength = MP_CONTROL_EXTENSION_LEN + commonModeDataLength;
@@ -4718,9 +4718,9 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             printf("\tMaximum Sense Data Length: %" PRIu8 "\n",
                    scsiDevInfo->modeData.controlExtData.maxSenseDataLength);
         }
-        safe_Free_aligned(C_CAST(void**, &modeData));
+        safe_free_aligned_core(C_CAST(void**, &modeData));
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
 
     // read write error recovery mode page
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
@@ -4775,7 +4775,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             M_BytesTo2ByteValue(modeData[offset + 10], modeData[offset + 11]);
         printf("\tRecovery Time Limit: %" PRIu16 "\n", scsiDevInfo->modeData.rwErrRecData.recoveryTimeLimit);
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
     // caching mode page
     modeDataLength = MP_CACHING_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
@@ -4828,7 +4828,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             }
         }
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
 
     // rigid disk geometry page
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
@@ -4916,7 +4916,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             break;
         }
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
 
     // informational exceptions mode page
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
@@ -4981,7 +4981,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         printf("\tMethod Of Reporting Informational Exceptions (MRIE): %" PRIX8 "h\n",
                scsiDevInfo->modeData.infoExcepData.mrie);
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
     // power condition control mode page
     modeDataLength = MP_POWER_CONDITION_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
@@ -5050,7 +5050,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             }
         }
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
     // TODO: The next 2 are ATA specific. Attempt to only read them when we suspect an ATA drive.
     // if () //ATA AND the passthrough hack for not supporting subpages is NOT set
     {
@@ -5098,7 +5098,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
                 scsiDevInfo->modeData.pataCtrlData.udma5 = M_ToBool(modeData[offset + 5] & BIT5);
                 scsiDevInfo->modeData.pataCtrlData.udma6 = M_ToBool(modeData[offset + 5] & BIT6);
             }
-            safe_Free_aligned(C_CAST(void**, &modeData));
+            safe_free_aligned_core(C_CAST(void**, &modeData));
         }
         // ata power condition mode page
         modeDataLength = 16 + commonModeDataLength;
@@ -5141,7 +5141,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             scsiDevInfo->modeData.ataPwrConditionData.apmValue = modeData[offset + 6];
             printf("\tAPM Value: %" PRIX8 "h\n", scsiDevInfo->modeData.ataPwrConditionData.apmValue);
         }
-        safe_Free_aligned(C_CAST(void**, &modeData));
+        safe_free_aligned_core(C_CAST(void**, &modeData));
     }
     // Check for vendor specific page 0? May help detect true SCSI devices, but nothing says a translator cannot
     // implement it.
@@ -5186,7 +5186,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return NOT_SUPPORTED;
     }
-    safe_Free_aligned(C_CAST(void**, &modeData));
+    safe_free_aligned_core(C_CAST(void**, &modeData));
     return SUCCESS;
 }
 
@@ -6622,7 +6622,7 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
             {
                 print_Data_Buffer(pageToRead, logPageLength, true);
             }
-            safe_Free_aligned(C_CAST(void**, &pageToRead));
+            safe_free_aligned_core(C_CAST(void**, &pageToRead));
         }
     }
     else
@@ -6752,7 +6752,7 @@ static eReturnValues scsi_Read_Check(tDevice*         device,
         device->drive_info.passThroughHacks.scsiHacks.readWrite.rw16      = true;
     }
 
-    safe_Free_aligned(C_CAST(void**, &ptrData));
+    safe_free_aligned_core(C_CAST(void**, &ptrData));
 
     if (testZeroLengthTransfersToo)
     {
@@ -7758,7 +7758,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                     inputs->device->drive_info.passThroughHacks.ataPTHacks.limitedUseTPSIU                 = true;
                     inputs->device->drive_info.passThroughHacks.ataPTHacks.alwaysUseTPSIUForSATPassthrough = false;
                 }
-                safe_Free_aligned(C_CAST(void**, &data));
+                safe_free_aligned_core(C_CAST(void**, &data));
             }
             else
             {
@@ -8207,7 +8207,7 @@ static eReturnValues scsi_Max_Transfer_Length_Test(tDevice* device, uint32_t rep
             transferLengthSectors += UINT32_C(1);
         }
     }
-    safe_Free_aligned(C_CAST(void**, &data));
+    safe_free_aligned_core(C_CAST(void**, &data));
     scsi_Test_Unit_Ready(device, M_NULLPTR);
     printf("SCSI Max Transfer Size: %" PRIu32 "B\n", device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
     if (reportedMax > 0)
@@ -8567,7 +8567,7 @@ static eReturnValues ata_Passthrough_Max_Transfer_Length_Test(tDevice* device,
             transferLengthSectors += UINT32_C(1);
         }
     }
-    safe_Free_aligned(C_CAST(void**, &data));
+    safe_free_aligned_core(C_CAST(void**, &data));
     scsi_Test_Unit_Ready(device, M_NULLPTR);
     printf("ATA Max Transfer Size: %" PRIu32 "B\n", device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
     if (scsiReportedMax > 0)

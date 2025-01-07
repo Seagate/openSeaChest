@@ -98,7 +98,7 @@ extern "C"
     // NOTE: This is to clean up the single allocation in the utility layer before it exits - TJE
     static M_INLINE void free_device_list(tDevice** list)
     {
-        safe_Free(M_REINTERPRET_CAST(void**, list));
+        safe_free_core(M_REINTERPRET_CAST(void**, list));
     }
 
 #define SHOW_HELP_FLAG       showHelp
