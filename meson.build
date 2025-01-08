@@ -174,6 +174,11 @@ elif c.get_id().contains('msvc')
     '/d2guard4', #control flow guard
   ]
 
+  if target_machine.cpu_family() == 'x86_64' or target_machine.cpu_family() == 'x86'
+    # https://learn.microsoft.com/en-us/cpp/build/reference/qintel-jcc-erratum?view=msvc-170
+    warning_flags += '/QIntel-jcc-erratum'
+  endif
+
   linker_flags += [
     '/guard:cf', #control flow guard
     '/SafeSEH', #on by default in x64 so it is unrecognized otherwise.
