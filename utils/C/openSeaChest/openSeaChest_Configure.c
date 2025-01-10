@@ -1018,7 +1018,7 @@ int main(int argc, char* argv[])
                     {
                         // no subpage
                         unsigned long temp = 0UL;
-                        if (0 == safe_strtoul(&temp, pagetoken, M_NULLPTR, BASE_16_HEX) && temp < UINT8_MAX)
+                        if (0 == safe_strtoul(&temp, pageAndSubpage, M_NULLPTR, BASE_16_HEX) && temp < UINT8_MAX)
                         {
                             SCSI_SET_MP_PAGE_NUMBER    = C_CAST(uint8_t, temp);
                             SCSI_SET_MP_SUBPAGE_NUMBER = 0;
