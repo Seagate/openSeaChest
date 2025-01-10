@@ -7522,11 +7522,10 @@ static eReturnValues sat_Test_Identify(tDevice* device, uint8_t* ptrData, uint32
     }
     ret = ata_Passthrough_Command(device, &identify);
 
-    if (ret == SUCCESS && ptrData != M_REINTERPRET_CAST(uint8_t*, &device->drive_info.IdentifyData.ata.Word000))
+    if (ret == SUCCESS)
     {
         // copy the data to the device structure so that it's not (as) stale
-        safe_memcpy(&device->drive_info.IdentifyData.ata.Word000, sizeof(tAtaIdentifyData), ptrData,
-                    sizeof(tAtaIdentifyData));
+        copy_ata_identify_to_tdevice(device, ptrData);
     }
 
     if (ret == SUCCESS)
@@ -7593,7 +7592,8 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
     inputs->device->drive_info.passThroughHacks.passthroughType = ATA_PASSTHROUGH_SAT;
     // inputs->device->drive_info.passThroughHacks.ataPTHacks.useA1SATPassthroughWheneverPossible = true; //forcing A1
     // first.
-    uint8_t*      identifyData = (uint8_t*)&inputs->device->drive_info.IdentifyData.ata.Word000;
+    DECLARE_ZERO_INIT_ARRAY(uint8_t, iddata, 512);
+    uint8_t*      identifyData = &iddata[0];
     eReturnValues satRet       = sat_Test_Identify(inputs->device, identifyData, 512, 12);
     if (SUCCESS == satRet || WARN_INVALID_CHECKSUM == satRet)
     {
