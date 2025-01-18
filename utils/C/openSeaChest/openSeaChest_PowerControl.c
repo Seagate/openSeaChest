@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
+    VOLATILE_VAR
 
     int args = 0;
     int argIndex = 0;
@@ -183,6 +184,7 @@ int main(int argc, char *argv[])
         SHOW_POWER_TELEMETRY_LONG_OPT,
         REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         PUIS_FEATURE_LONG_OPT,
+        VOLATILE_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1958,7 +1960,7 @@ int main(int argc, char *argv[])
                 }
             }
             //At this point, all power timers should be configured, so we can issue the command to the drive
-            switch (set_EPC_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers))
+            switch (set_EPC_Power_Conditions(&deviceList[deviceIter], false /*reset all should only be done if intending to also change CCF and PM_BG_Precedence which is not yet supported in this tool*/, &powerTimers, !VOLATILE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2050,7 +2052,7 @@ int main(int argc, char *argv[])
                     idleTimer.timerInHundredMillisecondIncrements = LEGACY_IDLE_POWER_MODE_TIMER;
                 }
 
-                switch (scsi_Set_Legacy_Power_Conditions(&deviceList[deviceIter], restoreCount == 2 ? true : false, &standbyTimer, &idleTimer))
+                switch (scsi_Set_Legacy_Power_Conditions(&deviceList[deviceIter], restoreCount == 2 ? true : false, &standbyTimer, &idleTimer, !VOLATILE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -2089,7 +2091,7 @@ int main(int argc, char *argv[])
                     {
                         if (LEGACY_IDLE_TIMER_VALID)
                         {
-                            switch (set_Idle_Timer(&deviceList[deviceIter], LEGACY_IDLE_POWER_MODE_TIMER, false))
+                            switch (set_Idle_Timer(&deviceList[deviceIter], LEGACY_IDLE_POWER_MODE_TIMER, false, !VOLATILE_FLAG))
                             {
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2121,17 +2123,17 @@ int main(int argc, char *argv[])
                             switch (LEGACY_IDLE_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
-                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
+                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
-                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
+                                idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
-                                idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
+                                idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
@@ -2181,7 +2183,7 @@ int main(int argc, char *argv[])
                 {
                     if (LEGACY_STANDBY_TIMER_VALID)
                     {
-                        switch (set_Standby_Timer(&deviceList[deviceIter], LEGACY_STANDBY_POWER_MODE_TIMER, false))
+                        switch (set_Standby_Timer(&deviceList[deviceIter], LEGACY_STANDBY_POWER_MODE_TIMER, false, !VOLATILE_FLAG))
                         {
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -2219,17 +2221,17 @@ int main(int argc, char *argv[])
                             switch (LEGACY_STANDBY_STATE)
                             {
                             case POWER_MODE_STATE_ENABLE:
-                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
+                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
-                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
+                                standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
-                                standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
+                                standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true, !VOLATILE_FLAG);
                                 snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
                                 snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restoring the default");
                                 break;
