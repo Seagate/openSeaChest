@@ -4489,9 +4489,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 {
                     // reallocate enough data and reread the page.
                     uint8_t* temp =
-                        C_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
+                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
                                                          device->os_info.minimumAlignment));
-                    if (temp)
+                    if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
                         *dataBufferLength = pageLengthValidation;
@@ -4561,9 +4561,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 {
                     // reallocate enough data and reread the page.
                     uint8_t* temp =
-                        C_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
+                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
                                                          device->os_info.minimumAlignment));
-                    if (temp)
+                    if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
                         *dataBufferLength = pageLengthValidation;

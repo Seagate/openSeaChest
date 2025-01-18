@@ -1103,7 +1103,7 @@ int main(int argc, char* argv[])
             uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
             uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes);
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
-            if (formats)
+            if (formats != M_NULLPTR)
             {
                 safe_memset(formats, memSize, 0, memSize);
                 formats->numberOfSectorSizes = numberOfSectorSizes;
