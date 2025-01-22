@@ -28,9 +28,9 @@ const char* deviceHandleExample = "vmhba<#>";
 const char* deviceHandleName    = "<deviceHandle>";
 const char* commandWindowType   = "terminal";
 #    else
-const char* deviceHandleExample = "/dev/sg<#>";
-const char* deviceHandleName    = "<sg_device>";
-const char* commandWindowType   = "terminal";
+const char*        deviceHandleExample     = "/dev/sg<#>";
+const char*        deviceHandleName        = "<sg_device>";
+const char*        commandWindowType       = "terminal";
 #    endif
 #elif defined(__FreeBSD__)
 const char* deviceHandleExample = "/dev/da<#>";
@@ -3377,7 +3377,7 @@ int parse_Device_Handle_Argument(char*     optarg,
                 /*list already allocated, so reallocate and add this next handle to it.*/
                 char** temp = M_REINTERPRET_CAST(
                     char**, safe_reallocf(C_CAST(void**, handleList), (*deviceCount) * sizeof(char*)));
-                if (!temp)
+                if (temp == M_NULLPTR)
                 {
                     perror("error reallocating memory for handle list\n");
                     return 255;
