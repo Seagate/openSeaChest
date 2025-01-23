@@ -1477,24 +1477,24 @@ int main(int argc, char* argv[])
                         teleHdr = C_CAST(nvmeTemetryLogHdr*, logBuffer);
 
 #if defined(_DEBUG)
-                        printf("Telemetry Data Area 1 : %d \n", teleHdr->teleDataArea1);
-                        printf("Telemetry Data Area 2 : %d \n", teleHdr->teleDataArea2);
-                        printf("Telemetry Data Area 3 : %d \n", teleHdr->teleDataArea3);
+                        printf("Telemetry Data Area 1 : %d \n", le16_to_host(teleHdr->teleDataArea1));
+                        printf("Telemetry Data Area 2 : %d \n", le16_to_host(teleHdr->teleDataArea2));
+                        printf("Telemetry Data Area 3 : %d \n", le16_to_host(teleHdr->teleDataArea3));
 #endif
 
                         if (TELEMETRY_DATA_AREA == 1)
                         {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea1);
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea1));
                         }
 
                         if (TELEMETRY_DATA_AREA == 2)
                         {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea2);
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea2));
                         }
 
                         if (TELEMETRY_DATA_AREA == 3)
                         {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, teleHdr->teleDataArea3);
+                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea3));
                         }
 
                         if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||
