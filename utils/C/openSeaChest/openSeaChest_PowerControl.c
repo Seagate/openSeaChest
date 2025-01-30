@@ -2808,7 +2808,7 @@ int main(int argc, char* argv[])
 
         if (SATA_DAPS_FLAG)
         {
-            switch (sata_Set_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter],
+            switch (sata_Set_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter],
                                                                                SATA_DAPS_ENABLE_FLAG))
             {
             case SUCCESS:
@@ -2845,7 +2845,7 @@ int main(int argc, char* argv[])
         {
             bool dapsSupported = false;
             bool dapsEnabled   = false;
-            switch (sata_Get_Device_Automatic_Partioan_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported,
+            switch (sata_Get_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported,
                                                                                &dapsEnabled))
             {
             case SUCCESS:
