@@ -4,7 +4,7 @@ name: CI for meson build
 on:
   push:
     branches: [ develop, master, release/*, feature/*, hotfix/* ]
-    tags: [ v* ]
+    tags: [ v*, test-ci* ]
   pull_request:
     branches: [ develop ]
 
@@ -223,7 +223,35 @@ jobs:
       if: startsWith(matrix.config.name, 'Windows Clang')
       run: |
         $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
-        echo "LLVM_RELID=$((Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest').Content | ConvertFrom-Json | Select-Object -ExpandProperty id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        $latestRelease = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest'
+        $releaseData = $latestRelease.Content | ConvertFrom-Json
+        $assets = $releaseData.assets | Where-Object { $_.name -like "*win64.exe" }
+        
+        if ($assets) {
+          $downloadUrl = $assets.browser_download_url
+          echo "LLVM_RELID=$($releaseData.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        } else {
+          Write-Host "No current Windows build available for the latest release. Searching for previous releases..."
+          $releases = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases'
+          $found = $false
+          
+          foreach ($release in $releases.Content | ConvertFrom-Json) {
+            $assets = $release.assets | Where-Object { $_.name -like "*win64.exe" }
+            if ($assets) {
+              $downloadUrl = $assets.browser_download_url
+              echo "LLVM_RELID=$($release.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              $found = $true
+              break
+            }
+          }
+          
+          if (-not $found) {
+            Write-Host "No Windows build available for any recent releases."
+            exit 0
+          }
+        }
 
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang')
@@ -260,14 +288,6 @@ jobs:
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
-    - name: Packing release
-      env:
-        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
-      run: |
-        cd build
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
-      shell: bash
-
     # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
     - uses: actions/setup-go@v5
       if: ${{ matrix.config.create_package }}
@@ -289,6 +309,26 @@ jobs:
         nfpm package -f ../../nfpm.yaml -p deb -t ..
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
       shell: bash
+
+    - name: Set ownership of executables to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: sudo chown -R root:root build
+
+    - name: Packing release
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      run: |
+        cd build
+        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
+          sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        else
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        fi
+      shell: bash
+
+    - name: Set ownership of tar archive to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
@@ -314,7 +354,7 @@ jobs:
           build/*.rpm
 
     - name: Publish release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
+      if: ${{ (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')) && matrix.config.publish_release }}
       uses: softprops/action-gh-release@v2
       with:
         files: |

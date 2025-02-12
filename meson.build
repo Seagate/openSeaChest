@@ -37,7 +37,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wundef',
   '-Wformat',
   '-Wformat=2',
-  '-Wsign-conversion',
   '-Wint-conversion',#-Warith-conversion
   '-Wenum-conversion',
   '-Wfloat-conversion',
@@ -79,6 +78,11 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-fvisibility=hidden', #to work similarly to Window's DLL import/export
   ]
 
+  if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
+    #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
+    warning_flags += '-Wsign-conversion'
+  endif
+
   if c.get_id().contains('gcc') and target_machine.system() == 'windows'
     #According to the link below, this is not needed in Windows...it also causes a bug in some versions of GCC for Windows.
     #https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90458
@@ -105,6 +109,15 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     '-Wl,-z,relro',
     '-Wl,-z,now'
   ]
+  fortifytest = ''' #include <stdio.h>
+                      int main() {
+                          return 0;
+                      }
+                  '''
+  fortifyresult = c.compiles(fortifytest, name : '_FORTIFY_SOURCE override', args : ['-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=5', '-Werror'])
+  if fortifyresult == true
+    warning_flags += ['-U_FORTIFY_SOURCE', '-D_FORTIFY_SOURCE=3']
+  endif
 elif c.get_id().contains('msvc')
   #See here for enabling/disabling msvc warnings:
   #https://learn.microsoft.com/en-us/cpp/build/reference/compiler-option-warning-level?view=msvc-170
@@ -167,7 +180,6 @@ elif c.get_id().contains('msvc')
     '/we4628', # digraphs not supported with -Ze. Character sequence 'digraph' not interpreted as alternate token for 'char'
     '/we4289', # nonstandard extension used : 'var' : loop control variable declared in the for-loop is used outside the for-loop scope
     '/we4464', # relative include path contains '..'
-    '/std:c17', #NOTE: It would be better to specify for the project settings above for all compilers, but currently still supporting MSVC and GCC compilers that may not be C11 compatible.-TJE
     '/GS', #security cookie for stack protection
     '/sdl', #adds recommended security development lifecycle checks
     '/Qspectre',
@@ -178,6 +190,10 @@ elif c.get_id().contains('msvc')
   if target_machine.cpu_family() == 'x86_64' or target_machine.cpu_family() == 'x86'
     # https://learn.microsoft.com/en-us/cpp/build/reference/qintel-jcc-erratum?view=msvc-170
     warning_flags += '/QIntel-jcc-erratum'
+  endif
+  
+  if c.has_argument('/std:c17')
+    c_std = 'c17'
   endif
 
   linker_flags += [
@@ -219,9 +235,18 @@ if (c.get_id() == 'gcc' or c.get_id() == 'clang') and target_machine.system() !=
   #skipping sunos since this was a compatibility issue that was reported earlier. May be able to find a better way to handle this in the future.
   if not (target_machine.system() == 'sunos') and c.get_id().contains('gcc')
     if c.version().version_compare('<5.0')
-      if c.has_argument('-std=gnu99')
+    #4.7.4+ has C11 support, but c89 is the default standard so we need to change it.
+      if c.has_argument('-std=gnu11')
+        c_std = 'gnu11'
+        if meson.version().version_compare('<1.0.0')
+          add_project_arguments('-std=gnu11', language : 'c')
+        endif
+      elif c.has_argument('-std=gnu99')
         #Add this argument to the list since C99 is a minimum required C compiler standard
-        add_global_arguments('-std=gnu99', language: 'c',)
+        c_std = 'gnu99'
+        if meson.version().version_compare('<1.0.0')
+          add_project_arguments('-std=gnu99', language : 'c')
+        endif
       else
         error('C99/GNU99 standard is required but was not able to be set!')
       endif
@@ -283,6 +308,11 @@ opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
 opensea_transport = subproject('opensea-transport')
 opensea_transport_dep = opensea_transport.get_variable('opensea_transport_dep')
+
+csmisupport = opensea_transport.get_variable('csmisupport')
+if csmisupport.enabled()
+  add_project_arguments('-DENABLE_CSMI', language : 'c')
+endif
 
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
