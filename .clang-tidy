@@ -1,0 +1,38 @@
+Checks: 
+  '-*, 
+  modernize-*, 
+  cert-*, 
+  bugprone-*, 
+  -bugprone-easily-swappable-parameters, 
+  clang-analyzer-*, 
+  -clang-analyzer-deadcode.DeadStores, 
+  misc-*, 
+  -misc-no-recursion, 
+  -misc-unused-parameters, 
+  readability-non-const-parameter, 
+  readability-inconsistent-declaration-parameter-name, 
+  readability-redundant-control-flow, 
+  readability-duplicate-include, 
+  readability-avoid-const-params-in-decls, 
+  readability-function-cognitive-complexity'
+
+# Other available checks: 
+# clang-analyzer-*, performance-*, readability-*, misc-*
+
+# Disabled checks:
+# - bugprone-easily-swappable-parameters: 
+#   Warns a LOT. Sometimes on functions meant to look like standardized C11 annex k functions. 
+#   While overall useful, it's too noisy right now and may complicate API usability.
+# - clang-analyzer-deadcode.DeadStores: 
+#   Generates many warnings. Cleanup is needed, but focus on more pressing issues first.
+# - misc-no-recursion: 
+#   Recursion is useful in our code, so this check is not applicable.
+# - misc-unused-parameters: 
+#   Too many false positives.
+# - readability-*: 
+#   Currently generates too many warnings. Manually adding rules until we can address these issues later.
+
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle: 'file'

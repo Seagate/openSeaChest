@@ -14,21 +14,21 @@
 //////////////////////
 //  Included files  //
 //////////////////////
-#include "common_types.h"
-#include "type_conversion.h"
-#include "memory_safety.h"
-#include "string_utils.h"
-#include "io_utils.h"
-#include "unit_conversion.h"
-#include "getopt.h"
 #include "EULA.h"
+#include "common_types.h"
+#include "drive_info.h"
+#include "getopt.h"
+#include "io_utils.h"
+#include "memory_safety.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
-#include "drive_info.h"
+#include "string_utils.h"
+#include "type_conversion.h"
+#include "unit_conversion.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name = "openSeaChest_Raw";
+const char* util_name    = "openSeaChest_Raw";
 const char* buildVersion = "0.9.0";
 
 ////////////////////////////
@@ -49,14 +49,14 @@ static void utility_Usage(bool shortUsage);
 //!   \return exitCode = error code returned by the application
 //
 //-----------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     /////////////////
     //  Variables  //
     /////////////////
-    //common utility variables
-    eReturnValues ret = SUCCESS;
-    int exitCode = UTIL_EXIT_NO_ERROR;
+    // common utility variables
+    eReturnValues ret      = SUCCESS;
+    int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -76,9 +76,9 @@ int main(int argc, char *argv[])
     ONLY_SEAGATE_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
-    //scan output flags
+    // scan output flags
     SCAN_FLAGS_UTIL_VARS
-    //tool specific flags
+    // tool specific flags
     RAW_TFR_SIZE_VAR
     RAW_TFR_VARS
     RAW_TFR_PROTOCOL_VAR
@@ -93,17 +93,18 @@ int main(int argc, char *argv[])
     RAW_TFR_BYTE_BLOCK_VAR
     RAW_CDB_LEN_VAR
     RAW_CDB_ARRAY_VAR
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
 
-    int args = 0;
-    int argIndex = 0;
+    int args        = 0;
+    int argIndex    = 0;
     int optionIndex = 0;
 
-    struct option longopts[] = {
-        //common command line options
+    struct option longopts[] =
+    {
+        // common command line options
         DEVICE_LONG_OPT,
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
@@ -127,11 +128,11 @@ int main(int argc, char *argv[])
         CHILD_FW_MATCH_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
 #endif
-        //tool specific options go here
+        // tool specific options go here
         RAW_CDB_LEN_LONG_OPT,
         RAW_CDB_ARRAY_LONG_OPT,
         RAW_TFR_SIZE_LONG_OPT,
@@ -150,11 +151,11 @@ int main(int argc, char *argv[])
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
-#if defined (UEFI_C_SOURCE)
-    //NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
-    //      This is not necessary on most modern systems other than UEFI. 
-    //      This is not used in linux so that we don't depend on libbsd
-    //      Update the above #define check if we port to another OS that needs this to be done.
+#if defined(UEFI_C_SOURCE)
+    // NOTE: This is a BSD function used to ensure the program name is set correctly for warning or error functions.
+    //       This is not necessary on most modern systems other than UEFI.
+    //       This is not used in linux so that we don't depend on libbsd
+    //       Update the above #define check if we port to another OS that needs this to be done.
     setprogname(util_name);
 #endif
 
@@ -168,31 +169,32 @@ int main(int argc, char *argv[])
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    //get options we know we need
-    while (1) //changed to while 1 in order to parse multiple options when longs options are involved
+    // get options we know we need
+    while (1) // changed to while 1 in order to parse multiple options when longs options are involved
     {
         args = getopt_long(argc, argv, "d:hisSF:Vv:q%:", longopts, &optionIndex);
         if (args == -1)
         {
             break;
         }
-        //printf("Parsing arg <%u>\n", args);
+        // printf("Parsing arg <%u>\n", args);
         switch (args)
         {
         case 0:
-            //parse long options that have no short option and required arguments here
+            // parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, RAW_CDB_ARRAY_LONG_OPT_STRING) == 0)
             {
-                char* saveptr = M_NULLPTR;
-                rsize_t duplen = 0;
-                char* dupoptarg = strdup(optarg);
-                char* token = M_NULLPTR;
-                uint8_t count = 0;
-                bool errorInCL = false;
-                if (dupoptarg)
+                char*   saveptr   = M_NULLPTR;
+                char*   dupoptarg = M_NULLPTR;
+                char*   token     = M_NULLPTR;
+                rsize_t duplen    = RSIZE_T_C(0);
+                uint8_t count     = UINT8_C(0);
+                bool    errorInCL = false;
+                errno_t duperr    = safe_strdup(&dupoptarg, optarg);
+                if (duperr == 0 && dupoptarg != M_NULLPTR)
                 {
                     duplen = safe_strlen(dupoptarg);
-                    token = common_String_Token(dupoptarg, &duplen, ",", &saveptr);
+                    token  = safe_String_Token(dupoptarg, &duplen, ",", &saveptr);
                 }
                 else
                 {
@@ -200,12 +202,12 @@ int main(int argc, char *argv[])
                 }
                 while (token && !errorInCL && count < UINT8_MAX)
                 {
-                    uint8_t value = 0;
+                    uint8_t value = UINT8_C(0);
                     if (get_And_Validate_Integer_Input_Uint8(token, M_NULLPTR, ALLOW_UNIT_NONE, &value))
                     {
                         RAW_CDB_ARRAY[count] = value;
                         ++count;
-                        token = common_String_Token(M_NULLPTR, &duplen, ",", &saveptr);
+                        token = safe_String_Token(M_NULLPTR, &duplen, ",", &saveptr);
                     }
                     else
                     {
@@ -221,7 +223,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_CDB_LEN_LONG_OPT_STRING) == 0)
             {
-                //set the cdblength
+                // set the cdblength
                 if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_CDB_LEN_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_CDB_LEN_LONG_OPT_STRING, optarg);
@@ -269,10 +271,10 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_FEATURE_FULL_LONG_OPT_STRING) == 0)
             {
-                uint16_t fullfeat = 0;
+                uint16_t fullfeat = UINT16_C(0);
                 if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullfeat))
                 {
-                    RAW_TFR_FEATURE = M_Byte0(fullfeat);
+                    RAW_TFR_FEATURE     = M_Byte0(fullfeat);
                     RAW_TFR_FEATURE_EXT = M_Byte1(fullfeat);
                 }
                 else
@@ -315,7 +317,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING) == 0)
             {
-            if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_LBA_MID_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_LBA_MID_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -331,16 +333,18 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_LBA_FULL_LONG_OPT_STRING) == 0)
             {
-                uint64_t fullLBA = 0;
-                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullLBA) && fullLBA <= MAX_48_BIT_LBA)
+                uint64_t fullLBA = UINT64_C(0);
+                if (get_And_Validate_Integer_Input_Uint64(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullLBA) &&
+                    fullLBA <= MAX_48_BIT_LBA)
                 {
-                    RAW_TFR_LBA_LOW = M_Byte0(fullLBA);
-                    RAW_TFR_LBA_MID = M_Byte1(fullLBA);
-                    RAW_TFR_LBA_HIGH = M_Byte2(fullLBA);
-                    RAW_TFR_LBA_LOW_EXT = M_Byte3(fullLBA);
-                    RAW_TFR_LBA_MID_EXT = M_Byte4(fullLBA);
+                    RAW_TFR_LBA_LOW      = M_Byte0(fullLBA);
+                    RAW_TFR_LBA_MID      = M_Byte1(fullLBA);
+                    RAW_TFR_LBA_HIGH     = M_Byte2(fullLBA);
+                    RAW_TFR_LBA_LOW_EXT  = M_Byte3(fullLBA);
+                    RAW_TFR_LBA_MID_EXT  = M_Byte4(fullLBA);
                     RAW_TFR_LBA_HIGH_EXT = M_Byte5(fullLBA);
-                    //TODO: On a 28bit command, we may need to set the lower nibble of device/head for the high bits of the LBA value
+                    // TODO: On a 28bit command, we may need to set the lower nibble of device/head for the high bits of
+                    // the LBA value
                 }
                 else
                 {
@@ -370,7 +374,8 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &RAW_TFR_SECTOR_COUNT_EXT))
+                if (!get_And_Validate_Integer_Input_Uint8(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
+                                                          &RAW_TFR_SECTOR_COUNT_EXT))
                 {
                     print_Error_In_Cmd_Line_Args(RAW_TFR_SECTOR_COUNT_EXT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -378,10 +383,10 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_SECTOR_COUNT_FULL_LONG_OPT_STRING) == 0)
             {
-                uint16_t fullseccnt = 0;
+                uint16_t fullseccnt = UINT16_C(0);
                 if (get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullseccnt))
                 {
-                    RAW_TFR_SECTOR_COUNT = M_Byte0(fullseccnt);
+                    RAW_TFR_SECTOR_COUNT     = M_Byte0(fullseccnt);
                     RAW_TFR_SECTOR_COUNT_EXT = M_Byte1(fullseccnt);
                 }
                 else
@@ -432,7 +437,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_AUX_FULL_LONG_OPT_STRING) == 0)
             {
-                uint32_t fullaux = 0;
+                uint32_t fullaux = UINT32_C(0);
                 if (get_And_Validate_Integer_Input_Uint32(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &fullaux))
                 {
                     RAW_TFR_AUX1 = M_Byte0(fullaux);
@@ -448,7 +453,7 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_TFR_PROTOCOL_LONG_OPT_STRING) == 0)
             {
-                //set the protocol
+                // set the protocol
                 if (strcmp(optarg, "pio") == 0 || strcmp(optarg, "PIO") == 0)
                 {
                     RAW_TFR_PROTOCOL = C_CAST(int, ATA_PROTOCOL_PIO);
@@ -461,7 +466,8 @@ int main(int argc, char *argv[])
                 {
                     RAW_TFR_PROTOCOL = C_CAST(int, ATA_PROTOCOL_UDMA);
                 }
-                else if (strcmp(optarg, "fpdma") == 0 || strcmp(optarg, "FPDMA") == 0 || strcmp(optarg, "ncq") == 0 || strcmp(optarg, "NCQ") == 0)
+                else if (strcmp(optarg, "fpdma") == 0 || strcmp(optarg, "FPDMA") == 0 || strcmp(optarg, "ncq") == 0 ||
+                         strcmp(optarg, "NCQ") == 0)
                 {
                     RAW_TFR_PROTOCOL = C_CAST(int, ATA_PROTOCOL_DMA_FPDMA);
                 }
@@ -540,8 +546,8 @@ int main(int argc, char *argv[])
                 char* unit = M_NULLPTR;
                 if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_DATA_LEN_FLAG))
                 {
-                    //Check to see if any units were specified, otherwise assume LBAs
-                    uint32_t multiplier = 1;
+                    // Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = UINT32_C(1);
                     if (unit)
                     {
                         if (strcmp(unit, "") == 0)
@@ -550,7 +556,7 @@ int main(int argc, char *argv[])
                         }
                         else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
                         {
-                            //they specified blocks. For log transfers this means a number of 512B sectors
+                            // they specified blocks. For log transfers this means a number of 512B sectors
                             multiplier = LEGACY_DRIVE_SEC_SIZE;
                         }
                         else if (strcmp(unit, "KB") == 0)
@@ -605,7 +611,7 @@ int main(int argc, char *argv[])
                 {
                     RAW_DATA_DIRECTION_FLAG = XFER_NO_DATA;
                 }
-                //all other inputs are invalid for now
+                // all other inputs are invalid for now
                 else
                 {
                     print_Error_In_Cmd_Line_Args(RAW_DATA_DIRECTION_LONG_OPT_STRING, optarg);
@@ -622,50 +628,52 @@ int main(int argc, char *argv[])
             }
             else if (strcmp(longopts[optionIndex].name, RAW_OUTPUT_FILE_LONG_OPT_STRING) == 0)
             {
-                //open the file later
+                // open the file later
                 RAW_OUTPUT_FILE_NAME_FLAG = optarg;
             }
             else if (strcmp(longopts[optionIndex].name, RAW_INPUT_FILE_LONG_OPT_STRING) == 0)
             {
-                //open the file later
+                // open the file later
                 RAW_INPUT_FILE_NAME_FLAG = optarg;
             }
             else if (strcmp(longopts[optionIndex].name, RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING) == 0)
             {
-                //set the offset to read the file at
-                //set the raw data length - but check the units first!
+                // set the offset to read the file at
+                // set the raw data length - but check the units first!
                 char* unit = M_NULLPTR;
-                if (get_And_Validate_Integer_Input_Int64(optarg, &unit, ALLOW_UNIT_DATASIZE, &RAW_INPUT_FILE_OFFSET_FLAG))
+                if (get_And_Validate_Integer_Input_Int64(optarg, &unit, ALLOW_UNIT_DATASIZE,
+                                                         &RAW_INPUT_FILE_OFFSET_FLAG))
                 {
-                    int64_t multiplier = 1;
+                    int64_t multiplier = INT64_C(1);
                     if (strstr(optarg, "BLOCKS"))
                     {
-                        //the user specified the number as a number of logical blocks, so adjust this after we know the device logical block size
+                        // the user specified the number as a number of logical blocks, so adjust this after we know the
+                        // device logical block size
                         RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG = true;
                     }
                     else if (strstr(optarg, "KB"))
                     {
-                        multiplier = 1000;
+                        multiplier = INT64_C(1000);
                     }
                     else if (strstr(optarg, "KiB"))
                     {
-                        multiplier = 1024;
+                        multiplier = INT64_C(1024);
                     }
                     else if (strstr(optarg, "MB"))
                     {
-                        multiplier = 1000000;
+                        multiplier = INT64_C(1000000);
                     }
                     else if (strstr(optarg, "MiB"))
                     {
-                        multiplier = 1048576;
+                        multiplier = INT64_C(1048576);
                     }
                     else if (strstr(optarg, "GB"))
                     {
-                        multiplier = 1000000000;
+                        multiplier = INT64_C(1000000000);
                     }
                     else if (strstr(optarg, "GiB"))
                     {
-                        multiplier = 1073741824;
+                        multiplier = INT64_C(1073741824);
                     }
                     else
                     {
@@ -701,12 +709,12 @@ int main(int argc, char *argv[])
                 snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
-        case ':'://missing required argument
+        case ':': // missing required argument
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             switch (optopt)
             {
             case 0:
-                //check long options for missing arguments
+                // check long options for missing arguments
                 break;
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -739,10 +747,11 @@ int main(int argc, char *argv[])
                 exit(exitCode);
             }
             break;
-        case DEVICE_SHORT_OPT: //device
-            if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT, &HANDLE_LIST))
+        case DEVICE_SHORT_OPT: // device
+            if (0 != parse_Device_Handle_Argument(optarg, &RUN_ON_ALL_DRIVES, &USER_PROVIDED_HANDLE, &DEVICE_LIST_COUNT,
+                                                  &HANDLE_LIST))
             {
-                //Free any memory allocated so far, then exit.
+                // Free any memory allocated so far, then exit.
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -751,10 +760,10 @@ int main(int argc, char *argv[])
                 exit(255);
             }
             break;
-        case DEVICE_INFO_SHORT_OPT: //device information
+        case DEVICE_INFO_SHORT_OPT: // device information
             DEVICE_INFO_FLAG = true;
             break;
-        case SCAN_SHORT_OPT: //scan
+        case SCAN_SHORT_OPT: // scan
             SCAN_FLAG = true;
             break;
         case AGRESSIVE_SCAN_SHORT_OPT:
@@ -763,27 +772,28 @@ int main(int argc, char *argv[])
         case VERSION_SHORT_OPT:
             SHOW_BANNER_FLAG = true;
             break;
-        case VERBOSE_SHORT_OPT: //verbose
+        case VERBOSE_SHORT_OPT: // verbose
             if (!set_Verbosity_From_String(optarg, &toolVerbosity))
             {
                 print_Error_In_Cmd_Line_Args_Short_Opt(VERBOSE_SHORT_OPT, optarg);
                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
             }
             break;
-        case QUIET_SHORT_OPT: //quiet mode
+        case QUIET_SHORT_OPT: // quiet mode
             toolVerbosity = VERBOSITY_QUIET;
             break;
-        case SCAN_FLAGS_SHORT_OPT://scan flags
+        case SCAN_FLAGS_SHORT_OPT: // scan flags
             get_Scan_Flags(&SCAN_FLAGS, optarg);
             break;
-        case '?': //unknown option
-            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name, argv[optind - 1], HELP_LONG_OPT_STRING);
+        case '?': // unknown option
+            printf("%s: Unable to parse %s command line option\nPlease use --%s for more information.\n", util_name,
+                   argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 printf("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-        case 'h': //help
+        case 'h': // help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
             utility_Usage(false);
@@ -801,7 +811,8 @@ int main(int argc, char *argv[])
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
-        int commandLineIter = 1;//start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
+        int commandLineIter =
+            1; // start at 1 as starting at 0 means printing the directory info+ SeaChest.exe (or ./SeaChest)
         for (commandLineIter = 1; commandLineIter < argc; commandLineIter++)
         {
             if (strcmp(argv[commandLineIter], "--echoCommandLine") == 0)
@@ -820,7 +831,9 @@ int main(int argc, char *argv[])
 
     if (SHOW_BANNER_FLAG)
     {
-        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION, OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION, OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
+        utility_Full_Version_Info(util_name, buildVersion, OPENSEA_TRANSPORT_MAJOR_VERSION,
+                                  OPENSEA_TRANSPORT_MINOR_VERSION, OPENSEA_TRANSPORT_PATCH_VERSION,
+                                  OPENSEA_COMMON_VERSION, OPENSEA_OPERATION_VERSION);
     }
 
     if (LICENSE_FLAG)
@@ -839,7 +852,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= AGRESSIVE_SCAN;
         }
-#if defined (__linux__)
+#if defined(__linux__)
         if (SCAN_FLAGS.scanSD)
         {
             scanControl |= SD_HANDLES;
@@ -849,7 +862,7 @@ int main(int argc, char *argv[])
             scanControl |= SG_TO_SD;
         }
 #endif
-        //set the drive types to show (if none are set, the lower level code assumes we need to show everything)
+        // set the drive types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanATA)
         {
             scanControl |= ATA_DRIVES;
@@ -870,7 +883,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= RAID_DRIVES;
         }
-        //set the interface types to show (if none are set, the lower level code assumes we need to show everything)
+        // set the interface types to show (if none are set, the lower level code assumes we need to show everything)
         if (SCAN_FLAGS.scanInterfaceATA)
         {
             scanControl |= IDE_INTERFACE_DRIVES;
@@ -887,7 +900,7 @@ int main(int argc, char *argv[])
         {
             scanControl |= NVME_INTERFACE_DRIVES;
         }
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         if (SCAN_FLAGS.scanIgnoreCSMI)
         {
             scanControl |= IGNORE_CSMI;
@@ -912,7 +925,7 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_NO_ERROR);
     }
 
-    //print out errors for unknown arguments for remaining args that haven't been processed yet
+    // print out errors for unknown arguments for remaining args that haven't been processed yet
     for (argIndex = optind; argIndex < argc; argIndex++)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -928,7 +941,7 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        uint64_t flags = 0;
+        uint64_t flags = UINT64_C(0);
         if (SUCCESS != get_Device_Count(&DEVICE_LIST_COUNT, flags))
         {
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -949,26 +962,28 @@ int main(int argc, char *argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("You must specify one or more target devices with the --%s option to run this command.\n", DEVICE_LONG_OPT_STRING);
+            printf("You must specify one or more target devices with the --%s option to run this command.\n",
+                   DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
             printf("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
 
-    if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG)
-        || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG)
-        || (FORCE_SCSI_FLAG && (FORCE_ATA_PIO_FLAG || FORCE_ATA_DMA_FLAG || FORCE_ATA_UDMA_FLAG))//We may need to remove this. At least when software SAT gets used. (currently only Windows ATA passthrough and FreeBSD ATA passthrough)
-        )
+    if ((FORCE_SCSI_FLAG && FORCE_ATA_FLAG) || (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_ATA_PIO_FLAG && FORCE_ATA_DMA_FLAG) || (FORCE_ATA_PIO_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_ATA_DMA_FLAG && FORCE_ATA_UDMA_FLAG) ||
+        (FORCE_SCSI_FLAG &&
+         (FORCE_ATA_PIO_FLAG || FORCE_ATA_DMA_FLAG ||
+          FORCE_ATA_UDMA_FLAG)) // We may need to remove this. At least when software SAT gets used. (currently only
+                                // Windows ATA passthrough and FreeBSD ATA passthrough)
+    )
     {
         printf("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
-    //need to make sure this is set when we are asked for SAT Info
+    // need to make sure this is set when we are asked for SAT Info
     if (SAT_INFO_FLAG)
     {
         DEVICE_INFO_FLAG = goTrue;
@@ -981,21 +996,20 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    //check that we were given at least one test to perform...if not, show the help and exit
-    if (!(DEVICE_INFO_FLAG
-        || TEST_UNIT_READY_FLAG
-        //check for other tool specific options here
-        || (RAW_TFR_COMMAND || RAW_TFR_SIZE_FLAG > 0)
-        || (RAW_CDB_LEN_FLAG > 0 && !is_Empty(RAW_CDB_ARRAY, UINT8_MAX))
-        ))
+    // check that we were given at least one test to perform...if not, show the help and exit
+    if (!(DEVICE_INFO_FLAG ||
+          TEST_UNIT_READY_FLAG
+          // check for other tool specific options here
+          || (RAW_TFR_COMMAND || RAW_TFR_SIZE_FLAG > 0) ||
+          (RAW_CDB_LEN_FLAG > 0 && !is_Empty(RAW_CDB_ARRAY, UINT8_MAX))))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
 
-    uint64_t flags = 0;
-    DEVICE_LIST = C_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
+    uint64_t flags = UINT64_C(0);
+    DEVICE_LIST    = M_REINTERPRET_CAST(tDevice*, safe_calloc(DEVICE_LIST_COUNT, sizeof(tDevice)));
     if (!DEVICE_LIST)
     {
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1006,9 +1020,9 @@ int main(int argc, char *argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    memset(&version, 0, sizeof(versionBlock));
+    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
-    version.size = sizeof(tDevice);
+    version.size    = sizeof(tDevice);
 
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG))
     {
@@ -1027,8 +1041,8 @@ int main(int argc, char *argv[])
 
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-        
-        for (uint32_t devi = 0; devi < DEVICE_LIST_COUNT; ++devi)
+
+        for (uint32_t devi = UINT32_C(0); devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
@@ -1069,18 +1083,18 @@ int main(int argc, char *argv[])
     else
     {
         /*need to go through the handle list and attempt to open each handle.*/
-        for (uint32_t handleIter = 0; handleIter < DEVICE_LIST_COUNT; ++handleIter)
+        for (uint32_t handleIter = UINT32_C(0); handleIter < DEVICE_LIST_COUNT; ++handleIter)
         {
             /*Initializing is necessary*/
-            deviceList[handleIter].sanity.size = sizeof(tDevice);
+            deviceList[handleIter].sanity.size    = sizeof(tDevice);
             deviceList[handleIter].sanity.version = DEVICE_BLOCK_VERSION;
-#if defined (UEFI_C_SOURCE)
+#if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd = -1;
-#if defined(VMK_CROSS_COMP)
+            deviceList[handleIter].os_info.fd     = -1;
+#    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
-#endif
+#    endif
 #else
             deviceList[handleIter].os_info.fd = INVALID_HANDLE_VALUE;
 #endif
@@ -1090,7 +1104,8 @@ int main(int argc, char *argv[])
 
             if (ENABLE_LEGACY_PASSTHROUGH_FLAG)
             {
-                deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError = true;
+                deviceList[handleIter].drive_info.ata_Options.enableLegacyPassthroughDetectionThroughTrialAndError =
+                    true;
             }
 
             /*get the device for the specified handle*/
@@ -1099,15 +1114,15 @@ int main(int argc, char *argv[])
 #endif
             ret = get_Device(HANDLE_LIST[handleIter], &deviceList[handleIter]);
 #if !defined(_WIN32)
-#if !defined(VMK_CROSS_COMP)
+#    if !defined(VMK_CROSS_COMP)
             if ((deviceList[handleIter].os_info.fd < 0) ||
-#else
-            if (((deviceList[handleIter].os_info.fd < 0) &&
-                 (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
-#endif
+#    else
+            if (((deviceList[handleIter].os_info.fd < 0) && (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
+#    endif
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret == FAILURE || ret == PERMISSION_DENIED))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
+                (ret == FAILURE || ret == PERMISSION_DENIED))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1127,7 +1142,7 @@ int main(int argc, char *argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
-    for (uint32_t deviceIter = 0; deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
+    for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         if (ONLY_SEAGATE_FLAG)
@@ -1136,57 +1151,68 @@ int main(int argc, char *argv[])
             {
                 /*if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification);
+                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
+                deviceList[deviceIter].drive_info.product_identification);
                 }*/
                 continue;
             }
         }
 
-        //check for model number match
+        // check for model number match
         if (MODEL_MATCH_FLAG)
         {
             if (strstr(deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG) == M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) does not match the input model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
+                    printf("%s - This drive (%s) does not match the input model number: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
                 }
                 continue;
             }
         }
-        //check for fw match
+        // check for fw match
         if (FW_MATCH_FLAG)
         {
-            if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision))
+            if (strcmp(FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) != 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision, FW_STRING_FLAG);
+                    printf("%s - This drive's firmware (%s) does not match the input firmware revision: %s\n",
+                           deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision,
+                           FW_STRING_FLAG);
                 }
                 continue;
             }
         }
 
-        //check for child model number match
+        // check for child model number match
         if (CHILD_MODEL_MATCH_FLAG)
         {
-            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 || strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) == M_NULLPTR)
+            if (safe_strlen(deviceList[deviceIter].drive_info.bridge_info.childDriveMN) == 0 ||
+                strstr(deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG) ==
+                    M_NULLPTR)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive (%s) does not match the input child model number: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
+                    printf("%s - This drive (%s) does not match the input child model number: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
                 }
                 continue;
             }
         }
-        //check for child fw match
+        // check for child fw match
         if (CHILD_FW_MATCH_FLAG)
         {
-            if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW))
+            if (strcmp(CHILD_FW_STRING_FLAG, deviceList[deviceIter].drive_info.bridge_info.childDriveFW) != 0)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
+                    printf("%s - This drive's firmware (%s) does not match the input child firmware revision: %s\n",
+                           deviceList[deviceIter].os_info.name,
+                           deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
                 continue;
             }
@@ -1211,10 +1237,13 @@ int main(int argc, char *argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_identification, deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision, print_drive_type(&deviceList[deviceIter]));
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name,
+                   deviceList[deviceIter].drive_info.product_identification,
+                   deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision,
+                   print_drive_type(&deviceList[deviceIter]));
         }
 
-        //now start looking at what operations are going to be performed and kick them off
+        // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
             if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
@@ -1232,15 +1261,15 @@ int main(int argc, char *argv[])
             show_Test_Unit_Ready_Status(&deviceList[deviceIter]);
         }
 
-        //TODO: hard and soft reset flags that will issue the SAT command to the device? If that fails try OS APIs?
+        // TODO: hard and soft reset flags that will issue the SAT command to the device? If that fails try OS APIs?
 
-        //validate that we were given all the info we needed..starting with a CDB
+        // validate that we were given all the info we needed..starting with a CDB
         if (RAW_CDB_LEN_FLAG > 0 || !is_Empty(RAW_CDB_ARRAY, UINT8_MAX))
         {
-            //now check that we were given a valid CDB length
+            // now check that we were given a valid CDB length
             if (RAW_CDB_LEN_FLAG > 0)
             {
-                //check that a data direction was set
+                // check that a data direction was set
                 if (RAW_DATA_DIRECTION_FLAG != -1)
                 {
                     bool dataLenValidForTransferDir = true;
@@ -1250,39 +1279,43 @@ int main(int argc, char *argv[])
                     }
                     if (dataLenValidForTransferDir)
                     {
-                        bool showSenseData = true;//set to false upon successful completion only
-                        uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
-                        uint32_t allocatedDataLength = 0;
-                        const char* fileAccessMode = M_NULLPTR;
-                        //now based on the data direction we need to allocate memory
+                        bool        showSenseData       = true;      // set to false upon successful completion only
+                        uint8_t*    dataBuffer          = M_NULLPTR; // will be allocated shortly
+                        uint32_t    allocatedDataLength = UINT32_C(0);
+                        const char* fileAccessMode      = M_NULLPTR;
+                        // now based on the data direction we need to allocate memory
                         switch (RAW_DATA_DIRECTION_FLAG)
                         {
                         case XFER_NO_DATA:
-                            //nothing needs to be allocated...no data
+                            // nothing needs to be allocated...no data
                             break;
                         case XFER_DATA_IN:
-                            //allocate memory. Also, check for an output file to open...if there isn't one, that's ok since we'll just print to the screen
+                            // allocate memory. Also, check for an output file to open...if there isn't one, that's ok
+                            // since we'll just print to the screen
                             if (!RAW_OUTPUT_FILE_NAME_FLAG)
                             {
-                                //not a critical failure, just display a warning that the data won't be saved
+                                // not a critical failure, just display a warning that the data won't be saved
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("WARNING: An output file was not specified, so the returned data will not be saved.\n");
+                                    printf("WARNING: An output file was not specified, so the returned data will not "
+                                           "be saved.\n");
                                 }
                             }
-                            //no "else" needed
+                            // no "else" needed
                             if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                             {
-                                //allocate based on logical block size
-                                allocatedDataLength = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
-
+                                // allocate based on logical block size
+                                allocatedDataLength =
+                                    deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
                             }
                             else
                             {
-                                //allocate based on the data size the user entered
+                                // allocate based on the data size the user entered
                                 allocatedDataLength = RAW_DATA_LEN_FLAG;
                             }
-                            dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                            dataBuffer = M_REINTERPRET_CAST(
+                                uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t),
+                                                              deviceList[deviceIter].os_info.minimumAlignment));
                             if (!dataBuffer)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1293,7 +1326,8 @@ int main(int argc, char *argv[])
                             }
                             break;
                         case XFER_DATA_OUT:
-                            //allocate memory. Also, check for an output file to open...if there isn't one, we need to return an error
+                            // allocate memory. Also, check for an output file to open...if there isn't one, we need to
+                            // return an error
                             if (!RAW_INPUT_FILE_NAME_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1307,19 +1341,23 @@ int main(int argc, char *argv[])
                                 int64_t fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
                                 if (RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG)
                                 {
-                                    fileOffset = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
+                                    fileOffset =
+                                        deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
                                 }
                                 if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                                 {
-                                    //allocate based on logical block size
-                                    allocatedDataLength = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
+                                    // allocate based on logical block size
+                                    allocatedDataLength =
+                                        deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
                                 }
                                 else
                                 {
-                                    //allocate based on the data size the user entered
+                                    // allocate based on the data size the user entered
                                     allocatedDataLength = RAW_DATA_LEN_FLAG;
                                 }
-                                dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                                dataBuffer = C_CAST(
+                                    uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t),
+                                                                  deviceList[deviceIter].os_info.minimumAlignment));
                                 if (!dataBuffer)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1330,15 +1368,16 @@ int main(int argc, char *argv[])
                                 }
                                 if (RAW_INPUT_FILE_NAME_FLAG)
                                 {
-                                    fileAccessMode = "rb";
-                                    RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                                    fileAccessMode      = "rb";
+                                    RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                           M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                     if (!RAW_INPUT_FILE_FLAG)
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
                                             printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
-                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_OPERATION_FAILURE);
                                     }
                                     eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
@@ -1353,20 +1392,22 @@ int main(int argc, char *argv[])
                                             inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                             break;
                                         }
-                                        //now copy this data to the data buffer before we send the command
-                                        if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                                        // now copy this data to the data buffer before we send the command
+                                        if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer,
+                                                                                 allocatedDataLength, sizeof(uint8_t),
+                                                                                 allocatedDataLength, M_NULLPTR))
                                         {
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
+                                                printf("ERROR: Failed to read file for datalen specified to send to "
+                                                       "drive!\n");
                                             }
                                             inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                             break;
                                         }
-                                    }
-                                    while (0);
+                                    } while (0);
 
-                                    //close the file now that we are done reading it
+                                    // close the file now that we are done reading it
                                     if (SEC_FILE_SUCCESS != secure_Close_File(RAW_INPUT_FILE_FLAG))
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1378,7 +1419,7 @@ int main(int argc, char *argv[])
                                     free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
                                     if (inputfilexit != UTIL_EXIT_NO_ERROR)
                                     {
-                                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(C_CAST(int, inputfilexit));
                                     }
                                 }
@@ -1392,19 +1433,23 @@ int main(int argc, char *argv[])
                             exit(UTIL_EXIT_OPERATION_FAILURE);
                             break;
                         }
-                        //try issuing the command now
-                        switch (scsi_Send_Cdb(&deviceList[deviceIter], RAW_CDB_ARRAY, C_CAST(eCDBLen, RAW_CDB_LEN_FLAG), dataBuffer, allocatedDataLength, C_CAST(eDataTransferDirection, RAW_DATA_DIRECTION_FLAG), deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, RAW_TIMEOUT_FLAG))
+                        // try issuing the command now
+                        switch (scsi_Send_Cdb(
+                            &deviceList[deviceIter], RAW_CDB_ARRAY, C_CAST(eCDBLen, RAW_CDB_LEN_FLAG), dataBuffer,
+                            allocatedDataLength, C_CAST(eDataTransferDirection, RAW_DATA_DIRECTION_FLAG),
+                            deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, RAW_TIMEOUT_FLAG))
                         {
-                        case IN_PROGRESS://separate case so we can save the sense data
+                        case IN_PROGRESS: // separate case so we can save the sense data
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Command completed with an in progress status\n");
                             }
-                            //check for an output file to open and save the data to if, if it's a data in transfer
+                            // check for an output file to open and save the data to if, if it's a data in transfer
                             if (RAW_OUTPUT_FILE_NAME_FLAG)
                             {
-                                fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                                fileAccessMode       = "ab";
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                        M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1416,16 +1461,17 @@ int main(int argc, char *argv[])
                             }
                             break;
                         case SUCCESS:
-                            showSenseData = false;//no need to show the sense data or save it...
+                            showSenseData = false; // no need to show the sense data or save it...
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 printf("Command completed with good status\n");
                             }
-                            //check for an output file to open and save the data to if, if it's a data in transfer
+                            // check for an output file to open and save the data to if, if it's a data in transfer
                             if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                             {
-                                fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                                fileAccessMode       = "ab";
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                        M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1453,11 +1499,12 @@ int main(int argc, char *argv[])
                                 printf("Command completed with a failing status. See sense data.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            //check for an output file to open and save the data to if, if it's a data in transfer
+                            // check for an output file to open and save the data to if, if it's a data in transfer
                             if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG != XFER_DATA_IN)
                             {
-                                fileAccessMode = "ab";
-                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                                fileAccessMode       = "ab";
+                                RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                        M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_OUTPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1471,17 +1518,20 @@ int main(int argc, char *argv[])
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An unknown internal error occured and cannot be recovered. Sense data not available.\n");
+                                printf("An unknown internal error occured and cannot be recovered. Sense data not "
+                                       "available.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
                         }
-                        //if there is an outputfile, 
+                        // if there is an outputfile,
                         if (RAW_OUTPUT_FILE_FLAG)
                         {
                             if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                             {
-                                if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                                if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer,
+                                                                          allocatedDataLength, sizeof(uint8_t),
+                                                                          allocatedDataLength, M_NULLPTR))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
@@ -1492,8 +1542,11 @@ int main(int argc, char *argv[])
                             }
                             else
                             {
-                                //save the sense data
-                                if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
+                                // save the sense data
+                                if (SEC_FILE_SUCCESS !=
+                                    secure_Write_File(RAW_OUTPUT_FILE_FLAG,
+                                                      deviceList[deviceIter].drive_info.lastCommandSenseData,
+                                                      SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
@@ -1512,7 +1565,7 @@ int main(int argc, char *argv[])
                             }
                             if (RAW_OUTPUT_FILE_FLAG)
                             {
-                                //close the file now that we are done reading it
+                                // close the file now that we are done reading it
                                 if (SEC_FILE_SUCCESS != secure_Close_File(RAW_OUTPUT_FILE_FLAG))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1524,20 +1577,21 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        //show the returned data on data in commands when verbosity is less than 3
+                        // show the returned data on data in commands when verbosity is less than 3
                         if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN && toolVerbosity < VERBOSITY_BUFFERS)
                         {
                             printf("\nReturned Data:\n");
                             print_Data_Buffer(dataBuffer, allocatedDataLength, true);
                         }
 
-                        //show the sense data if the flag is set and verbosity is less than 3
+                        // show the sense data if the flag is set and verbosity is less than 3
                         if (toolVerbosity < VERBOSITY_BUFFERS && showSenseData)
                         {
                             printf("\nSense Data:\n");
-                            print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
+                            print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN,
+                                              true);
                         }
-                        safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                        safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                     }
                     else
                     {
@@ -1567,42 +1621,43 @@ int main(int argc, char *argv[])
             }
         }
 
-        //perform some sort of validation to see that we have some command to send...then build it and send it.
-        if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 && RAW_TFR_BYTE_BLOCK != -1)
+        // perform some sort of validation to see that we have some command to send...then build it and send it.
+        if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 &&
+            RAW_TFR_BYTE_BLOCK != -1)
         {
             ataPassthroughCommand passthroughCommand;
-            memset(&passthroughCommand, 0, sizeof(ataPassthroughCommand));
+            safe_memset(&passthroughCommand, sizeof(ataPassthroughCommand), 0, sizeof(ataPassthroughCommand));
             passthroughCommand.tfr.CommandStatus = RAW_TFR_COMMAND;
-            passthroughCommand.tfr.ErrorFeature = RAW_TFR_FEATURE;
-            passthroughCommand.tfr.Feature48 = RAW_TFR_FEATURE_EXT;
-            passthroughCommand.tfr.LbaLow = RAW_TFR_LBA_LOW;
-            passthroughCommand.tfr.LbaMid = RAW_TFR_LBA_MID;
-            passthroughCommand.tfr.LbaHi = RAW_TFR_LBA_HIGH;
-            passthroughCommand.tfr.LbaLow48 = RAW_TFR_LBA_LOW_EXT;
-            passthroughCommand.tfr.LbaMid48 = RAW_TFR_LBA_MID_EXT;
-            passthroughCommand.tfr.LbaHi48 = RAW_TFR_LBA_HIGH_EXT;
-            passthroughCommand.tfr.DeviceHead = RAW_TFR_DEVICE_HEAD;
-            passthroughCommand.tfr.SectorCount = RAW_TFR_SECTOR_COUNT;
+            passthroughCommand.tfr.ErrorFeature  = RAW_TFR_FEATURE;
+            passthroughCommand.tfr.Feature48     = RAW_TFR_FEATURE_EXT;
+            passthroughCommand.tfr.LbaLow        = RAW_TFR_LBA_LOW;
+            passthroughCommand.tfr.LbaMid        = RAW_TFR_LBA_MID;
+            passthroughCommand.tfr.LbaHi         = RAW_TFR_LBA_HIGH;
+            passthroughCommand.tfr.LbaLow48      = RAW_TFR_LBA_LOW_EXT;
+            passthroughCommand.tfr.LbaMid48      = RAW_TFR_LBA_MID_EXT;
+            passthroughCommand.tfr.LbaHi48       = RAW_TFR_LBA_HIGH_EXT;
+            passthroughCommand.tfr.DeviceHead    = RAW_TFR_DEVICE_HEAD;
+            passthroughCommand.tfr.SectorCount   = RAW_TFR_SECTOR_COUNT;
             passthroughCommand.tfr.SectorCount48 = RAW_TFR_SECTOR_COUNT_EXT;
-            passthroughCommand.tfr.icc = RAW_TFR_ICC;
-            passthroughCommand.tfr.aux1 = RAW_TFR_AUX1;
-            passthroughCommand.tfr.aux2 = RAW_TFR_AUX2;
-            passthroughCommand.tfr.aux3 = RAW_TFR_AUX3;
-            passthroughCommand.tfr.aux4 = RAW_TFR_AUX4;
+            passthroughCommand.tfr.icc           = RAW_TFR_ICC;
+            passthroughCommand.tfr.aux1          = RAW_TFR_AUX1;
+            passthroughCommand.tfr.aux2          = RAW_TFR_AUX2;
+            passthroughCommand.tfr.aux3          = RAW_TFR_AUX3;
+            passthroughCommand.tfr.aux4          = RAW_TFR_AUX4;
 
-            //set check condition
-            passthroughCommand.forceCheckConditionBit = RAW_TFR_CHECK_CONDITION;
+            // set check condition
+            passthroughCommand.needRTFRs = RAW_TFR_CHECK_CONDITION;
 
-            //set the protocol
+            // set the protocol
             passthroughCommand.commadProtocol = C_CAST(eAtaProtocol, RAW_TFR_PROTOCOL);
 
-            //set xfer direction
+            // set xfer direction
             passthroughCommand.commandDirection = C_CAST(eDataTransferDirection, RAW_DATA_DIRECTION_FLAG);
 
-            //set where the length is in the command
+            // set where the length is in the command
             passthroughCommand.ataCommandLengthLocation = C_CAST(eATAPassthroughLength, RAW_TFR_XFER_LENGTH_LOCATION);
 
-            //check if we are doing a transfer based on logical blocks
+            // check if we are doing a transfer based on logical blocks
             switch (RAW_TFR_BYTE_BLOCK)
             {
             case 0:
@@ -1620,7 +1675,7 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            //set the command size
+            // set the command size
             switch (RAW_TFR_SIZE_FLAG)
             {
             case 28:
@@ -1637,17 +1692,19 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            if (passthroughCommand.commandType != ATA_CMD_TYPE_COMPLETE_TASKFILE && (passthroughCommand.tfr.icc || passthroughCommand.tfr.aux1 || passthroughCommand.tfr.aux2 || passthroughCommand.tfr.aux3 || passthroughCommand.tfr.aux4))
+            if (passthroughCommand.commandType != ATA_CMD_TYPE_COMPLETE_TASKFILE &&
+                (passthroughCommand.tfr.icc || passthroughCommand.tfr.aux1 || passthroughCommand.tfr.aux2 ||
+                 passthroughCommand.tfr.aux3 || passthroughCommand.tfr.aux4))
             {
-                //If ANY of these registers are set, we MUST use a complete taskfile
+                // If ANY of these registers are set, we MUST use a complete taskfile
                 passthroughCommand.commandType = ATA_CMD_TYPE_COMPLETE_TASKFILE;
             }
 
-            //set the timeout
+            // set the timeout
             passthroughCommand.timeout = RAW_TIMEOUT_FLAG;
 
-            //perform some validation based on the things we've filled in so far before we issue the command.
-            //check that a data direction was set
+            // perform some validation based on the things we've filled in so far before we issue the command.
+            // check that a data direction was set
             if (RAW_DATA_DIRECTION_FLAG != -1)
             {
                 bool dataLenValidForTransferDir = true;
@@ -1657,40 +1714,43 @@ int main(int argc, char *argv[])
                 }
                 if (dataLenValidForTransferDir)
                 {
-                    bool showSenseData = true;//set to false upon successfil completion only
-                    uint8_t* dataBuffer = M_NULLPTR;//will be allocated shortly
-                    uint32_t allocatedDataLength = 0;
-                    const char* fileAccessMode = M_NULLPTR;
-                    //now based on the data direction we need to allocate memory
+                    bool        showSenseData       = true;      // set to false upon successfil completion only
+                    uint8_t*    dataBuffer          = M_NULLPTR; // will be allocated shortly
+                    uint32_t    allocatedDataLength = UINT32_C(0);
+                    const char* fileAccessMode      = M_NULLPTR;
+                    // now based on the data direction we need to allocate memory
                     switch (RAW_DATA_DIRECTION_FLAG)
                     {
                     case XFER_NO_DATA:
-                        //nothing needs to be allocated...no data
-                        //TODO: check that all the non-data flags are set the same!
+                        // nothing needs to be allocated...no data
+                        // TODO: check that all the non-data flags are set the same!
                         break;
                     case XFER_DATA_IN:
-                        //allocate memory. Also, check for an output file to open...if there isn't one, that's ok since we'll just print to the screen
+                        // allocate memory. Also, check for an output file to open...if there isn't one, that's ok since
+                        // we'll just print to the screen
                         if (!RAW_OUTPUT_FILE_NAME_FLAG)
                         {
-                            //not a critical failure, just display a warning that the data won't be saved
+                            // not a critical failure, just display a warning that the data won't be saved
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("WARNING: An output file was not specified, so the returned data will not be saved.\n");
+                                printf("WARNING: An output file was not specified, so the returned data will not be "
+                                       "saved.\n");
                             }
                         }
-                        //no "else" needed
+                        // no "else" needed
                         if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                         {
-                            //allocate based on logical block size
+                            // allocate based on logical block size
                             allocatedDataLength = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
-
                         }
                         else
                         {
-                            //allocate based on the data size the user entered
+                            // allocate based on the data size the user entered
                             allocatedDataLength = RAW_DATA_LEN_FLAG;
                         }
-                        dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                        dataBuffer = M_REINTERPRET_CAST(
+                            uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t),
+                                                          deviceList[deviceIter].os_info.minimumAlignment));
                         if (!dataBuffer)
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1701,7 +1761,8 @@ int main(int argc, char *argv[])
                         }
                         break;
                     case XFER_DATA_OUT:
-                        //allocate memory. Also, check for an output file to open...if there isn't one, we need to return an error
+                        // allocate memory. Also, check for an output file to open...if there isn't one, we need to
+                        // return an error
                         if (!RAW_INPUT_FILE_NAME_FLAG)
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1715,19 +1776,23 @@ int main(int argc, char *argv[])
                             int64_t fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
                             if (RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG)
                             {
-                                fileOffset = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
+                                fileOffset =
+                                    deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
                             }
                             if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                             {
-                                //allocate based on logical block size
-                                allocatedDataLength = deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
+                                // allocate based on logical block size
+                                allocatedDataLength =
+                                    deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
                             }
                             else
                             {
-                                //allocate based on the data size the user entered
+                                // allocate based on the data size the user entered
                                 allocatedDataLength = RAW_DATA_LEN_FLAG;
                             }
-                            dataBuffer = C_CAST(uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t), deviceList[deviceIter].os_info.minimumAlignment));
+                            dataBuffer = M_REINTERPRET_CAST(
+                                uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t),
+                                                              deviceList[deviceIter].os_info.minimumAlignment));
                             if (!dataBuffer)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1738,15 +1803,16 @@ int main(int argc, char *argv[])
                             }
                             if (RAW_INPUT_FILE_NAME_FLAG)
                             {
-                                fileAccessMode = "rb";
-                                RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                                fileAccessMode      = "rb";
+                                RAW_INPUT_FILE_FLAG = secure_Open_File(RAW_INPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                       M_NULLPTR, M_NULLPTR, M_NULLPTR);
                                 if (!RAW_INPUT_FILE_FLAG)
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                     }
-                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
                                 eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
@@ -1761,19 +1827,22 @@ int main(int argc, char *argv[])
                                         inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                         break;
                                     }
-                                    //now copy this data to the data buffer before we send the command
-                                    if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                                    // now copy this data to the data buffer before we send the command
+                                    if (SEC_FILE_SUCCESS != secure_Read_File(RAW_INPUT_FILE_FLAG, dataBuffer,
+                                                                             allocatedDataLength, sizeof(uint8_t),
+                                                                             allocatedDataLength, M_NULLPTR))
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("ERROR: Failed to read file for datalen specified to send to drive!\n");
+                                            printf(
+                                                "ERROR: Failed to read file for datalen specified to send to drive!\n");
                                         }
                                         inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                         break;
                                     }
                                 } while (0);
 
-                                //close the file now that we are done reading it
+                                // close the file now that we are done reading it
                                 if (SEC_FILE_SUCCESS != secure_Close_File(RAW_INPUT_FILE_FLAG))
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1785,7 +1854,7 @@ int main(int argc, char *argv[])
                                 free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
                                 if (inputfilexit != UTIL_EXIT_NO_ERROR)
                                 {
-                                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(C_CAST(int, inputfilexit));
                                 }
                             }
@@ -1799,21 +1868,22 @@ int main(int argc, char *argv[])
                         exit(UTIL_EXIT_OPERATION_FAILURE);
                         break;
                     }
-                    passthroughCommand.ptrData = dataBuffer;
+                    passthroughCommand.ptrData  = dataBuffer;
                     passthroughCommand.dataSize = allocatedDataLength;
-                    //try issuing the command now
+                    // try issuing the command now
                     switch (ata_Passthrough_Command(&deviceList[deviceIter], &passthroughCommand))
                     {
-                    case IN_PROGRESS://separate case so we can save the sense data
+                    case IN_PROGRESS: // separate case so we can save the sense data
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Command completed with an in progress status\n");
                         }
-                        //check for an output file to open and save the data to if, if it's a data in transfer
+                        // check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG)
                         {
-                            fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                            fileAccessMode       = "ab";
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                    M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1825,16 +1895,17 @@ int main(int argc, char *argv[])
                         }
                         break;
                     case SUCCESS:
-                        showSenseData = false;//no need to show the sense data or save it...
+                        showSenseData = false; // no need to show the sense data or save it...
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             printf("Command completed with good status\n");
                         }
-                        //check for an output file to open and save the data to if, if it's a data in transfer
+                        // check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                         {
-                            fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                            fileAccessMode       = "ab";
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                    M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1862,11 +1933,12 @@ int main(int argc, char *argv[])
                             printf("Command completed with a failing status. See sense data.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        //check for an output file to open and save the data to if, if it's a data in transfer
+                        // check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG != XFER_DATA_IN)
                         {
-                            fileAccessMode = "ab";
-                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode, M_NULLPTR, M_NULLPTR, M_NULLPTR);
+                            fileAccessMode       = "ab";
+                            RAW_OUTPUT_FILE_FLAG = secure_Open_File(RAW_OUTPUT_FILE_NAME_FLAG, fileAccessMode,
+                                                                    M_NULLPTR, M_NULLPTR, M_NULLPTR);
                             if (!RAW_OUTPUT_FILE_FLAG)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1880,17 +1952,20 @@ int main(int argc, char *argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("An unknown internal error occured and cannot be recovered. Sense data not available.\n");
+                            printf("An unknown internal error occured and cannot be recovered. Sense data not "
+                                   "available.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
                     }
-                    //if there is an outputfile, 
+                    // if there is an outputfile,
                     if (RAW_OUTPUT_FILE_FLAG)
                     {
                         if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
                         {
-                            if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer, allocatedDataLength, sizeof(uint8_t), allocatedDataLength, M_NULLPTR))
+                            if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, dataBuffer,
+                                                                      allocatedDataLength, sizeof(uint8_t),
+                                                                      allocatedDataLength, M_NULLPTR))
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
@@ -1901,8 +1976,11 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            //save the sense data
-                            if (SEC_FILE_SUCCESS != secure_Write_File(RAW_OUTPUT_FILE_FLAG, deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
+                            // save the sense data
+                            if (SEC_FILE_SUCCESS !=
+                                secure_Write_File(RAW_OUTPUT_FILE_FLAG,
+                                                  deviceList[deviceIter].drive_info.lastCommandSenseData,
+                                                  SPC3_SENSE_LEN, sizeof(uint8_t), SPC3_SENSE_LEN, M_NULLPTR))
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
@@ -1921,7 +1999,7 @@ int main(int argc, char *argv[])
                         }
                         if (RAW_OUTPUT_FILE_FLAG)
                         {
-                            //close the file now that we are done reading it
+                            // close the file now that we are done reading it
                             if (SEC_FILE_SUCCESS != secure_Close_File(RAW_OUTPUT_FILE_FLAG))
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1933,35 +2011,38 @@ int main(int argc, char *argv[])
                         }
                     }
 
-
-                    //show the returned data on data in commands when verbosity is less than 3
+                    // show the returned data on data in commands when verbosity is less than 3
                     if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN && toolVerbosity < VERBOSITY_BUFFERS)
                     {
                         printf("\nReturned Data:\n");
                         print_Data_Buffer(dataBuffer, allocatedDataLength, true);
                     }
 
-                    //show the sense data if the flag is set and verbosity is less than 3
+                    // show the sense data if the flag is set and verbosity is less than 3
                     if (toolVerbosity < VERBOSITY_BUFFERS && showSenseData)
                     {
                         printf("\nRTFRs:\n");
                         printf("\t[Error] = %02" PRIX8 "h\n", passthroughCommand.rtfr.error);
-                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE || passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
+                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE ||
+                            passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
                         {
                             printf("\t[Count Ext] = %02" PRIX8 "h\n", passthroughCommand.rtfr.secCntExt);
                         }
                         printf("\t[Count] = %02" PRIX8 "h\n", passthroughCommand.rtfr.secCnt);
-                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE || passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
+                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE ||
+                            passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
                         {
                             printf("\t[LBA Lo Ext] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaLowExt);
                         }
                         printf("\t[LBA Lo] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaLow);
-                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE || passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
+                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE ||
+                            passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
                         {
                             printf("\t[LBA Mid Ext] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaMidExt);
                         }
                         printf("\t[LBA Mid] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaMid);
-                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE || passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
+                        if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE ||
+                            passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
                         {
                             printf("\t[LBA Hi Ext] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaHiExt);
                         }
@@ -1972,7 +2053,7 @@ int main(int argc, char *argv[])
                         printf("\nSense Data:\n");
                         print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
                     }
-                    safe_Free_aligned(C_CAST(void**, &dataBuffer));
+                    safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                 }
                 else
                 {
@@ -1994,26 +2075,31 @@ int main(int argc, char *argv[])
         }
         else
         {
-            //try to tell the user which flags they missed setting
+            // try to tell the user which flags they missed setting
             if (RAW_TFR_SIZE_FLAG == 0)
             {
-                printf("You must add the --%s [28 | 48 | complete] command line option\n", RAW_TFR_SIZE_LONG_OPT_STRING);
+                printf("You must add the --%s [28 | 48 | complete] command line option\n",
+                       RAW_TFR_SIZE_LONG_OPT_STRING);
             }
             if (RAW_TFR_PROTOCOL == -1)
             {
-                printf("You must add the --%s [pio | dma | udma | fpdma | ncq | nodata | diag | dmaque | reset] command line option\n", RAW_TFR_PROTOCOL_LONG_OPT_STRING);
+                printf("You must add the --%s [pio | dma | udma | fpdma | ncq | nodata | diag | dmaque | reset] "
+                       "command line option\n",
+                       RAW_TFR_PROTOCOL_LONG_OPT_STRING);
             }
             if (RAW_TFR_XFER_LENGTH_LOCATION == -1)
             {
-                printf("You must add the --%s [sectorCount | feature | tpsiu | nodata] command line option\n", RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING);
+                printf("You must add the --%s [sectorCount | feature | tpsiu | nodata] command line option\n",
+                       RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING);
             }
             if (RAW_TFR_BYTE_BLOCK == -1)
             {
-                printf("You must add the --%s [512 | logical | bytes | nodata] command line option\n", RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING);
+                printf("You must add the --%s [512 | logical | bytes | nodata] command line option\n",
+                       RAW_TFR_BYTE_BLOCK_LONG_OPT_STRING);
             }
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
         }
-        //At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
+        // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
     free_device_list(&DEVICE_LIST);
@@ -2035,27 +2121,29 @@ int main(int argc, char *argv[])
 //-----------------------------------------------------------------------------
 void utility_Usage(bool shortUsage)
 {
-    //everything needs a help option right?
+    // everything needs a help option right?
     printf("Usage\n");
     printf("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
     printf("\nExamples\n");
     printf("========\n");
-    //example usage
+    // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
     printf("\tIdentify device:\n");
-    printf("\t\t-d %s --dataDir in  --dataLen 512  --outputFile ID_dev.bin --tfrByteBlock 512  --tfrProtocol pio  --tfrSize 28  --command ECh --tfrXferLengthReg sectorCount --sectorCount 1\n", deviceHandleExample);
-    //return codes
+    printf("\t\t-d %s --dataDir in  --dataLen 512  --outputFile ID_dev.bin --tfrByteBlock 512  --tfrProtocol pio  "
+           "--tfrSize 28  --command ECh --tfrXferLengthReg sectorCount --sectorCount 1\n",
+           deviceHandleExample);
+    // return codes
     printf("\nReturn codes\n");
     printf("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
-    //utility options - alphabetized
+    // utility options - alphabetized
     printf("\nUtility Options\n");
     printf("===============\n");
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
 #endif
@@ -2076,10 +2164,10 @@ void utility_Usage(bool shortUsage)
     print_Verbose_Help(shortUsage);
     print_Version_Help(shortUsage, util_name);
 
-    //the test options
+    // the test options
     printf("\nUtility Arguments\n");
     printf("=================\n");
-    //Common (across utilities) - alphabetized
+    // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
@@ -2087,8 +2175,8 @@ void utility_Usage(bool shortUsage)
     print_Agressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
-    //utility tests/operations go here - alphabetized
-    //multiple interfaces
+    // utility tests/operations go here - alphabetized
+    // multiple interfaces
     print_Fast_Discovery_Help(shortUsage);
     print_Raw_Data_Direction_Help(shortUsage);
     print_Raw_Data_Length_Help(shortUsage);
@@ -2097,7 +2185,7 @@ void utility_Usage(bool shortUsage)
     print_Raw_Output_File_Help(shortUsage);
     print_Raw_Timeout_Help(shortUsage);
 
-    //SATA Only Options
+    // SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
     print_Raw_TFR_AUX1_Help(shortUsage);
     print_Raw_TFR_AUX2_Help(shortUsage);
@@ -2127,7 +2215,7 @@ void utility_Usage(bool shortUsage)
     print_Raw_TFR_Size_Help(shortUsage);
     print_Raw_TFR_XFer_Length_Register_Help(shortUsage);
 
-    //SAS/SCSI Only
+    // SAS/SCSI Only
     printf("\n\tSAS Only:\n\t=========\n");
     print_Raw_CDB_Help(shortUsage);
     print_Raw_CDB_Length_Help(shortUsage);

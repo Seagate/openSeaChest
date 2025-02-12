@@ -14,57 +14,57 @@
 // \brief This file defines the functions and macros to make building a utility easier.
 
 #include "common_types.h"
-#include "type_conversion.h"
-#include "memory_safety.h"
-#include "time_utils.h"
 #include "io_utils.h"
+#include "memory_safety.h"
 #include "string_utils.h"
+#include "time_utils.h"
+#include "type_conversion.h"
 
 #include "openseachest_util_options.h"
 
-#if defined (__linux__)
-#if defined (VMK_CROSS_COMP)
-const char *deviceHandleExample = "vmhba<#>";
-const char *deviceHandleName = "<deviceHandle>";
-const char *commandWindowType = "terminal";
+#if defined(__linux__)
+#    if defined(VMK_CROSS_COMP)
+const char* deviceHandleExample = "vmhba<#>";
+const char* deviceHandleName    = "<deviceHandle>";
+const char* commandWindowType   = "terminal";
+#    else
+const char*        deviceHandleExample     = "/dev/sg<#>";
+const char*        deviceHandleName        = "<sg_device>";
+const char*        commandWindowType       = "terminal";
+#    endif
+#elif defined(__FreeBSD__)
+const char* deviceHandleExample = "/dev/da<#>";
+const char* deviceHandleName    = "<da_device>";
+const char* commandWindowType   = "shell";
+#elif defined(_WIN32)
+#    include "windows_version_detect.h"
+const char* deviceHandleExample = "PD<#>";
+const char* deviceHandleName    = "<physical_device>";
+const char* commandWindowType   = "command";
+#elif defined(__sun)
+const char* deviceHandleExample = "/dev/rdsk/c<#>t<#>d<#>";
+const char* deviceHandleName    = "<rdsk_device>";
+const char* commandWindowType   = "shell";
+#elif defined(_AIX)
+const char* deviceHandleExample = "/dev/rhdisk<#>";
+const char* deviceHandleName    = "<rhdisk_device>";
+const char* commandWindowType   = "shell";
 #else
-const char *deviceHandleExample = "/dev/sg<#>";
-const char *deviceHandleName = "<sg_device>";
-const char *commandWindowType = "terminal";
-#endif
-#elif defined (__FreeBSD__)
-const char *deviceHandleExample = "/dev/da<#>";
-const char *deviceHandleName = "<da_device>";
-const char *commandWindowType = "shell";
-#elif defined (_WIN32)
-#include "windows_version_detect.h"
-const char *deviceHandleExample = "PD<#>";
-const char *deviceHandleName = "<physical_device>";
-const char *commandWindowType = "command";
-#elif defined (__sun)
-const char *deviceHandleExample = "/dev/rdsk/c<#>t<#>d<#>";
-const char *deviceHandleName = "<rdsk_device>";
-const char *commandWindowType = "shell";
-#elif defined (_AIX)
-const char *deviceHandleExample = "/dev/rhdisk<#>";
-const char *deviceHandleName = "<rhdisk_device>";
-const char *commandWindowType = "shell";
-#else
-#error "OS Not Defined or known"
+#    error "OS Not Defined or known"
 #endif
 
-#if defined (ENABLE_CSMI)
-//static const char *csmiDeviceHandleName = "<csmi_device>";
-#if defined (_WIN32)
-static const char *csmiDeviceHandleExample = "csmi<#>:<#>:<#>:<#>";
-#else
-static const char *csmiDeviceHandleExample = "<error<#><#><#>>";
-#endif //_WIN32
-#endif //ENABLE_CSMI
+#if defined(ENABLE_CSMI)
+// static const char *csmiDeviceHandleName = "<csmi_device>";
+#    if defined(_WIN32)
+static const char* csmiDeviceHandleExample = "csmi<#>:<#>:<#>:<#>";
+#    else
+static const char* csmiDeviceHandleExample = "<error<#><#><#>>";
+#    endif //_WIN32
+#endif     // ENABLE_CSMI
 
 void print_Bug_Report_Email(bool shortHelp)
 {
-    //we only want to show this for long help information. - TJE
+    // we only want to show this for long help information. - TJE
     if (!shortHelp)
     {
         printf("\nPlease report bugs/suggestions to seaboard@seagate.com.\n");
@@ -77,12 +77,11 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
     bool set = false;
     if (requestedLevel && verbosity)
     {
-        char* end = M_NULLPTR;
-        long temp = strtol(requestedLevel, &end, 10);
-        if (!(temp == LONG_MAX && errno == ERANGE) && !(temp == 0 && requestedLevel == end) && strcmp(end, "") == 0 && C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
+        long temp = 0L;
+        if (0 == safe_strtol(&temp, requestedLevel, M_NULLPTR, BASE_10_DECIMAL))
         {
-            *verbosity = C_CAST(eVerbosityLevels, temp);
-            set = true;
+            *verbosity = M_STATIC_CAST(eVerbosityLevels, temp);
+            set        = true;
         }
     }
     return set;
@@ -91,53 +90,54 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
 void print_Elevated_Privileges_Text(void)
 {
     printf("WARNING: You must run with elevated privileges to communicate with devices in the system.");
-#if defined (_WIN32)
+#if defined(_WIN32)
     printf("(admin)");
-#elif defined (__unix__) || defined(__APPLE__)
+#elif defined(__unix__) || defined(__APPLE__)
     printf("(root, sudo)");
 #else
     printf("(admin, root, sudo, etc)");
     printf("\nor be part of a privileged group with disk access.");
-#if defined (__linux__)
+#    if defined(__linux__)
     printf("(disk)");
-//If other systems have groups which get disk access, list them here. Currently only know about the disk group in Linux
-#endif
+// If other systems have groups which get disk access, list them here. Currently only know about the disk group in Linux
+#    endif
 
 #endif
     printf("\nExamples of elevated privileges: \n");
-#if defined (_WIN32)
+#if defined(_WIN32)
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
-#elif defined (__unix__) || defined(__APPLE__)
-    //handle the various linux/unix/unix-like OSs with more ifdefs here
-#if defined (__linux__)
-#if defined (VMK_CROSS_COMP)
+#elif defined(__unix__) || defined(__APPLE__)
+    // handle the various linux/unix/unix-like OSs with more ifdefs here
+#    if defined(__linux__)
+#        if defined(VMK_CROSS_COMP)
     printf("In ESXi, put sudo before the command. This may require inputting your login password.\n");
     printf("In ESXi, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#else
+#        else
     printf("In Linux, put sudo before the command. This may require inputting your login password.\n");
     printf("In Linux, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#endif
-#elif defined (__FreeBSD__)
+#        endif
+#    elif defined(__FreeBSD__)
     printf("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     printf("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#elif defined (__sun)
+#    elif defined(__sun)
     printf("In Solaris, put sudo before the command. This may require inputting your login password.\n");
     printf("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#else //generic unix/unix-like case //Add more OS specific ifdefs to customize messages above
+#    else // generic unix/unix-like case //Add more OS specific ifdefs to customize messages above
     printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
-    printf("In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
-#endif
-#else //generic, who knows what OS this is case
+    printf(
+        "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    endif
+#else // generic, who knows what OS this is case
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
     printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
-    printf("In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    printf(
+          "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
-    return;
 }
 
-char* get_current_year(char *temp_year)
+char* get_current_year(char* temp_year)
 {
-    size_t len = safe_strlen(__DATE__);
+    size_t len   = safe_strlen(__DATE__);
     temp_year[4] = '\0';
     temp_year[3] = __DATE__[len - 1];
     temp_year[2] = __DATE__[len - 2];
@@ -146,71 +146,85 @@ char* get_current_year(char *temp_year)
     return temp_year;
 }
 
-#include "common_types.h"
-
-void openseachest_utility_Info(const char *utilityName, const char *buildVersion, const char *seaCPublicVersion)
+void openseachest_utility_Info(const char* utilityName, const char* buildVersion, const char* seaCPublicVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
-    char *year = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
-    char *userName = M_NULLPTR;
-#if defined (ENABLE_READ_USERNAME)
+    char*         year         = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
+    char*         userName     = M_NULLPTR;
+    errno_t       userdup      = 0;
+#if defined(ENABLE_READ_USERNAME)
     if (SUCCESS != get_Current_User_Name(&userName))
     {
-#define UNKNOWN_USER_NAME_MAX_LENGTH 36
-        userName = C_CAST(char*, safe_calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
+#    define UNKNOWN_USER_NAME_MAX_LENGTH 36
+        userName = M_REINTERPRET_CAST(char*, safe_calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
         if (userName)
         {
             snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
+        else
+        {
+            userdup = ENOMEM;
+        }
     }
-#else //!ENABLE_READ_USERNAME
+#else //! ENABLE_READ_USERNAME
     if (is_Running_Elevated())
     {
-#if defined (_WIN32)
-        userName = strdup("admin");
-#else //!_WIN32
-        userName = strdup("root");
-#endif //_WIN32
+#    if defined(_WIN32)
+          userdup = safe_strdup(&userName, "admin");
+#    else  //!_WIN32
+        userdup = safe_strdup(&userName, "root");
+#    endif //_WIN32
     }
     else
     {
-        userName = strdup("current user");
+          userdup = safe_strdup(&userName, "current user");
     }
-#endif //ENABLE_READ_USERNAME
-    //DECLARE_ZERO_INIT_ARRAY(char, g_timeString, 64);
+#endif     // ENABLE_READ_USERNAME
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     printf(" - NVMe Enabled");
-    printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n", get_current_year(year));
+    printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n",
+           get_current_year(year));
     printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
     if (get_current_timestamp() == false)
     {
-        snprintf(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
+        snprintf_err_handle(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
     }
-    printf(" Today: %s\tUser: %s\n", CURRENT_TIME_STRING, userName);
-    printf("==========================================================================================\n");
+    printf(" Today: %s", CURRENT_TIME_STRING);
+    if (userdup == 0)
+    {
+        printf("\tUser: %s", userName);
+    }
+    printf("\n==========================================================================================\n");
     safe_free(&userName);
     safe_free(&year);
 }
 
-void utility_Full_Version_Info(const char *utilityName, const char *buildVersion, int seaCPublicMajorVersion, int seaCPublicMinorVersion, int seaCPublicPatchVersion, const char * openseaCommonVersion, const char * openseaOperationVersion)
+void utility_Full_Version_Info(const char* utilityName,
+                               const char* buildVersion,
+                               int         seaCPublicMajorVersion,
+                               int         seaCPublicMinorVersion,
+                               int         seaCPublicPatchVersion,
+                               const char* openseaCommonVersion,
+                               const char* openseaOperationVersion)
 {
     DECLARE_ZERO_INIT_ARRAY(char, osName, OS_NAME_SIZE);
     OSVersionNumber osversionnumber;
-    eCompiler compilerUsed = OPENSEA_COMPILER_UNKNOWN;
+    eCompiler       compilerUsed = OPENSEA_COMPILER_UNKNOWN;
     compilerVersion compilerVersionInfo;
-    memset(&osversionnumber, 0, sizeof(OSVersionNumber));
-    memset(&compilerVersionInfo, 0, sizeof(compilerVersion));
+    safe_memset(&osversionnumber, sizeof(OSVersionNumber), 0, sizeof(OSVersionNumber));
+    safe_memset(&compilerVersionInfo, sizeof(compilerVersion), 0, sizeof(compilerVersion));
     get_Compiler_Info(&compilerUsed, &compilerVersionInfo);
     get_Operating_System_Version_And_Name(&osversionnumber, &osName[0]);
 
     printf("Version Info for %s:\n", utilityName);
     printf("\tUtility Version: %s\n", buildVersion);
     printf("\topensea-common Version: %s\n", openseaCommonVersion);
-    printf("\topensea-transport Version: %" PRId32 ".%" PRId32 ".%" PRId32 "\n", seaCPublicMajorVersion, seaCPublicMinorVersion, seaCPublicPatchVersion);
+    printf("\topensea-transport Version: %" PRId32 ".%" PRId32 ".%" PRId32 "\n", seaCPublicMajorVersion,
+           seaCPublicMinorVersion, seaCPublicPatchVersion);
     printf("\topensea-operations Version: %s\n", openseaOperationVersion);
     printf("\tBuild Date: %s\n", __DATE__);
     printf("\tCompiled Architecture: ");
@@ -228,19 +242,22 @@ void utility_Full_Version_Info(const char *utilityName, const char *buildVersion
     printf("\n\tOperating System Name: %s\n", osName);
 }
 
-//This function is used in at_exit() only.
-//It will flush stdout and stderr after printing one final newline character.
+// This function is used in at_exit() only.
+// It will flush stdout and stderr after printing one final newline character.
 void print_Final_newline(void)
 {
     printf("\n");
-    //Flushing stdout and stderr 
-    //https://wiki.sei.cmu.edu/confluence/display/c/FIO23-C.+Do+not+exit+with+unflushed+data+in+stdout+or+stderr
-    //NOTE: Links shows checking for EOF for an error....this is at an exit...I have no idea what error handling we would want at this point.
-    fflush(stdout);
-    fflush(stderr);
+    // Flushing stdout and stderr
+    // https://wiki.sei.cmu.edu/confluence/display/c/FIO23-C.+Do+not+exit+with+unflushed+data+in+stdout+or+stderr
+    // NOTE: Links shows checking for EOF for an error....this is at an exit...I have no idea what error handling we
+    // would want at this point.
+    flush_stdout();
+    flush_stderr();
 }
 
-void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSpecificxitCode toolSpecificExitCodeList, const char * toolName)
+void print_SeaChest_Util_Exit_Codes(int                    numberOfToolSpecificExitCodes,
+                                    ptrToolSpecificxitCode toolSpecificExitCodeList,
+                                    const char*            toolName)
 {
     printf("\tGeneric/Common exit codes\n");
     printf("\t%d = No Error Found\n", UTIL_EXIT_NO_ERROR);
@@ -253,77 +270,77 @@ void print_SeaChest_Util_Exit_Codes(int numberOfToolSpecificExitCodes, ptrToolSp
     printf("\t%d = Cannot Open File\n", UTIL_EXIT_CANNOT_OPEN_FILE);
     printf("\t%d = File Already Exists\n", UTIL_EXIT_FILE_ALREADY_EXISTS);
     printf("\t%d = Need Elevated Privileges\n", UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-    //more generic exit code help above this comment. Tool specific exit codes in if statement below
+    // more generic exit code help above this comment. Tool specific exit codes in if statement below
     if (numberOfToolSpecificExitCodes > 0 && toolSpecificExitCodeList)
     {
         printf("\t---%s specific exit codes---\n", toolName);
-        //We have some number of tool specific exit codes to print out in addition to the generic exit codes we have.
+        // We have some number of tool specific exit codes to print out in addition to the generic exit codes we have.
         for (int exitCodeListIter = 0; exitCodeListIter < numberOfToolSpecificExitCodes; ++exitCodeListIter)
         {
-            printf("\t%d = %s\n", toolSpecificExitCodeList[exitCodeListIter].exitCode, toolSpecificExitCodeList[exitCodeListIter].exitCodeString);
+            printf("\t%d = %s\n", toolSpecificExitCodeList[exitCodeListIter].exitCode,
+                   toolSpecificExitCodeList[exitCodeListIter].exitCodeString);
         }
     }
     printf("\tAnything else = unknown error\n\n");
 }
 
-void get_Scan_Flags(deviceScanFlags *scanFlags, char *optarg)
+void get_Scan_Flags(deviceScanFlags* scanFlags, char* optarg)
 {
-    if(strncmp("ata", optarg, safe_strlen(optarg)) == 0)                 
-    {                                                                                                   
-        scanFlags->scanATA = true;                                                                      
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 3 && strncmp("usb", optarg, safe_strlen(optarg)) == 0)            
-    {                                                                                                   
-        scanFlags->scanUSB = true;                                                                      
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 4 && strncmp("scsi", optarg, safe_strlen(optarg)) == 0)           
-    {                                                                                                   
-        scanFlags->scanSCSI = true;                                                                     
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 4 && strncmp("nvme", optarg, safe_strlen(optarg)) == 0)           
-    {                                                                                                   
-        scanFlags->scanNVMe = true;                                                                     
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 4 && strncmp("raid", optarg, safe_strlen(optarg)) == 0)           
-    {                                                                                                   
-        scanFlags->scanRAID = true;                                                                     
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 12 && strncmp("interfaceATA", optarg, safe_strlen(optarg)) == 0)  
-    {                                                                                                   
-        scanFlags->scanInterfaceATA = true;                                                             
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 12 && strncmp("interfaceUSB", optarg, safe_strlen(optarg)) == 0)  
-    {                                                                                                   
-        scanFlags->scanInterfaceUSB = true;                                                             
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 13 && strncmp("interfaceSCSI", optarg, safe_strlen(optarg)) == 0) 
-    {                                                                                                   
-        scanFlags->scanInterfaceSCSI = true;                                                            
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 13 && strncmp("interfaceNVME", optarg, safe_strlen(optarg)) == 0) 
-    {                                                                                                   
-        scanFlags->scanInterfaceNVMe = true;                                                            
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 2 && strncmp("sd", optarg, safe_strlen(optarg)) == 0)             
-    {                                                                                                   
-        scanFlags->scanSD = true;                                                                       
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 6 && strncmp("sgtosd", optarg, safe_strlen(optarg)) == 0)         
-    {                                                                                                   
-        scanFlags->scanSDandSG = true;                                                                  
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 10 && strncmp("ignoreCSMI", optarg, safe_strlen(optarg)) == 0)    
-    {                                                                                                   
-        scanFlags->scanIgnoreCSMI = true;                                                                          
-    }                                                                                                   
-    else if (safe_strlen(optarg) == 15 && strncmp("allowDuplicates", optarg, safe_strlen(optarg)) == 0) 
-    {                                                                                                   
-        scanFlags->scanAllowDuplicateDevices = true;                                                               
-    }              
-    return;
+    if (strcmp("ata", optarg) == 0)
+    {
+        scanFlags->scanATA = true;
+    }
+    else if (strcmp("usb", optarg) == 0)
+    {
+        scanFlags->scanUSB = true;
+    }
+    else if (strcmp("scsi", optarg) == 0)
+    {
+        scanFlags->scanSCSI = true;
+    }
+    else if (strcmp("nvme", optarg) == 0)
+    {
+        scanFlags->scanNVMe = true;
+    }
+    else if (strcmp("raid", optarg) == 0)
+    {
+        scanFlags->scanRAID = true;
+    }
+    else if (strcmp("interfaceATA", optarg) == 0)
+    {
+        scanFlags->scanInterfaceATA = true;
+    }
+    else if (strcmp("interfaceUSB", optarg) == 0)
+    {
+        scanFlags->scanInterfaceUSB = true;
+    }
+    else if (strcmp("interfaceSCSI", optarg) == 0)
+    {
+        scanFlags->scanInterfaceSCSI = true;
+    }
+    else if (strcmp("interfaceNVME", optarg) == 0)
+    {
+        scanFlags->scanInterfaceNVMe = true;
+    }
+    else if (strcmp("sd", optarg) == 0)
+    {
+        scanFlags->scanSD = true;
+    }
+    else if (strcmp("sgtosd", optarg) == 0)
+    {
+        scanFlags->scanSDandSG = true;
+    }
+    else if (strcmp("ignoreCSMI", optarg) == 0)
+    {
+        scanFlags->scanIgnoreCSMI = true;
+    }
+    else if (strcmp("allowDuplicates", optarg) == 0)
+    {
+        scanFlags->scanAllowDuplicateDevices = true;
+    }
 }
 
-void print_Scan_Help(bool shortHelp, const char *helpdeviceHandleExample)
+void print_Scan_Help(bool shortHelp, const char* helpdeviceHandleExample)
 {
     printf("\t-%c, --%s\n", SCAN_SHORT_OPT, SCAN_LONG_OPT_STRING);
     if (!shortHelp)
@@ -363,7 +380,8 @@ void print_Scan_Flags_Help(bool shortHelp)
         printf("\t\t\tusb - show only USB devices\n");
         printf("\t\t\tscsi - show only SCSI (SAS) devices\n");
         printf("\t\t\tnvme - show only NVMe devices\n");
-        //printf("\t\t\traid - show RAID devices\n");//commented out until we officially add raid support. Currently raids show up as SCSI devices
+        // printf("\t\t\traid - show RAID devices\n");//commented out until we officially add raid support. Currently
+        // raids show up as SCSI devices
         printf("\t\t\tinterfaceATA - show devices on an ATA interface\n");
         printf("\t\t\tinterfaceUSB - show devices on a USB interface\n");
         printf("\t\t\tinterfaceSCSI - show devices on a SCSI or SAS interface\n");
@@ -372,7 +390,7 @@ void print_Scan_Flags_Help(bool shortHelp)
         printf("\t\t\tsd - show sd device handles\n");
         printf("\t\t\tsgtosd - show the sd and sg device handle mapping\n");
 #endif
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         printf("\t\t\tignoreCSMI - do not scan for any CSMI devices\n");
         printf("\t\t\tallowDuplicates - allow drives with both CSMI and PD handles\n");
         printf("\t\t\t                  to show up multiple times in the list\n");
@@ -381,7 +399,7 @@ void print_Scan_Flags_Help(bool shortHelp)
     }
 }
 
-void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
+void print_Device_Help(bool shortHelp, const char* helpdeviceHandleExample)
 {
     printf("\t-%c, --%s [deviceHandle | all]\n", DEVICE_SHORT_OPT, DEVICE_LONG_OPT_STRING);
     if (!shortHelp)
@@ -391,7 +409,7 @@ void print_Device_Help(bool shortHelp, const char *helpdeviceHandleExample)
 #if defined(_WIN32)
         printf("\t\tA handle can also be specified as \\\\.\\PhysicalDrive<#>\n");
 #endif
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
         printf("\t\tCSMI device handles can be specified as %s\n", csmiDeviceHandleExample);
 #endif
         printf("\t\tTo run across all devices detected in the system, use the\n");
@@ -440,7 +458,7 @@ void print_Verbose_Help(bool shortHelp)
     }
 }
 
-void print_Quiet_Help(bool shortHelp, const char *utilName)
+void print_Quiet_Help(bool shortHelp, const char* utilName)
 {
     printf("\t-%c, --%s\n", QUIET_SHORT_OPT, QUIET_LONG_OPT_STRING);
     if (!shortHelp)
@@ -450,7 +468,7 @@ void print_Quiet_Help(bool shortHelp, const char *utilName)
     }
 }
 
-void print_Version_Help(bool shortHelp, const char *utilName)
+void print_Version_Help(bool shortHelp, const char* utilName)
 {
     printf("\t-%c, --%s\n", VERSION_SHORT_OPT, VERSION_LONG_OPT_STRING);
     if (!shortHelp)
@@ -568,7 +586,7 @@ void print_Sanitize_Anti_Freeze_Help(bool shortHelp)
     }
 }
 
-void print_Sanitize_Help(bool shortHelp, const char *utilName)
+void print_Sanitize_Help(bool shortHelp, const char* utilName)
 {
     printf("\t--%s [info | blockerase | cryptoerase |\n", SANITIZE_LONG_OPT_STRING);
     printf("\t            overwrite | freezelock | antifreezelock] \t(Purge)\n");
@@ -592,12 +610,13 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
         printf("\t\tto stop the write pointers from resetting allowing full\n");
         printf("\t\tdrive verification to be performed upon completion of sanitize\n");
         printf("\t\tFor NVMe devices that support the deallocate feature (TRIM), the\n");
-        printf("\t\t--%s option can be used to prevent the deallocation of blocks at\n", NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING);
+        printf("\t\t--%s option can be used to prevent the deallocation of blocks at\n",
+               NO_DEALLOCATE_AFTER_ERASE_LONG_OPT_STRING);
         printf("\t\tcompletion of sanitize to allow for full drive verification.\n");
         printf("\t\tNOTE: An NVMe controller may inhibit the no deallocate behavior\n");
         printf("\t\t      and may deallocate anyways or fail the sanitize command when\n");
         printf("\t\t      no deallocate is specified.\n\n");
-#if defined (_WIN32)
+#if defined(_WIN32)
         if (!is_Windows_PE())
         {
             printf("\t\tNote: Windows 8 and higher block sanitize commands. Sanitize\n");
@@ -607,27 +626,28 @@ void print_Sanitize_Help(bool shortHelp, const char *utilName)
             printf("\t\tsupport the sanitize command set.\n\n");
         }
 #endif //_WIN32
-        //blockerase info
+       // blockerase info
         printf("\t\t* blockerase on some solid state drives is very fast at less\n");
         printf("\t\tthan one (1) second, while others may take more that 30 seconds\n");
         printf("\t\tThis operation performs a physical low level block erase\n");
         printf("\t\toperation on all current, past, and potential user data.\n");
         printf("\t\tThe contents on user data are indeterminate upon completion.\n\n");
-        //cryptoerase info
+        // cryptoerase info
         printf("\t\t* cryptoerase is very fast at less than one (1) second. It\n");
         printf("\t\tchanges the internal encryption keys that are used for user\n");
         printf("\t\tdata causing all previous data to be useless.\n\n");
-        //overwrite info
+        // overwrite info
         printf("\t\t* overwrite is a physical overwrite on all current, past, and\n");
         printf("\t\tpotential user data. The ATA, NVMe, & SCSI specifications allow a\n");
         printf("\t\tuser defined pattern and multiple passes. %s will\n", utilName);
         printf("\t\tuse a zero pattern and a single pass for this operation\n");
-        printf("\t\tby default. Use --%s and --%s to specify\n", SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING, SANITIZE_IPBP_LONG_OPT_STRING);
+        printf("\t\tby default. Use --%s and --%s to specify\n", SANITIZE_OVERWRITE_PASSES_LONG_OPT_STRING,
+               SANITIZE_IPBP_LONG_OPT_STRING);
         printf("\t\tthe number of passes and whether to invert the pattern between\n");
         printf("\t\teach overwrite pass.\n\n");
-        //freezelock info
+        // freezelock info
         printf("\t\t* freezelock - migrate to use of --%s\n\n", SANITIZE_FREEZE_LONG_OPT_STRING);
-        //anti freezlock info
+        // anti freezlock info
         printf("\t\t* antifreezelock - migrate to use of --%s\n\n", SANITIZE_ANTIFREEZE_LONG_OPT_STRING);
         printf("\t\tWARNING: Sanitize may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
@@ -792,7 +812,8 @@ void print_Revert_Help(bool shortHelp)
         printf("\t\tThe --%s flag can be provided to perform the revert with\n", TCG_PSID_LONG_OPT_STRING);
         printf("\t\tthe PSID authority in case of a lost password.\n");
         printf("\t\tThe --%s flag can be provided to perform the revert with SID.\n", TCG_SID_LONG_OPT_STRING);
-        printf("\t\tIf neither the --%s or the --%s options are provided, then the\n", TCG_PSID_LONG_OPT_STRING, TCG_SID_LONG_OPT_STRING);
+        printf("\t\tIf neither the --%s or the --%s options are provided, then the\n", TCG_PSID_LONG_OPT_STRING,
+               TCG_SID_LONG_OPT_STRING);
         printf("\t\trevert will be sent setting SID as the MSID value. This will only work\n");
         printf("\t\ton a drive not already activated by security software.\n");
         printf("\t\tUpon completion, the drive will be \"like new\" with all\n");
@@ -832,7 +853,8 @@ void print_Progress_Help(bool shortHelp, const char* testsTogetProgressFor)
     {
         printf("\t\tGet the progress for a test that was started quietly without\n");
         printf("\t\tthe polling option (default). You must specify a test you wish to\n");
-        printf("\t\tget progress from. Ex: \"--%s dst\" or \"--%s sanitize\"\n", PROGRESS_LONG_OPT_STRING, PROGRESS_LONG_OPT_STRING);
+        printf("\t\tget progress from. Ex: \"--%s dst\" or \"--%s sanitize\"\n", PROGRESS_LONG_OPT_STRING,
+               PROGRESS_LONG_OPT_STRING);
         printf("\t\tThe progress counts up from 0%% to 100%%.\n\n");
     }
 }
@@ -900,7 +922,7 @@ void print_Conveyance_DST_Help(bool shortHelp)
     }
 }
 
-void print_Long_DST_Help(bool shortHelp, const char *helpcommandWindowType)
+void print_Long_DST_Help(bool shortHelp, const char* helpcommandWindowType)
 {
     printf("\t--%s\n", LONG_DST_LONG_OPT_STRING);
     if (!shortHelp)
@@ -1032,12 +1054,13 @@ void print_Check_Power_Mode_Help(bool shortHelp)
         printf("\t\tGet the current power mode of a drive.\n");
         printf("\t\tOn SCSI devices, this will only work if the drive has\n");
         printf("\t\ttransitioned from active state to another state.\n");
-        #if defined (_WIN32)
+#if defined(_WIN32)
         printf("\t\tThis option may wake a SAS drive under Windows due to\n");
         printf("\t\ta Windows limitation. If used on the command line with\n");
         printf("\t\tthe transition option, the output will show correctly.\n");
-        printf("\t\tex of usage: --%s standby_z --%s\n", TRANSITION_POWER_MODE_LONG_OPT_STRING, CHECK_POWER_LONG_OPT_STRING);
-        #endif
+        printf("\t\tex of usage: --%s standby_z --%s\n", TRANSITION_POWER_MODE_LONG_OPT_STRING,
+               CHECK_POWER_LONG_OPT_STRING);
+#endif
         printf("\n");
     }
 }
@@ -1191,7 +1214,8 @@ void print_Legacy_Idle_Help(bool shortHelp)
 
 void print_Legacy_Standby_Help(bool shortHelp)
 {
-    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n", LEGACY_STANDBY_LONG_OPT_STRING);
+    printf("\t--%s [ enable | disable | default | timerValueMilliseconds ] (Some settings are SAS only)\n",
+           LEGACY_STANDBY_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this setting to change the standby power mode settings.\n");
@@ -1214,7 +1238,7 @@ void print_Legacy_Standby_Help(bool shortHelp)
     }
 }
 
-//Mainly used for NVMe devices.
+// Mainly used for NVMe devices.
 void print_extSmatLog_Help(bool shortHelp)
 {
     printf("\t--%s\n", EXT_SMART_LOG_LONG_OPT_STRING1);
@@ -1244,7 +1268,6 @@ void print_Transition_Power_State_Help(bool shortHelp)
         printf("\t\t         may or may not block this transition. It is recommended\n");
         printf("\t\t         to only use this option for operational power states\n");
         printf("\t\tHINT:\n\t\t  Use --%s to view the supported states\n", SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
-        
     }
 }
 
@@ -1269,7 +1292,8 @@ void print_Show_Phy_Event_Counters_Help(bool shortHelp)
 
 void print_Transition_Power_Help(bool shortHelp)
 {
-    printf("\t--%s [active | idle | idleUnload | standby | idle_a | idle_b | idle_c | standby_y | standby_z | sleep]\n", TRANSITION_POWER_MODE_LONG_OPT_STRING);
+    printf("\t--%s [active | idle | idleUnload | standby | idle_a | idle_b | idle_c | standby_y | standby_z | sleep]\n",
+           TRANSITION_POWER_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to transition the drive to a specific power state.\n");
@@ -1348,7 +1372,6 @@ void print_two_Minute_Test_Help(bool shortHelp)
         printf("\t\tsections of the solid state drive.\n\n");
     }
 }
-
 
 void print_Long_Generic_Help(bool shortHelp)
 {
@@ -1559,7 +1582,8 @@ void print_Show_Power_Consumption_Help(bool shortHelp)
 
 void print_Set_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s [default | highest | intermediate | lowest | watt value]\t(SAS Only) \n", SET_POWER_CONSUMPTION_LONG_OPT_STRING);
+    printf("\t--%s [default | highest | intermediate | lowest | watt value]\t(SAS Only) \n",
+           SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option will set the power consumption rate of\n");
@@ -1621,7 +1645,8 @@ void print_Firmware_Slot_Buffer_ID_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a firmware slot (NVMe) or a buffer ID (SCSI)\n");
-        printf("\t\talong with the --%s (SCSI) or --%s (NVMe & SCSI) options.\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
+        printf("\t\talong with the --%s (SCSI) or --%s (NVMe & SCSI) options.\n", DOWNLOAD_FW_MODE_LONG_OPT_STRING,
+               ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
         printf("\t\tIf this option is not used, a value of zero will be used instead,\n");
         printf("\t\twhich means the drive will automatically select the slot number.\n\n");
     }
@@ -1635,7 +1660,8 @@ void print_Firmware_Activate_Help(bool shortHelp)
         printf("\t\tUse this option to issue the command to activate code that was\n");
         printf("\t\tsent to the drive using a deferred download command. This will\n");
         printf("\t\timmediately activate the new code on the drive.\n");
-        printf("\t\tYou can use this along with a --%s & --%s to\n", DOWNLOAD_FW_LONG_OPT_STRING, DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+        printf("\t\tYou can use this along with a --%s & --%s to\n", DOWNLOAD_FW_LONG_OPT_STRING,
+               DOWNLOAD_FW_MODE_LONG_OPT_STRING);
         printf("\t\tautomatically issue the activate command after the download has\n");
         printf("\t\tcompleted.\n\n");
         printf("\t\tWARNING: Firmware activation may affect all LUNs/namespaces for devices\n");
@@ -1724,8 +1750,8 @@ void print_Output_Mode_Help(bool shortHelp)
     printf("\t--%s   [ raw | binary ]\n", OUTPUT_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option with others options such as --%s\n",GET_NVME_LOG_LONG_OPT_STRING);
-        printf("\t\tand --%s to show a buffer output or to\n",DEVICE_INFO_LONG_OPT_STRING);
+        printf("\t\tUse this option with others options such as --%s\n", GET_NVME_LOG_LONG_OPT_STRING);
+        printf("\t\tand --%s to show a buffer output or to\n", DEVICE_INFO_LONG_OPT_STRING);
         printf("\t\tcreate a binary file.\n");
         printf("\t\tSupported Modes:\n");
         printf("\t\t\traw    - prints the raw buffer on stdout\n");
@@ -1734,7 +1760,6 @@ void print_Output_Mode_Help(bool shortHelp)
         printf("\t\t\t         Serial Number & time stamp\n\n");
     }
 }
-
 
 void print_Get_Features_Help(bool shortHelp)
 {
@@ -1814,7 +1839,7 @@ void print_Telemetry_Data_Set_Help(bool shortHelp)
     }
 }
 
-//NOTE: This is legacy for SeaChest_NVMe only!
+// NOTE: This is legacy for SeaChest_NVMe only!
 void print_NVMe_Get_Tele_Help(bool shortHelp)
 {
     printf("\t--%s [host | ctrl]\n", GET_TELEMETRY_LONG_OPT_STRING);
@@ -1832,7 +1857,7 @@ void print_NVMe_Get_Tele_Help(bool shortHelp)
 
     printf("\t--%s [1 | 2 | 3]\n", TELEMETRY_DATA_AREA_LONG_OPT_STRING);
 
-    if(!shortHelp)
+    if (!shortHelp)
     {
         printf("\t\tThis is a sub-command which defines the amount of data \n");
         printf("\t\tcollected by the --%s option. Data Area 3 is assumed \n", GET_TELEMETRY_LONG_OPT_STRING);
@@ -1863,7 +1888,6 @@ void print_NVMe_Pci_Stats_Help(bool shortHelp)
         printf("\t\tUse this option to get the NVMe PCIe Statistics\n\n");
     }
 }
-
 
 void print_Set_Max_LBA_Help(bool shortHelp)
 {
@@ -1935,7 +1959,6 @@ void print_Read_Look_Ahead_Help(bool shortHelp)
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
-
 
 void print_NV_Cache_Bit_Help(bool shortHelp)
 {
@@ -2024,8 +2047,10 @@ void print_SCT_Error_Recovery_Read_Help(bool shortHelp)
         printf("\t\tOther values should include a unit to know the time to use.\n");
         printf("\t\tIf no unit is provided, it is assumed to be the value * 100 ms\n");
         printf("\t\tEx1: --%s 15s for a 15 second timer.\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
-        printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
-        printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n", SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
+        printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n",
+               SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
+        printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n",
+               SCT_ERROR_RECOVERY_CONTROL_READ_LONG_OPT_STRING);
         printf("\t\tThe maximum time that can be specified is 1 hour, 49 minutes, 13 seconds\n");
         printf("\t\tUsing the \"default\" argument restores default settings.\n");
         printf("\t\tNote: On some SAT HBAs/bridges, status will not be able to be\n");
@@ -2050,8 +2075,10 @@ void print_SCT_Error_Recovery_Write_Help(bool shortHelp)
         printf("\t\tOther values should include a unit to know the time to use.\n");
         printf("\t\tIf no unit is provided, it is assumed to be the value * 100 ms\n");
         printf("\t\tEx1: --%s 15s for a 15 second timer.\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
-        printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
-        printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n", SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+        printf("\t\tEx2: --%s 15000ms for a 15 second timer expressed in milliseconds\n",
+               SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
+        printf("\t\tEx2: --%s 150 for a 15 second timer with no units specified\n",
+               SCT_ERROR_RECOVERY_CONTROL_WRITE_LONG_OPT_STRING);
         printf("\t\tThe maximum time that can be specified is 1 hour, 49 minutes, 13 seconds\n");
         printf("\t\tUsing the \"default\" argument restores default settings.\n");
         printf("\t\tNote: On some SAT HBAs/bridges, status will not be able to be\n");
@@ -2160,7 +2187,8 @@ void print_SAS_Phy_Test_Pattern(bool shortHelp)
         printf("\t\t\tIDLE\n");
         printf("\t\t\tSCRAMBLED_0\n");
         printf("\t\t\tTWO_DWORDS\n");
-        printf("\t\t\t   See --%s and --%s options for Two DWords\n", SAS_PHY_DWORD_CONTROL_LONG_OPT_STRING, SAS_PHY_DWORDS_LONG_OPT_STRING);
+        printf("\t\t\t   See --%s and --%s options for Two DWords\n", SAS_PHY_DWORD_CONTROL_LONG_OPT_STRING,
+               SAS_PHY_DWORDS_LONG_OPT_STRING);
         printf("\t\t\tFERL (Seagate Only)\n");
         printf("\t\t\tTRAIN_DFE (Seagate Only)\n");
         printf("\n");
@@ -2202,7 +2230,8 @@ void print_SAS_Phy_Test_Link_Rate(bool shortHelp)
 
 void print_SAS_Phy_Test_DWord_Control(bool shortHelp)
 {
-    printf("\t--%s [NO_SCRAMBLING | 5THCONTROL | 1STCONTROL | 1ST&5THCONTROL]\n", SAS_PHY_DWORD_CONTROL_LONG_OPT_STRING);
+    printf("\t--%s [NO_SCRAMBLING | 5THCONTROL | 1STCONTROL | 1ST&5THCONTROL]\n",
+           SAS_PHY_DWORD_CONTROL_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the DWord Control value to use when\n");
@@ -2218,7 +2247,8 @@ void print_SAS_Phy_Test_DWord_Control(bool shortHelp)
 
 void print_SAS_Phy_Test_DWord_Pattern(bool shortHelp)
 {
-    printf("\t--%s [hex value | D10.2 | D21.5 | D24.3 | D25.6&D6.1 | D30.3 | ALIGN_0 | ALIGN_1 | PAIR_ALIGN_0]\n", SAS_PHY_DWORDS_LONG_OPT_STRING);
+    printf("\t--%s [hex value | D10.2 | D21.5 | D24.3 | D25.6&D6.1 | D30.3 | ALIGN_0 | ALIGN_1 | PAIR_ALIGN_0]\n",
+           SAS_PHY_DWORDS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the two DWords to use for a test\n");
@@ -2565,7 +2595,8 @@ void print_Format_Default_Format_Help(bool shortHelp)
         printf("\t\tUse this option to perform a device's default format operation.\n");
         printf("\t\tNote: This mode may take a long time to complete.\n");
         printf("\t\tNote2: When this option is specified, only the --%s\n", FAST_FORMAT_LONG_OPT_STRING);
-        printf("\t\t       and --%s options will be used. All others are\n", FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT_STRING);
+        printf("\t\t       and --%s options will be used. All others are\n",
+               FORMAT_UNIT_DISCARD_GROWN_DEFECT_LIST_FLAG_LONG_OPT_STRING);
         printf("\t\t       ignored.\n\n");
     }
 }
@@ -3118,7 +3149,8 @@ void print_Zone_ID_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify a zone ID for use with other options\n");
-        printf("\t\tsuch as --%s, --%s, --%s, --%s, --%s.", REPORT_ZONES_LONG_OPT_STRING, CLOSE_ZONE_LONG_OPT_STRING, FINISH_ZONE_LONG_OPT_STRING, OPEN_ZONE_LONG_OPT_STRING, RESET_WP_LONG_OPT_STRING);
+        printf("\t\tsuch as --%s, --%s, --%s, --%s, --%s.", REPORT_ZONES_LONG_OPT_STRING, CLOSE_ZONE_LONG_OPT_STRING,
+               FINISH_ZONE_LONG_OPT_STRING, OPEN_ZONE_LONG_OPT_STRING, RESET_WP_LONG_OPT_STRING);
         printf("\t\tA zone ID is an LBA at the start of a specified zone.\n");
         printf("\t\tUse \"all\" with the options listed above to apply an action\n");
         printf("\t\tto all zones on the device.\n\n");
@@ -3145,7 +3177,8 @@ void print_Report_Zones_Help(bool shortHelp)
         printf("\t\tthe length of the zones, and where the write pointer is at.\n");
         printf("\t\tCombine this option with --%s and --%s\n", ZONE_ID_LONG_OPT_STRING, MAX_ZONES_LONG_OPT_STRING);
         printf("\t\tTo show a different list/subset of the zones on the drive.\n");
-        printf("\t\tEx: --%s empty --%s 123456 --%s 30\n", REPORT_ZONES_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING, MAX_ZONES_LONG_OPT_STRING);
+        printf("\t\tEx: --%s empty --%s 123456 --%s 30\n", REPORT_ZONES_LONG_OPT_STRING, ZONE_ID_LONG_OPT_STRING,
+               MAX_ZONES_LONG_OPT_STRING);
         printf("\t\t*all - show all zones\n");
         printf("\t\t*empty - show only empty zones\n");
         printf("\t\t*implicitOpen - show only implicitly opened zones\n");
@@ -3192,7 +3225,8 @@ void print_Reset_Write_Pointer_Zone_Help(bool shortHelp)
     printf("\t--%s\n", RESET_WP_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to reset a write pointer at the zone specified with the --%s option\n\n", ZONE_ID_LONG_OPT_STRING);
+        printf("\t\tUse this option to reset a write pointer at the zone specified with the --%s option\n\n",
+               ZONE_ID_LONG_OPT_STRING);
     }
 }
 
@@ -3237,13 +3271,13 @@ void print_show_FWDL_Support_Help(bool shortHelp)
     }
 }
 
-void print_Error_In_Cmd_Line_Args(const char * optstring, const char * arg)
+void print_Error_In_Cmd_Line_Args(const char* optstring, const char* arg)
 {
     printf("\nError in option --%s. Invalid argument given '%s'.\n", optstring, arg);
     printf("Use -h option to view command line help\n");
 }
 
-void print_Error_In_Cmd_Line_Args_Short_Opt(char opt, const char * arg)
+void print_Error_In_Cmd_Line_Args_Short_Opt(char opt, const char* arg)
 {
     printf("\nError in option -%c. Invalid argument given '%s'.\n", opt, arg);
     printf("Use -h option to view command line help\n");
@@ -3265,17 +3299,22 @@ void print_Enable_Legacy_USB_Passthrough_Help(bool shortHelp)
     }
 }
 
-//Yes, this function uses a tripple pointer and is complicated.
-//The idea is there is no limit to a number of device handles given on a command line.
-//Because there is no limit, we need to allocate/reallocate heap memory to add more handles (as strings) to the list.
-//In order to have a list of strings, I had to use a double pointer from the caller and pass an address to this 2D array, hence the tripple pointer.
-//I do not recommend touching this function unless you have to.
-//It should be capable of accepting any type of handle input to it. Windows is likely the only OS to need changes (see comment in code below).
-int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandleProvided, uint32_t *deviceCount, char ***handleList)
+// Yes, this function uses a tripple pointer and is complicated.
+// The idea is there is no limit to a number of device handles given on a command line.
+// Because there is no limit, we need to allocate/reallocate heap memory to add more handles (as strings) to the list.
+// In order to have a list of strings, I had to use a double pointer from the caller and pass an address to this 2D
+// array, hence the tripple pointer. I do not recommend touching this function unless you have to. It should be capable
+// of accepting any type of handle input to it. Windows is likely the only OS to need changes (see comment in code
+// below).
+int parse_Device_Handle_Argument(char*     optarg,
+                                 bool*     allDrives,
+                                 bool*     userHandleProvided,
+                                 uint32_t* deviceCount,
+                                 char***   handleList)
 {
     if (!optarg || !allDrives || !userHandleProvided || !deviceCount)
     {
-        return 254;//one of the required parameters is missing. handleList is checked below...
+        return 254; // one of the required parameters is missing. handleList is checked below...
     }
     /*get the number out of optarg to tack onto the device handle*/
     if (M_NULLPTR != optarg)
@@ -3289,25 +3328,26 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
         {
             *userHandleProvided = true;
 #if defined(_WIN32)
-#define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
+#    define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
             DECLARE_ZERO_INIT_ARRAY(char, windowsHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH);
-            char *deviceHandle = &windowsHandle[0];
-            char *physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
+            char* deviceHandle = &windowsHandle[0];
+            char* physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
-            if (_strnicmp(optarg, "PD", 2) == 0)
+            if (strncasecmp(optarg, "PD", 2) == 0)
             {
                 physicalDeviceNumber = strpbrk(optarg, "0123456789");
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s", physicalDeviceNumber);
+                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s",
+                                    physicalDeviceNumber);
             }
-#if defined(ENABLE_CSMI)
+#    if defined(ENABLE_CSMI)
             else if (strncmp(optarg, "csmi", 4) == 0)
             {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
-#endif
+#    endif
             else if (strncmp(optarg, "\\\\.\\", 4) == 0)
             {
-                snprintf(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
             }
             /*If we want to add another format for accepting a handle, then add an else-if here*/
             else /*we have an invalid handle*/
@@ -3316,15 +3356,16 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
                 exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
             }
 #else
-            char *deviceHandle = optarg;
+            char* deviceHandle = optarg;
 #endif
 
-            ++(*deviceCount);/*increment this variable if we've made it this far.*/
-            /*The code below is where this function gets complicated. Be very careful changing anything below this comment.*/
+            ++(*deviceCount); /*increment this variable if we've made it this far.*/
+            /*The code below is where this function gets complicated. Be very careful changing anything below this
+             * comment.*/
             if (!*handleList)
             {
                 /*allocate the list and add this handle to it.*/
-                *handleList = C_CAST(char**, safe_calloc((*deviceCount), sizeof(char*)));
+                *handleList = M_REINTERPRET_CAST(char**, safe_calloc((*deviceCount), sizeof(char*)));
                 if (!*handleList)
                 {
                     perror("error allocating memory for handle list\n");
@@ -3334,8 +3375,9 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             else
             {
                 /*list already allocated, so reallocate and add this next handle to it.*/
-                char **temp = C_CAST(char**, safe_reallocf(C_CAST(void**, handleList), (*deviceCount) * sizeof(char*)));
-                if (!temp)
+                char** temp = M_REINTERPRET_CAST(
+                    char**, safe_reallocf(C_CAST(void**, handleList), (*deviceCount) * sizeof(char*)));
+                if (temp == M_NULLPTR)
                 {
                     perror("error reallocating memory for handle list\n");
                     return 255;
@@ -3345,32 +3387,33 @@ int parse_Device_Handle_Argument(char * optarg, bool *allDrives, bool *userHandl
             /*the list has been allocated, now put the handle we've received into the list*/
             /*start by allocating memory for the handle at the new list location*/
             size_t handleListNewHandleLength = safe_strlen(deviceHandle) + 1;
-            (*handleList)[(*deviceCount) - 1] = C_CAST(char*, safe_calloc(handleListNewHandleLength, sizeof(char)));
+            (*handleList)[(*deviceCount) - 1] =
+                M_REINTERPRET_CAST(char*, safe_calloc(handleListNewHandleLength, sizeof(char)));
             if (!(*handleList)[(*deviceCount) - 1])
             {
                 perror("error allocating memory for adding device handle to list\n");
                 return 255;
             }
             /*copy the handle into memory*/
-            snprintf((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+            snprintf_err_handle((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
         }
     }
     return 0;
 }
 
-void free_Handle_List(char ***handleList, uint32_t listCount)
+void free_Handle_List(char*** handleList, uint32_t listCount)
 {
     if (*handleList)
     {
-        for (uint32_t handleIter = 0; handleIter < listCount; ++handleIter)
+        for (uint32_t handleIter = UINT32_C(0); handleIter < listCount; ++handleIter)
         {
             safe_free(&(*handleList)[handleIter]);
         }
-        safe_free((*handleList));
+        safe_free(M_REINTERPRET_CAST(void**, &(*handleList)));
     }
 }
 
-#if defined (ENABLE_CSMI)
+#if defined(ENABLE_CSMI)
 void print_CSMI_Info_Help(bool shortHelp)
 {
     printf("\t--%s\n", CSMI_INFO_LONG_OPT_STRING);
@@ -3510,7 +3553,6 @@ void print_Depop_MaxLBA_Help(bool shortHelp)
     }
 }
 
-
 void print_Repopulate_Elements_Help(bool shortHelp)
 {
     printf("\t--%s\n", REPOPULATE_ELEMENTS_LONG_OPT_STRING);
@@ -3619,7 +3661,8 @@ void print_SCSI_Defects_Help(bool shortHelp)
         printf("\t\tThis option will display the SCSI defects on the screen.\n");
         printf("\t\tThe arguments to this will tell whether to get the grown, \n");
         printf("\t\tprimary, or primary and grown defects from the drive.\n");
-        printf("\t\tUse the --%s option to specify the mode to display the defects.\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+        printf("\t\tUse the --%s option to specify the mode to display the defects.\n",
+               SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
         printf("\t\tIf no mode is specified, physical cylinder-head-sector mode is assumed\n");
         printf("\t\tArguments:\n");
         printf("\t\t  p - use this option to pull and display the primary (factory) defects\n");
@@ -3630,7 +3673,8 @@ void print_SCSI_Defects_Help(bool shortHelp)
 
 void print_SCSI_Defects_Format_Help(bool shortHelp)
 {
-    printf("\t--%s [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ]\t(SAS Only)\n", SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
+    printf("\t--%s [ # | shortBlock | longBlock | xbfi | xchs | bfi | chs ]\t(SAS Only)\n",
+           SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option set the format of the defects to output.\n");
@@ -3782,7 +3826,8 @@ void print_Sata_FARM_Copy_Type_Flag_Help(bool shortHelp)
     printf("\t--%s [ disc | flash ]\t(SATA Only)\n", SATA_FARM_COPY_TYPE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to provide copy type while extracting FARM copy type with --%s\n", FARM_COMBINED_LONG_OPT_STRING);
+        printf("\t\tUse this option to provide copy type while extracting FARM copy type with --%s\n",
+               FARM_COMBINED_LONG_OPT_STRING);
         printf("\t\toption. The default mode is \"disc\"\n");
         printf("\t\t    disc - Pull Disc copy of SATA Farm logs.\n");
         printf("\t\t    flash - Pull Flash copy of SATA Farm logs.\n");
@@ -3811,7 +3856,8 @@ void print_SMART_Error_Log_Format_Help(bool shortHelp)
     printf("\t--%s [ raw | detailed ]\t(SATA Only)\n", SMART_ERROR_LOG_FORMAT_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to change the format of the output from the --%s\n", SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
+        printf("\t\tUse this option to change the format of the output from the --%s\n",
+               SHOW_SMART_ERROR_LOG_LONG_OPT_STRING);
         printf("\t\toption. The default mode is \"detailed\"\n");
         printf("\n");
     }
@@ -3851,7 +3897,7 @@ void print_FWDL_Force_Win_Passthrough_Help(bool shortHelp)
     }
 }
 
-void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
+void print_ATA_Security_Erase_Help(bool shortHelp, const char* password)
 {
     printf("\t--%s [normal | enhanced]\t(SATA only)\t(Clear | Purge)\n", ATA_SECURITY_ERASE_OP_LONG_OPT_STRING);
     if (!shortHelp)
@@ -3881,7 +3927,7 @@ void print_ATA_Security_Erase_Help(bool shortHelp, const char *password)
     }
 }
 
-void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilName)
+void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char* utilName)
 {
     printf("\t--%s\t\t(SATA Only)\n", ATA_SECURITY_DISABLE_OP_LONG_OPT_STRING);
     if (!shortHelp)
@@ -3893,7 +3939,8 @@ void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilNa
         printf("\t\tATA security password. The master may only be used to erase the drive\n");
         printf("\t\tin maximum security mode.\n");
         printf("\t\tUse the --%s option to provide the password to use and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
-        printf("\t\t--%s to specify whether it is the user or master password.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\t--%s to specify whether it is the user or master password.\n",
+               ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
         printf("\t\tIf a drive lost power during an ATA Security Erase in\n");
         printf("\t\t%s, then providing --%s SeaChest\n", utilName, ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
         printf("\t\twill use the default SeaChest password used during the erase.\n");
@@ -3909,10 +3956,11 @@ void print_Disable_ATA_Security_Password_Help(bool shortHelp, const char *utilNa
 void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
 {
     printf("\t--%s [", ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
-    #if defined MD5_PASSWORD_SUPPORTED
+#if defined MD5_PASSWORD_SUPPORTED
     printf("md5 | ");
-    #endif
-    printf("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] (SATA Only)\n");
+#endif
+    printf("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] "
+           "(SATA Only)\n");
     if (!shortHelp)
     {
         printf("\t\tUse this option to have the utility make modifications to\n");
@@ -3921,10 +3969,12 @@ void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
         printf("\t\tmay help unlock a drive that was locked by a BIOS that encoded\n");
         printf("\t\tthe password in a unique way.\n");
         printf("\t\tThis option can be presented multiple times to select multiple modificaitons.\n");
-        printf("\t\tEX: --%s byteswapped --%s invertcase\n", ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
-        #if defined MD5_PASSWORD_SUPPORTED
-        printf("\t\t  md5 - sends a md5 sum of the password as the password\n");//Internal SeaChest only since this requires mbedtls library!!!
-        #endif
+        printf("\t\tEX: --%s byteswapped --%s invertcase\n", ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING,
+               ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
+#if defined MD5_PASSWORD_SUPPORTED
+        printf("\t\t  md5 - sends a md5 sum of the password as the password\n"); // Internal SeaChest only since this
+                                                                                 // requires mbedtls library!!!
+#endif
         printf("\t\t  byteswapped - byteswaps the password. EX: blah -> lbha\n");
         printf("\t\t  zeropad - zero pads the password if less than 32 characters\n");
         printf("\t\t  spacepad - space pads the password if less than 32 characters\n");
@@ -3952,10 +4002,10 @@ void print_ATA_Security_Password_Help(bool shortHelp)
         printf("\t\t  ThisIsAlsoValid\n");
         printf("\t\t  \"This password uses \\\"quotes\\\"\n");
         printf("\t\t  \"This password is \\/\\/eird\"\n");
-        #if defined (_WIN32)
+#if defined(_WIN32)
         printf("\t\tIn Windows PE, MS will allow issuing secure erase using the following\n");
         printf("\t\tas a USER password: AutoATAWindowsString12345678901\n");
-        #endif
+#endif
         printf("\n");
     }
 }
@@ -4012,11 +4062,13 @@ void print_ATA_Security_Set_Password_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
-        printf("\t\t--%s option to set an ATA security password on a drive.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\t--%s option to set an ATA security password on a drive.\n",
+               ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
         printf("\t\tIf setting the master password, it is strongly recommended\n");
         printf("\t\tthat a master password identifier is specified with the\n");
         printf("\t\t--%s option as well.\n", ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING);
-        printf("\t\tThe --%s option can be provided to set the drive to\n", ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING);
+        printf("\t\tThe --%s option can be provided to set the drive to\n",
+               ATA_SECURITY_MASTER_PW_CAPABILITY_LONG_OPT_STRING);
         printf("\t\tmaximum security mode when setting the user password.\n\n");
     }
 }
@@ -4027,7 +4079,8 @@ void print_ATA_Security_Unlock_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option along with the --%s option and\n", ATA_SECURITY_PASSWORD_LONG_OPT_STRING);
-        printf("\t\t--%s option to unlock a drive with the provided password.\n", ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
+        printf("\t\t--%s option to unlock a drive with the provided password.\n",
+               ATA_SECURITY_USING_MASTER_PW_LONG_OPT_STRING);
         printf("\t\tIf the drive is in maximum security mode, only the user password\n");
         printf("\t\tmay be used to unlock the device.\n\n");
     }
@@ -4131,12 +4184,14 @@ void print_SCSI_Show_MP_Control_Help(bool shortHelp)
 
 void print_SCSI_Reset_LP_Help(bool shortHelp)
 {
-    printf("\t--%s [cumulative | threshold | defCumulative | defThreshold | all]\t\t(SAS only)\n", SCSI_RESET_LP_LONG_OPT_STRING);
+    printf("\t--%s [cumulative | threshold | defCumulative | defThreshold | all]\t\t(SAS only)\n",
+           SCSI_RESET_LP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to reset all SCSI Log Pages.\n");
         printf("\t\tIf the device is compliant with SPC4 or later, the\n");
-        printf("\t\t--%s option may be used to specify a specific page to reset.\n", SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
+        printf("\t\t--%s option may be used to specify a specific page to reset.\n",
+               SCSI_RESET_LP_PAGE_LONG_OPT_STRING);
         printf("\t\tThe --%s option may also be passed to prevent saving changes.\n", VOLATILE_LONG_OPT_STRING);
         printf("\t\t    cumulative - reset the cumulative values\n");
         printf("\t\t    threshold  - reset the threshold values\n");
@@ -4164,18 +4219,22 @@ void print_SCSI_Reset_LP_Page_Help(bool shortHelp)
 
 void print_Set_SCSI_MP_Help(bool shortHelp)
 {
-    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only)\n", SCSI_SET_MP_LONG_OPT_STRING);
+    printf("\t--%s [ mp[-sp]:byte:highestBit:fieldWidthInBits=value | file=filename.txt ]\t(SAS only)\n",
+           SCSI_SET_MP_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to set a specific field in a mode page to a value.\n");
         printf("\t\tThere are two argument formats to this option:\n");
         printf("\t\t1. The first format expects a mode page (in hex), optionally a subpage code (in hex),\n");
         printf("\t\t   the byte offset that the field starts at (in decimal), the highest bit the field starts\n");
-        printf("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or decimal)\n");
+        printf("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
+               "decimal)\n");
         printf("\t\t   A maximum of 64bits can be set at a time with this option.\n");
         printf("\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
         printf("\t\t   must be separated by a space, new line, or underscore. It is recommended that this file\n");
-        printf("\t\t   is created by copy-pasting the output of the --%s option's default classic view, then modifying\n", SCSI_SHOW_MP_LONG_OPT_STRING);
+        printf(
+            "\t\t   is created by copy-pasting the output of the --%s option's default classic view, then modifying\n",
+            SCSI_SHOW_MP_LONG_OPT_STRING);
         printf("\t\t   after that.");
         printf("\t\tExample use of the arguments:\n");
         printf("\t\t1. Setting WCE to zero on caching MP from a file:\n");
@@ -4223,7 +4282,8 @@ void print_NVM_Format_Help(bool shortHelp)
         printf("\t\tThis command will erase all data on the drive.\n");
         printf("\t\tCombine this option with--%s to poll\n", POLL_LONG_OPT_STRING);
         printf("\t\tfor progress until the format is complete.\n");
-        printf("\t\tA data sanitization compliant with IEEE 2883 Clear requires the --%s\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+        printf("\t\tA data sanitization compliant with IEEE 2883 Clear requires the --%s\n",
+               NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
         printf("\t\toption to be provided. Without this option the controller\n");
         printf("\t\tmay not erase all user data and substitute returning zeroes\n");
         printf("\t\tfor performance instead.\n\n");
@@ -4248,7 +4308,8 @@ void print_NVM_Format_NSID_Help(bool shortHelp)
 
 void print_NVM_Format_Secure_Erase_Help(bool shortHelp)
 {
-    printf("\t--%s [none | user | crypto]\t(NVMe Only)\t(None | Clear | Clear, Possible Purge)\n", NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
+    printf("\t--%s [none | user | crypto]\t(NVMe Only)\t(None | Clear | Clear, Possible Purge)\n",
+           NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is used to specify the type of erase to perform\n");
@@ -4359,7 +4420,8 @@ void print_Show_Power_Telemetry_Help(bool shortHelp)
 
 void print_Request_Power_Measurement_Help(bool shortHelp)
 {
-    printf("\t--%s [seconds to perform measurement]\t(Seagate Only)\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING);
+    printf("\t--%s [seconds to perform measurement]\t(Seagate Only)\n",
+           REQUEST_POWER_TELEMETRY_MEASUREMENT_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option is used to specify a time to perform a power\n");
@@ -4367,7 +4429,8 @@ void print_Request_Power_Measurement_Help(bool shortHelp)
         printf("\t\tand the maximum is 65535 seconds. If a time less than 22 seconds\n");
         printf("\t\tis provided, 22 seconds will be used by the drive. A value greater\n");
         printf("\t\tthan 65535 will result in error.\n");
-        printf("\t\tUse the --%s option to specify which mode to measure.\n\n", REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
+        printf("\t\tUse the --%s option to specify which mode to measure.\n\n",
+               REQUEST_POWER_TELEMETRY_MEASUREMENT_MODE_LONG_OPT_STRING);
     }
 }
 
@@ -4453,7 +4516,8 @@ void print_Persistent_Reservations_Key_Help(bool shortHelp)
 
 void print_Persistent_Reservations_Type_Help(bool shortHelp)
 {
-    printf("\t--%s [wrex | ex | wrexro | exro | wrexar | exar]\t(NVMe and SAS only)\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+    printf("\t--%s [wrex | ex | wrexro | exro | wrexar | exar]\t(NVMe and SAS only)\n",
+           PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThis option specifies the type of reservation to hold.\n");
@@ -4466,7 +4530,7 @@ void print_Persistent_Reservations_Type_Help(bool shortHelp)
         printf("\t\t\texro   - exclusive access, registrants only\n");
         printf("\t\t\twrexar - write exclusive, all registrants\n");
         printf("\t\t\texar   - exclusive access, all registrants\n");
-        //NOTE: There are obsolete types available for SAS, but not implementing them since they are long obsolete.
+        // NOTE: There are obsolete types available for SAS, but not implementing them since they are long obsolete.
         printf("\n");
     }
 }
@@ -4538,7 +4602,8 @@ void print_Persistent_Reservations_Reserve_Help(bool shortHelp)
         printf("\t\tUse this option to acquire a reservation using a key that is specified by\n");
         printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
         printf("\t\tThe specified key must already be registered with the device.\n");
-        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tUse the --%s option to specifiy the reservation type\n",
+               PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
         printf("\t\tto acquire.\n\n");
     }
 }
@@ -4552,7 +4617,8 @@ void print_Persistent_Reservations_Release_Help(bool shortHelp)
         printf("\t\tthe --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
         printf("\t\tThe specified key must already be registered with the device and must\n");
         printf("\t\thave an active reservation that can be released.\n");
-        printf("\t\tUse the --%s option to specifiy the reservation type\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\tUse the --%s option to specifiy the reservation type\n",
+               PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
         printf("\t\tto release.\n\n");
     }
 }
@@ -4577,10 +4643,12 @@ void print_Persistent_Reservations_Preempt_Help(bool shortHelp)
         printf("\t\t that is specified by the --%s option.\n", PERSISTENT_RESERVATION_KEY_LONG_OPT_STRING);
         printf("\t\tThe specified key must already be registered with the device.\n");
         printf("\t\tThis is used to remove a reservation from another initiator and start\n");
-        printf("\t\ta new one using the specified registration key. --%s must also\n", PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
+        printf("\t\ta new one using the specified registration key. --%s must also\n",
+               PERSISTENT_RESERVATION_TYPE_LONG_OPT_STRING);
         printf("\t\tbe provided to specify the type of reservation that should be active\n");
         printf("\t\tonce the preempt has completed.\n");
-        printf("\t\tUse with the --%s option to cause the preempt to abort all\n", PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
+        printf("\t\tUse with the --%s option to cause the preempt to abort all\n",
+               PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT_STRING);
         printf("\t\toutstanding commands to the previous reservation holder.\n\n");
     }
 }
@@ -4592,7 +4660,8 @@ void print_Persistent_Reservations_Preempt_Abort_Help(bool shortHelp)
     {
         printf("\t\tUse this option to cause a preempt to abort commands to the previous\n");
         printf("\t\treservation holder. This must be used in combination with the\n");
-        printf("\t\t--%s option in order to specify the key to preempt.\n\n", PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
+        printf("\t\t--%s option in order to specify the key to preempt.\n\n",
+               PERSISTENT_RESERVATION_PREEMPT_LONG_OPT_STRING);
     }
 }
 
@@ -4694,7 +4763,8 @@ void print_DCO_Set_Max_LBA_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to set a lower max/native max LBA using the DCO\n");
-        printf("\t\tfeature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tfeature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXMODE_LONG_OPT_STRING,
+               ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
         printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
         printf("\t\tThis will not work if the device has been DCO frozen.\n");
         printf("\t\tNOTE: Some motherboards will issue a DCO freezelock when booted.\n");
@@ -4709,7 +4779,8 @@ void print_DCO_Set_Max_Mode_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to set a different maximum supported DMA transfer mode\n");
-        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n",
+               ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_DISABLE_FEEATURES_LONG_OPT_STRING);
         printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
         printf("\t\tThe following arguments are available. Supported modes are set based on\n");
         printf("\t\tthe provided maximum and all modes below the given maximum:\n");
@@ -4737,7 +4808,8 @@ void print_DCO_Disable_Features_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to disable different ATA commands and features\n");
-        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n", ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
+        printf("\t\tusing the DCO feature. This should be combined with --%s and --%s\n",
+               ATA_DCO_SETMAXLBA_LONG_OPT_STRING, ATA_DCO_SETMAXMODE_LONG_OPT_STRING);
         printf("\t\tto make any and all DCO related changes at the same time in one command.\n");
         printf("\t\tThe following arguments are available. Specifying a feature that the drive\n");
         printf("\t\tdoes not support restricting or does not support at all will not be\n");
@@ -4940,7 +5012,8 @@ void print_Raw_TFR_Device_Head_Help(bool shortHelp)
         printf("\t\tUse this option to specify the Device/Head register for\n");
         printf("\t\tsending a raw SATA command. If this option is not provided, a value of\n");
         printf("\t\tA0h will be used for backwards compatibility with older ATA command specifications.\n");
-        printf("\t\tNOTE: This option should be specified BEFORE the --%s option\n", RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING);
+        printf("\t\tNOTE: This option should be specified BEFORE the --%s option\n",
+               RAW_TFR_LBA_MODE_BIT_LONG_OPT_STRING);
         printf("\t\tNOTE: On 28bit read/write commands, the high 4 bits of the LBA register need to be\n");
         printf("\t\t      placed in the lower 4 bits of this register.\n");
         printf("\t\tThe value should be specified in hex as ??h or 0x?? or as a decimale value\n\n");
@@ -5068,7 +5141,8 @@ void print_Raw_TFR_Aux_Full_Help(bool shortHelp)
 
 void print_Raw_TFR_Protocol_Help(bool shortHelp)
 {
-    printf("\t--%s [pio | dma | udma | fpdma | ncq | nodata | reset | dmaque | diag]\t(SATA Only)\n", RAW_TFR_PROTOCOL_LONG_OPT_STRING);
+    printf("\t--%s [pio | dma | udma | fpdma | ncq | nodata | reset | dmaque | diag]\t(SATA Only)\n",
+           RAW_TFR_PROTOCOL_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the protocol for\n");
@@ -5092,7 +5166,8 @@ void print_Raw_TFR_Protocol_Help(bool shortHelp)
 
 void print_Raw_TFR_XFer_Length_Register_Help(bool shortHelp)
 {
-    printf("\t--%s [sectorCount | feature | tpsiu | nodata]\t(SATA Only)\n", RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING);
+    printf("\t--%s [sectorCount | feature | tpsiu | nodata]\t(SATA Only)\n",
+           RAW_TFR_XFER_LENGTH_LOCATION_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to specify the registers used to specify the length of data\n");
@@ -5125,7 +5200,8 @@ void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
         printf("\t\tArguments:\n");
         printf("\t\t  512 - the data transfer is a number of 512B blocks (most commands)\n");
         printf("\t\t  logical - data transfer is a number of logical block sizes transfers (read commands)\n");
-        printf("\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
+        printf(
+            "\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
         printf("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
         printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
     }
@@ -5308,7 +5384,8 @@ void print_Flag_Uncorrectable_Help(bool shortHelp)
     {
         printf("\t\tUse this option to flag an uncorrectable error instead of\n");
         printf("\t\tcreating a pseudo uncorrectable error with the\n");
-        printf("\t\t--%s or --%s options.\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING, RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
+        printf("\t\t--%s or --%s options.\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING,
+               RANDOM_UNCORRECTABLES_LONG_OPT_STRING);
         printf("\t\tError types:\n");
         printf("\t\t    Pseudo - creates a pseudo uncorrectable error. The device\n");
         printf("\t\t             will perform full error recovery and logging on failure.\n");
@@ -5325,7 +5402,8 @@ void print_Uncorrectable_Range_Help(bool shortHelp)
     {
         printf("\t\tUse this option to specify a range of LBAs to create an\n");
         printf("\t\tuncorrectable error at. This option must be used with the\n");
-        printf("\t\t--%s or --%s options so that a\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING, FLAG_UNCORRECTABLE_LONG_OPT_STRING);
+        printf("\t\t--%s or --%s options so that a\n", CREATE_UNCORRECTABLE_LONG_OPT_STRING,
+               FLAG_UNCORRECTABLE_LONG_OPT_STRING);
         printf("\t\tstarting LBA is specified. \n\n");
     }
 }
@@ -5374,7 +5452,8 @@ void print_Corrupt_Random_LBAs_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tThis option will corrupt the specified number of LBAs randomly\n");
-        printf("\t\ton the device. The --%s option can be used to specify the number of bytes to\n", BYTES_TO_CORRUPT_LONG_OPT_STRING);
+        printf("\t\ton the device. The --%s option can be used to specify the number of bytes to\n",
+               BYTES_TO_CORRUPT_LONG_OPT_STRING);
         printf("\t\tcorrupt. If that option is not given, a default will be used\n");
         printf("\t\tthat attempts to create a correctable error on the drive.\n");
         printf("\t\tThis option can be used to create uncorrectable or correctable\n");
@@ -5430,6 +5509,7 @@ void print_Change_Id_String_Help(bool shortHelp)
     if (!shortHelp)
     {
         printf("\t\tUse this option to change ID string according to capacity - model number\n");
-        printf("\t\tmapping. Need to use together with --%s or --%s\n\n", SET_MAX_LBA_LONG_OPT_STRING, RESTORE_MAX_LBA_LONG_OPT_STRING);
+        printf("\t\tmapping. Need to use together with --%s or --%s\n\n", SET_MAX_LBA_LONG_OPT_STRING,
+               RESTORE_MAX_LBA_LONG_OPT_STRING);
     }
 }
