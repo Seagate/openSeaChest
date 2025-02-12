@@ -939,22 +939,22 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':': // missing required argument
@@ -2143,18 +2143,18 @@ int main(int argc, char* argv[])
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
                                          "restoring the default");
                                 break;
                             default:
@@ -2243,18 +2243,18 @@ int main(int argc, char* argv[])
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabling the");
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 standbyRet = scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disabling the");
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true);
-                                snprintf(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
-                                snprintf(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "restored defaults");
+                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
                                          "restoring the default");
                                 break;
                             default:
@@ -2892,16 +2892,16 @@ int main(int argc, char* argv[])
             DECLARE_ZERO_INIT_ARRAY(char, partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH);
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
-                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
                          "SAS Partial & Slumber");
             }
             else if (SAS_PARTIAL_FLAG)
             {
-                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial");
             }
             else if (SAS_SLUMBER_FLAG)
             {
-                snprintf(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
             }
             switch (scsi_Set_Partial_Slumber(
                 &deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG,

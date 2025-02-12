@@ -469,22 +469,22 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
             break;
         case ':': // missing required argument
@@ -7842,7 +7842,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         // reports. For MN, SN, FW, check for commonly broken reporting methods.
 #define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
         DECLARE_ZERO_INIT_ARRAY(char, scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN);
-        snprintf(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s", scsiInformation->inquiryData.productId);
+        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s", scsiInformation->inquiryData.productId);
         remove_Leading_And_Trailing_Whitespace(scsiProdID);
         if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN,
                     M_Min(16, safe_strlen(scsiProdID))) == 0)
@@ -7862,7 +7862,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 // Most likely had the vendor+productID set as the full ATA MN
 #define PASSTHROUGH_TEST_FULL_MN_LENGTH 42
                 DECLARE_ZERO_INIT_ARRAY(char, fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH);
-                snprintf(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s", scsiInformation->inquiryData.vendorId,
+                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s", scsiInformation->inquiryData.vendorId,
                          scsiInformation->inquiryData.productId);
                 if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN,
                             M_Min(safe_strlen(fullMN),

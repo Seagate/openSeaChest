@@ -28,9 +28,9 @@ const char* deviceHandleExample = "vmhba<#>";
 const char* deviceHandleName    = "<deviceHandle>";
 const char* commandWindowType   = "terminal";
 #    else
-const char*        deviceHandleExample     = "/dev/sg<#>";
-const char*        deviceHandleName        = "<sg_device>";
-const char*        commandWindowType       = "terminal";
+const char* deviceHandleExample = "/dev/sg<#>";
+const char* deviceHandleName    = "<sg_device>";
+const char* commandWindowType   = "terminal";
 #    endif
 #elif defined(__FreeBSD__)
 const char* deviceHandleExample = "/dev/da<#>";
@@ -131,7 +131,7 @@ void print_Elevated_Privileges_Text(void)
     printf("In Windows, open the Command Prompt using \"Run as administrator\".\n");
     printf("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
     printf(
-          "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+        "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
 }
 
@@ -159,7 +159,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
         userName = M_REINTERPRET_CAST(char*, safe_calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
         if (userName)
         {
-            snprintf(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
+            snprintf_err_handle(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
         }
         else
         {
@@ -170,14 +170,14 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     if (is_Running_Elevated())
     {
 #    if defined(_WIN32)
-          userdup = safe_strdup(&userName, "admin");
+        userdup = safe_strdup(&userName, "admin");
 #    else  //!_WIN32
         userdup = safe_strdup(&userName, "root");
 #    endif //_WIN32
     }
     else
     {
-          userdup = safe_strdup(&userName, "current user");
+        userdup = safe_strdup(&userName, "current user");
     }
 #endif     // ENABLE_READ_USERNAME
     printf("==========================================================================================\n");
