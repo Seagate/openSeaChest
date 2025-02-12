@@ -761,7 +761,7 @@ void print_Open_Source_Licenses(void)
 #elif defined(__sun) || defined(_AIX)
     // Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
-#    error Please update #if for system library licenses!
+#    error "Please update #if for system library licenses!"
 #endif
     printf("===========================================================================\n\n");
 }
