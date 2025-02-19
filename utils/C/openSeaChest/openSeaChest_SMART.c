@@ -2115,7 +2115,8 @@ int main(int argc, char* argv[])
                 //if supported then print Seagate Device Statistics also
                 bool seagateDeviceStatisticsAvailable = false;
                 seagateDeviceStatistics seagateDeviceStats;
-                memset(&seagateDeviceStats, 0, sizeof(seagateDeviceStatistics));
+                safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
+                                sizeof(seagateDeviceStatistics));
                 if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
                 {
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
