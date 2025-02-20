@@ -403,7 +403,6 @@ void print_EULA_To_Screen(void)
     printf("  This Source Code Form is \"Incompatible With Secondary Licenses\", as\n");
     printf("  defined by the Mozilla Public License, v. 2.0.\n\n");
     print_Open_Source_Licenses();
-    return;
 }
 
 static void print_Win_Getopt_Licenses(void)
@@ -463,10 +462,9 @@ static void print_Win_Getopt_Licenses(void)
     printf("ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n");
     printf("(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n");
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
-    return;
 }
 
-#if defined (__FreeBSD__)
+#if defined(__FreeBSD__)
 static void print_FreeBSD_License(void)
 {
     printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
@@ -655,42 +653,41 @@ static void print_GNU_LGPL_License(void)
     printf("future versions of the GNU Lesser General Public License shall apply, that\n");
     printf("proxy's public statement of acceptance of any version is permanent\n");
     printf("authorization for you to choose that version for the Library.\n\n");
-    return;
 }
-#endif//__GLIBC__
+#endif //__GLIBC__
 
-#if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
+#if defined(USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
 static void print_Musl_MIT_License(void)
 {
     printf("===========================================================================\n");
     printf("musl libc\n\n");
     printf("Copyright © 2005-2020 Rich Felker, et al.\n"
-    "\n"
-    "Permission is hereby granted, free of charge, to any person obtaining\n"
-    "a copy of this software and associated documentation files (the\n"
-    "\"Software\"), to deal in the Software without restriction, including\n"
-    "without limitation the rights to use, copy, modify, merge, publish,\n"
-    "distribute, sublicense, and/or sell copies of the Software, and to\n"
-    "permit persons to whom the Software is furnished to do so, subject to\n"
-    "the following conditions:\n"
-    "\n"
-    "The above copyright notice and this permission notice shall be\n"
-    "included in all copies or substantial portions of the Software.\n"
-    "\n"
-    "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n"
-    "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n"
-    "MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n"
-    "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\n"
-    "CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\n"
-    "TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n"
-    "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n");
-    return;
+           "\n"
+           "Permission is hereby granted, free of charge, to any person obtaining\n"
+           "a copy of this software and associated documentation files (the\n"
+           "\"Software\"), to deal in the Software without restriction, including\n"
+           "without limitation the rights to use, copy, modify, merge, publish,\n"
+           "distribute, sublicense, and/or sell copies of the Software, and to\n"
+           "permit persons to whom the Software is furnished to do so, subject to\n"
+           "the following conditions:\n"
+           "\n"
+           "The above copyright notice and this permission notice shall be\n"
+           "included in all copies or substantial portions of the Software.\n"
+           "\n"
+           "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n"
+           "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\n"
+           "MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n"
+           "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\n"
+           "CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\n"
+           "TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\n"
+           "SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n");
 }
-#endif //USING_MUSL_LIBC
+#endif // USING_MUSL_LIBC
 
-#if defined (_WIN32)
-//TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
-//      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+#if defined(_WIN32)
+// TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+//       May need a way to access that flag to determine when this should or should-not be part of the license
+//       output.-TJE
 static void print_Open_Fabrics_NVMe_IOCTL_License(void)
 {
     printf("===========================================================================\n");
@@ -733,38 +730,38 @@ static void print_Open_Fabrics_NVMe_IOCTL_License(void)
     printf("official policies, either expressed or implied, of Intel Corporation,    \n");
     printf("Integrated Device Technology Inc., or Sandforce Corporation.             \n");
     printf("\n");
-    return;
 }
 #endif //_WIN32
 
 void print_Open_Source_Licenses(void)
 {
-    //show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should be changed to portable-getopt or something in the future.-TJE
+    // show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should
+    // be changed to portable-getopt or something in the future.-TJE
     print_Win_Getopt_Licenses();
-#if defined (_WIN32)
-    //TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
-    //      May need a way to access that flag to determine when this should or should-not be part of the license output.-TJE
+#if defined(_WIN32)
+    // TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
+    //       May need a way to access that flag to determine when this should or should-not be part of the license
+    //       output.-TJE
     print_Open_Fabrics_NVMe_IOCTL_License();
-#elif defined (__FreeBSD__)
+#elif defined(__FreeBSD__)
     print_FreeBSD_License();
-#elif defined (__linux__)
-    #if defined (__GLIBC__)
-        //in other 'nix systems, we need to show this since we are using gnu libc
-        print_GNU_LGPL_License();
-    #else
-        #if defined (USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
-            print_Musl_MIT_License();
-        #else
-            //NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
-            //      compilers, using #pramga message may also work.
-            #pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
-        #endif
-    #endif
-#elif defined (__sun) || defined (_AIX)
-    //Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
+#elif defined(__linux__)
+#    if defined(__GLIBC__)
+    // in other 'nix systems, we need to show this since we are using gnu libc
+    print_GNU_LGPL_License();
+#    else
+#        if defined(USING_MUSL_LIBC) && USING_MUSL_LIBC > 0
+    print_Musl_MIT_License();
+#        else
+// NOTE: This should work with gcc and clang to emit a warning. If this causes problems with other
+//       compilers, using #pramga message may also work.
+#            pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
+#        endif
+#    endif
+#elif defined(__sun) || defined(_AIX)
+    // Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
-	#error Please update #if for system library licenses!
+#    error "Please update #if for system library licenses!"
 #endif
     printf("===========================================================================\n\n");
-    return;
 }
