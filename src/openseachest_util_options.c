@@ -976,6 +976,26 @@ void print_SMART_Attributes_Help(bool shortHelp)
     }
 }
 
+void print_Show_FARM_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_FARM_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the data in the FARM log.\n");
+        printf("\t\tFARM is the Field Accessible Reliability Metrics that\n");
+        printf("\t\tcan be reported from a Seagate hard drive.\n");
+        printf("\t\tFarm data has a few sections available:\n");
+        printf("\t\t\tGeneral Drive Info\n");
+        printf("\t\t\tWorkload Statistics\n");
+        printf("\t\t\tError Statistics\n");
+        printf("\t\t\tEnvironment Statistics\n");
+        printf("\t\t\tReliability Statistics\n");
+        printf("\t\tNewer Seagate HDDs may be able to report more information than\n");
+        printf("\t\tolder models. Data that can be reported may vary depending on the\n");
+        printf("\t\tcapabilities of a given product.\n\n");
+    }
+}
+
 void print_NVME_Health_Help(bool shortHelp)
 {
     printf("\t--%s\t(NVMe Only)\n", NVME_HEALTH_LONG_OPT_STRING);
