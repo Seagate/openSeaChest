@@ -38,6 +38,7 @@
 #include "set_max_lba.h"
 #include "smart.h"
 #include "trim_unmap.h"
+#include "smart_attribute_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -550,6 +551,14 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "analyzed") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                }
+                else if (strcmp(optarg, "hybrid") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
+                }
+                else if (strcmp(optarg, "json") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_JSON;
                 }
                 else
                 {
@@ -1413,29 +1422,59 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (
-                print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
+            if (SMART_ATTRIBUTES_MODE_FLAG == SMART_ATTR_OUTPUT_JSON)
             {
-            case SUCCESS:
-                // nothing to print here since if it was successful, the attributes will be printed to the screen
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
                 {
-                    printf("Showing SMART attributes is not supported on this device\n");
+                case SUCCESS:
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                    break;
+
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                safe_free(&jsonFormatOutput);
+            }
+            else
+            {
+                switch (print_SMART_Attributes(&deviceList[deviceIter],
+                                               C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
                 {
-                    printf("A failure occurred while trying to get SMART attributes\n");
+                case SUCCESS:
+                    // nothing to print here since if it was successful, the attributes will be printed to the screen
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occurred while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
-
         if (ABORT_DST_FLAG)
         {
             eReturnValues abortResult = UNKNOWN;
@@ -1562,8 +1601,8 @@ int main(int argc, char* argv[])
                         dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem            = firmwareMem;
                         dlOptions.firmwareMemoryLength       = C_CAST(
-                                  uint32_t,
-                                  fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
+                            uint32_t,
+                            fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = 0;
                         ret                    = firmware_Download(&deviceList[deviceIter], &dlOptions);
                         switch (ret)

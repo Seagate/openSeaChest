@@ -953,7 +953,7 @@ void print_Long_DST_Help(bool shortHelp, const char* helpcommandWindowType)
 
 void print_SMART_Attributes_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | hybrid | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t--%s [raw | hybrid | analyzed | json]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThe drive will display its list of supported SMART attributes.\n");
@@ -972,6 +972,9 @@ void print_SMART_Attributes_Help(bool shortHelp)
         printf("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         printf("\t\t             attribute's data. Full raw data interpretation only\n");
         printf("\t\t             available on select devices.\n");
+        printf("\t\t  json - a full breakdown of all parts of each individual\n");
+        printf("\t\t         attribute's data in json format. Full raw data interpretation only\n");
+        printf("\t\t         available on select devices.\n");
         printf("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }

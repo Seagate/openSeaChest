@@ -33,14 +33,14 @@
 #if defined(ENABLE_CSMI)
 #    include "csmi_helper_func.h"
 #endif
+#include "device_statistics_json.h"
 #include "partition_info.h"
 #include "sata_phy.h"
-#include "device_statistics_json.h"
-
+#include "smart_attribute_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name = "openSeaChest_Info";
+const char* util_name    = "openSeaChest_Info";
 const char* buildVersion = "2.7.1";
 
 ////////////////////////////
@@ -67,8 +67,8 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
-    eReturnValues ret = SUCCESS;
-    int exitCode = UTIL_EXIT_NO_ERROR;
+    eReturnValues ret      = SUCCESS;
+    int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
     DEVICE_INFO_VAR
     SAT_INFO_VAR
@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
     SHOW_PHY_EVENT_COUNTERS_VAR
     OUTPUT_MODE_VAR
 
-    int args = 0;
-    int argIndex = 0;
+    int args        = 0;
+    int argIndex    = 0;
     int optionIndex = 0;
 
     struct option longopts[] =
@@ -195,6 +195,14 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "analyzed") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                }
+                else if (strcmp(optarg, "hybrid") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
+                }
+                else if (strcmp(optarg, "json") == 0)
+                {
+                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_JSON;
                 }
                 else
                 {
@@ -929,26 +937,57 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (
-                print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
+            if (SMART_ATTRIBUTES_MODE_FLAG == SMART_ATTR_OUTPUT_JSON)
             {
-            case SUCCESS:
-                // nothing to print here since if it was successful, the attributes will be printed to the screen
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
                 {
-                    printf("Showing SMART attributes is not supported on this device\n");
+                case SUCCESS:
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                    break;
+
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                safe_free(&jsonFormatOutput);
+            }
+            else
+            {
+                switch (print_SMART_Attributes(&deviceList[deviceIter],
+                                               C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
                 {
-                    printf("A failure occured while trying to get SMART attributes\n");
+                case SUCCESS:
+                    // nothing to print here since if it was successful, the attributes will be printed to the screen
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
 
@@ -965,11 +1004,10 @@ int main(int argc, char* argv[])
                     print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
                 }
 
-                //if supported then print Seagate Device Statistics also
-                bool seagateDeviceStatisticsAvailable = false;
+                // if supported then print Seagate Device Statistics also
+                bool                    seagateDeviceStatisticsAvailable = false;
                 seagateDeviceStatistics seagateDeviceStats;
-                safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
-                                sizeof(seagateDeviceStatistics));
+                safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0, sizeof(seagateDeviceStatistics));
                 if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
                 {
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
@@ -984,8 +1022,10 @@ int main(int argc, char* argv[])
 
                 if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_JSON)
                 {
-                    char *jsonFormatOutput = M_NULLPTR;
-                    ret = create_JSON_File_For_Device_Statistics(&deviceList[deviceIter], &deviceStats, &seagateDeviceStats, seagateDeviceStatisticsAvailable, &jsonFormatOutput);
+                    char* jsonFormatOutput = M_NULLPTR;
+                    ret = create_JSON_Output_For_Device_Statistics(&deviceList[deviceIter], &deviceStats,
+                                                                   &seagateDeviceStats,
+                                                                   seagateDeviceStatisticsAvailable, &jsonFormatOutput);
                     if (ret != SUCCESS)
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
@@ -996,7 +1036,7 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-                        //write the data on console
+                        // write the data on console
                         printf("%s\n\n", jsonFormatOutput);
                     }
 
