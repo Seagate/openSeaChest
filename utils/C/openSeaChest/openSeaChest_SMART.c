@@ -29,6 +29,7 @@
 #include "device_statistics.h"
 #include "drive_info.h"
 #include "dst.h"
+#include "farm_log.h"
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -122,6 +123,7 @@ int main(int argc, char* argv[])
     NVME_HEALTH_VAR
     LOWLEVEL_INFO_VAR
     SMART_OFFLINE_SCAN_VAR
+    SHOW_FARM_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -186,6 +188,7 @@ int main(int argc, char* argv[])
         DEVICE_STATISTICS_LONG_OPT,
         NVME_HEALTH_LONG_OPT,
         SMART_OFFLINE_SCAN_LONG_OPT,
+        SHOW_FARM_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -817,7 +820,7 @@ int main(int argc, char* argv[])
           RUN_IDD_FLAG || DST_AND_CLEAN_FLAG || SMART_FEATURE_FLAG || SMART_ATTR_AUTOSAVE_FEATURE_FLAG ||
           SMART_INFO_FLAG || SMART_AUTO_OFFLINE_FEATURE_FLAG || SHOW_DST_LOG_FLAG || CONVEYANCE_DST_FLAG ||
           SET_MRIE_MODE_FLAG || SCSI_DEFECTS_FLAG || SHOW_SMART_ERROR_LOG_FLAG || DEVICE_STATISTICS_FLAG ||
-          NVME_HEALTH_FLAG || SMART_OFFLINE_SCAN_FLAG
+          NVME_HEALTH_FLAG || SMART_OFFLINE_SCAN_FLAG || SHOW_FARM_FLAG
           // check for other tool specific options here
           ))
     {
@@ -1124,6 +1127,22 @@ int main(int argc, char* argv[])
                     printf("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
+
+        if (SHOW_FARM_FLAG)
+        {
+            farmLogData farmdata;
+            safe_memset(&farmdata, sizeof(farmLogData), 0, sizeof(farmLogData));
+            switch(read_FARM_Data(&deviceList[deviceIter], &farmdata))
+            {
+            case SUCCESS:
+                print_FARM_Data(&farmdata);
+                break;
+            default:
+                printf("Unable to read FARM data\n");
+                break;
             }
         }
 
@@ -2292,6 +2311,7 @@ void utility_Usage(bool shortUsage)
     print_Long_DST_Help(shortUsage, commandWindowType);
     print_Short_DST_Help(shortUsage);
     print_Show_DST_Log_Help(shortUsage);
+    print_Show_FARM_Help(shortUsage);
     print_SMART_Check_Help(shortUsage);
     print_SMART_Feature_Help(shortUsage);
     // SATA Only

@@ -981,6 +981,26 @@ void print_SMART_Attributes_Help(bool shortHelp)
     }
 }
 
+void print_Show_FARM_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_FARM_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the data in the FARM log.\n");
+        printf("\t\tFARM is the Field Accessible Reliability Metrics that\n");
+        printf("\t\tcan be reported from a Seagate hard drive.\n");
+        printf("\t\tFarm data has a few sections available:\n");
+        printf("\t\t\tGeneral Drive Info\n");
+        printf("\t\t\tWorkload Statistics\n");
+        printf("\t\t\tError Statistics\n");
+        printf("\t\t\tEnvironment Statistics\n");
+        printf("\t\t\tReliability Statistics\n");
+        printf("\t\tNewer Seagate HDDs may be able to report more information than\n");
+        printf("\t\tolder models. Data that can be reported may vary depending on the\n");
+        printf("\t\tcapabilities of a given product.\n\n");
+    }
+}
+
 void print_NVME_Health_Help(bool shortHelp)
 {
     printf("\t--%s\t(NVMe Only)\n", NVME_HEALTH_LONG_OPT_STRING);
@@ -1112,6 +1132,9 @@ void print_Idle_A_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -1131,6 +1154,9 @@ void print_Idle_B_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -1150,6 +1176,9 @@ void print_Idle_C_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -1169,6 +1198,9 @@ void print_Standby_Y_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -1188,6 +1220,9 @@ void print_Standby_Z_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 EPC spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
         printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
@@ -1210,6 +1245,9 @@ void print_Legacy_Idle_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 Spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tThis is only available on SAS/SCSI drives as ATA drives did not\n");
         printf("\t\thave a separate configurable idle timer.\n\n");
         printf("\t\tWARNING: EPC Settings may affect all LUNs/namespaces for devices\n");
@@ -1235,6 +1273,9 @@ void print_Legacy_Standby_Help(bool shortHelp)
         printf("\t\t                 the state will also be enabled, if not already.\n");
         printf("\t\t                 Spec timers are set in 100 millisecond increments.\n");
         printf("\t\t                 Timers will be truncated to fit 100 millisecond increments.\n\n");
+        printf("\t\tWhen using this option, the setting is non-volatile.\n");
+        printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tATA drives can only change the standby timer, not disable it.\n");
         printf("\t\tOn ATA drives, the standby timer set by this command is volatile\n");
         printf("\t\tand drive defaults are restored on next power cycle.\n\n");
@@ -2046,6 +2087,7 @@ void print_SCT_Error_Recovery_Read_Help(bool shortHelp)
         printf("\t\tthe drive processes the command, not the time it is received.\n");
         printf("\t\tWhen using this option, the setting is non-volatile.\n");
         printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tUse the \"info\" argument to get the current status\n");
         printf("\t\tof the read timer. A value of 0 means that all possible\n");
         printf("\t\terror recovery will be performed before returning status.\n");
@@ -2074,6 +2116,7 @@ void print_SCT_Error_Recovery_Write_Help(bool shortHelp)
         printf("\t\tthe drive processes the command, not the time it is received.\n");
         printf("\t\tWhen using this option, the setting is non-volatile.\n");
         printf("\t\tUse this with the --%s flag to make the\n", VOLATILE_LONG_OPT_STRING);
+        printf("\t\tsetting volatile.\n");
         printf("\t\tUse the \"info\" argument to get the current status\n");
         printf("\t\tof the write timer. A value of 0 means that all possible\n");
         printf("\t\terror recovery will be performed before returning status.\n");

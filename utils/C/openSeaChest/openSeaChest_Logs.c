@@ -1136,7 +1136,8 @@ int main(int argc, char* argv[])
         {
             // PULL_FARM_FACTORY_PAGE_FLAG
             switch (pull_FARM_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES, 0,
-                                  SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_BIN_FILE_MODE))
+                                  SEAGATE_ATA_LOG_FIELD_ACCESSIBLE_RELIABILITY_METRICS, PULL_LOG_BIN_FILE_MODE,
+                                  NAMING_SERIAL_NUMBER_DATE_TIME))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1175,7 +1176,7 @@ int main(int argc, char* argv[])
         {
             // PULL FARM Log containing all FARM sub Log pages
             switch (pull_FARM_Combined_Log(&deviceList[deviceIter], OUTPUTPATH_FLAG, LOG_TRANSFER_LENGTH_BYTES,
-                                           SATA_FARM_COPY_TYPE_FLAG))
+                                           SATA_FARM_COPY_TYPE_FLAG, NAMING_SERIAL_NUMBER_DATE_TIME))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
