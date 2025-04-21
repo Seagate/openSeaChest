@@ -1082,7 +1082,7 @@ extern "C"
     uint8_t SET_POWER_CONSUMPTION_VALUE              = UINT8_C(0);                                                     \
     bool    SET_POWER_CONSUMPTION_DEFAULT_FLAG       = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = UINT8_C(0);                                                     \
-    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0;
+    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;
 #define SET_POWER_CONSUMPTION_LONG_OPT_STRING "setPowerConsumption"
 #define SET_POWER_CONSUMPTION_LONG_OPT                                                                                 \
     {                                                                                                                  \
@@ -1364,6 +1364,43 @@ extern "C"
 #define CHILD_NEW_FW_MATCH_LONG_OPT                                                                                    \
     {                                                                                                                  \
         CHILD_NEW_FW_MATCH_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                            \
+    }
+
+// set date and time timestamp
+#define SET_TIMESTAMP                 setDateAndTimeTimestamp
+#define SET_TIMESTAMP_VAR             getOptBool SET_TIMESTAMP = goFalse;
+#define SET_TIMESTAMP_LONG_OPT_STRING "setTimestamp"
+#define SET_TIMESTAMP_LONG_OPT                                                                                         \
+    {                                                                                                                  \
+        SET_TIMESTAMP_LONG_OPT_STRING, no_argument, &SET_TIMESTAMP, goTrue                                             \
+    }
+
+// ATA logs that can have their counters reset: Phy Events and Device statistics (marked in the output)
+#define REINITIALIZE_SATA_PHY_EVENTS                 phyEventCntReset
+#define REINITIALIZE_SATA_PHY_EVENTS_VAR             getOptBool REINITIALIZE_SATA_PHY_EVENTS = goFalse;
+#define REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT_STRING "resetATAPhyEvents"
+#define REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT                                                                          \
+    {                                                                                                                  \
+        REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT_STRING, no_argument, &REINITIALIZE_SATA_PHY_EVENTS, goTrue               \
+    }
+
+// TODO: CDL statistic reset
+#define REINITIALIZE_DEV_STATS     deviceStatReset
+#define REINITIALIZE_DEV_STATS_ARG deviceStatARG
+#define REINITIALIZE_DEV_STATS_ARG_OPTIONS                                                                             \
+                                                                                                                       \
+    {                                                                                                                  \
+        "all", "general", "freefall", "rotating", "generr", "temp", "transport", "ssd", "zoned", "cdl01", "cdl23",     \
+            "vendor"                                                                                                   \
+    }
+#define REINITIALIZE_DEV_STATS_VARS                                                                                    \
+    int         REINITIALIZE_DEV_STATS       = -1;                                                                     \
+    const char* REINITIALIZE_DEV_STATS_ARG[] = REINITIALIZE_DEV_STATS_ARG_OPTIONS;
+#define REINITIALIZE_DEV_STATS_LONG_OPT_STRING "resetDevStats"
+
+#define REINITIALIZE_DEV_STATS_LONG_OPT                                                                                \
+    {                                                                                                                  \
+        REINITIALIZE_DEV_STATS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                        \
     }
 
 // setmaxlba
@@ -3181,7 +3218,6 @@ extern "C"
     uint8_t RAW_TFR_LBA_MID_EXT  = UINT8_C(0);                                                                         \
     uint8_t RAW_TFR_LBA_HIGH_EXT = UINT8_C(0);                                                                         \
     uint8_t RAW_TFR_DEVICE_HEAD  = UINT8_C(0xA0); /*backwards compatible by default*/                                  \
-    ;                                                                                                                  \
     uint8_t RAW_TFR_SECTOR_COUNT     = UINT8_C(0);                                                                     \
     uint8_t RAW_TFR_SECTOR_COUNT_EXT = UINT8_C(0);                                                                     \
     uint8_t RAW_TFR_ICC              = UINT8_C(0);                                                                     \
@@ -4692,6 +4728,12 @@ extern "C"
 
     void print_Device_Statistics_Help(bool shortHelp);
 
+    void print_Reinitialize_Device_Statistics_Help(bool shortHelp);
+
+    void print_Reinitialize_SATA_Phy_Events_Help(bool shortHelp);
+
+    void print_Set_Timestamp_Help(bool shortHelp);
+
     void print_Reset_Write_Pointer_Zone_Help(bool shortHelp);
 
     void print_Open_Zone_Help(bool shortHelp);
@@ -5195,7 +5237,7 @@ extern "C"
     deviceScanFlags SCAN_FLAGS = {false, false, false, false, false, false, false,                                     \
                                   false, false, false, false, false, false};
 
-    void get_Scan_Flags(deviceScanFlags* scanFlags, char* optarg);
+    void get_Scan_Flags(deviceScanFlags* scanFlags, const char* optarg);
 
 #if defined(__cplusplus)
 }
