@@ -1030,7 +1030,7 @@ int main(int argc, char* argv[])
         printf("operations running in parallel without issuing a device reset.\n");
         printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
         printf("configurable. It is recommended that a format change is done from a live/bootable\n");
-        printf("environment to reduce the risk of these interuptions. If the OS is unable to complete\n");
+        printf("environment to reduce the risk of these interruptions. If the OS is unable to complete\n");
         printf("certain commands for it's background polling of the device, it may trigger a device\n");
         printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
