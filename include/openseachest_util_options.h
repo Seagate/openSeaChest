@@ -3208,16 +3208,16 @@ extern "C"
 #define RAW_TFR_AUX3             tfrAux3
 #define RAW_TFR_AUX4             tfrAux4
 #define RAW_TFR_VARS                                                                                                   \
-    uint8_t RAW_TFR_COMMAND      = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_FEATURE      = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_FEATURE_EXT  = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_LOW      = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_MID      = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_HIGH     = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_LOW_EXT  = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_MID_EXT  = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_LBA_HIGH_EXT = UINT8_C(0);                                                                         \
-    uint8_t RAW_TFR_DEVICE_HEAD  = UINT8_C(0xA0); /*backwards compatible by default*/                                  \
+    uint8_t RAW_TFR_COMMAND          = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_FEATURE          = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_FEATURE_EXT      = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_LOW          = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_MID          = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_HIGH         = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_LOW_EXT      = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_MID_EXT      = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_LBA_HIGH_EXT     = UINT8_C(0);                                                                     \
+    uint8_t RAW_TFR_DEVICE_HEAD      = UINT8_C(0xA0); /*backwards compatible by default*/                              \
     uint8_t RAW_TFR_SECTOR_COUNT     = UINT8_C(0);                                                                     \
     uint8_t RAW_TFR_SECTOR_COUNT_EXT = UINT8_C(0);                                                                     \
     uint8_t RAW_TFR_ICC              = UINT8_C(0);                                                                     \
