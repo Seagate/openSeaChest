@@ -2111,6 +2111,18 @@ int main(int argc, char* argv[])
             {
             case SUCCESS:
                 print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                // if supported then print Seagate Device Statistics also
+                if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
+                {
+                    seagateDeviceStatistics seagateDeviceStats;
+                    safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
+                                sizeof(seagateDeviceStatistics));
+                    if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
+                    {
+                        printf("\n");
+                        print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
+                    }
+                }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)

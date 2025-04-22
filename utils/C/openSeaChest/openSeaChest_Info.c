@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Info";
-const char* buildVersion = "2.7.0";
+const char* buildVersion = "2.8.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -101,6 +101,8 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     PARTITION_INFO_VAR
     SHOW_PHY_EVENT_COUNTERS_VAR
+    REINITIALIZE_SATA_PHY_EVENTS_VAR
+    REINITIALIZE_DEV_STATS_VARS
 
     int args        = 0;
     int argIndex    = 0;
@@ -137,6 +139,8 @@ int main(int argc, char* argv[])
         DEVICE_STATISTICS_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
+        REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT,
+        REINITIALIZE_DEV_STATS_LONG_OPT,
 #if defined(ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
@@ -257,6 +261,30 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, REINITIALIZE_DEV_STATS_LONG_OPT_STRING) == 0)
+            {
+                bool optargIsValid = false;
+                for (int iter = 0; int_to_sizet(iter) < SIZE_OF_STACK_ARRAY(REINITIALIZE_DEV_STATS_ARG); ++iter)
+                {
+                    if (strcmp(REINITIALIZE_DEV_STATS_ARG[iter], optarg) == 0)
+                    {
+                        REINITIALIZE_DEV_STATS = iter;
+                        if (strcmp(optarg, "vendor") == 0)
+                        {
+                            // Special case since vendor statistics are on page 0xFF and we don't have that many entries
+                            // in the array
+                            REINITIALIZE_DEV_STATS = 0xFF;
+                        }
+                        optargIsValid = true;
+                        break;
+                    }
+                }
+                if (!optargIsValid)
+                {
+                    print_Error_In_Cmd_Line_Args(REINITIALIZE_DEV_STATS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
@@ -568,7 +596,8 @@ int main(int argc, char* argv[])
 #if defined(ENABLE_CSMI)
           || CSMI_INFO_FLAG
 #endif
-          || SHOW_CONCURRENT_RANGES || PARTITION_INFO_FLAG || SHOW_PHY_EVENT_COUNTERS))
+          || SHOW_CONCURRENT_RANGES || PARTITION_INFO_FLAG || SHOW_PHY_EVENT_COUNTERS || REINITIALIZE_SATA_PHY_EVENTS ||
+          REINITIALIZE_DEV_STATS >= 0))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -973,6 +1002,35 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (REINITIALIZE_DEV_STATS >= 0)
+        {
+            switch (ata_Device_Statistics_Reinitialize(&deviceList[deviceIter], REINITIALIZE_DEV_STATS))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully reinitiailized Device Statistics\n");
+                    printf("NOTE: Only statistics marked with the read then initialize supported bit\n");
+                    printf("were reinitialized.\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Device Statistics not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to retrieve Device Statistics from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = M_NULLPTR;
@@ -1056,6 +1114,32 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (REINITIALIZE_SATA_PHY_EVENTS)
+        {
+            switch (reinitialize_SATA_Phy_Event_Counters(&deviceList[deviceIter], M_NULLPTR))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully reinitialized SATA Phy event counter log\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Phy event counters are not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to reinitialize the Phy event counters.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
         // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
@@ -1147,6 +1231,8 @@ void utility_Usage(bool shortUsage)
     print_Partition_Info_Help(shortUsage);
     // SATA Only Options
     printf("\n\tSATA Only:\n\t=========\n");
+    print_Reinitialize_SATA_Phy_Events_Help(shortUsage);
+    print_Reinitialize_Device_Statistics_Help(shortUsage);
     print_Show_Phy_Event_Counters_Help(shortUsage);
     print_SMART_Attributes_Help(shortUsage);
     // SAS Only Options

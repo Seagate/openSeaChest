@@ -77,8 +77,10 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
     bool set = false;
     if (requestedLevel && verbosity)
     {
-        long temp = 0L;
-        if (0 == safe_strtol(&temp, requestedLevel, M_NULLPTR, BASE_10_DECIMAL))
+        char* end  = M_NULLPTR;
+        long  temp = 0L;
+        if (0 == safe_strtol(&temp, requestedLevel, &end, BASE_10_DECIMAL) && strcmp(end, "") == 0 &&
+            C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
         {
             *verbosity = M_STATIC_CAST(eVerbosityLevels, temp);
             set        = true;
@@ -284,59 +286,62 @@ void print_SeaChest_Util_Exit_Codes(int                    numberOfToolSpecificE
     printf("\tAnything else = unknown error\n\n");
 }
 
-void get_Scan_Flags(deviceScanFlags* scanFlags, char* optarg)
+void get_Scan_Flags(deviceScanFlags* scanFlags, const char* optarg)
 {
-    if (strcmp("ata", optarg) == 0)
+    if (scanFlags != M_NULLPTR && optarg != M_NULLPTR)
     {
-        scanFlags->scanATA = true;
-    }
-    else if (strcmp("usb", optarg) == 0)
-    {
-        scanFlags->scanUSB = true;
-    }
-    else if (strcmp("scsi", optarg) == 0)
-    {
-        scanFlags->scanSCSI = true;
-    }
-    else if (strcmp("nvme", optarg) == 0)
-    {
-        scanFlags->scanNVMe = true;
-    }
-    else if (strcmp("raid", optarg) == 0)
-    {
-        scanFlags->scanRAID = true;
-    }
-    else if (strcmp("interfaceATA", optarg) == 0)
-    {
-        scanFlags->scanInterfaceATA = true;
-    }
-    else if (strcmp("interfaceUSB", optarg) == 0)
-    {
-        scanFlags->scanInterfaceUSB = true;
-    }
-    else if (strcmp("interfaceSCSI", optarg) == 0)
-    {
-        scanFlags->scanInterfaceSCSI = true;
-    }
-    else if (strcmp("interfaceNVME", optarg) == 0)
-    {
-        scanFlags->scanInterfaceNVMe = true;
-    }
-    else if (strcmp("sd", optarg) == 0)
-    {
-        scanFlags->scanSD = true;
-    }
-    else if (strcmp("sgtosd", optarg) == 0)
-    {
-        scanFlags->scanSDandSG = true;
-    }
-    else if (strcmp("ignoreCSMI", optarg) == 0)
-    {
-        scanFlags->scanIgnoreCSMI = true;
-    }
-    else if (strcmp("allowDuplicates", optarg) == 0)
-    {
-        scanFlags->scanAllowDuplicateDevices = true;
+        if (strcmp("ata", optarg) == 0)
+        {
+            scanFlags->scanATA = true;
+        }
+        else if (strcmp("usb", optarg) == 0)
+        {
+            scanFlags->scanUSB = true;
+        }
+        else if (strcmp("scsi", optarg) == 0)
+        {
+            scanFlags->scanSCSI = true;
+        }
+        else if (strcmp("nvme", optarg) == 0)
+        {
+            scanFlags->scanNVMe = true;
+        }
+        else if (strcmp("raid", optarg) == 0)
+        {
+            scanFlags->scanRAID = true;
+        }
+        else if (strcmp("interfaceATA", optarg) == 0)
+        {
+            scanFlags->scanInterfaceATA = true;
+        }
+        else if (strcmp("interfaceUSB", optarg) == 0)
+        {
+            scanFlags->scanInterfaceUSB = true;
+        }
+        else if (strcmp("interfaceSCSI", optarg) == 0)
+        {
+            scanFlags->scanInterfaceSCSI = true;
+        }
+        else if (strcmp("interfaceNVME", optarg) == 0)
+        {
+            scanFlags->scanInterfaceNVMe = true;
+        }
+        else if (strcmp("sd", optarg) == 0)
+        {
+            scanFlags->scanSD = true;
+        }
+        else if (strcmp("sgtosd", optarg) == 0)
+        {
+            scanFlags->scanSDandSG = true;
+        }
+        else if (strcmp("ignoreCSMI", optarg) == 0)
+        {
+            scanFlags->scanIgnoreCSMI = true;
+        }
+        else if (strcmp("allowDuplicates", optarg) == 0)
+        {
+            scanFlags->scanAllowDuplicateDevices = true;
+        }
     }
 }
 
@@ -3183,6 +3188,50 @@ void print_Device_Statistics_Help(bool shortHelp)
         printf("\t\tlog, and the notifications log (if DSN feature is supported)\n");
         printf("\t\tto display these statistics. On SAS, various log pages are\n");
         printf("\t\tread to collect a bunch of reported parameter information.\n\n");
+    }
+}
+
+void print_Reinitialize_Device_Statistics_Help(bool shortHelp)
+{
+    printf("\t--%s [", REINITIALIZE_DEV_STATS_LONG_OPT_STRING);
+    const char* opts[] = REINITIALIZE_DEV_STATS_ARG_OPTIONS;
+    for (size_t optit = SIZE_T_C(0); optit < SIZE_OF_STACK_ARRAY(opts); ++optit)
+    {
+        printf(" %s", opts[optit]);
+        if (optit + SIZE_T_C(1) < SIZE_OF_STACK_ARRAY(opts))
+        {
+            printf(" |");
+        }
+    }
+    printf("] (SATA Only)\n");
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to reinitialize supported device statistics\n");
+        printf("\t\tto their default values. Supported statistics are indicated in\n");
+        printf("\t\tthe output of the --%s option.\n", DEVICE_STATISTICS_LONG_OPT_STRING);
+        printf("\t\tArguments to this option can be used to reinitialize specific pages or\n");
+        printf("\t\tall supported pages.\n\n");
+    }
+}
+
+void print_Reinitialize_SATA_Phy_Events_Help(bool shortHelp)
+{
+    printf("\t--%s (SATA Only)\n", REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to reinitialize the SATA Phy event counters\n");
+        printf("\t\tlog page back to their default values. This can be useful when\n");
+        printf("\t\tdebugging cabling issues.\n\n");
+    }
+}
+
+void print_Set_Timestamp_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SET_TIMESTAMP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set the date and time timestamp on the device\n");
+        printf("\t\tto the time based on your current system clock.\n\n");
     }
 }
 

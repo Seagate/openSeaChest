@@ -25,6 +25,7 @@
 
 #include "EULA.h"
 #include "ata_device_config_overlay.h"
+#include "device_statistics.h"
 #include "drive_info.h"
 #include "getopt.h"
 #include "logs.h"
@@ -39,7 +40,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Configure";
-const char* buildVersion = "2.7.1";
+const char* buildVersion = "2.8.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -133,6 +134,8 @@ int main(int argc, char* argv[])
     ATA_DCO_SETMAXMODE_VARS
     ATA_DCO_DISABLE_FEATURES_VARS
 
+    SET_TIMESTAMP_VAR
+
         // clang-format on
 
         int args        = 0;
@@ -204,6 +207,7 @@ int main(int argc, char* argv[])
         ATA_DCO_SETMAXMODE_LONG_OPT,
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
         WRV_LONG_OPT,
+        SET_TIMESTAMP_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
 
@@ -1713,7 +1717,7 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO))
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -2073,6 +2077,33 @@ int main(int argc, char* argv[])
                 // show the specific MPC value
                 show_SCSI_Mode_Page(&deviceList[deviceIter], SCSI_SHOW_MP_PAGE_NUMBER, SCSI_SHOW_MP_SUBPAGE_NUMBER,
                                     C_CAST(eScsiModePageControl, SCSI_SHOW_MP_MPC_VALUE), SCSI_SHOW_MP_BUFFER_MODE);
+            }
+        }
+
+        if (SET_TIMESTAMP)
+        {
+            switch (set_Date_And_Time_Timestamp(&deviceList[deviceIter]))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Successfully set date and time timestamp\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Setting timestamp is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to set date and time timestamp\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
             }
         }
 
@@ -3461,8 +3492,8 @@ int main(int argc, char* argv[])
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0;
-                    double capacity  = 0;
+                    double mCapacity = 0.0;
+                    double capacity  = 0.0;
                     DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
                     DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
                     char* mCapUnit = &mCapUnits[0];
@@ -3522,8 +3553,8 @@ int main(int argc, char* argv[])
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0;
-                    double capacity  = 0;
+                    double mCapacity = 0.0;
+                    double capacity  = 0.0;
                     DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
                     DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
                     char* mCapUnit = &mCapUnits[0];
@@ -4279,9 +4310,8 @@ int main(int argc, char* argv[])
                                                   // starting offset and any full bytes we need to set
                                         // need to create a mask and take the lowest bits that we need and place then in
                                         // this byte starting at bit 7
-                                        uint8_t mask =
-                                            C_CAST(uint8_t, M_GETBITRANGE(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1))
-                                                                << (7 - lowUnalignedBits + 1));
+                                        uint8_t mask = get_bit_range_uint8(UINT8_MAX, 7, 7 - (lowUnalignedBits - 1))
+                                                       << (7 - lowUnalignedBits + 1);
                                         // clear the requested bits first
                                         modePageBuffer[offset] &= C_CAST(uint8_t, ~(mask));
                                         // now set them as requested
@@ -4303,10 +4333,10 @@ int main(int argc, char* argv[])
                                     {
                                         // need to create a mask and take the highest bits (only ones remaining at this
                                         // point) that we need and place then in this byte starting at bit 0
-                                        uint8_t mask = C_CAST(
-                                            uint8_t, M_GETBITRANGE(UINT8_MAX, (highUnalignedBits - 1),
-                                                                   (highUnalignedBits - 1) - (highUnalignedBits - 1))
-                                                         << ((highUnalignedBits - 1) - highUnalignedBits + 1));
+                                        uint8_t mask =
+                                            get_bit_range_uint8(UINT8_MAX, (highUnalignedBits - 1),
+                                                                (highUnalignedBits - 1) - (highUnalignedBits - 1))
+                                            << ((highUnalignedBits - 1) - highUnalignedBits + 1);
                                         // clear the requested bits first
                                         modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                         // now set them as requested
@@ -4318,10 +4348,10 @@ int main(int argc, char* argv[])
                                 else
                                 {
                                     // setting bits within a single byte.
-                                    uint8_t mask = C_CAST(
-                                        uint8_t, M_GETBITRANGE(UINT8_MAX, SCSI_SET_MP_BIT,
-                                                               SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1))
-                                                     << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1));
+                                    uint8_t mask =
+                                        get_bit_range_uint8(UINT8_MAX, SCSI_SET_MP_BIT,
+                                                            SCSI_SET_MP_BIT - (SCSI_SET_MP_FIELD_LEN_BITS - 1))
+                                        << (SCSI_SET_MP_BIT - SCSI_SET_MP_FIELD_LEN_BITS + 1);
                                     // clear the requested bits first
                                     modePageBuffer[SCSI_SET_MP_BYTE] &= C_CAST(uint8_t, ~(mask));
                                     // now set them as requested
@@ -4612,6 +4642,7 @@ void utility_Usage(bool shortUsage)
     print_Read_Look_Ahead_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
+    print_Set_Timestamp_Help(shortUsage);
     print_Write_Cache_Help(shortUsage);
 
     // SATA Only Options
