@@ -3,7 +3,7 @@
 
 ## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices
 
-### Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+### Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
