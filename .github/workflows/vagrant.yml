@@ -46,7 +46,7 @@ jobs:
       - uses: leleliu008/github-actions-vagrant@v2
         with:
           mem: 2048
-          box: freebsd/FreeBSD-15.0-CURRENT
+          box: generic/freebsd14
           run: |
             run pkg update
             run pkg install -y meson clang
