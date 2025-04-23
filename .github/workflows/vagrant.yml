@@ -49,7 +49,7 @@ jobs:
           box: generic/freebsd14
           run: |
             run pkg update
-            run pkg install -y meson clang
+            run pkg install -y meson
             
             run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
             run meson install -C build
