@@ -1,4 +1,6 @@
-name: Build
+# SPDX-License-Identifier: MPL-2.0
+name: CI for Vagrant Boxes
+
 on: [push]
 jobs:
   build-on-openindiana:
@@ -17,7 +19,7 @@ jobs:
       - uses: leleliu008/github-actions-vagrant@v2
         with:
           mem: 2048
-          box: szaydel/omnios-r151026
+          box: openindiana/hipster
           run: |
             run sudo pkg_add meson ninja gcc clang make
             
