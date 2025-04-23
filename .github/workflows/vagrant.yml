@@ -14,7 +14,7 @@ jobs:
       - uses: leleliu008/github-actions-vagrant@v2
         with:
           mem: 2048
-          box: openindiana/hipster
+          box: szaydel/omnios-r151026
           run: |
             run sudo pkg_add meson ninja gcc clang make
             
