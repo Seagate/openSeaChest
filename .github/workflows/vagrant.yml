@@ -29,3 +29,27 @@ jobs:
             
             run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
             run meson install -C build
+
+  build-on-freebsd:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            submodules: recursive
+
+      - name: Install Virtualbox
+        run: brew install --cask virtualbox
+
+      - name: Install Vagrant
+        run: brew install --cask vagrant
+
+      - uses: leleliu008/github-actions-vagrant@v2
+        with:
+          mem: 2048
+          box: freebsd/FreeBSD-15.0-CURRENT
+          run: |
+            run pkg update
+            run pkg install -y meson clang
+            
+            run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+            run meson install -C build
