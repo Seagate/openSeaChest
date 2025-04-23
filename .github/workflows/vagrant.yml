@@ -8,6 +8,9 @@ jobs:
         with:
             submodules: recursive
 
+      - name: Install Vagrant
+        run: brew install vagrant
+
       - uses: leleliu008/github-actions-vagrant@v2
         with:
           mem: 2048
