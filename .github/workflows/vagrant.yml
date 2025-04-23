@@ -19,9 +19,10 @@ jobs:
       - uses: leleliu008/github-actions-vagrant@v2
         with:
           mem: 2048
-          box: openindiana/hipster
+          box: joyent/SmartOS-Minimal-Multiarch
           run: |
-            run sudo pkg_add meson ninja gcc clang make
+            run sudo pkgin update
+            run sudo pkgin meson ninja gcc clang gmake
             
             run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
             run meson install -C build
