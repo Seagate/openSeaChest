@@ -48,10 +48,10 @@ jobs:
                 name: "Hardened BSD",
                 box: generic/hardenedbsd
               }
-            - {
-                name: "DragonFly BSD",
-                box: generic/dragonflybsd
-              }
+            # - {
+            #     name: "DragonFly BSD",
+            #     box: generic/dragonflybsd
+            #   }
     steps:
       - uses: actions/checkout@v4
         with:
