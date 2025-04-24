@@ -3,32 +3,30 @@ name: CI for Vagrant Boxes
 
 on: [push]
 jobs:
-#   build-on-openindiana:
-#     runs-on: macos-13
-#     steps:
-#       - uses: actions/checkout@v4
-#         with:
-#             submodules: recursive
+  build-on-openindiana:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            submodules: recursive
 
-#       - name: Install Virtualbox
-#         run: brew install --cask virtualbox
+      - name: Install Virtualbox
+        run: brew install --cask virtualbox
 
-#       - name: Install Vagrant
-#         run: brew install --cask vagrant
+      - name: Install Vagrant
+        run: brew install --cask vagrant
 
-#       - uses: leleliu008/github-actions-vagrant@v2
-#         with:
-#           mem: 2048
-#           box: Toasterson/omnitribblix
-#           run: |
-#             run sudo zap refresh
-#             run sudo zap install-overlay develop
-#             run sudo zap list-overlays
-#             run sudo zap install-overlay meson
-#             run sudo zap install-overlay ninja
+      - uses: vonericsen/github-actions-vagrant@develop
+        with:
+          mem: 2048
+          timeout: 600
+          box: openindiana/hipster
+          run: |
+            run sudo pkg update
+            run sudo pkg install -y meson
             
-#             run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-#             run meson install -C build
+            run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+            run meson install -C build
 
   build-on-freebsd:
     runs-on: macos-13
@@ -63,7 +61,7 @@ jobs:
       - name: Install Vagrant
         run: brew install --cask vagrant
 
-      - uses: leleliu008/github-actions-vagrant@v2
+      - uses: vonericsen/github-actions-vagrant@develop
         with:
           mem: 2048
           box: ${{ matrix.config.box }}
