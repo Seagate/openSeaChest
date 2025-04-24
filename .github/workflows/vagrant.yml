@@ -16,7 +16,7 @@ jobs:
       - name: Install Vagrant
         run: brew install --cask vagrant
 
-      - uses: vonericsen/github-actions-vagrant@develop
+      - uses: vonericsen/github-actions-vagrant@main
         with:
           mem: 2048
           timeout: 600
@@ -61,7 +61,7 @@ jobs:
       - name: Install Vagrant
         run: brew install --cask vagrant
 
-      - uses: vonericsen/github-actions-vagrant@develop
+      - uses: vonericsen/github-actions-vagrant@main
         with:
           mem: 2048
           box: ${{ matrix.config.box }}
