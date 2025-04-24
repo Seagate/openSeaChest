@@ -21,6 +21,7 @@ jobs:
           mem: 2048
           timeout: 600
           box: openindiana/hipster
+          sync-type: rsync-auto
           run: |
             run sudo pkg update
             run sudo pkg install -y meson
