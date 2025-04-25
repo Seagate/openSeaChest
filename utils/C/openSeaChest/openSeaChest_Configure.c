@@ -566,7 +566,7 @@ int main(int argc, char* argv[])
                         // first check is a unit is provided.
                         if (unit)
                         {
-                            if (strcmp(unit, "ms") == 0)
+                            if (strcmp(unit, "ms") == 0 || strcmp(unit, "") == 0)
                             {
                                 multiplier = UINT32_C(1);
                             }
@@ -618,7 +618,7 @@ int main(int argc, char* argv[])
                         // first check is a unit is provided.
                         if (unit)
                         {
-                            if (strcmp(unit, "ms") == 0)
+                            if (strcmp(unit, "ms") == 0 || strcmp(unit, "") == 0)
                             {
                                 multiplier = UINT32_C(1);
                             }
