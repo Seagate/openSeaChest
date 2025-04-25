@@ -21,7 +21,31 @@ jobs:
           mem: 2048
           timeout: 600
           box: openindiana/hipster
-          sync-type: rsync-auto
+          run: |
+            run sudo pkg update
+            run sudo pkg install -y meson
+            
+            run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+            run meson install -C build
+            
+  build-on-solaris:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+            submodules: recursive
+
+      - name: Install Virtualbox
+        run: brew install --cask virtualbox
+
+      - name: Install Vagrant
+        run: brew install --cask vagrant
+
+      - uses: vonericsen/github-actions-vagrant@main
+        with:
+          mem: 2048
+          timeout: 600
+          box: rbrunckhorst/solaris11.4
           run: |
             run sudo pkg update
             run sudo pkg install -y meson
