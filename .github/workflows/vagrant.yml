@@ -18,8 +18,9 @@ jobs:
 
       - uses: vonericsen/github-actions-vagrant@main
         with:
-          mem: 2048
+          mem: 4096
           timeout: 600
+          ncpu: 4
           box: openindiana/hipster
           run: |
             run sudo pkg update
@@ -27,7 +28,7 @@ jobs:
             
             run meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
             run meson install -C build
-            
+
   build-on-solaris:
     runs-on: macos-13
     steps:
@@ -43,8 +44,9 @@ jobs:
 
       - uses: vonericsen/github-actions-vagrant@main
         with:
-          mem: 2048
-          timeout: 600
+          mem: 4096
+          ncpu: 4
+          timeout: 1200
           box: rbrunckhorst/solaris11.4
           run: |
             run sudo pkg update
