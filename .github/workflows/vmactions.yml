@@ -21,7 +21,9 @@ jobs:
 
         run: |
           pkg update
-          pkg install meson
+          pkg install bison build-essential flex ninja pkg-config
+
+          pip install meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -66,7 +68,7 @@ jobs:
 
         run: |
           pkg update
-          pkg install developer/build/meson
+          pkg install meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -88,7 +90,7 @@ jobs:
 
         run: |
           pkg update
-          pkg install developer/build/meson
+          pkg install meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
