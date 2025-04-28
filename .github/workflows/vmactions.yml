@@ -56,14 +56,35 @@ jobs:
   freebsd:
     runs-on: ubuntu-latest
     name: Build openSeaChest for FreeBSD
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "FreeBSD 14.2",
+            releasename: "14.2",
+            arch: "x86_64",
+          }
+        - {
+            name: "FreeBSD 15.0",
+            releasename: "15.0",
+            arch: "x86_64",
+          }
+        - {
+            name: "FreeBSD 13.5",
+            releasename: "13.5",
+            arch: "x86_64",
+          }
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Build openSeaChest for  FreeBSD
+    - name: Build openSeaChest for ${{ matrix.config.name }}
       id: freebsd
       uses: vmactions/freebsd-vm@v1
       with:
+        release: ${{ matrix.config.releasename }}
+        arch: ${{ matrix.config.arch }}
         usesh: true
         prepare: |
           pkg install -y curl
