@@ -96,25 +96,24 @@ jobs:
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
 
-#NOTE: dragonfly does not support ATA-CAM like FreeBSD, so need some ifdef's around that code -TJE
-#   dragonflybsd:
-#     runs-on: ubuntu-latest
-#     name: Build openSeaChest for DragonflyBSD
-#     steps:
-#     - uses: actions/checkout@v4
-#       with:
-#         submodules: recursive
-#     - name: Build openSeaChest for  DragonflyBSD
-#       id: dragonfly
-#       uses: vmactions/dragonflybsd-vm@v1
-#       with:
-#         usesh: true
-#         prepare: |
-#           pkg install -y socat
+  dragonflybsd:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for DragonflyBSD
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for  DragonflyBSD
+      id: dragonfly
+      uses: vmactions/dragonflybsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg install -y socat
 
-#         run: |
-#           pkg update
-#           pkg install -y meson
+        run: |
+          pkg update
+          pkg install -y meson
 
-#           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-#           meson install -C build
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
