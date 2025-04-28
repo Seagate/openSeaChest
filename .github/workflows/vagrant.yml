@@ -21,8 +21,6 @@ jobs:
           mem: 4096
           timeout: 600
           ncpu: 4
-          sync-disabled: true
-          nictype: '82540EM'
           box: openindiana/hipster
           run: |
             run sudo pkg update
