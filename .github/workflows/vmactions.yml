@@ -23,8 +23,8 @@ jobs:
           pkg update
           pkg install bison build-essential flex ninja pkg-config library/python-3/meson-312
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-          meson install -C build
+          python3 -m meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          python3 -m meson install -C build
 
   solaris:
     runs-on: ubuntu-latest
