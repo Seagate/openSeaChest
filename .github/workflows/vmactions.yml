@@ -28,29 +28,28 @@ jobs:
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
 
-# issues with C11 annex K still need troubleshooting
-#   solaris:
-#     runs-on: ubuntu-latest
-#     name: Build openSeaChest for Solaris
-#     steps:
-#     - uses: actions/checkout@v4
-#       with:
-#         submodules: recursive
-#     - name: Build openSeaChest for Solaris
-#       id: sol
-#       uses: vmactions/solaris-vm@v1
-#       with:
-#         release: "11.4-gcc"
-#         usesh: true
-#         prepare: |
-#           pkgutil -y -i socat
+  solaris:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for Solaris
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for Solaris
+      id: sol
+      uses: vmactions/solaris-vm@v1
+      with:
+        release: "11.4-gcc"
+        usesh: true
+        prepare: |
+          pkgutil -y -i socat
 
-#         run: |
-#           pkg update
-#           pkg install developer/build/meson
+        run: |
+          pkg update
+          pkg install developer/build/meson
 
-#           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-#           meson install -C build
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
 
   freebsd:
     runs-on: ubuntu-latest
