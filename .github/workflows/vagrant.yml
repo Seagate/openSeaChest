@@ -22,6 +22,8 @@ jobs:
           timeout: 600
           ncpu: 4
           sync-disabled: true
+          nictype: '82540EM'
+          storagectl: 'IDE Controller'
           box: openindiana/hipster
           run: |
             run sudo pkg update
