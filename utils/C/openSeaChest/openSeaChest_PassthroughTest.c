@@ -6761,7 +6761,7 @@ static eReturnValues scsi_Read_Check(tDevice*         device,
     else if (!zeroLengthTransfers)
     {
         set_Console_Colors(true, NOTE_COLOR);
-        printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibilty "
+        printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibility "
                "testing!\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }

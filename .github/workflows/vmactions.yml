@@ -30,28 +30,28 @@ jobs:
 
 # builds but fails to link due to __stack_chk_fail and __stack_chk_guard being undefined.
 # TODO: Figure out which flags to change in meson build scripts to resolve this. use .kernel() == solaris vs .kernel() == illumos
-#   solaris:
-#     runs-on: ubuntu-latest
-#     name: Build openSeaChest for Solaris
-#     steps:
-#     - uses: actions/checkout@v4
-#       with:
-#         submodules: recursive
-#     - name: Build openSeaChest for Solaris
-#       id: sol
-#       uses: vmactions/solaris-vm@v1
-#       with:
-#         release: "11.4-gcc"
-#         usesh: true
-#         prepare: |
-#           pkgutil -y -i socat
+  solaris:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for Solaris
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for Solaris
+      id: sol
+      uses: vmactions/solaris-vm@v1
+      with:
+        release: "11.4-gcc"
+        usesh: true
+        prepare: |
+          pkgutil -y -i socat
 
-#         run: |
-#           pkg update
-#           pkg install developer/build/meson
+        run: |
+          pkg update
+          pkg install developer/build/meson
 
-#           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
-#           meson install -C build
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
 
   freebsd:
     runs-on: ubuntu-latest
