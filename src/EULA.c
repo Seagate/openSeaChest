@@ -467,7 +467,7 @@ static void print_Win_Getopt_Licenses(void)
 #if defined(__FreeBSD__)
 static void print_FreeBSD_License(void)
 {
-    printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
+    printf("Copyright 1992 - 2025 The FreeBSD Project.\n\n");
     printf("Redistribution and use in source and binary forms, with or without\n");
     printf("modification, are permitted provided that the following conditions are met :\n");
     printf("\n");
@@ -494,6 +494,40 @@ static void print_FreeBSD_License(void)
     printf("\n\n");
 }
 #endif //__FreeBSD__
+
+#if defined(__DragonFly__)
+static void print_DragonFlyBSD_License(void)
+{
+    printf("Copyright (c) 2003-2024 The DragonFly Project.  All rights reserved.\n\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions are met:\n");
+    printf("\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in\n");
+    printf("   the documentation and/or other materials provided with the\n");
+    printf("   distribution.\n");
+    printf("3. Neither the name of The DragonFly Project nor the names of its\n");
+    printf("   contributors may be used to endorse or promote products derived\n");
+    printf("   from this software without specific, prior written permission.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n");
+    printf("``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n");
+    printf("LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS\n");
+    printf("FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE\n");
+    printf("COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n");
+    printf("INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES (INCLUDING,\n");
+    printf("BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n");
+    printf("LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED\n");
+    printf("AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n");
+    printf("OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT\n");
+    printf("OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n");
+    printf("SUCH DAMAGE.\n");
+    printf("\n\n");
+}
+
+#endif //__DragonFly__
 
 #if defined(__GLIBC__)
 static void print_GNU_LGPL_License(void)
@@ -743,6 +777,8 @@ void print_Open_Source_Licenses(void)
     //       May need a way to access that flag to determine when this should or should-not be part of the license
     //       output.-TJE
     print_Open_Fabrics_NVMe_IOCTL_License();
+#elif defined (__DragonFly__)
+    print_DragonFlyBSD_License();
 #elif defined(__FreeBSD__)
     print_FreeBSD_License();
 #elif defined(__linux__)
