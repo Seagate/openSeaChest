@@ -44,7 +44,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wimplicit-fallthrough',
   '-D_GLIBCXX_ASSERTIONS',
   '-fstrict-flex-arrays=1', #NOTE: Using level 1 since Windows often uses [1] at the end of it's structures. opensea-*libs has used this in a few places too.
-  '-fstack-protector-strong',
   '-fno-delete-null-pointer-checks',
   '-fno-strict-overflow',
   '-fno-strict-aliasing',
@@ -81,6 +80,19 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
     #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
     warning_flags += '-Wsign-conversion'
+  endif
+
+  if target_machine.system() != 'sunos'
+    warning_flags += '-fstack-protector-strong'
+  else
+    #Illumos will support this, but solaris will not due to library differences in the systems
+    if meson.version().version_compare('>=1.2.0')
+      if target_machine.kernel() == 'illumos'
+        warning_flags += '-fstack-protector-strong'
+      endif
+    else
+    # TODO: Backup method to detect illumos vs solaris
+    endif
   endif
 
   if c.get_id().contains('gcc') and target_machine.system() == 'windows'
