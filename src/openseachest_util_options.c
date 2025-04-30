@@ -5345,7 +5345,8 @@ void print_Raw_Data_Length_Help(bool shortHelp)
         printf("\t\tThe following post fixes are allowed for\n");
         printf("\t\tspecifying a transfer length:\n");
         printf("\t\t\tBLOCKS - used to specify a transfer length\n");
-        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\t\tin device logical blocks.\n");
+        printf("\t\t\tB - length in bytes (val * 1) (default if no unit given)\n");
         printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
         printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
         printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
@@ -5416,7 +5417,8 @@ void print_Raw_Input_File_Offset_Help(bool shortHelp)
         printf("\t\tThe following post fixes are allowed for\n");
         printf("\t\tspecifying a transfer length:\n");
         printf("\t\t\tBLOCKS - used to specify an offset length\n");
-        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\t\tin device logical blocks.\n");
+        printf("\t\t\tB - length in bytes (val * 1) (Default if no unit given)\n");
         printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
         printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
         printf("\t\t\tMB - length in megabytes (val * 1000000)\n");

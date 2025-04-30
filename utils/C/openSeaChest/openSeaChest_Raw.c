@@ -29,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Raw";
-const char* buildVersion = "0.9.0";
+const char* buildVersion = "0.9.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -550,14 +550,14 @@ int main(int argc, char* argv[])
                     uint32_t multiplier = UINT32_C(1);
                     if (unit)
                     {
-                        if (strcmp(unit, "") == 0)
-                        {
-                            RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = true;
-                        }
-                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
                         {
                             // they specified blocks. For log transfers this means a number of 512B sectors
-                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                            RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG = true;
+                        }
+                        else if (strcmp(unit, "B") == 0 || strcmp(unit, "") == 0)
+                        {
+                            multiplier = UINT32_C(1);
                         }
                         else if (strcmp(unit, "KB") == 0)
                         {
@@ -590,6 +590,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     RAW_DATA_LEN_FLAG *= multiplier;
+                    printf("Raw data len = %" PRIu32 "\n", RAW_DATA_LEN_FLAG);
                 }
                 else
                 {
@@ -1316,7 +1317,7 @@ int main(int argc, char* argv[])
                             dataBuffer = M_REINTERPRET_CAST(
                                 uint8_t*, safe_calloc_aligned(allocatedDataLength, sizeof(uint8_t),
                                                               deviceList[deviceIter].os_info.minimumAlignment));
-                            if (!dataBuffer)
+                            if (dataBuffer == M_NULLPTR)
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
@@ -1620,9 +1621,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             }
         }
-
-        // perform some sort of validation to see that we have some command to send...then build it and send it.
-        if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 &&
+        else if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 &&
             RAW_TFR_BYTE_BLOCK != -1)
         {
             ataPassthroughCommand passthroughCommand;
