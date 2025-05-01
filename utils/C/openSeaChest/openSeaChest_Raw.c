@@ -1306,6 +1306,16 @@ int main(int argc, char* argv[])
                             if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                             {
                                 // allocate based on logical block size
+                                if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
+                                {
+                                    //get the blocksize from read capacity first
+                                    readCapacityData readCapData;
+                                    safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
+                                    if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                    {
+                                        deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                    }
+                                }
                                 allocatedDataLength =
                                     deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;
                             }
@@ -1342,11 +1352,31 @@ int main(int argc, char* argv[])
                                 int64_t fileOffset = RAW_INPUT_FILE_OFFSET_FLAG;
                                 if (RAW_INPUT_OFFSET_ADJUST_BY_BLOCKS_FLAG)
                                 {
+                                    if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
+                                    {
+                                        //get the blocksize from read capacity first
+                                        readCapacityData readCapData;
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
+                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        {
+                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                        }
+                                    }
                                     fileOffset =
                                         deviceList[deviceIter].drive_info.deviceBlockSize * RAW_INPUT_FILE_OFFSET_FLAG;
                                 }
                                 if (RAW_DATA_LEN_ADJUST_BY_BLOCKS_FLAG)
                                 {
+                                    if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
+                                    {
+                                        //get the blocksize from read capacity first
+                                        readCapacityData readCapData;
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
+                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        {
+                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                        }
+                                    }
                                     // allocate based on logical block size
                                     allocatedDataLength =
                                         deviceList[deviceIter].drive_info.deviceBlockSize * RAW_DATA_LEN_FLAG;

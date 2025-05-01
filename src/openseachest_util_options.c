@@ -32,7 +32,7 @@ const char* deviceHandleExample = "/dev/sg<#>";
 const char* deviceHandleName    = "<sg_device>";
 const char* commandWindowType   = "terminal";
 #    endif
-#elif defined(__FreeBSD__) || defined (__DragonFly__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 const char* deviceHandleExample = "/dev/da<#>";
 const char* deviceHandleName    = "<da_device>";
 const char* commandWindowType   = "shell";
@@ -120,7 +120,8 @@ void print_Elevated_Privileges_Text(void)
 #        endif
 #    elif defined(__DragonFly__)
     printf("In DragonFlyBSD, put sudo before the command. This may require inputting your login password.\n");
-    printf("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    printf("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
+           "password.\n");
 #    elif defined(__FreeBSD__)
     printf("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     printf("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
