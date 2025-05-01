@@ -531,8 +531,8 @@ static void print_DragonFlyBSD_License(void)
 
 #endif //__DragonFly__
 
-#if defined (__sun)
-#   if defined (__illumos__) || defined (THIS_IS_ILLUMOS)
+#if defined(__sun)
+#    if defined(__illumos__) || defined(THIS_IS_ILLUMOS)
 static void print_CDDL_License(void)
 {
     printf("Illumos (libc)\n\n");
@@ -914,8 +914,8 @@ static void print_CDDL_License(void)
     printf("California and the state courts of the State of California, with\n");
     printf("venue lying in Santa Clara County, California.");
 }
-#   endif// __illumos__ || THIS_IS_ILLUMOS
-#endif //__sun
+#    endif // __illumos__ || THIS_IS_ILLUMOS
+#endif     //__sun
 
 #if defined(__GLIBC__)
 static void print_GNU_LGPL_License(void)
@@ -1165,7 +1165,7 @@ void print_Open_Source_Licenses(void)
     //       May need a way to access that flag to determine when this should or should-not be part of the license
     //       output.-TJE
     print_Open_Fabrics_NVMe_IOCTL_License();
-#elif defined (__DragonFly__)
+#elif defined(__DragonFly__)
     print_DragonFlyBSD_License();
 #elif defined(__FreeBSD__)
     print_FreeBSD_License();
@@ -1182,10 +1182,10 @@ void print_Open_Source_Licenses(void)
 #            pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
 #        endif
 #    endif
-#elif defined(__sun) 
-#   if defined (__illumos__) || defined (THIS_IS_ILLUMOS)
+#elif defined(__sun)
+#    if defined(__illumos__) || defined(THIS_IS_ILLUMOS)
     print_CDDL_License();
-#   endif // __illumos__ || THIS_IS_ILLUMOS
+#    endif // __illumos__ || THIS_IS_ILLUMOS
 #elif defined(_AIX)
     // Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
