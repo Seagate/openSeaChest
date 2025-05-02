@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.2.0";
+const char* buildVersion = "3.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1060,6 +1060,7 @@ int main(int argc, char* argv[])
         for (int8_t counter = INT8_C(30); counter >= 0; --counter)
         {
             printf("\r%2d", counter);
+            flush_stdout();
             delay_Seconds(UINT32_C(1));
         }
         printf("\n");
