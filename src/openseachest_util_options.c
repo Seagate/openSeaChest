@@ -36,6 +36,11 @@ const char* commandWindowType   = "terminal";
 const char* deviceHandleExample = "/dev/da<#>";
 const char* deviceHandleName    = "<da_device>";
 const char* commandWindowType   = "shell";
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
+// TODO: Need a better way to handle WD vs SD devices
+const char* deviceHandleExample = "/dev/sd<#>";
+const char* deviceHandleName    = "<sd_device>";
+const char* commandWindowType   = "shell";
 #elif defined(_WIN32)
 #    include "windows_version_detect.h"
 const char* deviceHandleExample = "PD<#>";
@@ -125,6 +130,15 @@ void print_Elevated_Privileges_Text(void)
 #    elif defined(__FreeBSD__)
     printf("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     printf("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__OpenBSD__)
+    printf("In OpenBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In OpenBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__NetBSD__)
+    printf("In NetBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In NetBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__illumos__) || defined(THIS_IS_ILLUMOS)
+    printf("In Illumos, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Illumos, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__sun)
     printf("In Solaris, put sudo before the command. This may require inputting your login password.\n");
     printf("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
