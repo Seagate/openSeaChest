@@ -464,6 +464,40 @@ static void print_Win_Getopt_Licenses(void)
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
 }
 
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
+static void print_Berkeley_License(void)
+{
+    printf("Berkeley Copyright to BSD source (libc, others)\n");
+    printf("Copyright (c) 1990 The Regents of the University of California.\n");
+    printf("All rights reserved.\n");
+    printf("\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions\n");
+    printf("are met:\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in the\n");
+    printf("   documentation and/or other materials provided with the distribution.\n");
+    printf("3. Neither the name of the University nor the names of its contributors\n");
+    printf("   may be used to endorse or promote products derived from this software\n");
+    printf("   without specific prior written permission.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND\n");
+    printf("ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n");
+    printf("IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n");
+    printf("ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE\n");
+    printf("FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n");
+    printf("DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS\n");
+    printf("OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)\n");
+    printf("HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT\n");
+    printf("LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY\n");
+    printf("OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n");
+    printf("SUCH DAMAGE.\n");
+    printf("\n\n");
+}
+#endif // all bsds
+
 #if defined(__FreeBSD__)
 static void print_FreeBSD_License(void)
 {
@@ -493,6 +527,7 @@ static void print_FreeBSD_License(void)
     printf("the authors and should not be interpreted as representing official policies, either\n");
     printf("expressed or implied, of the FreeBSD Project.\n");
     printf("\n\n");
+    print_Berkeley_License();
 }
 #endif //__FreeBSD__
 
@@ -527,9 +562,67 @@ static void print_DragonFlyBSD_License(void)
     printf("OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n");
     printf("SUCH DAMAGE.\n");
     printf("\n\n");
+    print_Berkeley_License();
 }
 
 #endif //__DragonFly__
+
+#if defined(__NetBSD__)
+static void print_NetBSD_License(void)
+{
+    printf("NetBSD (libc)\n\n");
+    printf("Copyright (c) 2008 The NetBSD Foundation, Inc.\n");
+    printf("All rights reserved.\n");
+    printf("\n");
+    printf("This code is derived from software contributed to The NetBSD Foundation\n");
+    printf("by \n");
+    printf("\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions\n");
+    printf("are met:\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in the\n");
+    printf("   documentation and/or other materials provided with the distribution.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS\n");
+    printf("``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED\n");
+    printf("TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n");
+    printf("PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS\n");
+    printf("BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n");
+    printf("CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n");
+    printf("SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n");
+    printf("INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n");
+    printf("CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n");
+    printf("ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n");
+    printf("POSSIBILITY OF SUCH DAMAGE.\n");
+    printf("\n\n");
+    print_Berkeley_License();
+}
+#endif //__NetBSD__
+
+#if defined(__OpenBSD__)
+static void print_OpenBSD_License(void)
+{
+    printf("OpenBSD (libc)\n\n");
+    printf("Copyright (c) 2003 The OpenBSD Foundation\n");
+    printf("\n");
+    printf("Permission to use, copy, modify, and distribute this software for any\n");
+    printf("purpose with or without fee is hereby granted, provided that the above\n");
+    printf("copyright notice and this permission notice appear in all copies.\n");
+    printf("\n");
+    printf("THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\n");
+    printf("WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\n");
+    printf("MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR\n");
+    printf("ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\n");
+    printf("WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\n");
+    printf("ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF\n");
+    printf("OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n");
+    printf("\n\n");
+    print_Berkeley_License();
+}
+#endif //__OpenBSD__
 
 #if defined(__sun)
 #    if defined(__illumos__) || defined(THIS_IS_ILLUMOS)
@@ -1169,6 +1262,10 @@ void print_Open_Source_Licenses(void)
     print_DragonFlyBSD_License();
 #elif defined(__FreeBSD__)
     print_FreeBSD_License();
+#elif defined(__OpenBSD__)
+    print_OpenBSD_License();
+#elif defined(__NetBSD__)
+    print_NetBSD_License();
 #elif defined(__linux__)
 #    if defined(__GLIBC__)
     // in other 'nix systems, we need to show this since we are using gnu libc
