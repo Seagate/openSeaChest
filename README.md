@@ -187,8 +187,8 @@ Please create an issue to request support for these other platforms when you nee
 | Illumos    | Yes        | This column is for Illumos based distributions/openSolaris. Uses same USCSI ioctl as Solaris. No known limitations at this time. |
 | AIX        | Yes        | Support for SATA and SAS is available. Code was tested on version 7.1, but may work on earlier versions. Some flags may need adjusting for earlier systems. Build was completed using GCC available in AIX toolkit with gmake. Only rhdisk handles are supported. pdisk support is not known since IBM does not appear to provide information on passing requests through RAID with what is normally available. |
 | ESXI       | Yes        | Uses SG_IO v3 like Linux through compatibility layer. Requires complicated build system with special GCC build/VM from VMWare and some other development packges installed to compile. |
-| NetBSD     | No, but possible | |
-| OpenBSD    | No, but possible | |
+| NetBSD     | Yes | ATA Passthrough limited to 28bit commands only due to kernel IOCTL limitations. |
+| OpenBSD    | Yes | ATA Passthrough limited to 28bit commands only due to kernel IOCTL limitations. |
 
 ##### NVMe Compatibility
 
