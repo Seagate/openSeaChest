@@ -1696,8 +1696,9 @@ void print_Firmware_Download_Help(bool shortHelp)
         printf("\t\tfor the specific model drive. Improper use of this option may\n");
         printf("\t\tharm a device and or its data. You may specify the path (without\n");
         printf("\t\tspaces) if the firmware data file is in a different location.\n");
-        printf("\t\tThis option will use segmented download by default. Use the\n");
-        printf("\t\t--downloadMode option to specify a different download mode.\n\n");
+        printf("\t\tThis option will use auto mode by default to choose the best method\n");
+        printf("\t\tfor updating the drive firmware. Use the --%s option to", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+        printf("\t\tspecify a different download mode.\n\n");
         printf("\t\tWARNING: Firmware updates may affect all LUNs/namespaces\n");
         printf("\t\t         for devices with multiple logical units or namespaces.\n\n");
     }
