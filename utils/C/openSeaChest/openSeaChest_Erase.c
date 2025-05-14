@@ -1379,7 +1379,7 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
-    if (ATA_SECURITY_ERASE_OP || PERFORM_FASTEST_ERASE_FLAG)
+    if (ATA_SECURITY_ERASE_OP || PERFORM_FASTEST_ERASE_FLAG || RUN_WRITE_SAME_FLAG)
     {
         flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
     }
