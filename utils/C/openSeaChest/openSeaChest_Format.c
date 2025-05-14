@@ -913,6 +913,16 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
+    if (FORMAT_UNIT_FLAG)
+    {
+        flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
+    }
+
+    if (SET_SECTOR_SIZE_FLAG || FAST_FORMAT_FLAG || REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG)
+    {
+        flags |= HANDLE_REQUIRE_EXCLUSIVE_ACCESS;
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
 

@@ -1020,6 +1020,11 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
+    if (ATA_SECURITY_ERASE_OP)
+    {
+        flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
 

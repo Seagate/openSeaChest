@@ -1379,6 +1379,11 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
+    if (ATA_SECURITY_ERASE_OP || PERFORM_FASTEST_ERASE_FLAG)
+    {
+        flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
+    }
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
         for (uint32_t devi = UINT32_C(0); devi < DEVICE_LIST_COUNT; ++devi)

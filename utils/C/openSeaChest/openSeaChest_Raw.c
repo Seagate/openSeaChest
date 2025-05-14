@@ -1040,6 +1040,9 @@ int main(int argc, char* argv[])
         flags = FAST_SCAN;
     }
 
+    // Recommending exclusive access for all commands for now - TJE
+    flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
+
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
 
