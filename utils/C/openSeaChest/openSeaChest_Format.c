@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.2.0";
+const char* buildVersion = "3.2.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1030,7 +1030,7 @@ int main(int argc, char* argv[])
         printf("operations running in parallel without issuing a device reset.\n");
         printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
         printf("configurable. It is recommended that a format change is done from a live/bootable\n");
-        printf("environment to reduce the risk of these interuptions. If the OS is unable to complete\n");
+        printf("environment to reduce the risk of these interruptions. If the OS is unable to complete\n");
         printf("certain commands for it's background polling of the device, it may trigger a device\n");
         printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
@@ -1060,6 +1060,7 @@ int main(int argc, char* argv[])
         for (int8_t counter = INT8_C(30); counter >= 0; --counter)
         {
             printf("\r%2d", counter);
+            flush_stdout();
             delay_Seconds(UINT32_C(1));
         }
         printf("\n");

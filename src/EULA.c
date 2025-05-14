@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -464,10 +464,45 @@ static void print_Win_Getopt_Licenses(void)
     printf("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n");
 }
 
+#if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
+static void print_Berkeley_License(void)
+{
+    printf("Berkeley Copyright to BSD source (libc, others)\n");
+    printf("Copyright (c) 1990 The Regents of the University of California.\n");
+    printf("All rights reserved.\n");
+    printf("\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions\n");
+    printf("are met:\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in the\n");
+    printf("   documentation and/or other materials provided with the distribution.\n");
+    printf("3. Neither the name of the University nor the names of its contributors\n");
+    printf("   may be used to endorse or promote products derived from this software\n");
+    printf("   without specific prior written permission.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND\n");
+    printf("ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n");
+    printf("IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n");
+    printf("ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE\n");
+    printf("FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL\n");
+    printf("DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS\n");
+    printf("OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)\n");
+    printf("HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT\n");
+    printf("LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY\n");
+    printf("OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n");
+    printf("SUCH DAMAGE.\n");
+    printf("\n\n");
+}
+#endif // all bsds
+
 #if defined(__FreeBSD__)
 static void print_FreeBSD_License(void)
 {
-    printf("Copyright 1992 - 2019 The FreeBSD Project.\n\n");
+    printf("FreeBSD (libc)\n\n");
+    printf("Copyright 1992 - 2025 The FreeBSD Project.\n\n");
     printf("Redistribution and use in source and binary forms, with or without\n");
     printf("modification, are permitted provided that the following conditions are met :\n");
     printf("\n");
@@ -492,8 +527,488 @@ static void print_FreeBSD_License(void)
     printf("the authors and should not be interpreted as representing official policies, either\n");
     printf("expressed or implied, of the FreeBSD Project.\n");
     printf("\n\n");
+    print_Berkeley_License();
 }
 #endif //__FreeBSD__
+
+#if defined(__DragonFly__)
+static void print_DragonFlyBSD_License(void)
+{
+    printf("DragonflyBSD (libc)\n\n");
+    printf("Copyright (c) 2003-2024 The DragonFly Project.  All rights reserved.\n\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions are met:\n");
+    printf("\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in\n");
+    printf("   the documentation and/or other materials provided with the\n");
+    printf("   distribution.\n");
+    printf("3. Neither the name of The DragonFly Project nor the names of its\n");
+    printf("   contributors may be used to endorse or promote products derived\n");
+    printf("   from this software without specific, prior written permission.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n");
+    printf("``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n");
+    printf("LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS\n");
+    printf("FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE\n");
+    printf("COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,\n");
+    printf("INCIDENTAL, SPECIAL, EXEMPLARY OR CONSEQUENTIAL DAMAGES (INCLUDING,\n");
+    printf("BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n");
+    printf("LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED\n");
+    printf("AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,\n");
+    printf("OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT\n");
+    printf("OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF\n");
+    printf("SUCH DAMAGE.\n");
+    printf("\n\n");
+    print_Berkeley_License();
+}
+
+#endif //__DragonFly__
+
+#if defined(__NetBSD__)
+static void print_NetBSD_License(void)
+{
+    printf("NetBSD (libc)\n\n");
+    printf("Copyright (c) 2008 The NetBSD Foundation, Inc.\n");
+    printf("All rights reserved.\n");
+    printf("\n");
+    printf("This code is derived from software contributed to The NetBSD Foundation\n");
+    printf("by \n");
+    printf("\n");
+    printf("Redistribution and use in source and binary forms, with or without\n");
+    printf("modification, are permitted provided that the following conditions\n");
+    printf("are met:\n");
+    printf("1. Redistributions of source code must retain the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer.\n");
+    printf("2. Redistributions in binary form must reproduce the above copyright\n");
+    printf("   notice, this list of conditions and the following disclaimer in the\n");
+    printf("   documentation and/or other materials provided with the distribution.\n");
+    printf("\n");
+    printf("THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS\n");
+    printf("``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED\n");
+    printf("TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\n");
+    printf("PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS\n");
+    printf("BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n");
+    printf("CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n");
+    printf("SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n");
+    printf("INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n");
+    printf("CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n");
+    printf("ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n");
+    printf("POSSIBILITY OF SUCH DAMAGE.\n");
+    printf("\n\n");
+    print_Berkeley_License();
+}
+#endif //__NetBSD__
+
+#if defined(__OpenBSD__)
+static void print_OpenBSD_License(void)
+{
+    printf("OpenBSD (libc)\n\n");
+    printf("Copyright (c) 2003 The OpenBSD Foundation\n");
+    printf("\n");
+    printf("Permission to use, copy, modify, and distribute this software for any\n");
+    printf("purpose with or without fee is hereby granted, provided that the above\n");
+    printf("copyright notice and this permission notice appear in all copies.\n");
+    printf("\n");
+    printf("THE SOFTWARE IS PROVIDED \"AS IS\" AND THE AUTHOR DISCLAIMS ALL WARRANTIES\n");
+    printf("WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF\n");
+    printf("MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR\n");
+    printf("ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES\n");
+    printf("WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN\n");
+    printf("ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF\n");
+    printf("OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n");
+    printf("\n\n");
+    print_Berkeley_License();
+}
+#endif //__OpenBSD__
+
+#if defined(__sun)
+#    if defined(__illumos__) || defined(THIS_IS_ILLUMOS)
+static void print_CDDL_License(void)
+{
+    printf("Illumos (libc)\n\n");
+    printf("COMMON DEVELOPMENT AND DISTRIBUTION LICENSE Version 1.0\n");
+    printf("\n");
+    printf("1. Definitions.\n");
+    printf("\n");
+    printf("    1.1. \"Contributor\" means each individual or entity that creates\n");
+    printf("         or contributes to the creation of Modifications.\n");
+    printf("\n");
+    printf("    1.2. \"Contributor Version\" means the combination of the Original\n");
+    printf("         Software, prior Modifications used by a Contributor (if any),\n");
+    printf("         and the Modifications made by that particular Contributor.\n");
+    printf("\n");
+    printf("    1.3. \"Covered Software\" means (a) the Original Software, or (b)\n");
+    printf("         Modifications, or (c) the combination of files containing\n");
+    printf("         Original Software with files containing Modifications, in\n");
+    printf("         each case including portions thereof.\n");
+    printf("\n");
+    printf("    1.4. \"Executable\" means the Covered Software in any form other\n");
+    printf("         than Source Code.\n");
+    printf("\n");
+    printf("    1.5. \"Initial Developer\" means the individual or entity that first\n");
+    printf("         makes Original Software available under this License.\n");
+    printf("\n");
+    printf("    1.6. \"Larger Work\" means a work which combines Covered Software or\n");
+    printf("         portions thereof with code not governed by the terms of this\n");
+    printf("         License.\n");
+    printf("\n");
+    printf("    1.7. \"License\" means this document.\n");
+    printf("\n");
+    printf("    1.8. \"Licensable\" means having the right to grant, to the maximum\n");
+    printf("         extent possible, whether at the time of the initial grant or\n");
+    printf("         subsequently acquired, any and all of the rights conveyed\n");
+    printf("         herein.\n");
+    printf("\n");
+    printf("    1.9. \"Modifications\" means the Source Code and Executable form of\n");
+    printf("         any of the following:\n");
+    printf("\n");
+    printf("        A. Any file that results from an addition to, deletion from or\n");
+    printf("           modification of the contents of a file containing Original\n");
+    printf("           Software or previous Modifications;\n");
+    printf("\n");
+    printf("        B. Any new file that contains any part of the Original\n");
+    printf("           Software or previous Modifications; or\n");
+    printf("\n");
+    printf("        C. Any new file that is contributed or otherwise made\n");
+    printf("           available under the terms of this License.\n");
+    printf("\n");
+    printf("    1.10. \"Original Software\" means the Source Code and Executable\n");
+    printf("          form of computer software code that is originally released\n");
+    printf("          under this License.\n");
+    printf("\n");
+    printf("    1.11. \"Patent Claims\" means any patent claim(s), now owned or\n");
+    printf("          hereafter acquired, including without limitation, method,\n");
+    printf("          process, and apparatus claims, in any patent Licensable by\n");
+    printf("          grantor.\n");
+    printf("\n");
+    printf("    1.12. \"Source Code\" means (a) the common form of computer software\n");
+    printf("          code in which modifications are made and (b) associated\n");
+    printf("          documentation included in or with such code.\n");
+    printf("\n");
+    printf("    1.13. \"You\" (or \"Your\") means an individual or a legal entity\n");
+    printf("          exercising rights under, and complying with all of the terms\n");
+    printf("          of, this License.  For legal entities, \"You\" includes any\n");
+    printf("          entity which controls, is controlled by, or is under common\n");
+    printf("          control with You.  For purposes of this definition,\n");
+    printf("          \"control\" means (a) the power, direct or indirect, to cause\n");
+    printf("          the direction or management of such entity, whether by\n");
+    printf("          contract or otherwise, or (b) ownership of more than fifty\n");
+    printf("          percent (50%%) of the outstanding shares or beneficial\n");
+    printf("          ownership of such entity.\n");
+    printf("\n");
+    printf("2. License Grants.\n");
+    printf("\n");
+    printf("    2.1. The Initial Developer Grant.\n");
+    printf("\n");
+    printf("    Conditioned upon Your compliance with Section 3.1 below and\n");
+    printf("    subject to third party intellectual property claims, the Initial\n");
+    printf("    Developer hereby grants You a world-wide, royalty-free,\n");
+    printf("    non-exclusive license:\n");
+    printf("\n");
+    printf("        (a) under intellectual property rights (other than patent or\n");
+    printf("            trademark) Licensable by Initial Developer, to use,\n");
+    printf("            reproduce, modify, display, perform, sublicense and\n");
+    printf("            distribute the Original Software (or portions thereof),\n");
+    printf("            with or without Modifications, and/or as part of a Larger\n");
+    printf("            Work; and\n");
+    printf("\n");
+    printf("        (b) under Patent Claims infringed by the making, using or\n");
+    printf("            selling of Original Software, to make, have made, use,\n");
+    printf("            practice, sell, and offer for sale, and/or otherwise\n");
+    printf("            dispose of the Original Software (or portions thereof).\n");
+    printf("\n");
+    printf("        (c) The licenses granted in Sections 2.1(a) and (b) are\n");
+    printf("            effective on the date Initial Developer first distributes\n");
+    printf("            or otherwise makes the Original Software available to a\n");
+    printf("            third party under the terms of this License.\n");
+    printf("\n");
+    printf("        (d) Notwithstanding Section 2.1(b) above, no patent license is\n");
+    printf("            granted: (1) for code that You delete from the Original\n");
+    printf("            Software, or (2) for infringements caused by: (i) the\n");
+    printf("            modification of the Original Software, or (ii) the\n");
+    printf("            combination of the Original Software with other software\n");
+    printf("            or devices.\n");
+    printf("\n");
+    printf("    2.2. Contributor Grant.\n");
+    printf("\n");
+    printf("    Conditioned upon Your compliance with Section 3.1 below and\n");
+    printf("    subject to third party intellectual property claims, each\n");
+    printf("    Contributor hereby grants You a world-wide, royalty-free,\n");
+    printf("    non-exclusive license:\n");
+    printf("\n");
+    printf("        (a) under intellectual property rights (other than patent or\n");
+    printf("            trademark) Licensable by Contributor to use, reproduce,\n");
+    printf("            modify, display, perform, sublicense and distribute the\n");
+    printf("            Modifications created by such Contributor (or portions\n");
+    printf("            thereof), either on an unmodified basis, with other\n");
+    printf("            Modifications, as Covered Software and/or as part of a\n");
+    printf("            Larger Work; and\n");
+    printf("\n");
+    printf("        (b) under Patent Claims infringed by the making, using, or\n");
+    printf("            selling of Modifications made by that Contributor either\n");
+    printf("            alone and/or in combination with its Contributor Version\n");
+    printf("            (or portions of such combination), to make, use, sell,\n");
+    printf("            offer for sale, have made, and/or otherwise dispose of:\n");
+    printf("            (1) Modifications made by that Contributor (or portions\n");
+    printf("            thereof); and (2) the combination of Modifications made by\n");
+    printf("            that Contributor with its Contributor Version (or portions\n");
+    printf("            of such combination).\n");
+    printf("\n");
+    printf("        (c) The licenses granted in Sections 2.2(a) and 2.2(b) are\n");
+    printf("            effective on the date Contributor first distributes or\n");
+    printf("            otherwise makes the Modifications available to a third\n");
+    printf("            party.\n");
+    printf("\n");
+    printf("        (d) Notwithstanding Section 2.2(b) above, no patent license is\n");
+    printf("            granted: (1) for any code that Contributor has deleted\n");
+    printf("            from the Contributor Version; (2) for infringements caused\n");
+    printf("            by: (i) third party modifications of Contributor Version,\n");
+    printf("            or (ii) the combination of Modifications made by that\n");
+    printf("            Contributor with other software (except as part of the\n");
+    printf("            Contributor Version) or other devices; or (3) under Patent\n");
+    printf("            Claims infringed by Covered Software in the absence of\n");
+    printf("            Modifications made by that Contributor.\n");
+    printf("\n");
+    printf("3. Distribution Obligations.\n");
+    printf("\n");
+    printf("    3.1. Availability of Source Code.\n");
+    printf("\n");
+    printf("    Any Covered Software that You distribute or otherwise make\n");
+    printf("    available in Executable form must also be made available in Source\n");
+    printf("    Code form and that Source Code form must be distributed only under\n");
+    printf("    the terms of this License.  You must include a copy of this\n");
+    printf("    License with every copy of the Source Code form of the Covered\n");
+    printf("    Software You distribute or otherwise make available.  You must\n");
+    printf("    inform recipients of any such Covered Software in Executable form\n");
+    printf("    as to how they can obtain such Covered Software in Source Code\n");
+    printf("    form in a reasonable manner on or through a medium customarily\n");
+    printf("    used for software exchange.\n");
+    printf("\n");
+    printf("    3.2. Modifications.\n");
+    printf("\n");
+    printf("    The Modifications that You create or to which You contribute are\n");
+    printf("    governed by the terms of this License.  You represent that You\n");
+    printf("    believe Your Modifications are Your original creation(s) and/or\n");
+    printf("    You have sufficient rights to grant the rights conveyed by this\n");
+    printf("    License.\n");
+    printf("\n");
+    printf("    3.3. Required Notices.\n");
+    printf("\n");
+    printf("    You must include a notice in each of Your Modifications that\n");
+    printf("    identifies You as the Contributor of the Modification.  You may\n");
+    printf("    not remove or alter any copyright, patent or trademark notices\n");
+    printf("    contained within the Covered Software, or any notices of licensing\n");
+    printf("    or any descriptive text giving attribution to any Contributor or\n");
+    printf("    the Initial Developer.\n");
+    printf("\n");
+    printf("    3.4. Application of Additional Terms.\n");
+    printf("\n");
+    printf("    You may not offer or impose any terms on any Covered Software in\n");
+    printf("    Source Code form that alters or restricts the applicable version\n");
+    printf("    of this License or the recipients' rights hereunder.  You may\n");
+    printf("    choose to offer, and to charge a fee for, warranty, support,\n");
+    printf("    indemnity or liability obligations to one or more recipients of\n");
+    printf("    Covered Software.  However, you may do so only on Your own behalf,\n");
+    printf("    and not on behalf of the Initial Developer or any Contributor.\n");
+    printf("    You must make it absolutely clear that any such warranty, support,\n");
+    printf("    indemnity or liability obligation is offered by You alone, and You\n");
+    printf("    hereby agree to indemnify the Initial Developer and every\n");
+    printf("    Contributor for any liability incurred by the Initial Developer or\n");
+    printf("    such Contributor as a result of warranty, support, indemnity or\n");
+    printf("    liability terms You offer.\n");
+    printf("\n");
+    printf("    3.5. Distribution of Executable Versions.\n");
+    printf("\n");
+    printf("    You may distribute the Executable form of the Covered Software\n");
+    printf("    under the terms of this License or under the terms of a license of\n");
+    printf("    Your choice, which may contain terms different from this License,\n");
+    printf("    provided that You are in compliance with the terms of this License\n");
+    printf("    and that the license for the Executable form does not attempt to\n");
+    printf("    limit or alter the recipient's rights in the Source Code form from\n");
+    printf("    the rights set forth in this License.  If You distribute the\n");
+    printf("    Covered Software in Executable form under a different license, You\n");
+    printf("    must make it absolutely clear that any terms which differ from\n");
+    printf("    this License are offered by You alone, not by the Initial\n");
+    printf("    Developer or Contributor.  You hereby agree to indemnify the\n");
+    printf("    Initial Developer and every Contributor for any liability incurred\n");
+    printf("    by the Initial Developer or such Contributor as a result of any\n");
+    printf("    such terms You offer.\n");
+    printf("\n");
+    printf("    3.6. Larger Works.\n");
+    printf("\n");
+    printf("    You may create a Larger Work by combining Covered Software with\n");
+    printf("    other code not governed by the terms of this License and\n");
+    printf("    distribute the Larger Work as a single product.  In such a case,\n");
+    printf("    You must make sure the requirements of this License are fulfilled\n");
+    printf("    for the Covered Software.\n");
+    printf("\n");
+    printf("4. Versions of the License.\n");
+    printf("\n");
+    printf("    4.1. New Versions.\n");
+    printf("\n");
+    printf("    Sun Microsystems, Inc. is the initial license steward and may\n");
+    printf("    publish revised and/or new versions of this License from time to\n");
+    printf("    time.  Each version will be given a distinguishing version number.\n");
+    printf("    Except as provided in Section 4.3, no one other than the license\n");
+    printf("    steward has the right to modify this License.\n");
+    printf("\n");
+    printf("    4.2. Effect of New Versions.\n");
+    printf("\n");
+    printf("    You may always continue to use, distribute or otherwise make the\n");
+    printf("    Covered Software available under the terms of the version of the\n");
+    printf("    License under which You originally received the Covered Software.\n");
+    printf("    If the Initial Developer includes a notice in the Original\n");
+    printf("    Software prohibiting it from being distributed or otherwise made\n");
+    printf("    available under any subsequent version of the License, You must\n");
+    printf("    distribute and make the Covered Software available under the terms\n");
+    printf("    of the version of the License under which You originally received\n");
+    printf("    the Covered Software.  Otherwise, You may also choose to use,\n");
+    printf("    distribute or otherwise make the Covered Software available under\n");
+    printf("    the terms of any subsequent version of the License published by\n");
+    printf("    the license steward.\n");
+    printf("\n");
+    printf("    4.3. Modified Versions.\n");
+    printf("\n");
+    printf("    When You are an Initial Developer and You want to create a new\n");
+    printf("    license for Your Original Software, You may create and use a\n");
+    printf("    modified version of this License if You: (a) rename the license\n");
+    printf("    and remove any references to the name of the license steward\n");
+    printf("    (except to note that the license differs from this License); and\n");
+    printf("    (b) otherwise make it clear that the license contains terms which\n");
+    printf("    differ from this License.\n");
+    printf("\n");
+    printf("5. DISCLAIMER OF WARRANTY.\n");
+    printf("\n");
+    printf("    COVERED SOFTWARE IS PROVIDED UNDER THIS LICENSE ON AN \"AS IS\"\n");
+    printf("    BASIS, WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,\n");
+    printf("    INCLUDING, WITHOUT LIMITATION, WARRANTIES THAT THE COVERED\n");
+    printf("    SOFTWARE IS FREE OF DEFECTS, MERCHANTABLE, FIT FOR A PARTICULAR\n");
+    printf("    PURPOSE OR NON-INFRINGING.  THE ENTIRE RISK AS TO THE QUALITY AND\n");
+    printf("    PERFORMANCE OF THE COVERED SOFTWARE IS WITH YOU.  SHOULD ANY\n");
+    printf("    COVERED SOFTWARE PROVE DEFECTIVE IN ANY RESPECT, YOU (NOT THE\n");
+    printf("    INITIAL DEVELOPER OR ANY OTHER CONTRIBUTOR) ASSUME THE COST OF ANY\n");
+    printf("    NECESSARY SERVICING, REPAIR OR CORRECTION.  THIS DISCLAIMER OF\n");
+    printf("    WARRANTY CONSTITUTES AN ESSENTIAL PART OF THIS LICENSE.  NO USE OF\n");
+    printf("    ANY COVERED SOFTWARE IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS\n");
+    printf("    DISCLAIMER.\n");
+    printf("\n");
+    printf("6. TERMINATION.\n");
+    printf("\n");
+    printf("    6.1. This License and the rights granted hereunder will terminate\n");
+    printf("    automatically if You fail to comply with terms herein and fail to\n");
+    printf("    cure such breach within 30 days of becoming aware of the breach.\n");
+    printf("    Provisions which, by their nature, must remain in effect beyond\n");
+    printf("    the termination of this License shall survive.\n");
+    printf("\n");
+    printf("    6.2. If You assert a patent infringement claim (excluding\n");
+    printf("    declaratory judgment actions) against Initial Developer or a\n");
+    printf("    Contributor (the Initial Developer or Contributor against whom You\n");
+    printf("    assert such claim is referred to as \"Participant\") alleging that\n");
+    printf("    the Participant Software (meaning the Contributor Version where\n");
+    printf("    the Participant is a Contributor or the Original Software where\n");
+    printf("    the Participant is the Initial Developer) directly or indirectly\n");
+    printf("    infringes any patent, then any and all rights granted directly or\n");
+    printf("    indirectly to You by such Participant, the Initial Developer (if\n");
+    printf("    the Initial Developer is not the Participant) and all Contributors\n");
+    printf("    under Sections 2.1 and/or 2.2 of this License shall, upon 60 days\n");
+    printf("    notice from Participant terminate prospectively and automatically\n");
+    printf("    at the expiration of such 60 day notice period, unless if within\n");
+    printf("    such 60 day period You withdraw Your claim with respect to the\n");
+    printf("    Participant Software against such Participant either unilaterally\n");
+    printf("    or pursuant to a written agreement with Participant.\n");
+    printf("\n");
+    printf("    6.3. In the event of termination under Sections 6.1 or 6.2 above,\n");
+    printf("    all end user licenses that have been validly granted by You or any\n");
+    printf("    distributor hereunder prior to termination (excluding licenses\n");
+    printf("    granted to You by any distributor) shall survive termination.\n");
+    printf("\n");
+    printf("7. LIMITATION OF LIABILITY.\n");
+    printf("\n");
+    printf("    UNDER NO CIRCUMSTANCES AND UNDER NO LEGAL THEORY, WHETHER TORT\n");
+    printf("    (INCLUDING NEGLIGENCE), CONTRACT, OR OTHERWISE, SHALL YOU, THE\n");
+    printf("    INITIAL DEVELOPER, ANY OTHER CONTRIBUTOR, OR ANY DISTRIBUTOR OF\n");
+    printf("    COVERED SOFTWARE, OR ANY SUPPLIER OF ANY OF SUCH PARTIES, BE\n");
+    printf("    LIABLE TO ANY PERSON FOR ANY INDIRECT, SPECIAL, INCIDENTAL, OR\n");
+    printf("    CONSEQUENTIAL DAMAGES OF ANY CHARACTER INCLUDING, WITHOUT\n");
+    printf("    LIMITATION, DAMAGES FOR LOST PROFITS, LOSS OF GOODWILL, WORK\n");
+    printf("    STOPPAGE, COMPUTER FAILURE OR MALFUNCTION, OR ANY AND ALL OTHER\n");
+    printf("    COMMERCIAL DAMAGES OR LOSSES, EVEN IF SUCH PARTY SHALL HAVE BEEN\n");
+    printf("    INFORMED OF THE POSSIBILITY OF SUCH DAMAGES.  THIS LIMITATION OF\n");
+    printf("    LIABILITY SHALL NOT APPLY TO LIABILITY FOR DEATH OR PERSONAL\n");
+    printf("    INJURY RESULTING FROM SUCH PARTY'S NEGLIGENCE TO THE EXTENT\n");
+    printf("    APPLICABLE LAW PROHIBITS SUCH LIMITATION.  SOME JURISDICTIONS DO\n");
+    printf("    NOT ALLOW THE EXCLUSION OR LIMITATION OF INCIDENTAL OR\n");
+    printf("    CONSEQUENTIAL DAMAGES, SO THIS EXCLUSION AND LIMITATION MAY NOT\n");
+    printf("    APPLY TO YOU.\n");
+    printf("\n");
+    printf("8. U.S. GOVERNMENT END USERS.\n");
+    printf("\n");
+    printf("    The Covered Software is a \"commercial item,\" as that term is\n");
+    printf("    defined in 48 C.F.R. 2.101 (Oct. 1995), consisting of \"commercial\n");
+    printf("    computer software\" (as that term is defined at 48\n");
+    printf("    C.F.R. 252.227-7014(a)(1)) and \"commercial computer software\n");
+    printf("    documentation\" as such terms are used in 48 C.F.R. 12.212\n");
+    printf("    (Sept. 1995).  Consistent with 48 C.F.R. 12.212 and 48\n");
+    printf("    C.F.R. 227.7202-1 through 227.7202-4 (June 1995), all\n");
+    printf("    U.S. Government End Users acquire Covered Software with only those\n");
+    printf("    rights set forth herein.  This U.S. Government Rights clause is in\n");
+    printf("    lieu of, and supersedes, any other FAR, DFAR, or other clause or\n");
+    printf("    provision that addresses Government rights in computer software\n");
+    printf("    under this License.\n");
+    printf("\n");
+    printf("9. MISCELLANEOUS.\n");
+    printf("\n");
+    printf("    This License represents the complete agreement concerning subject\n");
+    printf("    matter hereof.  If any provision of this License is held to be\n");
+    printf("    unenforceable, such provision shall be reformed only to the extent\n");
+    printf("    necessary to make it enforceable.  This License shall be governed\n");
+    printf("    by the law of the jurisdiction specified in a notice contained\n");
+    printf("    within the Original Software (except to the extent applicable law,\n");
+    printf("    if any, provides otherwise), excluding such jurisdiction's\n");
+    printf("    conflict-of-law provisions.  Any litigation relating to this\n");
+    printf("    License shall be subject to the jurisdiction of the courts located\n");
+    printf("    in the jurisdiction and venue specified in a notice contained\n");
+    printf("    within the Original Software, with the losing party responsible\n");
+    printf("    for costs, including, without limitation, court costs and\n");
+    printf("    reasonable attorneys' fees and expenses.  The application of the\n");
+    printf("    United Nations Convention on Contracts for the International Sale\n");
+    printf("    of Goods is expressly excluded.  Any law or regulation which\n");
+    printf("    provides that the language of a contract shall be construed\n");
+    printf("    against the drafter shall not apply to this License.  You agree\n");
+    printf("    that You alone are responsible for compliance with the United\n");
+    printf("    States export administration regulations (and the export control\n");
+    printf("    laws and regulation of any other countries) when You use,\n");
+    printf("    distribute or otherwise make available any Covered Software.\n");
+    printf("\n");
+    printf("10. RESPONSIBILITY FOR CLAIMS.\n");
+    printf("\n");
+    printf("    As between Initial Developer and the Contributors, each party is\n");
+    printf("    responsible for claims and damages arising, directly or\n");
+    printf("    indirectly, out of its utilization of rights under this License\n");
+    printf("    and You agree to work with Initial Developer and Contributors to\n");
+    printf("    distribute such responsibility on an equitable basis.  Nothing\n");
+    printf("    herein is intended or shall be deemed to constitute any admission\n");
+    printf("    of liability.\n");
+    printf("\n");
+    printf("--------------------------------------------------------------------\n");
+    printf("\n");
+    printf("NOTICE PURSUANT TO SECTION 9 OF THE COMMON DEVELOPMENT AND\n");
+    printf("DISTRIBUTION LICENSE (CDDL)\n");
+    printf("\n");
+    printf("For Covered Software in this distribution, this License shall\n");
+    printf("be governed by the laws of the State of California (excluding\n");
+    printf("conflict-of-law provisions).\n");
+    printf("\n");
+    printf("Any litigation relating to this License shall be subject to the\n");
+    printf("jurisdiction of the Federal Courts of the Northern District of\n");
+    printf("California and the state courts of the State of California, with\n");
+    printf("venue lying in Santa Clara County, California.");
+}
+#    endif // __illumos__ || THIS_IS_ILLUMOS
+#endif     //__sun
 
 #if defined(__GLIBC__)
 static void print_GNU_LGPL_License(void)
@@ -743,8 +1258,14 @@ void print_Open_Source_Licenses(void)
     //       May need a way to access that flag to determine when this should or should-not be part of the license
     //       output.-TJE
     print_Open_Fabrics_NVMe_IOCTL_License();
+#elif defined(__DragonFly__)
+    print_DragonFlyBSD_License();
 #elif defined(__FreeBSD__)
     print_FreeBSD_License();
+#elif defined(__OpenBSD__)
+    print_OpenBSD_License();
+#elif defined(__NetBSD__)
+    print_NetBSD_License();
 #elif defined(__linux__)
 #    if defined(__GLIBC__)
     // in other 'nix systems, we need to show this since we are using gnu libc
@@ -758,7 +1279,11 @@ void print_Open_Source_Licenses(void)
 #            pragma GCC warning "Unknown libc license. Please specify a libc license. Ex: USING_MUSL_LIBC"
 #        endif
 #    endif
-#elif defined(__sun) || defined(_AIX)
+#elif defined(__sun)
+#    if defined(__illumos__) || defined(THIS_IS_ILLUMOS)
+    print_CDDL_License();
+#    endif // __illumos__ || THIS_IS_ILLUMOS
+#elif defined(_AIX)
     // Any special license for system libc/etc that needs to be shown. Cannot easily identify one at this time - TJE
 #else
 #    error "Please update #if for system library licenses!"

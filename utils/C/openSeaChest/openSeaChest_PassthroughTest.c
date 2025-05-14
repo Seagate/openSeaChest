@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2019-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2019-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -1448,7 +1448,7 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
             // First check the Host log addresses and find an empty one.
             // Attempt to write the whole thing with a pattern or random data, then read it back.
             // This should tell whether all the data made it through or not.
-            // If this worked right away, then everything is working as expected and no hacks are necesssary
+            // If this worked right away, then everything is working as expected and no hacks are necessary
             // If not, try setting the multiple mode to the highest supported by the drive, then try again and see if
             // that changes the behavior.
             //     If the behavior changed and worked, then we know multisector PIO is possible up to the maximum
@@ -6761,7 +6761,7 @@ static eReturnValues scsi_Read_Check(tDevice*         device,
     else if (!zeroLengthTransfers)
     {
         set_Console_Colors(true, NOTE_COLOR);
-        printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibilty "
+        printf("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibility "
                "testing!\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }

@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -32,9 +32,14 @@ const char* deviceHandleExample = "/dev/sg<#>";
 const char* deviceHandleName    = "<sg_device>";
 const char* commandWindowType   = "terminal";
 #    endif
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 const char* deviceHandleExample = "/dev/da<#>";
 const char* deviceHandleName    = "<da_device>";
+const char* commandWindowType   = "shell";
+#elif defined(__NetBSD__) || defined(__OpenBSD__)
+// TODO: Need a better way to handle WD vs SD devices
+const char* deviceHandleExample = "/dev/sd<#>";
+const char* deviceHandleName    = "<sd_device>";
 const char* commandWindowType   = "shell";
 #elif defined(_WIN32)
 #    include "windows_version_detect.h"
@@ -77,8 +82,10 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
     bool set = false;
     if (requestedLevel && verbosity)
     {
-        long temp = 0L;
-        if (0 == safe_strtol(&temp, requestedLevel, M_NULLPTR, BASE_10_DECIMAL))
+        char* end  = M_NULLPTR;
+        long  temp = 0L;
+        if (0 == safe_strtol(&temp, requestedLevel, &end, BASE_10_DECIMAL) && strcmp(end, "") == 0 &&
+            C_CAST(eVerbosityLevels, temp) < VERBOSITY_MAX)
         {
             *verbosity = M_STATIC_CAST(eVerbosityLevels, temp);
             set        = true;
@@ -116,9 +123,22 @@ void print_Elevated_Privileges_Text(void)
     printf("In Linux, put sudo before the command. This may require inputting your login password.\n");
     printf("In Linux, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #        endif
+#    elif defined(__DragonFly__)
+    printf("In DragonFlyBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
+           "password.\n");
 #    elif defined(__FreeBSD__)
     printf("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     printf("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__OpenBSD__)
+    printf("In OpenBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In OpenBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__NetBSD__)
+    printf("In NetBSD, put sudo before the command. This may require inputting your login password.\n");
+    printf("In NetBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+#    elif defined(__illumos__) || defined(THIS_IS_ILLUMOS)
+    printf("In Illumos, put sudo before the command. This may require inputting your login password.\n");
+    printf("In Illumos, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__sun)
     printf("In Solaris, put sudo before the command. This may require inputting your login password.\n");
     printf("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
@@ -284,59 +304,62 @@ void print_SeaChest_Util_Exit_Codes(int                    numberOfToolSpecificE
     printf("\tAnything else = unknown error\n\n");
 }
 
-void get_Scan_Flags(deviceScanFlags* scanFlags, char* optarg)
+void get_Scan_Flags(deviceScanFlags* scanFlags, const char* optarg)
 {
-    if (strcmp("ata", optarg) == 0)
+    if (scanFlags != M_NULLPTR && optarg != M_NULLPTR)
     {
-        scanFlags->scanATA = true;
-    }
-    else if (strcmp("usb", optarg) == 0)
-    {
-        scanFlags->scanUSB = true;
-    }
-    else if (strcmp("scsi", optarg) == 0)
-    {
-        scanFlags->scanSCSI = true;
-    }
-    else if (strcmp("nvme", optarg) == 0)
-    {
-        scanFlags->scanNVMe = true;
-    }
-    else if (strcmp("raid", optarg) == 0)
-    {
-        scanFlags->scanRAID = true;
-    }
-    else if (strcmp("interfaceATA", optarg) == 0)
-    {
-        scanFlags->scanInterfaceATA = true;
-    }
-    else if (strcmp("interfaceUSB", optarg) == 0)
-    {
-        scanFlags->scanInterfaceUSB = true;
-    }
-    else if (strcmp("interfaceSCSI", optarg) == 0)
-    {
-        scanFlags->scanInterfaceSCSI = true;
-    }
-    else if (strcmp("interfaceNVME", optarg) == 0)
-    {
-        scanFlags->scanInterfaceNVMe = true;
-    }
-    else if (strcmp("sd", optarg) == 0)
-    {
-        scanFlags->scanSD = true;
-    }
-    else if (strcmp("sgtosd", optarg) == 0)
-    {
-        scanFlags->scanSDandSG = true;
-    }
-    else if (strcmp("ignoreCSMI", optarg) == 0)
-    {
-        scanFlags->scanIgnoreCSMI = true;
-    }
-    else if (strcmp("allowDuplicates", optarg) == 0)
-    {
-        scanFlags->scanAllowDuplicateDevices = true;
+        if (strcmp("ata", optarg) == 0)
+        {
+            scanFlags->scanATA = true;
+        }
+        else if (strcmp("usb", optarg) == 0)
+        {
+            scanFlags->scanUSB = true;
+        }
+        else if (strcmp("scsi", optarg) == 0)
+        {
+            scanFlags->scanSCSI = true;
+        }
+        else if (strcmp("nvme", optarg) == 0)
+        {
+            scanFlags->scanNVMe = true;
+        }
+        else if (strcmp("raid", optarg) == 0)
+        {
+            scanFlags->scanRAID = true;
+        }
+        else if (strcmp("interfaceATA", optarg) == 0)
+        {
+            scanFlags->scanInterfaceATA = true;
+        }
+        else if (strcmp("interfaceUSB", optarg) == 0)
+        {
+            scanFlags->scanInterfaceUSB = true;
+        }
+        else if (strcmp("interfaceSCSI", optarg) == 0)
+        {
+            scanFlags->scanInterfaceSCSI = true;
+        }
+        else if (strcmp("interfaceNVME", optarg) == 0)
+        {
+            scanFlags->scanInterfaceNVMe = true;
+        }
+        else if (strcmp("sd", optarg) == 0)
+        {
+            scanFlags->scanSD = true;
+        }
+        else if (strcmp("sgtosd", optarg) == 0)
+        {
+            scanFlags->scanSDandSG = true;
+        }
+        else if (strcmp("ignoreCSMI", optarg) == 0)
+        {
+            scanFlags->scanIgnoreCSMI = true;
+        }
+        else if (strcmp("allowDuplicates", optarg) == 0)
+        {
+            scanFlags->scanAllowDuplicateDevices = true;
+        }
     }
 }
 
@@ -1676,8 +1699,9 @@ void print_Firmware_Download_Help(bool shortHelp)
         printf("\t\tfor the specific model drive. Improper use of this option may\n");
         printf("\t\tharm a device and or its data. You may specify the path (without\n");
         printf("\t\tspaces) if the firmware data file is in a different location.\n");
-        printf("\t\tThis option will use segmented download by default. Use the\n");
-        printf("\t\t--downloadMode option to specify a different download mode.\n\n");
+        printf("\t\tThis option will use auto mode by default to choose the best method\n");
+        printf("\t\tfor updating the drive firmware. Use the --%s option to", DOWNLOAD_FW_MODE_LONG_OPT_STRING);
+        printf("\t\tspecify a different download mode.\n\n");
         printf("\t\tWARNING: Firmware updates may affect all LUNs/namespaces\n");
         printf("\t\t         for devices with multiple logical units or namespaces.\n\n");
     }
@@ -3187,6 +3211,50 @@ void print_Device_Statistics_Help(bool shortHelp)
         printf("\t\tlog, and the notifications log (if DSN feature is supported)\n");
         printf("\t\tto display these statistics. On SAS, various log pages are\n");
         printf("\t\tread to collect a bunch of reported parameter information.\n\n");
+    }
+}
+
+void print_Reinitialize_Device_Statistics_Help(bool shortHelp)
+{
+    printf("\t--%s [", REINITIALIZE_DEV_STATS_LONG_OPT_STRING);
+    const char* opts[] = REINITIALIZE_DEV_STATS_ARG_OPTIONS;
+    for (size_t optit = SIZE_T_C(0); optit < SIZE_OF_STACK_ARRAY(opts); ++optit)
+    {
+        printf(" %s", opts[optit]);
+        if (optit + SIZE_T_C(1) < SIZE_OF_STACK_ARRAY(opts))
+        {
+            printf(" |");
+        }
+    }
+    printf("] (SATA Only)\n");
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to reinitialize supported device statistics\n");
+        printf("\t\tto their default values. Supported statistics are indicated in\n");
+        printf("\t\tthe output of the --%s option.\n", DEVICE_STATISTICS_LONG_OPT_STRING);
+        printf("\t\tArguments to this option can be used to reinitialize specific pages or\n");
+        printf("\t\tall supported pages.\n\n");
+    }
+}
+
+void print_Reinitialize_SATA_Phy_Events_Help(bool shortHelp)
+{
+    printf("\t--%s (SATA Only)\n", REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to reinitialize the SATA Phy event counters\n");
+        printf("\t\tlog page back to their default values. This can be useful when\n");
+        printf("\t\tdebugging cabling issues.\n\n");
+    }
+}
+
+void print_Set_Timestamp_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SET_TIMESTAMP_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to set the date and time timestamp on the device\n");
+        printf("\t\tto the time based on your current system clock.\n\n");
     }
 }
 
@@ -5297,7 +5365,8 @@ void print_Raw_Data_Length_Help(bool shortHelp)
         printf("\t\tThe following post fixes are allowed for\n");
         printf("\t\tspecifying a transfer length:\n");
         printf("\t\t\tBLOCKS - used to specify a transfer length\n");
-        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\t\tin device logical blocks.\n");
+        printf("\t\t\tB - length in bytes (val * 1) (default if no unit given)\n");
         printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
         printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
         printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
@@ -5368,7 +5437,8 @@ void print_Raw_Input_File_Offset_Help(bool shortHelp)
         printf("\t\tThe following post fixes are allowed for\n");
         printf("\t\tspecifying a transfer length:\n");
         printf("\t\t\tBLOCKS - used to specify an offset length\n");
-        printf("\t\t\t\tin device logical blocks. (Preferred)\n");
+        printf("\t\t\t\tin device logical blocks.\n");
+        printf("\t\t\tB - length in bytes (val * 1) (Default if no unit given)\n");
         printf("\t\t\tKB - length in kilobytes (val * 1000)\n");
         printf("\t\t\tKiB - length in kibibytes (val * 1024)\n");
         printf("\t\t\tMB - length in megabytes (val * 1000000)\n");
