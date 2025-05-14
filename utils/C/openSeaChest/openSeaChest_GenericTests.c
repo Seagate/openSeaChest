@@ -929,7 +929,7 @@ int main(int argc, char* argv[])
                 (ret == FAILURE || ret == PERMISSION_DENIED))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -940,6 +940,14 @@ int main(int argc, char* argv[])
                 if (ret == PERMISSION_DENIED || !is_Running_Elevated())
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
+                }
+                else if (ret == DEVICE_BUSY)
+                {
+                    exit(UTIL_EXIT_DEVICE_BUSY);
+                }
+                else if (ret == DEVICE_INVALID)
+                {
+                    exit(UTIL_EXIT_NO_DEVICE);
                 }
                 else
                 {
