@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Security";
-const char* buildVersion = "3.4.1";
+const char* buildVersion = "3.5.0";
 
 typedef enum eSeaChestSecurityExitCodesEnum
 {
@@ -1025,6 +1025,7 @@ int main(int argc, char* argv[])
         flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
     }
 
+    eReturnValues getDevsRet = SUCCESS;
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
 
@@ -1032,7 +1033,8 @@ int main(int argc, char* argv[])
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
-        ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
+        getDevsRet = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
+        ret        = getDevsRet;
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
@@ -1106,7 +1108,7 @@ int main(int argc, char* argv[])
 #    else
             if (((deviceList[handleIter].os_info.fd < 0) && (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #    endif
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret != SUCCESS))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
                 (ret != SUCCESS))
@@ -1137,6 +1139,8 @@ int main(int argc, char* argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+
+    uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
@@ -1149,6 +1153,7 @@ int main(int argc, char* argv[])
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
                 deviceList[deviceIter].drive_info.product_identification);
                 }*/
+                ++skippedDevices;
                 continue;
             }
         }
@@ -1164,6 +1169,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -1178,6 +1184,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision,
                            FW_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -1195,6 +1202,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -1209,6 +1217,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -1270,6 +1279,12 @@ int main(int argc, char* argv[])
                 printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
+        }
+
+        if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
+        {
+            ++skippedDevices;
+            continue;
         }
 
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1856,6 +1871,26 @@ int main(int argc, char* argv[])
         close_Device(&deviceList[deviceIter]);
     }
     free_device_list(&DEVICE_LIST);
+    if (getDevsRet != SUCCESS && skippedDevices == DEVICE_LIST_COUNT)
+    {
+        switch (getDevsRet)
+        {
+        case WARN_NOT_ALL_DEVICES_ENUMERATED:
+            // Different exit code needed? Not entirely sure if this is the best choice here - TJE
+            exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            break;
+        case PERMISSION_DENIED:
+            exitCode = UTIL_EXIT_NEED_ELEVATED_PRIVILEGES;
+            break;
+        default:
+            exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            break;
+        }
+    }
+    else if (skippedDevices == DEVICE_LIST_COUNT)
+    {
+        exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+    }
     exit(exitCode);
 }
 
