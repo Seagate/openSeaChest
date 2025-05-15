@@ -1383,14 +1383,17 @@ int main(int argc, char* argv[])
                 {
                     ptrPhysicalElement elementList = M_REINTERPRET_CAST(
                         ptrPhysicalElement, safe_malloc(numberOfDescriptors * sizeof(physicalElement)));
+                    uint32_t depopElementID = UINT32_C(0);
+                    uint16_t maxDepop = UINT16_C(0);
+                    uint16_t currentDepop = UINT16_C(0);
                     if (elementList)
                     {
                         safe_memset(elementList, numberOfDescriptors * sizeof(physicalElement), 0,
                                     numberOfDescriptors * sizeof(physicalElement));
                         if (SUCCESS ==
-                            get_Physical_Element_Descriptors(&deviceList[deviceIter], numberOfDescriptors, elementList))
+                            get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors, &depopElementID, &maxDepop, &currentDepop, elementList))
                         {
-                            show_Physical_Element_Descriptors(numberOfDescriptors, elementList, depopTime);
+                            show_Physical_Element_Descriptors_2(numberOfDescriptors, elementList, depopTime, depopElementID, maxDepop, currentDepop);
                         }
                         else
                         {
