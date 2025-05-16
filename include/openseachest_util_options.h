@@ -161,17 +161,12 @@ extern "C"
         TCG_DEVICE_INFO_LONG_OPT_STRING, no_argument, &TCG_DEVICE_INFO_FLAG, goTrue                                    \
     }
 
-#define SAT_INFO_FLAG                  satInfo
-#define SAT_INFO_VAR                   getOptBool SAT_INFO_FLAG = goFalse;
-#define SAT_INFO_LONG_OPT_STRING       "SATInfo"
-#define USB_CHILD_INFO_LONG_OPT_STRING "usbChildInfo"
+#define SAT_INFO_FLAG            satInfo
+#define SAT_INFO_VAR             getOptBool SAT_INFO_FLAG = goFalse;
+#define SAT_INFO_LONG_OPT_STRING "SATInfo"
 #define SAT_INFO_LONG_OPT                                                                                              \
     {                                                                                                                  \
         SAT_INFO_LONG_OPT_STRING, no_argument, &SAT_INFO_FLAG, goTrue                                                  \
-    }
-#define USB_CHILD_INFO_LONG_OPT                                                                                        \
-    {                                                                                                                  \
-        USB_CHILD_INFO_LONG_OPT_STRING, no_argument, &SAT_INFO_FLAG, goTrue                                            \
     }
 
 #define SCAN_FLAG            enumerate
@@ -408,6 +403,7 @@ extern "C"
         SMART_CHECK_LONG_OPT_STRING, no_argument, &SMART_CHECK_FLAG, goTrue                                            \
     }
 
+// NVMe - Seagate unique
 #define EXT_SMART_LOG_FLAG1            extSmatLog
 #define EXT_SMART_LOG_VAR1             getOptBool EXT_SMART_LOG_FLAG1 = goFalse;
 #define EXT_SMART_LOG_LONG_OPT_STRING1 "extSmartLog"
@@ -3607,7 +3603,7 @@ extern "C"
 
     char* get_current_year(char* temp_year);
 
-    void openseachest_utility_Info(const char* utilityName, const char* buildVersion, const char* seaCPublicVersion);
+    void openseachest_utility_Info(const char* utilityName, const char* buildVersion);
 
     void utility_Full_Version_Info(const char* utilityName,
                                    const char* buildVersion,

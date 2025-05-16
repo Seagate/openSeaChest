@@ -170,9 +170,7 @@ int main(int argc, char* argv[])
     ERASE_RESTORE_MAX_VAR
     REFRESH_FILE_SYSTEMS_VAR
 
-        // clang-format on
-
-        int args        = 0;
+    int     args        = 0;
     int     argIndex    = 0;
     int     optionIndex = 0;
 
@@ -183,7 +181,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -253,6 +251,7 @@ int main(int argc, char* argv[])
         REFRESH_FILE_SYSTEMS_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
+    // clang-format on
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
@@ -269,7 +268,7 @@ int main(int argc, char* argv[])
     ////////////////////////
     if (argc < 2)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -985,7 +984,7 @@ int main(int argc, char* argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
             SHOW_HELP_FLAG = true;
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+            openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -1054,7 +1053,7 @@ int main(int argc, char* argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -1418,10 +1417,12 @@ int main(int argc, char* argv[])
                 }
                 if (!is_Running_Elevated())
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
                 else
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
             }
@@ -1789,70 +1790,132 @@ int main(int argc, char* argv[])
                 // support later - TJE
                 get_Supported_Erase_Methods_With_TCG(&deviceList[deviceIter], eraseMethodList, M_NULLPTR);
 #endif
+                bool foundQuickestErase = false;
 
-                switch (eraseMethodList[0].eraseIdentifier)
+                for (uint8_t index = 0; index < MAX_SUPPORTED_ERASE_METHODS && !foundQuickestErase; index++)
                 {
+                    switch (eraseMethodList[index].eraseIdentifier)
+                    {
 #if !defined(DISABLE_TCG_SUPPORT)
-                case ERASE_TCG_REVERT:
-                    TCG_REVERT_FLAG = true;
-                    break;
-                case ERASE_TCG_REVERT_SP:
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("\nFastest Erase is RevertSP. Please use the --%s option with the drive PSID to perform "
-                               "this erase.\n",
-                               TCG_REVERT_SP_LONG_OPT_STRING);
-                    }
-                    break;
+                    case ERASE_TCG_REVERT:
+                        TCG_REVERT_FLAG = true;
+                        break;
+                    case ERASE_TCG_REVERT_SP:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("\nFastest Erase is RevertSP. Please use the --%s option with the drive PSID to "
+                                   "perform this erase.\n",
+                                   TCG_REVERT_SP_LONG_OPT_STRING);
+                        }
+                        break;
 #endif
-                case ERASE_SANITIZE_OVERWRITE:
-                    SANITIZE_RUN_FLAG            = true;
-                    SANITIZE_RUN_OVERWRITE_ERASE = true;
-                    break;
-                case ERASE_SANITIZE_BLOCK:
-                    SANITIZE_RUN_FLAG        = true;
-                    SANITIZE_RUN_BLOCK_ERASE = true;
-                    break;
-                case ERASE_SANITIZE_CRYPTO:
-                    SANITIZE_RUN_FLAG         = true;
-                    SANITIZE_RUN_CRYPTO_ERASE = true;
-                    break;
-                case ERASE_NVM_FORMAT_USER_SECURE_ERASE:
-                    NVM_FORMAT_FLAG         = true;
-                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
-                    break;
-                case ERASE_NVM_FORMAT_CRYPTO_SECURE_ERASE:
-                    NVM_FORMAT_FLAG         = true;
-                    NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
-                    break;
-                case ERASE_ATA_SECURITY_ENHANCED:
-                    ATA_SECURITY_ERASE_OP            = true;
-                    ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
-                    break;
-                case ERASE_ATA_SECURITY_NORMAL:
-                    ATA_SECURITY_ERASE_OP            = true;
-                    ATA_SECURITY_ERASE_ENHANCED_FLAG = false;
-                    break;
-                case ERASE_WRITE_SAME:
-                    RUN_WRITE_SAME_FLAG   = true;
-                    WRITE_SAME_START_FLAG = 0;
-                    WRITE_SAME_RANGE_FLAG = deviceList[deviceIter].drive_info.deviceMaxLba;
-                    break;
-                case ERASE_OVERWRITE:
-                    RUN_OVERWRITE_FLAG   = true;
-                    OVERWRITE_START_FLAG = 0;
-                    OVERWRITE_RANGE_FLAG = deviceList[deviceIter].drive_info.deviceMaxLba;
-                    break;
-                case ERASE_FORMAT_UNIT:
-                    FORMAT_UNIT_FLAG = goTrue;
-                    break;
-                default:
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("\nAn error occured while trying to determine best possible erase. No erase will be "
-                               "performed.\n");
+                    case ERASE_SANITIZE_OVERWRITE:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase           = true;
+                            SANITIZE_RUN_FLAG            = true;
+                            SANITIZE_RUN_OVERWRITE_ERASE = true;
+                        }
+                        break;
+                    case ERASE_SANITIZE_BLOCK:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase       = true;
+                            SANITIZE_RUN_FLAG        = true;
+                            SANITIZE_RUN_BLOCK_ERASE = true;
+                        }
+
+                        break;
+                    case ERASE_SANITIZE_CRYPTO:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase        = true;
+                            SANITIZE_RUN_FLAG         = true;
+                            SANITIZE_RUN_CRYPTO_ERASE = true;
+                        }
+
+                        break;
+                    case ERASE_NVM_FORMAT_USER_SECURE_ERASE:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase      = true;
+                            NVM_FORMAT_FLAG         = true;
+                            NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_USER_DATA;
+                        }
+
+                        break;
+                    case ERASE_NVM_FORMAT_CRYPTO_SECURE_ERASE:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase      = true;
+                            NVM_FORMAT_FLAG         = true;
+                            NVM_FORMAT_SECURE_ERASE = NVM_FMT_SE_CRYPTO;
+                        }
+
+                        break;
+                    case ERASE_ATA_SECURITY_ENHANCED:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase               = true;
+                            ATA_SECURITY_ERASE_OP            = true;
+                            ATA_SECURITY_ERASE_ENHANCED_FLAG = true;
+                        }
+
+                        break;
+                    case ERASE_ATA_SECURITY_NORMAL:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase               = true;
+                            ATA_SECURITY_ERASE_OP            = true;
+                            ATA_SECURITY_ERASE_ENHANCED_FLAG = false;
+                        }
+
+                        break;
+                    case ERASE_WRITE_SAME:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase    = true;
+                            RUN_WRITE_SAME_FLAG   = true;
+                            WRITE_SAME_START_FLAG = 0;
+                            WRITE_SAME_RANGE_FLAG = deviceList[deviceIter].drive_info.deviceMaxLba;
+                        }
+
+                        break;
+                    case ERASE_OVERWRITE:
+
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase   = true;
+                            RUN_OVERWRITE_FLAG   = true;
+                            OVERWRITE_START_FLAG = 0;
+                            OVERWRITE_RANGE_FLAG = deviceList[deviceIter].drive_info.deviceMaxLba;
+                        }
+
+                        break;
+                    case ERASE_FORMAT_UNIT:
+                        if (eraseMethodList[index].osSupported)
+                        {
+                            foundQuickestErase = true;
+                            FORMAT_UNIT_FLAG   = goTrue;
+                        }
+
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("\nAn error occured while trying to determine best possible erase. No erase will be "
+                                   "performed.\n");
+                        }
+                        break;
                     }
-                    break;
                 }
             }
             else
@@ -1880,8 +1943,8 @@ int main(int argc, char* argv[])
                 fill_Drive_Info_Data(&deviceList[deviceIter]); // refresh stale data
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0;
-                    double capacity  = 0;
+                    double mCapacity = 0.0;
+                    double capacity  = 0.0;
                     DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
                     DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
                     char* mCapUnit = &mCapUnits[0];
@@ -2082,9 +2145,9 @@ int main(int argc, char* argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                writeAfterErase writeReq;
-                eRevertAuthority authority = REVERT_AUTHORITY_MSID;
-                char* passwordToUse = M_NULLPTR;
+                writeAfterErase  writeReq;
+                eRevertAuthority authority     = REVERT_AUTHORITY_MSID;
+                char*            passwordToUse = M_NULLPTR;
                 safe_memset(&writeReq, sizeof(writeAfterErase), 0, sizeof(writeAfterErase));
                 if (safe_strlen(TCG_PSID_FLAG) || safe_strlen(TCG_SID_FLAG))
                 {
@@ -2099,12 +2162,12 @@ int main(int argc, char* argv[])
                     }
                     else if (safe_strlen(TCG_PSID_FLAG) == 32)
                     {
-                        authority = REVERT_AUTHORITY_PSID;
+                        authority     = REVERT_AUTHORITY_PSID;
                         passwordToUse = TCG_PSID_FLAG;
                     }
                     else if (safe_strlen(TCG_SID_FLAG) > 0)
                     {
-                        authority = REVERT_AUTHORITY_SID;
+                        authority     = REVERT_AUTHORITY_SID;
                         passwordToUse = TCG_SID_FLAG;
                     }
                     else

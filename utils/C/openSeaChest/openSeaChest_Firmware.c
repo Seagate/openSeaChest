@@ -55,11 +55,16 @@ typedef enum eSeaChestFirmwareExitCodesEnum
     SEACHEST_FIRMWARE_EXIT_DEFERRED_CODE_ACTIVATED,     // activate command sent to the drive
     SEACHEST_FIRMWARE_EXIT_NO_MATCH_FOUND,              // config file only right now
     SEACHEST_FIRMWARE_EXIT_MN_MATCH_FW_MISMATCH,        // config file only right now
-    SEACHEST_FIRMWARE_EXIT_FIRMWARE_HASH_DOESNT_MATCH,
+    SEACHEST_FIRMWARE_EXIT_FIRMWARE_HASH_DOESNT_MATCH,  // used.
     SEACHEST_FIRMWARE_EXIT_ALREADY_UP_TO_DATE,
-    SEACHEST_FIRMWARE_EXIT_MATCH_FOUND,                    // used in dry run mode only
-    SEACHEST_FIRMWARE_EXIT_MATCH_FOUND_DEFERRED_SUPPORTED, // used in dry run mode only
-    // TODO: add more exit codes here! Don't forget to add the string definition below in the help!
+    SEACHEST_FIRMWARE_EXIT_MATCH_FOUND,                         // used in dry run mode only
+    SEACHEST_FIRMWARE_EXIT_MATCH_FOUND_DEFERRED_SUPPORTED,      // used in dry run mode only
+    SEACHEST_FIRMWARE_EXIT_INVALID_CHARACTERS_IN_MASK,          // used.
+    SEACHEST_FIRMWARE_EXIT_MISSING_REQUIRED_DRIVE_ENTRY_FIELDS, // used.
+    SEACHEST_FIRMWARE_EXIT_FILE_CANNOT_BE_OPENED,               // used.
+    SEACHEST_FIRMWARE_EXIT_VENDOR_ID_MISMATCH,                  // used.
+    SEACHEST_FIRMWARE_EXIT_MISSING_SHA256_HASH,                 // used.
+    SEACHEST_FIRMWARE_EXIT_UNSUPPORTED_VERSION,                 // used.
     SEACHEST_FIRMWARE_EXIT_MAX_ERROR // don't acutally use this, just for memory allocation below
 } eSeaChestFirmwareExitCodes;
 
@@ -87,6 +92,7 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
+    // clang-format off
     eReturnValues ret      = SUCCESS;
     int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
@@ -145,7 +151,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
@@ -188,6 +194,7 @@ int main(int argc, char* argv[])
         FORCE_DISABLE_NVME_FW_COMMIT_RESET_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
+    // clang-format on
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
@@ -204,7 +211,7 @@ int main(int argc, char* argv[])
     ////////////////////////
     if (argc < 2)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -420,7 +427,7 @@ int main(int argc, char* argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
             SHOW_HELP_FLAG = true;
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+            openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -451,7 +458,7 @@ int main(int argc, char* argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -703,10 +710,12 @@ int main(int argc, char* argv[])
                 }
                 if (!is_Running_Elevated())
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
                 else
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
             }

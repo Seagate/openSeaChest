@@ -12,7 +12,7 @@
 //
 //
 // \file OpenSeaChest_Basics.c command line that performs various basic functions on a device.
-// test
+
 //////////////////////
 //  Included files  //
 //////////////////////
@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
+    // clang-format off
     eReturnValues ret      = SUCCESS;
     int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
@@ -146,7 +147,7 @@ int main(int argc, char* argv[])
         CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT,
         CHANGE_ID_STRING_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -204,6 +205,7 @@ int main(int argc, char* argv[])
         SHOW_CONCURRENT_RANGES_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
+    // clang-format on
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
@@ -220,7 +222,7 @@ int main(int argc, char* argv[])
     ////////////////////////
     if (argc < 2)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -689,7 +691,7 @@ int main(int argc, char* argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
             SHOW_HELP_FLAG = true;
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+            openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -723,7 +725,7 @@ int main(int argc, char* argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -980,10 +982,12 @@ int main(int argc, char* argv[])
                 }
                 if (!is_Running_Elevated())
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
                 else
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
             }
@@ -2218,8 +2222,8 @@ int main(int argc, char* argv[])
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0;
-                    double capacity  = 0;
+                    double mCapacity = 0.0;
+                    double capacity  = 0.0;
                     DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
                     DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
                     char* mCapUnit = &mCapUnits[0];
@@ -2279,8 +2283,8 @@ int main(int argc, char* argv[])
                 fill_Drive_Info_Data(&deviceList[deviceIter]);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    double mCapacity = 0;
-                    double capacity  = 0;
+                    double mCapacity = 0.0;
+                    double capacity  = 0.0;
                     DECLARE_ZERO_INIT_ARRAY(char, mCapUnits, UNIT_STRING_LENGTH);
                     DECLARE_ZERO_INIT_ARRAY(char, capUnits, UNIT_STRING_LENGTH);
                     char* mCapUnit = &mCapUnits[0];

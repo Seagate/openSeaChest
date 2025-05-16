@@ -42,7 +42,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_NVMe";
-const char* buildVersion = "2.5.0";
+const char* buildVersion = "3.0.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
+    // clang-format off
     eReturnValues ret      = SUCCESS;
     int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
@@ -83,6 +84,8 @@ int main(int argc, char* argv[])
     SHOW_HELP_VAR
     TEST_UNIT_READY_VAR
     FAST_DISCOVERY_VAR
+    OUTPUTPATH_VAR
+    LOG_TRANSFER_LENGTH_BYTES_VAR
     DOWNLOAD_FW_VARS
     ACTIVATE_DEFERRED_FW_VAR
     SWITCH_FW_VAR
@@ -127,24 +130,61 @@ int main(int argc, char* argv[])
     int argIndex    = 0;
     int optionIndex = 0;
 
-    struct option longopts[] = {
+    struct option longopts[] = 
+    {
         // common command line options
-        DEVICE_LONG_OPT, HELP_LONG_OPT, DEVICE_INFO_LONG_OPT, SAT_INFO_LONG_OPT,
-        // USB_CHILD_INFO_LONG_OPT,
-        SCAN_LONG_OPT, NO_BANNER_OPT, AGRESSIVE_SCAN_LONG_OPT, SCAN_FLAGS_LONG_OPT, VERSION_LONG_OPT, VERBOSE_LONG_OPT,
-        QUIET_LONG_OPT, LICENSE_LONG_OPT, ECHO_COMMAND_LIN_LONG_OPT, TEST_UNIT_READY_LONG_OPT, FAST_DISCOVERY_LONG_OPT,
-        POLL_LONG_OPT, PROGRESS_LONG_OPT, LOWLEVEL_INFO_LONG_OPT,
+        DEVICE_LONG_OPT,
+        HELP_LONG_OPT,
+        DEVICE_INFO_LONG_OPT,
+        SAT_INFO_LONG_OPT,
+        // 
+        SCAN_LONG_OPT,
+        NO_BANNER_OPT,
+        AGRESSIVE_SCAN_LONG_OPT,
+        SCAN_FLAGS_LONG_OPT,
+        VERSION_LONG_OPT,
+        VERBOSE_LONG_OPT,
+        QUIET_LONG_OPT,
+        LICENSE_LONG_OPT,
+        ECHO_COMMAND_LIN_LONG_OPT,
+        TEST_UNIT_READY_LONG_OPT,
+        FAST_DISCOVERY_LONG_OPT,
+        POLL_LONG_OPT,
+        PROGRESS_LONG_OPT,
+        LOWLEVEL_INFO_LONG_OPT,
         // tool specific options go here
-        DOWNLOAD_FW_MODE_LONG_OPT, DOWNLOAD_FW_LONG_OPT, NEW_FW_MATCH_LONG_OPT, FWDL_SEGMENT_SIZE_LONG_OPT,
-        ACTIVATE_DEFERRED_FW_LONG_OPT, SWITCH_FW_LONG_OPT, FIRMWARE_SLOT_BUFFER_ID_LONG_OPT, CHECK_POWER_LONG_OPT,
-        TRANSITION_POWER_STATE_LONG_OPT, SHOW_NVM_POWER_STATES_LONG_OPT, GET_NVME_LOG_LONG_OPT, GET_TELEMETRY_LONG_OPT,
-        TELEMETRY_DATA_AREA_LONG_OPT, CONFIRM_LONG_OPT, OUTPUT_MODE_LONG_OPT, GET_FEATURES_LONG_OPT,
-        EXT_SMART_LOG_LONG_OPT1, MODEL_MATCH_LONG_OPT, FW_MATCH_LONG_OPT,
+        DOWNLOAD_FW_MODE_LONG_OPT,
+        DOWNLOAD_FW_LONG_OPT,
+        NEW_FW_MATCH_LONG_OPT,
+        FWDL_SEGMENT_SIZE_LONG_OPT,
+        ACTIVATE_DEFERRED_FW_LONG_OPT,
+        SWITCH_FW_LONG_OPT,
+        FIRMWARE_SLOT_BUFFER_ID_LONG_OPT,
+        CHECK_POWER_LONG_OPT,
+        TRANSITION_POWER_STATE_LONG_OPT,
+        SHOW_NVM_POWER_STATES_LONG_OPT,
+        GET_NVME_LOG_LONG_OPT,
+        GET_TELEMETRY_LONG_OPT,
+        TELEMETRY_DATA_AREA_LONG_OPT,
+        CONFIRM_LONG_OPT,
+        OUTPUT_MODE_LONG_OPT,
+        GET_FEATURES_LONG_OPT,
+        EXT_SMART_LOG_LONG_OPT1,
+        MODEL_MATCH_LONG_OPT,
+        FW_MATCH_LONG_OPT,
         // CHILD_MODEL_MATCH_LONG_OPT,
         // CHILD_FW_MATCH_LONG_OPT,
-        CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT, NVME_TEMP_STATS_LONG_OPT, NVME_PCI_STATS_LONG_OPT,
-        SHOW_SUPPORTED_FORMATS_LONG_OPT, NVM_FORMAT_LONG_OPT, NVM_FORMAT_OPTIONS_LONG_OPTS, LIST_LOGS_LONG_OPT,
-        FORCE_DRIVE_TYPE_LONG_OPTS, LONG_OPT_TERMINATOR};
+        CLEAR_PCIE_CORRECTABLE_ERRORS_LONG_OPT,
+        NVME_TEMP_STATS_LONG_OPT,
+        NVME_PCI_STATS_LONG_OPT,
+        SHOW_SUPPORTED_FORMATS_LONG_OPT,
+        NVM_FORMAT_LONG_OPT,
+        NVM_FORMAT_OPTIONS_LONG_OPTS,
+        LIST_LOGS_LONG_OPT,
+        FORCE_DRIVE_TYPE_LONG_OPTS,
+        LONG_OPT_TERMINATOR
+    };
+    // clang-format on
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
     DOWNLOAD_FW_MODE               = DL_FW_UNKNOWN;
@@ -162,7 +202,7 @@ int main(int argc, char* argv[])
     ////////////////////////
     if (argc < 2)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
         printf("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -201,6 +241,64 @@ int main(int argc, char* argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
+            {
+                OUTPUTPATH_PARSE
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
+                {
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, LOG_TRANSFER_LENGTH_LONG_OPT_STRING) == 0)
+            {
+                char* unit = M_NULLPTR;
+                if (get_And_Validate_Integer_Input_Uint32(optarg, &unit, ALLOW_UNIT_DATASIZE,
+                                                          &LOG_TRANSFER_LENGTH_BYTES))
+                {
+                    // Check to see if any units were specified, otherwise assume LBAs
+                    uint32_t multiplier = 1;
+                    if (unit)
+                    {
+                        if (strcmp(unit, "") == 0)
+                        {
+                            multiplier = 1; // no additional units provided, so do not treat as an error
+                        }
+                        else if (strcmp(unit, "BLOCKS") == 0 || strcmp(unit, "SECTORS") == 0)
+                        {
+                            // they specified blocks. For log transfers this means a number of 512B sectors
+                            multiplier = LEGACY_DRIVE_SEC_SIZE;
+                        }
+                        else if (strcmp(unit, "KB") == 0)
+                        {
+                            multiplier = UINT64_C(1000);
+                        }
+                        else if (strcmp(unit, "KiB") == 0)
+                        {
+                            multiplier = UINT64_C(1024);
+                        }
+                        else if (strcmp(unit, "MB") == 0)
+                        {
+                            multiplier = UINT64_C(1000000);
+                        }
+                        else if (strcmp(unit, "MiB") == 0)
+                        {
+                            multiplier = UINT64_C(1048576);
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                    }
+                    LOG_TRANSFER_LENGTH_BYTES *= multiplier;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(LOG_TRANSFER_LENGTH_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -345,13 +443,13 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, GET_TELEMETRY_LONG_OPT_STRING) == 0)
             {
-                if (strcmp("host", optarg) == 0)
+                if (strcmp(optarg, "current") == 0 || strcmp(optarg, "host") == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_HOST_ID;
+                    GET_TELEMETRY_IDENTIFIER = 1;
                 }
-                else if (strcmp("ctrl", optarg) == 0)
+                else if (strcmp(optarg, "saved") == 0 || strcmp(optarg, "ctrl") == 0)
                 {
-                    GET_TELEMETRY_IDENTIFIER = NVME_LOG_TELEMETRY_CTRL_ID;
+                    GET_TELEMETRY_IDENTIFIER = 2;
                 }
                 else
                 {
@@ -572,7 +670,7 @@ int main(int argc, char* argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
             SHOW_HELP_FLAG = true;
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+            openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -603,7 +701,7 @@ int main(int argc, char* argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -831,10 +929,12 @@ int main(int argc, char* argv[])
                 }
                 if (!is_Running_Elevated())
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
                 else
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
             }
@@ -1455,233 +1555,40 @@ int main(int argc, char* argv[])
 
         if (GET_TELEMETRY_IDENTIFIER > 0) // Since 0 is reserved log
         {
-            /**
-             * Checking for validty of TELEMETRY_DATA_AREA
-             * If it is not in between 1-3 we should exit with error
-             */
-
-            if ((TELEMETRY_DATA_AREA < 1) || (TELEMETRY_DATA_AREA > 3))
+            if (TELEMETRY_DATA_AREA >= TELEMETRY_LOG_MIN_DATA_SET && TELEMETRY_DATA_AREA <= TELEMETRY_LOG_MAX_DATA_SET)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                switch (pull_Telemetry_Log(&deviceList[deviceIter], GET_TELEMETRY_IDENTIFIER == 1 ? true : false,
+                                           TELEMETRY_DATA_AREA, true, M_NULLPTR, 0, OUTPUTPATH_FLAG,
+                                           LOG_TRANSFER_LENGTH_BYTES))
                 {
-                    printf("%d is an invalid temetry data area. \n", TELEMETRY_DATA_AREA);
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Telemetry log pulled successfully from device!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Telemetry log not supported by this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to pull telemetry log from this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
             else
             {
-                uint32_t              size      = UINT32_C(512);
-                uint8_t*              logBuffer = M_NULLPTR;
-                nvmeGetLogPageCmdOpts cmdOpts;
-                uint64_t              offset   = UINT64_C(0);
-                uint64_t              fullSize = UINT64_C(0);
-                eReturnValues         rtnVal;
-                nvmeTemetryLogHdr*    teleHdr;
-
-                safe_memset(&cmdOpts, sizeof(nvmeGetLogPageCmdOpts), 0, sizeof(nvmeGetLogPageCmdOpts));
-
-                logBuffer = M_REINTERPRET_CAST(uint8_t*, safe_calloc(size, sizeof(uint8_t)));
-
-                if (logBuffer != M_NULLPTR)
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    cmdOpts.nsid    = NVME_ALL_NAMESPACES;
-                    cmdOpts.addr    = logBuffer;
-                    cmdOpts.dataLen = size;
-                    cmdOpts.lid     = GET_TELEMETRY_IDENTIFIER;
-                    cmdOpts.lsp     = 0x01; // FDCHEST-282 Fix
-                    cmdOpts.offset  = offset;
-
-                    rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                    offset += 512;
-
-                    if (rtnVal == SUCCESS)
-                    {
-                        teleHdr = C_CAST(nvmeTemetryLogHdr*, logBuffer);
-
-#if defined(_DEBUG)
-                        printf("Telemetry Data Area 1 : %d \n", le16_to_host(teleHdr->teleDataArea1));
-                        printf("Telemetry Data Area 2 : %d \n", le16_to_host(teleHdr->teleDataArea2));
-                        printf("Telemetry Data Area 3 : %d \n", le16_to_host(teleHdr->teleDataArea3));
-#endif
-
-                        if (TELEMETRY_DATA_AREA == 1)
-                        {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea1));
-                        }
-
-                        if (TELEMETRY_DATA_AREA == 2)
-                        {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea2));
-                        }
-
-                        if (TELEMETRY_DATA_AREA == 3)
-                        {
-                            fullSize = offset + UINT64_C(512) * C_CAST(uint64_t, le16_to_host(teleHdr->teleDataArea3));
-                        }
-
-                        if ((OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW) ||
-                            (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN))
-                        {
-                            printf("Log Page %d Buffer:\n", GET_TELEMETRY_IDENTIFIER);
-                            printf("================================\n");
-                            print_Data_Buffer(C_CAST(uint8_t*, logBuffer), size, true);
-
-                            while (offset < fullSize)
-                            {
-                                safe_memset(logBuffer, size, 0, size);
-                                cmdOpts.nsid    = NVME_ALL_NAMESPACES;
-                                cmdOpts.addr    = logBuffer;
-                                cmdOpts.dataLen = size;
-                                cmdOpts.lid     = GET_TELEMETRY_IDENTIFIER;
-                                cmdOpts.lsp     = 0x01; // FDCHEST-282 Fix
-                                cmdOpts.offset  = offset;
-
-                                rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                                offset += 512;
-
-                                if (rtnVal != SUCCESS)
-                                {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64 "\n",
-                                               GET_TELEMETRY_IDENTIFIER, offset - 512);
-                                    }
-                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                    break;
-                                }
-
-                                print_Data_Buffer(C_CAST(uint8_t*, logBuffer), size, true);
-                            }
-                            printf("================================\n");
-                        }
-                        else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
-                        {
-                            secureFileInfo* secureFile = M_NULLPTR;
-                            DECLARE_ZERO_INIT_ARRAY(char, logName, SEACHEST_NVME_LOG_NAME_LENGTH);
-                            snprintf_err_handle(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d", GET_NVME_LOG_IDENTIFIER);
-                            if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(&deviceList[deviceIter], &secureFile,
-                                                                                  NAMING_SERIAL_NUMBER_DATE_TIME,
-                                                                                  M_NULLPTR, logName, "bin"))
-                            {
-                                if (SEC_FILE_SUCCESS ==
-                                    secure_Write_File(secureFile, logBuffer, size, sizeof(uint8_t), size, M_NULLPTR))
-                                {
-                                    secure_Flush_File(secureFile);
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("Created %s with Log Page %" PRIu8 " Information\n",
-                                               secureFile->fullpath, GET_NVME_LOG_IDENTIFIER);
-                                    }
-                                }
-                                else
-                                {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("ERROR: failed to write Log Page Information to file\n");
-                                    }
-                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                }
-                                while (offset < fullSize)
-                                {
-                                    safe_memset(logBuffer, size, 0, size);
-                                    cmdOpts.nsid    = NVME_ALL_NAMESPACES;
-                                    cmdOpts.addr    = logBuffer;
-                                    cmdOpts.dataLen = size;
-                                    cmdOpts.lid     = GET_TELEMETRY_IDENTIFIER;
-                                    cmdOpts.offset  = offset;
-
-                                    rtnVal = nvme_Get_Log_Page(&deviceList[deviceIter], &cmdOpts);
-                                    offset += 512;
-
-                                    if (rtnVal != SUCCESS)
-                                    {
-                                        if (VERBOSITY_QUIET < toolVerbosity)
-                                        {
-                                            printf("Error: Could not retrieve Log Page %" PRIu8 " for offset %" PRIu64
-                                                   "\n",
-                                                   GET_TELEMETRY_IDENTIFIER, offset - 512);
-                                        }
-                                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-
-                                        break;
-                                    }
-
-                                    if (SEC_FILE_SUCCESS == secure_Write_File(secureFile, logBuffer, size,
-                                                                              sizeof(uint8_t), size, M_NULLPTR))
-                                    {
-                                        secure_Flush_File(secureFile);
-                                    }
-                                    else
-                                    {
-                                        if (VERBOSITY_QUIET < toolVerbosity)
-                                        {
-                                            printf("ERROR: failed to write Log Page Information to file\n");
-                                        }
-                                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                        break;
-                                    }
-                                }
-                                if (SEC_FILE_SUCCESS ==
-                                    secure_Write_File(secureFile, logBuffer, size, sizeof(uint8_t), size, M_NULLPTR))
-                                {
-                                    secure_Flush_File(secureFile);
-                                }
-                                else
-                                {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
-                                    {
-                                        printf("ERROR: failed to write Log Page Information to file\n");
-                                    }
-                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                                    break;
-                                }
-                                if (SEC_FILE_SUCCESS != secure_Close_File(secureFile))
-                                {
-                                    printf("Error closing file!\n");
-                                }
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("Created %s with Log Page %d Information\n", secureFile->fullpath,
-                                           GET_NVME_LOG_IDENTIFIER);
-                                }
-                            }
-                            else
-                            {
-                                if (VERBOSITY_QUIET < toolVerbosity)
-                                {
-                                    printf("ERROR: failed to open file to write Log Page Information\n");
-                                }
-                                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                            }
-                            free_Secure_File_Info(&secureFile);
-                        }
-                        else
-                        {
-                            if (VERBOSITY_QUIET < toolVerbosity)
-                            {
-                                printf("Error: Unknown/Unsupported output mode %d\n", OUTPUT_MODE_IDENTIFIER);
-                            }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                        }
-                    }
-                    else
-                    {
-                        if (VERBOSITY_QUIET < toolVerbosity)
-                        {
-                            printf("Error: Could not retrieve Log Page %" PRIu8 "\n", GET_TELEMETRY_IDENTIFIER);
-                        }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    }
-                    safe_free(&logBuffer);
-                }
-                else
-                {
-                    if (VERBOSITY_QUIET < toolVerbosity)
-                    {
-                        printf("Couldn't allocate %" PRIu32 " bytes buffer needed for Log Page %" PRId32 "\n", size,
-                               GET_NVME_LOG_IDENTIFIER);
-                    }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    printf("You must specify a Telemetry data set.\n\t1 - 4 are valid inputs for the data set on NVME "
+                           "drives.\n");
                 }
             }
         }

@@ -166,7 +166,7 @@ char* get_current_year(char* temp_year)
     return temp_year;
 }
 
-void openseachest_utility_Info(const char* utilityName, const char* buildVersion, const char* seaCPublicVersion)
+void openseachest_utility_Info(const char* utilityName, const char* buildVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
     char*         year         = safe_calloc(CURRENT_YEAR_LENGTH, sizeof(char));
@@ -205,7 +205,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     printf(" - NVMe Enabled");
     printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n",
            get_current_year(year));
-    printf(" %s Version: %s-%s ", utilityName, buildVersion, seaCPublicVersion);
+    printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     printf("\n");
     printf(" Build Date: %s\n", __DATE__);
