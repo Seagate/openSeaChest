@@ -1008,7 +1008,7 @@ static void print_CDDL_License(void)
     fputs("Any litigation relating to this License shall be subject to the\n", stdout);
     fputs("jurisdiction of the Federal Courts of the Northern District of\n", stdout);
     fputs("California and the state courts of the State of California, with\n", stdout);
-    fputs("venue lying in Santa Clara County, California.");
+    fputs("venue lying in Santa Clara County, California.\n\n", stdout);
 }
 #    endif // __illumos__ || THIS_IS_ILLUMOS
 #endif     //__sun
