@@ -45,7 +45,7 @@ jobs:
           pkgutil -y -i socat
 
         run: |
-          pkg update
+          pkg update --accept
           pkg install developer/build/meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
