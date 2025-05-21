@@ -46,7 +46,7 @@ jobs:
 
         run: |
           pkg update --accept
-          pkg install developer/build/meson
+          pkg install --accept developer/build/meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
