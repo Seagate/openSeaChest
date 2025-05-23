@@ -1,7 +1,7 @@
 
 # openSeaChest
 
-## Cross platform utilities useful for performing various operations on SATA, SAS, NVMe, and USB storage devices
+## Cross platform storage device utilities to manage, configure, and read health information for SATA, SAS, NVMe, and USB attached HDDs and SSDs.
 
 ### Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
@@ -10,9 +10,7 @@
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
 [![FreeBSD build status](https://api.cirrus-ci.com/github/Seagate/openSeaChest.svg)](https://cirrus-ci.com/github/Seagate/openSeaChest)
 [![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
-![OS](https://img.shields.io/badge/OS-Windows-blue)
-![OS](https://img.shields.io/badge/OS-Linux-blue)
-![OS](https://img.shields.io/badge/OS-FreeBSD-blue)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Seagate/openSeaChest/badge)](https://scorecard.dev/viewer/?uri=github.com/Seagate/openSeaChest)
 
 
 Welcome to the `openSeaChest` open source project!
