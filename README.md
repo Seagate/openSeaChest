@@ -8,6 +8,8 @@
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
+[![CI for meson build](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml)
+[![VMActions CI for meson build](https://github.com/Seagate/openSeaChest/actions/workflows/vmactions.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/vmactions.yml)
 [![FreeBSD build status](https://api.cirrus-ci.com/github/Seagate/openSeaChest.svg)](https://cirrus-ci.com/github/Seagate/openSeaChest)
 [![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10600/badge)](https://www.bestpractices.dev/projects/10600)
