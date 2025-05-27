@@ -42,7 +42,7 @@ jobs:
         release: "11.4-gcc"
         usesh: true
         prepare: |
-          pkg update --accept
+          pkg update --accept || true
           pkgutil -y -i socat
 
         run: |
