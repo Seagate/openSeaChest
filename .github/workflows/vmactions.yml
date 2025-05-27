@@ -63,11 +63,11 @@ jobs:
             releasename: "14.2",
             arch: "x86_64",
           }
-        - {
-            name: "FreeBSD 15.0",
-            releasename: "15.0",
-            arch: "x86_64",
-          }
+        # - {
+        #     name: "FreeBSD 15.0",
+        #     releasename: "15.0",
+        #     arch: "x86_64",
+        #   }
         - {
             name: "FreeBSD 13.5",
             releasename: "13.5",
