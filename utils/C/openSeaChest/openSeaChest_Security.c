@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Security";
-const char* buildVersion = "3.5.0";
+const char* buildVersion = "3.5.1";
 
 typedef enum eSeaChestSecurityExitCodesEnum
 {
@@ -1854,6 +1854,8 @@ int main(int argc, char* argv[])
                 }
             }
         }
+
+        explicit_zeroes(ATA_SECURITY_PASSWORD, 32);
 
         if (ATA_SECURITY_FREEZELOCK_OP)
         {

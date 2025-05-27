@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.0";
+const char* buildVersion = "4.7.1";
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -3024,6 +3024,7 @@ int main(int argc, char* argv[])
                 safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
                             ATA_SECURITY_PASSWORD_BYTE_COUNT); // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be
                                                                // > 32. Should be caught above.
+                explicit_zeroes(ATA_SECURITY_PASSWORD, 32);
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
                 if (ZONE_NO_RESET == goTrue)
                 {
@@ -3054,6 +3055,7 @@ int main(int argc, char* argv[])
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
+                explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
             }
             else
             {
