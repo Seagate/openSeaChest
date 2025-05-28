@@ -290,7 +290,7 @@ void print_SeaChest_Util_Exit_Codes(int                    numberOfToolSpecificE
     printf("\t%d = Cannot Open File\n", UTIL_EXIT_CANNOT_OPEN_FILE);
     printf("\t%d = File Already Exists\n", UTIL_EXIT_FILE_ALREADY_EXISTS);
     printf("\t%d = Need Elevated Privileges\n", UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
-    printf("\t%d = Not enough resourced\n", UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+    printf("\t%d = Not enough resources\n", UTIL_EXIT_NOT_ENOUGH_RESOURCES);
     printf("\t%d = Error Writing File\n", UTIL_EXIT_ERROR_WRITING_FILE);
     printf("\t%d = Device not found when opening handle.\n", UTIL_EXIT_NO_DEVICE);
     printf("\t%d = Device not opened. Handle is busy.\n", UTIL_EXIT_DEVICE_BUSY);
