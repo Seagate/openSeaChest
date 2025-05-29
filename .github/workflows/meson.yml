@@ -322,8 +322,12 @@ jobs:
       shell: bash
 
     - name: Set ownership of executables to root:root
-      if: ${{ matrix.config.os != 'windows-latest' }}
+      if: ${{ matrix.config.os != 'windows-latest' }} && matrix.config.image == ''
       run: sudo chown -R root:root build
+
+    - name: Set ownership of executables to root:root (container)
+      if: ${{ matrix.config.os != 'windows-latest' }} && matrix.config.image != ''
+      run: chown -R root:root build
 
     - name: Packing release
       env:
