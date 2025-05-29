@@ -222,8 +222,6 @@ jobs:
       with:
         arch: ${{ matrix.config.arch }}
 
-    # TODO: Cache the docker container
-
     - name: Get latest LLVM version
       if: startsWith(matrix.config.name, 'Windows Clang')
       run: |
@@ -284,14 +282,29 @@ jobs:
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Configuring and compiling with meson
+    - name: Install Meson and Ninja (container)
+      if: matrix.config.image != ''
+      run: |
+        python3 -m venv /tmp/venv
+        . /tmp/venv/bin/activate
+        pip install meson ninja
+        echo "VENV_PYTHON=/tmp/venv/bin/python3" >> $GITHUB_ENV
+        echo "VENV_MESON=/tmp/venv/bin/meson" >> $GITHUB_ENV
+    
+
+    - name: Install Meson and Ninja (Github runners)
+      if: matrix.config.image == ''
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-        meson install -C build
+
+    - name: Configure and build with Meson
+      run: |
+        ${VENV_MESON:-meson} setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        ${VENV_MESON:-meson} install -C build
+      
 
     # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
     - uses: actions/setup-go@v5
