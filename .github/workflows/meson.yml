@@ -322,12 +322,13 @@ jobs:
       shell: bash
 
     - name: Set ownership of executables to root:root
-      if: ${{ matrix.config.os != 'windows-latest' }} && matrix.config.image == ''
-      run: sudo chown -R root:root build
-
-    - name: Set ownership of executables to root:root (container)
-      if: ${{ matrix.config.os != 'windows-latest' }} && matrix.config.image != ''
-      run: chown -R root:root build
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown -R root:root build
+        else
+          chown -R root:root build
+        fi
 
     - name: Packing release
       env:
@@ -335,7 +336,11 @@ jobs:
       run: |
         cd build
         if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
-          sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          if [[ -z "${{ matrix.config.image }}" ]]; then
+            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          else
+            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          fi
         else
           ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
         fi
@@ -343,7 +348,13 @@ jobs:
 
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
-      run: sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        else
+          chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        fi
+      
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
