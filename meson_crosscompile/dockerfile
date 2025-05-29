@@ -1,0 +1,68 @@
+# This is the dockerfile used to build the muslcc container hosted by vonericsen on dockerhub
+
+# Use an Alpine base image
+FROM alpine:latest
+
+# Install necessary packages
+RUN apk add --no-cache \
+    build-base \
+    curl \
+    ca-certificates \
+    git \
+    bash \
+    python3 \
+    py3-pip \
+    meson \
+    ninja \
+    xz
+
+# Copy the install script into the Docker image
+COPY install-muslcc.sh /usr/local/bin/install-muslcc.sh
+RUN chmod +x /usr/local/bin/install-muslcc.sh
+
+# Run the install script for each architecture
+RUN /usr/local/bin/install-muslcc.sh -a aarch64
+RUN /usr/local/bin/install-muslcc.sh -a armv5l
+RUN /usr/local/bin/install-muslcc.sh -a armv5lhf
+RUN /usr/local/bin/install-muslcc.sh -a armv6
+RUN /usr/local/bin/install-muslcc.sh -a armv6hf
+RUN /usr/local/bin/install-muslcc.sh -a armv7l
+RUN /usr/local/bin/install-muslcc.sh -a armv7r
+RUN /usr/local/bin/install-muslcc.sh -a i486
+RUN /usr/local/bin/install-muslcc.sh -a i686
+RUN /usr/local/bin/install-muslcc.sh -a mips
+RUN /usr/local/bin/install-muslcc.sh -a mips64
+RUN /usr/local/bin/install-muslcc.sh -a mipsel
+RUN /usr/local/bin/install-muslcc.sh -a mips64el
+RUN /usr/local/bin/install-muslcc.sh -a powerpc
+RUN /usr/local/bin/install-muslcc.sh -a powerpcle
+RUN /usr/local/bin/install-muslcc.sh -a powerpc64
+RUN /usr/local/bin/install-muslcc.sh -a powerpc64le
+RUN /usr/local/bin/install-muslcc.sh -a riscv64
+RUN /usr/local/bin/install-muslcc.sh -a s390x
+RUN /usr/local/bin/install-muslcc.sh -a x86_64
+
+# Set environment variables for the compilers
+ENV PATH="$PATH:/opt/muslcc/aarch64-linux-musl-cross/bin:/opt/muslcc/armv5l-linux-musleabi-cross/bin:/opt/muslcc/armv5l-linux-musleabihf-cross/bin:/opt/muslcc/armv6-linux-musleabi-cross/bin:/opt/muslcc/armv6-linux-musleabihf-cross/bin:/opt/muslcc/armv7l-linux-musleabihf-cross/bin:/opt/muslcc/armv7r-linux-musleabihf-cross/bin:/opt/muslcc/i486-linux-musl-cross/bin:/opt/muslcc/i686-linux-musl-cross/bin:/opt/muslcc/mips-linux-musl-cross/bin:/opt/muslcc/mips64-linux-musl-cross/bin:/opt/muslcc/mips64el-linux-musl-cross/bin:/opt/muslcc/mipsel-linux-musl-cross/bin:/opt/muslcc/powerpc-linux-musl-cross/bin:/opt/muslcc/powerpc64-linux-musl-cross/bin:/opt/muslcc/powerpc64le-linux-musl-cross/bin:/opt/muslcc/powerpcle-linux-musl-cross/bin:/opt/muslcc/riscv64-linux-musl-cross/bin:/opt/muslcc/s390x-linux-musl-cross/bin:/opt/muslcc/x86_64-linux-musl-cross/bin"
+
+# Verify installation
+RUN aarch64-linux-musl-gcc --version
+RUN armv5l-linux-musleabi-gcc --version
+RUN armv5l-linux-musleabihf-gcc --version
+RUN armv6-linux-musleabi-gcc --version
+RUN armv6-linux-musleabihf-gcc --version
+RUN armv7l-linux-musleabihf-gcc --version
+RUN armv7r-linux-musleabihf-gcc --version
+RUN i486-linux-musl-gcc --version
+RUN i686-linux-musl-gcc --version
+RUN mips-linux-musl-gcc --version
+RUN mips64-linux-musl-gcc --version
+RUN mipsel-linux-musl-gcc --version
+RUN mips64el-linux-musl-gcc --version
+RUN powerpc-linux-musl-gcc --version
+RUN powerpcle-linux-musl-gcc --version
+RUN powerpc64-linux-musl-gcc --version
+RUN powerpc64le-linux-musl-gcc --version
+RUN riscv64-linux-musl-gcc --version
+RUN s390x-linux-musl-gcc --version
+RUN x86_64-linux-musl-gcc --version
