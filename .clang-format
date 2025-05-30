@@ -1,0 +1,19 @@
+# Use the Microsoft coding style
+# This is the style our code already mostly followed-TJE
+BasedOnStyle: Microsoft
+
+# Additional Customizations
+PointerAlignment: Left
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignTrailingComments: true
+AlignAfterOpenBracket: true
+BinPackParameters: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AlignConsecutiveMacros: 'AcrossEmptyLines'
+BraceWrapping:
+  AfterControlStatement: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+IndentPPDirectives: AfterHash
+BreakBeforeBraces: Allman

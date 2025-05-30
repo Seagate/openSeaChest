@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-project('openSeaChest', 'c', license: 'MPL-2.0', default_options : ['warning_level=2', 'b_pie=true'])
+project('openSeaChest', 'c', version : '25.05', license: 'MPL-2.0', default_options : ['warning_level=2', 'b_pie=true'])
 
 c = meson.get_compiler('c')
 
@@ -44,7 +44,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wimplicit-fallthrough',
   '-D_GLIBCXX_ASSERTIONS',
   '-fstrict-flex-arrays=1', #NOTE: Using level 1 since Windows often uses [1] at the end of it's structures. opensea-*libs has used this in a few places too.
-  '-fstack-protector-strong',
   '-fno-delete-null-pointer-checks',
   '-fno-strict-overflow',
   '-fno-strict-aliasing',
@@ -74,12 +73,26 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
   '-Wcomment',
   '-Wsequence-point',
   '-Wreturn-type',
+  '-Wpointer-bool-conversion',
   '-fvisibility=hidden', #to work similarly to Window's DLL import/export
   ]
 
   if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
     #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
     warning_flags += '-Wsign-conversion'
+  endif
+
+  if target_machine.system() != 'sunos'
+    warning_flags += '-fstack-protector-strong'
+  else
+    #Illumos will support this, but solaris will not due to library differences in the systems
+    if meson.version().version_compare('>=1.2.0')
+      if target_machine.kernel() == 'illumos'
+        warning_flags += '-fstack-protector-strong'
+      endif
+    else
+    # TODO: Backup method to detect illumos vs solaris
+    endif
   endif
 
   if c.get_id().contains('gcc') and target_machine.system() == 'windows'
@@ -186,6 +199,11 @@ elif c.get_id().contains('msvc')
     '/d2guard4', #control flow guard
   ]
 
+  if target_machine.cpu_family() == 'x86_64' or target_machine.cpu_family() == 'x86'
+    # https://learn.microsoft.com/en-us/cpp/build/reference/qintel-jcc-erratum?view=msvc-170
+    warning_flags += '/QIntel-jcc-erratum'
+  endif
+  
   if c.has_argument('/std:c17')
     c_std = 'c17'
   endif

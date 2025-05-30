@@ -1,0 +1,165 @@
+# SPDX-License-Identifier: MPL-2.0
+name: VMActions CI for meson build
+
+on: [push]
+
+jobs:
+  omnios:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for omnios
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for OmniOS
+      id: omni
+      uses: vmactions/omnios-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg update
+          pkg install socat
+
+        run: |
+          pkg install bison build-essential flex ninja pkg-config
+
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install meson
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
+
+  solaris:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for Solaris
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for Solaris
+      id: sol
+      uses: vmactions/solaris-vm@v1
+      with:
+        release: "11.4-gcc"
+        usesh: true
+        prepare: |
+          pkg update --accept || true
+          pkgutil -y -i socat
+
+        run: |
+          pkg install --accept developer/build/meson
+
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
+
+  freebsd:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for FreeBSD
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "FreeBSD 14.2",
+            releasename: "14.2",
+            arch: "x86_64",
+          }
+        # - {
+        #     name: "FreeBSD 15.0",
+        #     releasename: "15.0",
+        #     arch: "x86_64",
+        #   }
+        - {
+            name: "FreeBSD 13.5",
+            releasename: "13.5",
+            arch: "x86_64",
+          }
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for ${{ matrix.config.name }}
+      id: freebsd
+      uses: vmactions/freebsd-vm@v1
+      with:
+        release: ${{ matrix.config.releasename }}
+        arch: ${{ matrix.config.arch }}
+        usesh: true
+        prepare: |
+          pkg update
+          pkg install -y curl
+
+        run: |
+          pkg install -y meson
+
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
+
+  dragonflybsd:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for DragonflyBSD
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for  DragonflyBSD
+      id: dragonfly
+      uses: vmactions/dragonflybsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg update
+          pkg install -y socat
+
+        run: |
+          pkg install -y meson
+
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
+
+  openbsd:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for OpenBSD
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for OpenBSD
+      id: freebsd
+      uses: vmactions/openbsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          pkg_add -u
+          pkg_add curl
+
+        run: |
+          pkg_add meson
+
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build
+
+  netbsd:
+    runs-on: ubuntu-latest
+    name: Build openSeaChest for NetBSD
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - name: Build openSeaChest for NetBSD
+      id: freebsd
+      uses: vmactions/netbsd-vm@v1
+      with:
+        usesh: true
+        prepare: |
+          /usr/sbin/pkg_add -u
+          /usr/sbin/pkg_add curl
+
+        run: |
+          /usr/sbin/pkg_add meson
+
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
+          meson install -C build

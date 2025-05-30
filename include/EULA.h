@@ -2,7 +2,7 @@
 //
 // Do NOT modify or remove this copyright and license
 //
-// Copyright (c) 2014-2024 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+// Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 //
 // This software is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,12 +14,12 @@
 
 #pragma once
 
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 extern "C"
 {
 #endif
 
-    #include <stdio.h>
+#include <stdio.h>
 
     //-----------------------------------------------------------------------------
     //
@@ -47,7 +47,6 @@ extern "C"
     //-----------------------------------------------------------------------------
     void print_Open_Source_Licenses(void);
 
-
-#if defined (__cplusplus)
+#if defined(__cplusplus)
 }
 #endif
