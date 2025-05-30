@@ -4,3 +4,24 @@ Version History - openSeaChest_Defect
 v0.9.0  28-Aug-2024  Combined 2 internal tools and moved them to openSeaChest_Defect
                      Pull in security updates and low-level bug fixes from opensea-libs.
                      CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)            
+v1.0.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passing aggressive scan flag -S.
+                     Refactor reading SCSI capacity code which may reduce total commands issued.
+                     Refactored looking up supported SCSI commands with Report Supported operations codes and
+                     legacy CmdDT bit in Inquiry which reduces total commands issued.
+                     Source code level support for OpenBSD, NetBSD, and DragonflyBSD now available.
+                     More source code hardening implemented with new bounds checking functions from
+                     opensea-common library (behave similar to Annex K in C11).
+                     Fixed a bug in reading device information (-i) on USB devices causing the information to be
+                     incomplete.
+                     Fixed big endian system support for all devices, but especially for NVMe.
+                     Fixed looking up SD to SG device handles in Linux.
+                     Added new exit codes for Device Not Found when opening the handle and Device Busy when
+                     attempting to open a handle.
+                     Enhanced file security API to display recommended actions to modify directories to be 
+                     compatible with security requirements when reading or writing a file.
+                     Fixed a crash when reading/writing files located at / in unix-like systems.
+                     Fixed exit code when -d all or --modelMatch are used but all devices are skipped so that 
+                     the exit code is not set to 0 (success) when all the devices were skipped.
+                     Implemented a workaround for old drives that support both read long/write long and the
+                     write uncorrectable ext commands, but fail write uncorrectable to retry as needed.
+                     

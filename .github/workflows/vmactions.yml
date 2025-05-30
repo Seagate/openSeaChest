@@ -17,10 +17,10 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pkg update
           pkg install socat
 
         run: |
-          pkg update
           pkg install bison build-essential flex ninja pkg-config
 
           python3 -m pip install --upgrade pip setuptools wheel
@@ -42,11 +42,11 @@ jobs:
         release: "11.4-gcc"
         usesh: true
         prepare: |
+          pkg update --accept || true
           pkgutil -y -i socat
 
         run: |
-          pkg update
-          pkg install developer/build/meson
+          pkg install --accept developer/build/meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -63,11 +63,11 @@ jobs:
             releasename: "14.2",
             arch: "x86_64",
           }
-        - {
-            name: "FreeBSD 15.0",
-            releasename: "15.0",
-            arch: "x86_64",
-          }
+        # - {
+        #     name: "FreeBSD 15.0",
+        #     releasename: "15.0",
+        #     arch: "x86_64",
+        #   }
         - {
             name: "FreeBSD 13.5",
             releasename: "13.5",
@@ -85,10 +85,10 @@ jobs:
         arch: ${{ matrix.config.arch }}
         usesh: true
         prepare: |
+          pkg update
           pkg install -y curl
 
         run: |
-          pkg update
           pkg install -y meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
@@ -107,10 +107,10 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pkg update
           pkg install -y socat
 
         run: |
-          pkg update
           pkg install -y meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
@@ -131,10 +131,10 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pkg_add -u
           pkg_add curl
 
         run: |
-          pkg_add -u
           pkg_add meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
@@ -155,10 +155,10 @@ jobs:
       with:
         usesh: true
         prepare: |
+          /usr/sbin/pkg_add -u
           /usr/sbin/pkg_add curl
 
         run: |
-          /usr/sbin/pkg_add -u
           /usr/sbin/pkg_add meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release

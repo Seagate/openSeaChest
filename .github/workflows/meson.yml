@@ -101,7 +101,8 @@ jobs:
             cross_compiler_arch: "x86_64",
             release_name: "linux-x86_64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile i686",
@@ -113,7 +114,8 @@ jobs:
             cross_compiler_arch: "i686",
             release_name: "linux-i686-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile aarch64",
@@ -125,7 +127,8 @@ jobs:
             cross_compiler_arch: "aarch64",
             release_name: "linux-aarch64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv7l",
@@ -137,7 +140,8 @@ jobs:
             cross_compiler_arch: "armv7l",
             release_name: "linux-armv7l-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv6",
@@ -149,7 +153,8 @@ jobs:
             cross_compiler_arch: "armv6",
             release_name: "linux-armv6-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv5l",
@@ -161,7 +166,8 @@ jobs:
             cross_compiler_arch: "armv5l",
             release_name: "linux-armv5l-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile powerpc64",
@@ -173,7 +179,8 @@ jobs:
             cross_compiler_arch: "powerpc64",
             release_name: "linux-powerpc64-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile powerpc64le",
@@ -185,7 +192,8 @@ jobs:
             cross_compiler_arch: "powerpc64le",
             release_name: "linux-powerpc64le-portable",
             release_extension: ".tar.xz",
-            archive_command: "tar cvfJ"
+            archive_command: "tar cvfJ",
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
     outputs: #where hashes need to be stored for slsa provenance
       #NOTE: Only doing this for builds with "publish_release: true"
@@ -213,11 +221,6 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: ${{ matrix.config.arch }}
-
-    - name: Setup for MUSL Cross Compilation
-      if: startsWith(matrix.config.name, 'MUSL Cross Compile')
-      run: |
-        sudo ./meson_crosscompile/install-muslcc.sh -a ${{ matrix.config.cross_compiler_arch }}
 
     - name: Get latest LLVM version
       if: startsWith(matrix.config.name, 'Windows Clang')
@@ -279,7 +282,15 @@ jobs:
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Configuring and compiling with meson
+    - name: Install Meson and Ninja and Build (MUSL container)
+      if: matrix.config.image != ''
+      run: |
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+
+    - name: Install Meson and Ninja and Build (Github runners)
+      if: matrix.config.image == ''
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
@@ -312,7 +323,12 @@ jobs:
 
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
-      run: sudo chown -R root:root build
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown -R root:root build
+        else
+          chown -R root:root build
+        fi
 
     - name: Packing release
       env:
@@ -320,7 +336,11 @@ jobs:
       run: |
         cd build
         if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
-          sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          if [[ -z "${{ matrix.config.image }}" ]]; then
+            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          else
+            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          fi
         else
           ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
         fi
@@ -328,7 +348,13 @@ jobs:
 
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
-      run: sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        else
+          chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        fi
+      
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
