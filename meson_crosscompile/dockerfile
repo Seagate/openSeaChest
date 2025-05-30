@@ -14,6 +14,7 @@ RUN apk add --no-cache \
     py3-pip \
     meson \
     ninja \
+    cmake \
     xz
 
 # Copy the install script into the Docker image

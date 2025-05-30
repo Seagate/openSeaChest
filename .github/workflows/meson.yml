@@ -102,7 +102,7 @@ jobs:
             release_name: "linux-x86_64-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile i686",
@@ -115,7 +115,7 @@ jobs:
             release_name: "linux-i686-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile aarch64",
@@ -128,7 +128,7 @@ jobs:
             release_name: "linux-aarch64-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv7l",
@@ -141,7 +141,7 @@ jobs:
             release_name: "linux-armv7l-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv6",
@@ -154,7 +154,7 @@ jobs:
             release_name: "linux-armv6-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile armv5l",
@@ -167,7 +167,7 @@ jobs:
             release_name: "linux-armv5l-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile powerpc64",
@@ -180,7 +180,7 @@ jobs:
             release_name: "linux-powerpc64-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
             name: "MUSL Cross Compile powerpc64le",
@@ -193,7 +193,7 @@ jobs:
             release_name: "linux-powerpc64le-portable",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
-            image: "vonericsen/muslcc"
+            image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
     outputs: #where hashes need to be stored for slsa provenance
       #NOTE: Only doing this for builds with "publish_release: true"
