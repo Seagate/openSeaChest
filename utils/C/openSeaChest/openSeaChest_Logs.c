@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Logs";
-const char* buildVersion = "2.5.0";
+const char* buildVersion = "2.6.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -65,6 +65,7 @@ int main(int argc, char* argv[])
     //  Variables  //
     /////////////////
     // common utility variables
+    // clang-format off
     eReturnValues ret      = SUCCESS;
     int           exitCode = UTIL_EXIT_NO_ERROR;
     DEVICE_UTIL_VARS
@@ -103,6 +104,8 @@ int main(int argc, char* argv[])
     IDENTIFY_DEVICE_DATA_LOG_VAR
     SATA_PHY_COUNTERS_LOG_VAR
     DEVICE_STATS_LOG_VAR
+    GET_TELEMETRY_VAR
+    TELEMETRY_DATA_AREA_VAR
     INFORMATIONAL_EXCEPTIONS_VAR
 
 #if defined(ENABLE_CSMI)
@@ -124,7 +127,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        USB_CHILD_INFO_LONG_OPT,
+        
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -159,6 +162,8 @@ int main(int argc, char* argv[])
         FARM_LONG_OPT,
         FARM_COMBINED_LONG_OPT,
         SATA_FARM_COPY_TYPE_LONG_OPT,
+		GET_TELEMETRY_LONG_OPT,
+		TELEMETRY_DATA_AREA_LONG_OPT,
         DST_LOG_LONG_OPT,                  // standard spec log
         DEVICE_STATS_LOG_LONG_OPT,         // standard spec log
         IDENTIFY_DEVICE_DATA_LOG_LONG_OPT, // standard ATA spec log
@@ -168,6 +173,7 @@ int main(int argc, char* argv[])
         LOG_LENGTH_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
+    // clang-format on
 
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
@@ -184,7 +190,7 @@ int main(int argc, char* argv[])
     ////////////////////////
     if (argc < 2)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -196,7 +202,7 @@ int main(int argc, char* argv[])
         {
             break;
         }
-        // printf("Parsing args <%u> %s\n", args, logslongopts[optionIndex].name);
+        // printf("Parsing args <%u> %s\n", args, longopts[optionIndex].name);
         switch (args)
         {
         case 0:
@@ -340,6 +346,16 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, TELEMETRY_DATA_AREA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint8(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                          &TELEMETRY_DATA_AREA) ||
+                    (TELEMETRY_DATA_AREA > 4 || TELEMETRY_DATA_AREA < 1))
+                {
+                    print_Error_In_Cmd_Line_Args(TELEMETRY_DATA_AREA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
             {
                 OUTPUTPATH_PARSE
@@ -368,6 +384,22 @@ int main(int argc, char* argv[])
             {
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+            }
+            else if (strcmp(longopts[optionIndex].name, GET_TELEMETRY_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "current") == 0 || strcmp(optarg, "host") == 0)
+                {
+                    GET_TELEMETRY_IDENTIFIER = 1;
+                }
+                else if (strcmp(optarg, "saved") == 0 || strcmp(optarg, "ctrl") == 0)
+                {
+                    GET_TELEMETRY_IDENTIFIER = 2;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(GET_TELEMETRY_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, PULL_LOG_MODE_LONG_OPT_STRING) == 0)
             {
@@ -459,7 +491,7 @@ int main(int argc, char* argv[])
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
             SHOW_HELP_FLAG = true;
-            openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+            openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
@@ -490,7 +522,7 @@ int main(int argc, char* argv[])
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
     {
-        openseachest_utility_Info(util_name, buildVersion, OPENSEA_TRANSPORT_VERSION);
+        openseachest_utility_Info(util_name, buildVersion);
     }
 
     if (SHOW_BANNER_FLAG)
@@ -655,7 +687,7 @@ int main(int argc, char* argv[])
     }
     // check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG || LOWLEVEL_INFO_FLAG || LIST_LOGS_FLAG || LIST_ERROR_HISTORY_FLAG ||
-          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG ||
+          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG || (GET_TELEMETRY_IDENTIFIER > 0) ||
           DST_LOG_FLAG || IDENTIFY_DEVICE_DATA_LOG_FLAG || SATA_PHY_COUNTERS_LOG_FLAG || DEVICE_STATS_LOG_FLAG ||
           INFORMATIONAL_EXCEPTIONS_FLAG))
     {
@@ -706,6 +738,7 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
+    eReturnValues getDevsRet = SUCCESS;
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
 
@@ -713,7 +746,8 @@ int main(int argc, char* argv[])
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
-        ret = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
+        getDevsRet = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
+        ret        = getDevsRet;
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
@@ -738,10 +772,12 @@ int main(int argc, char* argv[])
                 }
                 if (!is_Running_Elevated())
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
                 else
                 {
+                    free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
             }
@@ -787,10 +823,10 @@ int main(int argc, char* argv[])
 #    else
             if (((deviceList[handleIter].os_info.fd < 0) && (deviceList[handleIter].os_info.nvmeFd == M_NULLPTR)) ||
 #    endif
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret != SUCCESS))
 #else
             if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret == FAILURE || ret == PERMISSION_DENIED))
+                (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -802,6 +838,14 @@ int main(int argc, char* argv[])
                 {
                     exit(UTIL_EXIT_NEED_ELEVATED_PRIVILEGES);
                 }
+                else if (ret == DEVICE_BUSY)
+                {
+                    exit(UTIL_EXIT_DEVICE_BUSY);
+                }
+                else if (ret == DEVICE_INVALID)
+                {
+                    exit(UTIL_EXIT_NO_DEVICE);
+                }
                 else
                 {
                     exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -810,6 +854,7 @@ int main(int argc, char* argv[])
         }
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
+    uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
         deviceList[deviceIter].deviceVerbosity = toolVerbosity;
@@ -822,6 +867,7 @@ int main(int argc, char* argv[])
                     printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
                 deviceList[deviceIter].drive_info.product_identification);
                 }*/
+                ++skippedDevices;
                 continue;
             }
         }
@@ -837,6 +883,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.product_identification, MODEL_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -851,6 +898,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name, deviceList[deviceIter].drive_info.product_revision,
                            FW_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -867,6 +915,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.bridge_info.childDriveMN, CHILD_MODEL_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -881,6 +930,7 @@ int main(int argc, char* argv[])
                            deviceList[deviceIter].os_info.name,
                            deviceList[deviceIter].drive_info.bridge_info.childDriveFW, CHILD_FW_STRING_FLAG);
                 }
+                ++skippedDevices;
                 continue;
             }
         }
@@ -941,6 +991,12 @@ int main(int argc, char* argv[])
                 printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
+        }
+
+        if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
+        {
+            ++skippedDevices;
+            continue;
         }
 
         if (VERBOSITY_QUIET < toolVerbosity)
@@ -1132,6 +1188,47 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (GET_TELEMETRY_IDENTIFIER > 0)
+        {
+            if (TELEMETRY_DATA_AREA > TELEMETRY_LOG_MIN_DATA_SET && TELEMETRY_DATA_AREA <= TELEMETRY_LOG_MAX_DATA_SET)
+            {
+                switch (pull_Telemetry_Log(&deviceList[deviceIter], GET_TELEMETRY_IDENTIFIER == 1 ? true : false,
+                                           TELEMETRY_DATA_AREA, true, M_NULLPTR, 0, OUTPUTPATH_FLAG,
+                                           LOG_TRANSFER_LENGTH_BYTES))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Telemetry log pulled successfully from device!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Telemetry log not supported by this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Failed to pull telemetry log from this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else
+            {
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf(
+                        "You must specify a Telemetry data set.\n\t1 - 3 are valid inputs for the data set on SATA\n");
+                    printf("\tOn SAS and NVMe, 1 - 4 are valid inputs for the data set.\n");
+                }
+            }
+        }
+        
         if (FARM_PULL_FLAG)
         {
             // PULL_FARM_FACTORY_PAGE_FLAG
@@ -1334,6 +1431,26 @@ int main(int argc, char* argv[])
         close_Device(&deviceList[deviceIter]);
     }
     free_device_list(&DEVICE_LIST);
+    if (getDevsRet != SUCCESS && skippedDevices == DEVICE_LIST_COUNT)
+    {
+        switch (getDevsRet)
+        {
+        case WARN_NOT_ALL_DEVICES_ENUMERATED:
+            // Different exit code needed? Not entirely sure if this is the best choice here - TJE
+            exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            break;
+        case PERMISSION_DENIED:
+            exitCode = UTIL_EXIT_NEED_ELEVATED_PRIVILEGES;
+            break;
+        default:
+            exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            break;
+        }
+    }
+    else if (skippedDevices == DEVICE_LIST_COUNT)
+    {
+        exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+    }
     exit(exitCode);
 }
 
@@ -1377,6 +1494,14 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 30 --%s bin\n", util_name, deviceHandleExample, GENERIC_ERROR_HISTORY_LONG_OPT_STRING,
            PULL_LOG_MODE_LONG_OPT_STRING);
 
+    printf("\t%s -d %s --%s host\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s ctrl\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s saved\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s host --%s 2\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING,
+           TELEMETRY_DATA_AREA_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s current --%s 4\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING,
+           TELEMETRY_DATA_AREA_LONG_OPT_STRING);
     // return codes
     printf("\nReturn codes\n");
     printf("============\n");
@@ -1426,12 +1551,14 @@ void utility_Usage(bool shortUsage)
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
     print_FARM_Combined_Log_Help(shortUsage);
+	print_Get_Telemetry_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
     print_Log_Length_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
     print_Pull_Generic_Logs_Help(shortUsage);
     print_Pull_Self_Test_Results_Log_Help(shortUsage);
+	print_Telemetry_Data_Set_Help(shortUsage);
 
     // SATA Only Options
     printf("\n\tSATA Only:\n\n");
