@@ -329,6 +329,9 @@ endif
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
+opensea_jsonformat = subproject('opensea-jsonformat')
+opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
+
 incdir = include_directories('include')
 
 exe_src_map = {
@@ -338,7 +341,7 @@ exe_src_map = {
 }
 
 foreach p : get_option('tools')
-  executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps], include_directories : incdir, install : true)
+  executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, opensea_jsonformat_dep, os_deps], include_directories : incdir, install : true)
   if usehelp2man
     #use help2man to generate manpages before installing them
     run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: false)
