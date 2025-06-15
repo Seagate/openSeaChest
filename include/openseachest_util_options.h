@@ -477,12 +477,15 @@ extern "C"
         SMART_ATTRIBUTES_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                              \
     }
 
-#define SHOW_FARM_FLAG            showFARMData
-#define SHOW_FARM_VAR             getOptBool SHOW_FARM_FLAG = goFalse;
+#define SHOW_FARM_FLAG      showFARMData
+#define SHOW_FARM_MODE_FLAG showFARMMode
+#define SHOW_FARM_VARS                                                                                                 \
+    bool SHOW_FARM_FLAG      = false;                                                                                  \
+    int  SHOW_FARM_MODE_FLAG = 0;
 #define SHOW_FARM_LONG_OPT_STRING "showFARM"
 #define SHOW_FARM_LONG_OPT                                                                                             \
     {                                                                                                                  \
-        SHOW_FARM_LONG_OPT_STRING, no_argument, &SHOW_FARM_FLAG, goTrue                                                \
+        SHOW_FARM_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                                     \
     }
 
 #define NVME_HEALTH_FLAG            showNVMeHealthData

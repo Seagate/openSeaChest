@@ -1008,7 +1008,7 @@ void print_SMART_Attributes_Help(bool shortHelp)
 
 void print_Show_FARM_Help(bool shortHelp)
 {
-    printf("\t--%s\n", SHOW_FARM_LONG_OPT_STRING);
+    printf("\t--%s [raw | json]\n", SHOW_FARM_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to show the data in the FARM log.\n");

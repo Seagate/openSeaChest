@@ -30,6 +30,7 @@
 #include "device_statistics_json.h"
 #include "drive_info.h"
 #include "dst.h"
+#include "farm_json.h"
 #include "farm_log.h"
 #include "getopt.h"
 #include "openseachest_util_options.h"
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     SMART_OFFLINE_SCAN_VAR
     OUTPUT_MODE_VAR
-    SHOW_FARM_VAR
+    SHOW_FARM_VARS
 
     int args        = 0;
     int argIndex    = 0;
@@ -347,6 +348,23 @@ int main(int argc, char* argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SHOW_FARM_LONG_OPT_STRING) == 0)
+            {
+                SHOW_FARM_FLAG = true;
+                if (strcmp(optarg, "raw") == 0)
+                {
+                    SHOW_FARM_MODE_FLAG = FARM_OUTPUT_RAW;
+                }
+                else if (strcmp(optarg, "json") == 0)
+                {
+                    SHOW_FARM_MODE_FLAG = FARM_OUTPUT_JSON;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SHOW_FARM_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -893,7 +911,8 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
-    if (((SHORT_DST_FLAG || LONG_DST_FLAG || CONVEYANCE_DST_FLAG) && CAPTIVE_FOREGROUND_FLAG) || RUN_IDD_FLAG || DST_AND_CLEAN_FLAG)
+    if (((SHORT_DST_FLAG || LONG_DST_FLAG || CONVEYANCE_DST_FLAG) && CAPTIVE_FOREGROUND_FLAG) || RUN_IDD_FLAG ||
+        DST_AND_CLEAN_FLAG)
     {
         flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
     }
@@ -984,8 +1003,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1188,7 +1206,28 @@ int main(int argc, char* argv[])
             switch (read_FARM_Data(&deviceList[deviceIter], &farmdata))
             {
             case SUCCESS:
-                print_FARM_Data(&farmdata);
+                if (SHOW_FARM_MODE_FLAG == FARM_OUTPUT_RAW)
+                    print_FARM_Data(&farmdata);
+                else
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                    switch (create_JSON_Output_For_FARM(&deviceList[deviceIter], &farmdata, &jsonFormatOutput))
+                    {
+                    case SUCCESS:
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                        break;
+
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to parse FARM\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
                 break;
             default:
                 printf("Unable to read FARM data\n");
