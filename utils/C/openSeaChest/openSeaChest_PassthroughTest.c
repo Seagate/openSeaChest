@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_PassthroughTest";
-const char* buildVersion = "1.5.0";
+const char* buildVersion = "1.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -377,7 +377,10 @@ int main(int argc, char* argv[])
     //       This is not necessary on most modern systems other than UEFI.
     //       This is not used in linux so that we don't depend on libbsd
     //       Update the above #define check if we port to another OS that needs this to be done.
-    setprogname(util_name);
+    if (getprogname() == M_NULLPTR)
+    {
+        setprogname(util_name);
+    }
 #endif
 
     ////////////////////////
@@ -587,7 +590,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    atexit(print_Final_newline);
+    if (0 != atexit(print_Final_newline))
+    {
+        perror("Registering final newline print");
+    }
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -4419,11 +4425,7 @@ static eReturnValues use_Mode_Sense_6(tDevice* device, uint8_t pageCode, bool* u
     {
         // if invalid operation code, try again with 6 byte command.
         bool            tryAnotherPage = false;
-        senseDataFields senseFields;
-        safe_memset(&senseFields, sizeof(senseDataFields), 0, sizeof(senseDataFields));
-        get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-        if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST &&
-            senseFields.scsiStatusCodes.asc == 0x20 && senseFields.scsiStatusCodes.ascq == 0x00)
+        if (is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
         {
             // didn't like the operation code, so retrying with mode sense 6
             if (SUCCESS == scsi_Mode_Sense_6(device, pageCode, 0, 0, false, MPC_CURRENT_VALUES, M_NULLPTR))
@@ -4432,9 +4434,7 @@ static eReturnValues use_Mode_Sense_6(tDevice* device, uint8_t pageCode, bool* u
             }
             else
             {
-                get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-                if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST &&
-                    senseFields.scsiStatusCodes.asc == 0x20 && senseFields.scsiStatusCodes.ascq == 0x00)
+                if (is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
                 {
                     set_Console_Colors(true, ERROR_COLOR);
                     printf("ERROR: This device does not appear to support either mode sense 10 or mode sense 6!\n");
@@ -6673,11 +6673,7 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
     }
     else
     {
-        senseDataFields senseData;
-        safe_memset(&senseData, sizeof(senseDataFields), 0, sizeof(senseDataFields));
-        get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseData);
-        if (senseData.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseData.scsiStatusCodes.asc == 0x20 &&
-            senseData.scsiStatusCodes.ascq == 0x00)
+        if (is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
         {
             // Invalid operation code, so this device does not support log sense commands.
             set_Console_Colors(true, NOTE_COLOR);
@@ -6688,6 +6684,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
         {
             // Print out the sense data and a error
             printf("Error in SCSI Log test-Device returned the following sense data:\n");
+            senseDataFields senseData;
+            safe_memset(&senseData, sizeof(senseDataFields), 0, sizeof(senseDataFields));
+            get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseData);
             print_Sense_Fields(&senseData);
             printf("\n");
         }
@@ -6840,44 +6839,17 @@ typedef struct s_otherSCSICmdSupport
 
 static bool does_Sense_Data_Show_Invalid_OP(tDevice* device)
 {
-    bool            invalidOperationCode = false;
-    senseDataFields senseFields;
-    safe_memset(&senseFields, sizeof(senseDataFields), 0, sizeof(senseDataFields));
-    get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-    if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x20 &&
-        senseFields.scsiStatusCodes.ascq == 0x00)
-    {
-        invalidOperationCode = true;
-    }
-    return invalidOperationCode;
+    return is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN);
 }
 
 static bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice* device)
 {
-    bool            invalidField = false;
-    senseDataFields senseFields;
-    safe_memset(&senseFields, sizeof(senseDataFields), 0, sizeof(senseDataFields));
-    get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-    if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x24 &&
-        senseFields.scsiStatusCodes.ascq == 0x00)
-    {
-        invalidField = true;
-    }
-    return invalidField;
+    return is_Invalid_Field_In_CDB(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN);
 }
 
 // static bool does_Sense_Data_Show_Invalid_Field_In_Parameter_List(tDevice *device)
 // {
-//     bool invalidField = false;
-//     senseDataFields senseFields;
-//     safe_memset(&senseFields, sizeof(senseDataFields), 0, sizeof(senseDataFields));
-//     get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseFields);
-//     if (senseFields.scsiStatusCodes.senseKey == SENSE_KEY_ILLEGAL_REQUEST && senseFields.scsiStatusCodes.asc == 0x26
-//     && senseFields.scsiStatusCodes.ascq == 0x00)
-//     {
-//         invalidField = true;
-//     }
-//     return invalidField;
+//     return is_Invalid_Field_In_Parameter(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN);
 // }
 
 static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupport scsiCmds)
@@ -7095,7 +7067,7 @@ static eReturnValues scsi_Error_Handling_Test(tDevice* device, double* badComman
 
     printf("Average response time from 3 commands: %" PRIu64 " nanoseconds\n", averageCommandTimeNS);
 
-    device->drive_info.defaultTimeoutSeconds = 15;
+    device->drive_info.defaultTimeoutSeconds = DEFAULT_COMMAND_TIMEOUT;
 
     // now loop through 10 bad commands and check the timing and see if it got super slow
     for (uint8_t counter = UINT8_C(0);
@@ -8391,15 +8363,7 @@ static eReturnValues ata_PT_Read(tDevice* device, uint64_t lba, bool async, uint
                     {
                         // check the sense data. Make sure we didn't get told we have an invalid field in the CDB.
                         // If we do, try turning off DMA mode and retrying with PIO mode commands.
-                        uint8_t senseKey = UINT8_C(0);
-                        uint8_t asc      = UINT8_C(0);
-                        uint8_t ascq     = UINT8_C(0);
-                        uint8_t fru      = UINT8_C(0);
-                        get_Sense_Key_ASC_ASCQ_FRU(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseKey,
-                                                   &asc, &ascq, &fru);
-                        // Checking for illegal request, invalid field in CDB since this is what we've seen reported
-                        // when DMA commands are not supported.
-                        if (senseKey == SENSE_KEY_ILLEGAL_REQUEST && asc == 0x24 && ascq == 0x00)
+                        if (is_Invalid_Field_In_CDB(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
                         {
                             // turn off DMA mode
                             eATASynchronousDMAMode currentDMAMode = device->drive_info.ata_Options.dmaMode;
@@ -8524,15 +8488,7 @@ static eReturnValues ata_PT_Read(tDevice* device, uint64_t lba, bool async, uint
                         {
                             // check the sense data. Make sure we didn't get told we have an invalid field in the CDB.
                             // If we do, try turning off DMA mode and retrying with PIO mode commands.
-                            uint8_t senseKey = UINT8_C(0);
-                            uint8_t asc      = UINT8_C(0);
-                            uint8_t ascq     = UINT8_C(0);
-                            uint8_t fru      = UINT8_C(0);
-                            get_Sense_Key_ASC_ASCQ_FRU(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN,
-                                                       &senseKey, &asc, &ascq, &fru);
-                            // Checking for illegal request, invalid field in CDB since this is what we've seen reported
-                            // when DMA commands are not supported.
-                            if (senseKey == SENSE_KEY_ILLEGAL_REQUEST && asc == 0x24 && ascq == 0x00)
+                            if (is_Invalid_Field_In_CDB(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
                             {
                                 // turn off DMA mode
                                 eATASynchronousDMAMode currentDMAMode = device->drive_info.ata_Options.dmaMode;
