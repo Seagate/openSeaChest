@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Firmware";
-const char* buildVersion = "4.3.1";
+const char* buildVersion = "4.3.2";
 
 typedef enum eSeaChestFirmwareExitCodesEnum
 {
@@ -1240,7 +1240,7 @@ int main(int argc, char* argv[])
                         {
                             printf("Error reading contents of firmware file!\n");
                         }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
                     }
                     safe_free_aligned(&firmwareMem);
                 }
@@ -1255,16 +1255,27 @@ int main(int argc, char* argv[])
                         }
                         free_Secure_File_Info(&fwfile);
                     }
-                    exit(255);
+                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                 }
             }
             else
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (fwfile->error == SEC_FILE_INSECURE_PATH)
                 {
-                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_Insecure_Path_Utility_Message();
+                    }
+                    exitCode = UTIL_EXIT_INSECURE_PATH;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    }
+                    exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                }
             }
             if (fwfile)
             {

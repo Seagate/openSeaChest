@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Logs";
-const char* buildVersion = "2.6.1";
+const char* buildVersion = "2.6.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1138,6 +1138,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1184,6 +1191,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1214,6 +1228,13 @@ int main(int argc, char* argv[])
                         printf("Telemetry log not supported by this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case INSECURE_PATH:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_Insecure_Path_Utility_Message();
+                    }
+                    exitCode = UTIL_EXIT_INSECURE_PATH;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -1265,6 +1286,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1294,6 +1322,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1321,6 +1356,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1346,6 +1388,13 @@ int main(int argc, char* argv[])
                     printf("Identify Device Data Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1373,6 +1422,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1399,6 +1455,13 @@ int main(int argc, char* argv[])
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
+                break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -1424,6 +1487,13 @@ int main(int argc, char* argv[])
                     printf("SCSI Informational Exceptions Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            case INSECURE_PATH:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_Insecure_Path_Utility_Message();
+                }
+                exitCode = UTIL_EXIT_INSECURE_PATH;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)

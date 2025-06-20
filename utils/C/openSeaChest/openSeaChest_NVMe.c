@@ -42,7 +42,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_NVMe";
-const char* buildVersion = "3.0.1";
+const char* buildVersion = "3.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1140,11 +1140,22 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-                        if (VERBOSITY_QUIET < toolVerbosity)
+                        if (secureFile->error == SEC_FILE_INSECURE_PATH)
                         {
-                            printf("ERROR: failed to open file to write controller identify information\n");
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                print_Insecure_Path_Utility_Message();
+                            }
+                            exitCode = UTIL_EXIT_INSECURE_PATH;
                         }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        else
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("ERROR: failed to open file to write controller identify information\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        }
                     }
                     free_Secure_File_Info(&secureFile);
                     if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(&deviceList[deviceIter], &secureFile,
@@ -1178,11 +1189,22 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-                        if (VERBOSITY_QUIET < toolVerbosity)
+                        if (secureFile->error == SEC_FILE_INSECURE_PATH)
                         {
-                            printf("ERROR: failed to open file to write namespace information\n");
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                print_Insecure_Path_Utility_Message();
+                            }
+                            exitCode = UTIL_EXIT_INSECURE_PATH;
                         }
-                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        else
+                        {
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                printf("ERROR: failed to open file to write namespace identify information\n");
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        }
                     }
                     free_Secure_File_Info(&secureFile);
                 }
@@ -1358,11 +1380,22 @@ int main(int argc, char* argv[])
                                     }
                                     else
                                     {
-                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        if (secureFile->error == SEC_FILE_INSECURE_PATH)
                                         {
-                                            printf("ERROR: failed to write Log Page Information to file\n");
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                print_Insecure_Path_Utility_Message();
+                                            }
+                                            exitCode = UTIL_EXIT_INSECURE_PATH;
                                         }
-                                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                        else
+                                        {
+                                            if (VERBOSITY_QUIET < toolVerbosity)
+                                            {
+                                                printf("ERROR: failed to write Log Page Information to file\n");
+                                            }
+                                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                        }
                                     }
                                     if (SEC_FILE_SUCCESS != secure_Close_File(secureFile))
                                     {
@@ -1927,11 +1960,22 @@ int main(int argc, char* argv[])
             }
             else
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (fwfile->error == SEC_FILE_INSECURE_PATH)
                 {
-                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_Insecure_Path_Utility_Message();
+                    }
+                    exitCode = UTIL_EXIT_INSECURE_PATH;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    }
+                    exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                }
             }
             if (fwfile)
             {

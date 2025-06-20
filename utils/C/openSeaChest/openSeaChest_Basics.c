@@ -43,7 +43,7 @@
 ////////////////////////
 const char* util_name = "openSeaChest_Basics";
 
-const char* buildVersion = "3.7.1";
+const char* buildVersion = "3.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1680,11 +1680,22 @@ int main(int argc, char* argv[])
             }
             else
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                if (fwfile->error == SEC_FILE_INSECURE_PATH)
                 {
-                    printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_Insecure_Path_Utility_Message();
+                    }
+                    exitCode = UTIL_EXIT_INSECURE_PATH;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("Couldn't open file %s\n", DOWNLOAD_FW_FILENAME_FLAG);
+                    }
+                    exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                }
             }
             if (fwfile)
             {

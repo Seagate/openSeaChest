@@ -29,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Raw";
-const char* buildVersion = "1.0.1";
+const char* buildVersion = "1.0.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1444,7 +1444,25 @@ int main(int argc, char* argv[])
                                             printf("ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
                                         safe_free_aligned_core(C_CAST(void**, &dataBuffer));
-                                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                                        exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                    }
+                                    else if (RAW_INPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            print_Insecure_Path_Utility_Message();
+                                        }
+                                        free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                        exit(UTIL_EXIT_INSECURE_PATH);
+                                    }
+                                    else if (RAW_INPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("Couldn't open file %s\n", RAW_INPUT_FILE_NAME_FLAG);
+                                        }
+                                        free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                        exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                     }
                                     eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
                                     do
@@ -1524,6 +1542,24 @@ int main(int argc, char* argv[])
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
+                                else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        print_Insecure_Path_Utility_Message();
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_INSECURE_PATH);
+                                }
+                                else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
                             }
                             break;
                         case SUCCESS:
@@ -1545,6 +1581,24 @@ int main(int argc, char* argv[])
                                         printf("ERROR: Failed to open/create file for saving returned data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
+                                }
+                                else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        print_Insecure_Path_Utility_Message();
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_INSECURE_PATH);
+                                }
+                                else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                 }
                             }
                             break;
@@ -1578,6 +1632,24 @@ int main(int argc, char* argv[])
                                         printf("ERROR: Failed to open/create file for saving returned sense data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
+                                }
+                                else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        print_Insecure_Path_Utility_Message();
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_INSECURE_PATH);
+                                }
+                                else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                    }
+                                    free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                                 }
                             }
                             break;
@@ -1879,6 +1951,24 @@ int main(int argc, char* argv[])
                                     safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
+                                else if (RAW_INPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        print_Insecure_Path_Utility_Message();
+                                    }
+                                    free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_INSECURE_PATH);
+                                }
+                                else if (RAW_INPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Couldn't open file %s\n", RAW_INPUT_FILE_NAME_FLAG);
+                                    }
+                                    free_Secure_File_Info(&RAW_INPUT_FILE_FLAG);
+                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                }
                                 eUtilExitCodes inputfilexit = UTIL_EXIT_NO_ERROR;
                                 do
                                 {
@@ -1956,6 +2046,24 @@ int main(int argc, char* argv[])
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
+                            else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    print_Insecure_Path_Utility_Message();
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_INSECURE_PATH);
+                            }
+                            else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
                         }
                         break;
                     case SUCCESS:
@@ -1977,6 +2085,24 @@ int main(int argc, char* argv[])
                                     printf("ERROR: Failed to open/create file for saving returned data!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
+                            }
+                            else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    print_Insecure_Path_Utility_Message();
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_INSECURE_PATH);
+                            }
+                            else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
                             }
                         }
                         break;
@@ -2011,12 +2137,30 @@ int main(int argc, char* argv[])
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
+                            else if (RAW_OUTPUT_FILE_FLAG->error == SEC_FILE_INSECURE_PATH)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    print_Insecure_Path_Utility_Message();
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_INSECURE_PATH);
+                            }
+                            else if (RAW_OUTPUT_FILE_FLAG->error != SEC_FILE_SUCCESS)
+                            {
+                                if (VERBOSITY_QUIET < toolVerbosity)
+                                {
+                                    printf("Couldn't open file %s\n", RAW_OUTPUT_FILE_NAME_FLAG);
+                                }
+                                free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
+                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                            }
                         }
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("An unknown internal error occured and cannot be recovered. Sense data not "
+                            printf("An unknown internal error occurred and cannot be recovered. Sense data not "
                                    "available.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;

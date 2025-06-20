@@ -40,7 +40,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Configure";
-const char* buildVersion = "2.9.1";
+const char* buildVersion = "2.9.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -4261,11 +4261,22 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
+                    if (modePageFile->error == SEC_FILE_INSECURE_PATH)
                     {
-                        printf("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_Insecure_Path_Utility_Message();
+                        }
+                        exitCode = UTIL_EXIT_INSECURE_PATH;
                     }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                        }
+                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                    }
                 }
                 free_Secure_File_Info(&modePageFile);
             }
