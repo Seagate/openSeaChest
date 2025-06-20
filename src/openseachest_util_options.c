@@ -77,13 +77,6 @@ void print_Bug_Report_Email(bool shortHelp)
     }
 }
 
-static M_INLINE void print_Insecure_Path_Utility_Message(void)
-{
-    printf("ERROR: Path to write file is not secure. See the openSeaChest Wiki\n");
-    printf("       at https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path\n");
-    printf("       for more information on securing each directory in your path.\n");
-}
-
 M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosityLevels* verbosity)
 {
     bool set = false;

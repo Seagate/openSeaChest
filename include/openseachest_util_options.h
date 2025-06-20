@@ -70,6 +70,13 @@ extern "C"
             32, // Use this value in a tool to start the tool's specific error code enumeration
     } eUtilExitCodes;
 
+    static M_INLINE void print_Insecure_Path_Utility_Message(void)
+    {
+        printf("ERROR: Path to write file is not secure. See the openSeaChest Wiki\n");
+        printf("       at https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path\n");
+        printf("       for more information on securing each directory in your path.\n");
+    }
+
     typedef enum eOutputModeEnum
     {
         UTIL_OUTPUT_MODE_HUMAN = 0,
