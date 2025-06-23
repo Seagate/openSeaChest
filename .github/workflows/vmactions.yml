@@ -59,8 +59,8 @@ jobs:
       matrix:
         config:
         - {
-            name: "FreeBSD 14.2",
-            releasename: "14.2",
+            name: "FreeBSD 14.3",
+            releasename: "14.3",
             arch: "x86_64",
           }
         # - {
