@@ -8146,6 +8146,25 @@ static bool test_Legacy_ATA_Passthrough(ptrPassthroughTestParams inputs, ptrScsi
         case ATA_PASSTHROUGH_PSP:
             printf("PSP\n");
             break;
+        case ATA_PASSTHROUGH_JMICRON:
+            printf("JMicron\n");
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly           = true;
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands = true;
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: ATA28\n");
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            break;
+        case ATA_PASSTHROUGH_JMICRON_PROLIFIC:
+            printf("JMicron-Prolific\n");
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly           = true;
+            inputs->device->drive_info.passThroughHacks.ataPTHacks.noMultipleModeCommands = true;
+            set_Console_Colors(true, HACK_COLOR);
+            printf("HACK FOUND: ATA28\n");
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            break;
+        case ATA_PASSTHROUGH_SUNPLUS:
+            printf("Sunplus\n");
+            break;
         default:
             printf("Unknown legacy device type! This means the passthrough test code needs updating!\n");
             break;
