@@ -1250,13 +1250,11 @@ int main(int argc, char* argv[])
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
-            uint32_t numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
-            uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes);
+            uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats));
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
             if (formats != M_NULLPTR)
             {
                 safe_memset(formats, memSize, 0, memSize);
-                formats->numberOfSectorSizes = numberOfSectorSizes;
                 switch (get_Supported_Formats(&deviceList[deviceIter], formats))
                 {
                 case SUCCESS:
