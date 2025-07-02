@@ -980,7 +980,7 @@ void print_Long_DST_Help(bool shortHelp, const char* helpcommandWindowType)
 
 void print_SMART_Attributes_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | hybrid | analyzed | json]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
+    printf("\t--%s [raw | hybrid | analyzed]\t(SATA Only)\n", SMART_ATTRIBUTES_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tThe drive will display its list of supported SMART attributes.\n");
@@ -1008,7 +1008,7 @@ void print_SMART_Attributes_Help(bool shortHelp)
 
 void print_Show_FARM_Help(bool shortHelp)
 {
-    printf("\t--%s [raw | json]\n", SHOW_FARM_LONG_OPT_STRING);
+    printf("\t--%s\n", SHOW_FARM_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option to show the data in the FARM log.\n");

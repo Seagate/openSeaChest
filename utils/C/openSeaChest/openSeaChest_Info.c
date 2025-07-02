@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     SHOW_PHY_EVENT_COUNTERS_VAR
     REINITIALIZE_SATA_PHY_EVENTS_VAR
     REINITIALIZE_DEV_STATS_VARS
-    OUTPUT_MODE_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
@@ -153,11 +153,10 @@ int main(int argc, char* argv[])
         SHOW_CONCURRENT_RANGES_LONG_OPT,
         PARTITION_INFO_LONG_OPT,
         SHOW_PHY_EVENT_COUNTERS_LONG_OPT,
-        OUTPUT_MODE_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
-
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
 #if defined(UEFI_C_SOURCE)
@@ -205,10 +204,6 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "hybrid") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_JSON;
                 }
                 else
                 {
@@ -298,18 +293,6 @@ int main(int argc, char* argv[])
                 if (!optargIsValid)
                 {
                     print_Error_In_Cmd_Line_Args(REINITIALIZE_DEV_STATS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
-            }
-            else if (strcmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING) == 0)
-            {
-                if (strcmp(optarg, "json") == 0)
-                {
-                    OUTPUT_MODE_IDENTIFIER = UTIL_OUTPUT_MODE_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -758,8 +741,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -992,7 +974,7 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            if (SMART_ATTRIBUTES_MODE_FLAG == SMART_ATTR_OUTPUT_JSON)
+            if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
                 switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
@@ -1054,11 +1036,6 @@ int main(int argc, char* argv[])
             {
             case SUCCESS:
             {
-                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
-                {
-                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
-                }
-
                 // if supported then print Seagate Device Statistics also
                 bool                    seagateDeviceStatisticsAvailable = false;
                 seagateDeviceStatistics seagateDeviceStats;
@@ -1068,14 +1045,10 @@ int main(int argc, char* argv[])
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
                     {
                         seagateDeviceStatisticsAvailable = true;
-                        if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
-                        {
-                            print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
-                        }
                     }
                 }
 
-                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_JSON)
+                if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
                     ret = create_JSON_Output_For_Device_Statistics(&deviceList[deviceIter], &deviceStats,
@@ -1096,6 +1069,12 @@ int main(int argc, char* argv[])
                     }
 
                     safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                    if (seagateDeviceStatisticsAvailable)
+                        print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
                 }
             }
             break;

@@ -37,8 +37,8 @@
 #include "seagate_operations.h"
 #include "set_max_lba.h"
 #include "smart.h"
-#include "trim_unmap.h"
 #include "smart_attribute_json.h"
+#include "trim_unmap.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
     SHOW_CONCURRENT_RANGES_VAR
     LOWLEVEL_INFO_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -148,7 +149,7 @@ int main(int argc, char* argv[])
         CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT,
         CHANGE_ID_STRING_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -204,10 +205,10 @@ int main(int argc, char* argv[])
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
         SHOW_CONCURRENT_RANGES_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
-
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
 #if defined(UEFI_C_SOURCE)
@@ -557,10 +558,6 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "hybrid") == 0)
                 {
                     SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_JSON;
                 }
                 else
                 {
@@ -1043,8 +1040,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1448,7 +1444,7 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            if (SMART_ATTRIBUTES_MODE_FLAG == SMART_ATTR_OUTPUT_JSON)
+            if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
                 switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))

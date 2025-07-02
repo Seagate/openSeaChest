@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
     NVME_HEALTH_VAR
     LOWLEVEL_INFO_VAR
     SMART_OFFLINE_SCAN_VAR
-    OUTPUT_MODE_VAR
-    SHOW_FARM_VARS
+    SHOW_FARM_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -193,12 +193,11 @@ int main(int argc, char* argv[])
         DEVICE_STATISTICS_LONG_OPT,
         NVME_HEALTH_LONG_OPT,
         SMART_OFFLINE_SCAN_LONG_OPT,
-        OUTPUT_MODE_LONG_OPT,
         SHOW_FARM_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
-
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
 #if defined(UEFI_C_SOURCE)
@@ -245,18 +244,6 @@ int main(int argc, char* argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(CONFIRM_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
-            }
-            else if (strcmp(longopts[optionIndex].name, OUTPUT_MODE_LONG_OPT_STRING) == 0)
-            {
-                if (strcmp(optarg, "json") == 0)
-                {
-                    OUTPUT_MODE_IDENTIFIER = UTIL_OUTPUT_MODE_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(OUTPUT_MODE_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -328,44 +315,26 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING) == 0)
             {
-                SMART_ATTRIBUTES_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "analyzed") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
-                }
-                else if (strcmp(optarg, "hybrid") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-                }
-            }
-            else if (strcmp(longopts[optionIndex].name, SHOW_FARM_LONG_OPT_STRING) == 0)
-            {
-                SHOW_FARM_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
-                {
-                    SHOW_FARM_MODE_FLAG = FARM_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_FARM_MODE_FLAG = FARM_OUTPUT_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_FARM_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
+                    }
+                    else if (strcmp(optarg, "analyzed") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                    }
+                    else if (strcmp(optarg, "hybrid") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SMART_FEATURE_LONG_OPT_STRING) == 0)
@@ -1206,9 +1175,7 @@ int main(int argc, char* argv[])
             switch (read_FARM_Data(&deviceList[deviceIter], &farmdata))
             {
             case SUCCESS:
-                if (SHOW_FARM_MODE_FLAG == FARM_OUTPUT_RAW)
-                    print_FARM_Data(&farmdata);
-                else
+                if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
                     switch (create_JSON_Output_For_FARM(&deviceList[deviceIter], &farmdata, &jsonFormatOutput))
@@ -1228,6 +1195,8 @@ int main(int argc, char* argv[])
                     }
                     safe_free(&jsonFormatOutput);
                 }
+                else
+                    print_FARM_Data(&farmdata);
                 break;
             default:
                 printf("Unable to read FARM data\n");
@@ -1343,7 +1312,7 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            if (SMART_ATTRIBUTES_MODE_FLAG == SMART_ATTR_OUTPUT_JSON)
+            if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
                 switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
@@ -2231,11 +2200,6 @@ int main(int argc, char* argv[])
             {
             case SUCCESS:
             {
-                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
-                {
-                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
-                }
-
                 // if supported then print Seagate Device Statistics also
                 bool                    seagateDeviceStatisticsAvailable = false;
                 seagateDeviceStatistics seagateDeviceStats;
@@ -2245,14 +2209,10 @@ int main(int argc, char* argv[])
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
                     {
                         seagateDeviceStatisticsAvailable = true;
-                        if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
-                        {
-                            print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
-                        }
                     }
                 }
 
-                if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_JSON)
+                if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
                     ret = create_JSON_Output_For_Device_Statistics(&deviceList[deviceIter], &deviceStats,
@@ -2273,6 +2233,12 @@ int main(int argc, char* argv[])
                     }
 
                     safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
+                    if (seagateDeviceStatisticsAvailable)
+                        print_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats);
                 }
             }
             break;
