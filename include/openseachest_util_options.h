@@ -64,6 +64,7 @@ extern "C"
         // More generic exit codes go here
         UTIL_EXIT_NO_DEVICE,
         UTIL_EXIT_DEVICE_BUSY,
+        UTIL_EXIT_INSECURE_PATH,
         // Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE =
             32, // Use this value in a tool to start the tool's specific error code enumeration

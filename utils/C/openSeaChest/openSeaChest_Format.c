@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.3.0";
+const char* buildVersion = "3.3.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -504,8 +504,23 @@ int main(int argc, char* argv[])
                                 }
                                 else
                                 {
-                                    printf("Unable to open file \"%s\" for pattern\n", colonLocation);
-                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                    if (fileinfo->error == SEC_FILE_INSECURE_PATH)
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            print_Insecure_Path_Utility_Message();
+                                        }
+                                        exitCode = UTIL_EXIT_INSECURE_PATH;
+                                    }
+                                    else
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("Unable to open file \"%s\" for pattern\n", colonLocation);
+                                        }
+                                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                                    }
+                                    exit(exitCode);
                                 }
                                 if (SEC_FILE_SUCCESS == secure_Close_File(fileinfo))
                                 {
