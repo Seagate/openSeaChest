@@ -1197,18 +1197,29 @@ int main(int argc, char* argv[])
                             {
                                 printf("ERROR: failed to open file to write namespace identify information\n");
                             }
-                            exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                            exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
                         }
                     }
                     free_Secure_File_Info(&secureFile);
                 }
                 else
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
+                    if (secureFile->error == SEC_FILE_INSECURE_PATH)
                     {
-                        printf("ERROR: failed to open file to write controller information\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_Insecure_Path_Utility_Message();
+                        }
+                        exitCode = UTIL_EXIT_INSECURE_PATH;
                     }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("ERROR: failed to open file to write controller identify information\n");
+                        }
+                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                    }
                 }
                 free_Secure_File_Info(&secureFile);
             }
@@ -1398,11 +1409,22 @@ int main(int argc, char* argv[])
                                 }
                                 else
                                 {
-                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    if (secureFile->error == SEC_FILE_INSECURE_PATH)
                                     {
-                                        printf("ERROR: failed to open file to write Log Page Information\n");
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            print_Insecure_Path_Utility_Message();
+                                        }
+                                        exitCode = UTIL_EXIT_INSECURE_PATH;
                                     }
-                                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                                    else
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("ERROR: failed to open file to write Log Page Information\n");
+                                        }
+                                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                                    }
                                 }
                                 free_Secure_File_Info(&secureFile);
                             }
