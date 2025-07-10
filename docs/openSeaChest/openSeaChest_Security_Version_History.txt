@@ -219,3 +219,10 @@ v3.5.1  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Fixed parsing some CLI options to allow empty units like previous versions.
                      Added explicit zeroes to clear all memory holding passwords before exit. Many cases were
                      already covered, but a few more were added.
+v3.5.2  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Added new exit code for when paths are detected as insecure to be resolved by the user before
+                     files will be accessed in these directories (see https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path).
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

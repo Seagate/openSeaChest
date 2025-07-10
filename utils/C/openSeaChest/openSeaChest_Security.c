@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Security";
-const char* buildVersion = "3.5.1";
+const char* buildVersion = "3.5.2";
 
 typedef enum eSeaChestSecurityExitCodesEnum
 {

@@ -282,3 +282,10 @@ v4.7.1  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Added additional logic to --performQuickestErase so that it can handle when certain commands
                      are not allowed on a given adapter or OS to choose a different option.
                      Fixed a logic error with TRIM/Deallocate commands to NVMe devices in Windows.
+v4.7.3  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Added new exit code for when paths are detected as insecure to be resolved by the user before
+                     files will be accessed in these directories (see https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path).
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.
