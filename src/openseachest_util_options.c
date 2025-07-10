@@ -3655,6 +3655,27 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
     }
 }
 
+void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp)
+{
+    printf("\t--%s [element #] (Zoned Only)\n", REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to remove a storage element and modify zones\n");
+        printf("\t\tfrom use on a Zoned drive (ZBD). When this is done, the\n");
+        printf("\t\tdrive will erase all user data and lower the\n");
+        printf("\t\tcapacity to a new point where the drive is still\n");
+        printf("\t\tusable without the provided element #.\n");
+        printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+        printf("\t\tof the depopulation operation.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+
 void print_Depop_MaxLBA_Help(bool shortHelp)
 {
     printf("\t--%s [requested MaxLBA]\n", DEPOP_MAX_LBA_LONG_OPT_STRING);

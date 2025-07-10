@@ -2327,6 +2327,15 @@ extern "C"
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                       \
     }
 
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG                                                                         \
+    removePhysicalElementModifyZones // zero means not set and is not a valid element. Must be non-zero
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_VAR             uint32_t REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG = UINT32_C(0);
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING "removeElementModifyZones"
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT                                                                     \
+    {                                                                                                                  \
+        REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                             \
+    }
+
 #define REPOPULATE_ELEMENTS_FLAG            repopulateElements
 #define REPOPULATE_ELEMENTS_VAR             getOptBool REPOPULATE_ELEMENTS_FLAG = goFalse;
 #define REPOPULATE_ELEMENTS_LONG_OPT_STRING "repopulateElements"
@@ -4818,6 +4827,8 @@ extern "C"
     void print_Show_Physical_Element_Status_Help(bool shortHelp);
 
     void print_Remove_Physical_Element_Status_Help(bool shortHelp);
+
+    void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp);
 
     void print_Depop_MaxLBA_Help(bool shortHelp);
 
