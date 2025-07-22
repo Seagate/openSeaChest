@@ -25,7 +25,7 @@ skip_sanity_check = true
 [host_machine]
 system = 'linux'
 cpu_family = 'ppc64'
-cpu = ''
+cpu = 'powerpc64'
 endian = 'big'
 
 [built-in options]

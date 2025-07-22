@@ -25,7 +25,7 @@ skip_sanity_check = true
 [host_machine]
 system = 'linux'
 cpu_family = 's390x'
-cpu = ''
+cpu = 's390x'
 endian = 'big'
 
 [built-in options]
