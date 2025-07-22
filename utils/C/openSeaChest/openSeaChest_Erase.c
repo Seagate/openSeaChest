@@ -2568,7 +2568,7 @@ int main(int argc, char* argv[])
                     printf("may not be handling the sanitize in progress state correctly. If this happens\n");
                     printf("the next best thing to do is leave the drive powered on with the interface\n");
                     printf("cable(SATA / SAS HBA cable) disconnected. Sanitize will continue running\n");
-                    printf("while the drive is powered onand the system will no longer be able to\n");
+                    printf("while the drive is powered on and the system will no longer be able to\n");
                     printf("interrupt or slow down the sanitize operation.\n");
                     printf("NOTE: On an HDD, the approximate overwrite time is 1.5-2 hours per terabyte\n");
                     printf("      of the native capacity of the drive. Reduced size for maxLBA does not\n");
