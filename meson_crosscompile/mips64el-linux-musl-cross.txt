@@ -25,7 +25,7 @@ skip_sanity_check = true
 [host_machine]
 system = 'linux'
 cpu_family = 'mips64'
-cpu = ''
+cpu = 'mips64el'
 endian = 'little'
 
 [built-in options]

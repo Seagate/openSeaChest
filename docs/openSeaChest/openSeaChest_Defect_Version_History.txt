@@ -24,4 +24,7 @@ v1.0.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      the exit code is not set to 0 (success) when all the devices were skipped.
                      Implemented a workaround for old drives that support both read long/write long and the
                      write uncorrectable ext commands, but fail write uncorrectable to retry as needed.
-                     
+v1.0.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.3.0";
+const char* buildVersion = "3.4.0";
 
 ////////////////////////////
 //  functions to declare  //
@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
     SET_SECTOR_SIZE_VARS
     SHOW_PHYSICAL_ELEMENT_STATUS_VAR
     REMOVE_PHYSICAL_ELEMENT_VAR
+    REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_VAR
     REPOPULATE_ELEMENTS_VAR
     DEPOP_MAX_LBA_VAR
     NVM_FORMAT_VARS
@@ -164,6 +165,7 @@ int main(int argc, char* argv[])
         SHOW_SUPPORTED_FORMATS_LONG_OPT,
         SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT,
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
+        REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT,
         REPOPULATE_ELEMENTS_LONG_OPT,
         DEPOP_MAX_LBA_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
@@ -350,13 +352,21 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
-            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) ==
-                     0) // REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING
+            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING) == 0)
             {
                 if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
                                                            &REMOVE_PHYSICAL_ELEMENT_FLAG))
                 {
                     print_Error_In_Cmd_Line_Args(REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint32(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -504,8 +514,23 @@ int main(int argc, char* argv[])
                                 }
                                 else
                                 {
-                                    printf("Unable to open file \"%s\" for pattern\n", colonLocation);
-                                    exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                    if (fileinfo->error == SEC_FILE_INSECURE_PATH)
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            print_Insecure_Path_Utility_Message();
+                                        }
+                                        exitCode = UTIL_EXIT_INSECURE_PATH;
+                                    }
+                                    else
+                                    {
+                                        if (VERBOSITY_QUIET < toolVerbosity)
+                                        {
+                                            printf("Unable to open file \"%s\" for pattern\n", colonLocation);
+                                        }
+                                        exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                                    }
+                                    exit(exitCode);
                                 }
                                 if (SEC_FILE_SUCCESS == secure_Close_File(fileinfo))
                                 {
@@ -866,7 +891,9 @@ int main(int argc, char* argv[])
           // check for other tool specific options here
           || FORMAT_UNIT_FLAG || DISPLAY_LBA_FLAG || (PROGRESS_CHAR != M_NULLPTR) || SHOW_FORMAT_STATUS_LOG_FLAG ||
           SET_SECTOR_SIZE_FLAG || SHOW_SUPPORTED_FORMATS_FLAG || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG ||
-          REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG || NVM_FORMAT_FLAG))
+          REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG || NVM_FORMAT_FLAG ||
+          REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0
+          ))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -920,7 +947,8 @@ int main(int argc, char* argv[])
         flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
     }
 
-    if (SET_SECTOR_SIZE_FLAG || FAST_FORMAT_FLAG || REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG)
+    if (SET_SECTOR_SIZE_FLAG || FAST_FORMAT_FLAG || REMOVE_PHYSICAL_ELEMENT_FLAG > 0 ||
+        REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG)
     {
         flags |= HANDLE_REQUIRE_EXCLUSIVE_ACCESS;
     }
@@ -1041,8 +1069,8 @@ int main(int argc, char* argv[])
     }
     free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
 
-    if (SET_SECTOR_SIZE_FLAG || REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG ||
-        (FORMAT_UNIT_FLAG && FAST_FORMAT_FLAG))
+    if (SET_SECTOR_SIZE_FLAG || REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0 ||
+        REPOPULATE_ELEMENTS_FLAG || (FORMAT_UNIT_FLAG && FAST_FORMAT_FLAG))
     {
         // These options all do a low-level format that has a risk of leaving the drive inoperable if it is interrupted.
         // Warn the user one last time and provide 30 seconds to cancel the operation
@@ -1388,16 +1416,19 @@ int main(int argc, char* argv[])
                     ptrPhysicalElement elementList = M_REINTERPRET_CAST(
                         ptrPhysicalElement, safe_malloc(numberOfDescriptors * sizeof(physicalElement)));
                     uint32_t depopElementID = UINT32_C(0);
-                    uint16_t maxDepop = UINT16_C(0);
-                    uint16_t currentDepop = UINT16_C(0);
+                    uint16_t maxDepop       = UINT16_C(0);
+                    uint16_t currentDepop   = UINT16_C(0);
                     if (elementList)
                     {
                         safe_memset(elementList, numberOfDescriptors * sizeof(physicalElement), 0,
                                     numberOfDescriptors * sizeof(physicalElement));
-                        if (SUCCESS ==
-                            get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors, &depopElementID, &maxDepop, &currentDepop, elementList))
+                        if (SUCCESS == get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors,
+                                                                          &depopElementID, &maxDepop, &currentDepop,
+                                                                          elementList))
                         {
-                            show_Physical_Element_Descriptors_2(numberOfDescriptors, elementList, depopTime, depopElementID, maxDepop, currentDepop);
+                            printf("Depop time (Dec/Hex): %" PRIu64 "/%" PRIX64 "h\n", depopTime, depopTime);
+                            show_Physical_Element_Descriptors_2(numberOfDescriptors, elementList, depopTime,
+                                                                depopElementID, maxDepop, currentDepop);
                         }
                         else
                         {
@@ -1718,32 +1749,60 @@ int main(int argc, char* argv[])
             }
         }
 
-        if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0)
+        if (REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0)
         {
             if (LOW_LEVEL_FORMAT_FLAG)
             {
                 bool depopSupport = is_Depopulation_Feature_Supported(&deviceList[deviceIter], M_NULLPTR);
                 if (depopSupport)
                 {
-                    switch (perform_Depopulate_Physical_Element(&deviceList[deviceIter], REMOVE_PHYSICAL_ELEMENT_FLAG,
-                                                                DEPOP_MAX_LBA_FLAG, POLL_FLAG))
+                    bool     modifyZones = false;
+                    uint32_t elementID   = REMOVE_PHYSICAL_ELEMENT_FLAG;
+                    if (REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0)
+                    {
+                        elementID   = REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG;
+                        modifyZones = true;
+                    }
+                    switch (perform_Depopulate_Physical_Element2(&deviceList[deviceIter], elementID, DEPOP_MAX_LBA_FLAG,
+                                                                 POLL_FLAG, modifyZones))
                     {
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             if (POLL_FLAG)
                             {
-                                printf("Successfully depopulated physical element %" PRIu32 "!\n",
-                                       REMOVE_PHYSICAL_ELEMENT_FLAG);
+                                if (modifyZones)
+                                {
+                                    printf("Successfully depopulated physical element %" PRIu32
+                                           " and modified zones!\n",
+                                           elementID);
+                                }
+                                else
+                                {
+                                    printf("Successfully depopulated physical element %" PRIu32 "!\n", elementID);
+                                }
                             }
                             else
                             {
-                                printf("Successfully started depopulation for physical element %" PRIu32 "!\n",
-                                       REMOVE_PHYSICAL_ELEMENT_FLAG);
-                                printf("The device may take a long time before it is ready to accept all commands "
-                                       "again.\n");
-                                printf("Use \"--%s depop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING,
-                                       SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                                if (modifyZones)
+                                {
+                                    printf("Successfully started depopulation for physical element %" PRIu32
+                                           " and modifying zones!\n",
+                                           elementID);
+                                    printf("The device may take a long time before it is ready to accept all commands "
+                                           "again.\n");
+                                    printf("Use \"--%s depop\" or \"--%s\" to check progress.\n",
+                                           PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                                }
+                                else
+                                {
+                                    printf("Successfully started depopulation for physical element %" PRIu32 "!\n",
+                                           elementID);
+                                    printf("The device may take a long time before it is ready to accept all commands "
+                                           "again.\n");
+                                    printf("Use \"--%s depop\" or \"--%s\" to check progress.\n",
+                                           PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+                                }
                             }
                             if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                             {
@@ -1769,7 +1828,7 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to depopulate element %" PRIu32 ".\n", REMOVE_PHYSICAL_ELEMENT_FLAG);
+                            printf("Failed to depopulate element %" PRIu32 ".\n", elementID);
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2130,6 +2189,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_FORMAT_STATUS_LOG_LONG_OPT_STRING);
@@ -2218,6 +2278,7 @@ void utility_Usage(bool shortUsage)
     // utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
     print_Remove_Physical_Element_Status_Help(shortUsage);
+    print_Remove_Physical_Element_And_Modify_Zones_Help(shortUsage);
     print_Repopulate_Elements_Help(shortUsage);
     print_Set_Sector_Size_Help(shortUsage);
     printf("\n\tSAS Only:\n\t=========\n");
