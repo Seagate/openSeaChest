@@ -24,3 +24,8 @@ v0.4.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Fixed exit code when -d all or --modelMatch are used but all devices are skipped so that 
                      the exit code is not set to 0 (success) when all the devices were skipped.
                      Fixed parsing some CLI options to allow empty units like previous versions.
+v0.4.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

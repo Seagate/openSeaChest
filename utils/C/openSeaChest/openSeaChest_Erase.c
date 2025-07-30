@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.1";
+const char* buildVersion = "4.7.3";
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -845,8 +845,22 @@ int main(int argc, char* argv[])
                             }
                             else
                             {
-                                printf("Unable to open file \"%s\" for pattern\n", colonLocation);
-                                exit(UTIL_EXIT_CANNOT_OPEN_FILE);
+                                if (fileinfo->error == SEC_FILE_INSECURE_PATH)
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        print_Insecure_Path_Utility_Message();
+                                    }
+                                    exitCode = UTIL_EXIT_INSECURE_PATH;
+                                }
+                                else
+                                {
+                                    if (VERBOSITY_QUIET < toolVerbosity)
+                                    {
+                                        printf("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                                    }
+                                    exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
+                                }
                             }
                             if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
                             {
@@ -2554,7 +2568,7 @@ int main(int argc, char* argv[])
                     printf("may not be handling the sanitize in progress state correctly. If this happens\n");
                     printf("the next best thing to do is leave the drive powered on with the interface\n");
                     printf("cable(SATA / SAS HBA cable) disconnected. Sanitize will continue running\n");
-                    printf("while the drive is powered onand the system will no longer be able to\n");
+                    printf("while the drive is powered on and the system will no longer be able to\n");
                     printf("interrupt or slow down the sanitize operation.\n");
                     printf("NOTE: On an HDD, the approximate overwrite time is 1.5-2 hours per terabyte\n");
                     printf("      of the native capacity of the drive. Reduced size for maxLBA does not\n");

@@ -231,3 +231,13 @@ v4.3.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Fixed a crash when reading/writing files located at / in unix-like systems.
                      Fixed exit code when -d all or --modelMatch are used but all devices are skipped so that 
                      the exit code is not set to 0 (success) when all the devices were skipped.
+v4.3.2  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Added new exit code for when paths are detected as insecure to be resolved by the user before
+                     files will be accessed in these directories (see https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path).
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Fixed incorrect protocol specified in ATA download microcode passthrough command. This causes firmware updates
+                     to hang when the device does not support the download DMA command.
+                     Fixed NVMe firmware update in Windows 11 23H2 and 24H2.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

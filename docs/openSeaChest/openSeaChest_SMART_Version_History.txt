@@ -243,3 +243,8 @@ v2.6.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Added new option --showFarm to output parsed FARM logs on Seagate SATA and SAS HDDs.
                      --deviceStatistics now shows ^ for any statistics that can be reset.
                      Updated Seagate HDD SMART attributes output for revision Bh.
+v2.6.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.
