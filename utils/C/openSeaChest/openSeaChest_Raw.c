@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -725,19 +725,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -748,7 +748,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -761,7 +761,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -796,7 +796,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -805,7 +805,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -830,7 +830,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -955,7 +955,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -974,7 +974,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -988,7 +988,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -1000,7 +1000,7 @@ int main(int argc, char* argv[])
 
     if ((RAW_TFR_COMMAND || RAW_TFR_SIZE_FLAG > 0) && (RAW_CDB_LEN_FLAG > 0 && !is_Empty(RAW_CDB_ARRAY, UINT8_MAX)))
     {
-        printf("\nError: CDB or TFR. Both were specified, but only one is allowed at a time by this utility.\n");
+        print_str("\nError: CDB or TFR. Both were specified, but only one is allowed at a time by this utility.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -1023,7 +1023,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -1067,21 +1067,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1251,7 +1251,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1260,7 +1260,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1286,7 +1286,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1366,7 +1366,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Failed to allocate memory for data in command!\n");
+                                    print_str("ERROR: Failed to allocate memory for data in command!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -1378,7 +1378,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: An input file is required for a data out command!\n");
+                                    print_str("ERROR: An input file is required for a data out command!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -1428,7 +1428,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to allocate memory for data in command!\n");
+                                        print_str("ERROR: Failed to allocate memory for data in command!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
@@ -1441,7 +1441,7 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("ERROR: Failed to open file for reading data to send to drive!\n");
+                                            print_str("ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
                                         safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -1471,7 +1471,7 @@ int main(int argc, char* argv[])
                                         {
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("ERROR: Failed to seek to specified offset in file!\n");
+                                                print_str("ERROR: Failed to seek to specified offset in file!\n");
                                             }
                                             inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                             break;
@@ -1496,7 +1496,7 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("ERROR: Unable to close handle to input file!\n");
+                                            print_str("ERROR: Unable to close handle to input file!\n");
                                         }
                                         inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                     }
@@ -1512,7 +1512,7 @@ int main(int argc, char* argv[])
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: Unknown Data Direction. Utility Failure!\n");
+                                print_str("ERROR: Unknown Data Direction. Utility Failure!\n");
                             }
                             exit(UTIL_EXIT_OPERATION_FAILURE);
                             break;
@@ -1526,7 +1526,7 @@ int main(int argc, char* argv[])
                         case IN_PROGRESS: // separate case so we can save the sense data
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Command completed with an in progress status\n");
+                                print_str("Command completed with an in progress status\n");
                             }
                             // check for an output file to open and save the data to if, if it's a data in transfer
                             if (RAW_OUTPUT_FILE_NAME_FLAG)
@@ -1538,7 +1538,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to open/create file for saving returned data!\n");
+                                        print_str("ERROR: Failed to open/create file for saving returned data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
@@ -1566,7 +1566,7 @@ int main(int argc, char* argv[])
                             showSenseData = false; // no need to show the sense data or save it...
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Command completed with good status\n");
+                                print_str("Command completed with good status\n");
                             }
                             // check for an output file to open and save the data to if, if it's a data in transfer
                             if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
@@ -1578,7 +1578,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to open/create file for saving returned data!\n");
+                                        print_str("ERROR: Failed to open/create file for saving returned data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
@@ -1606,7 +1606,7 @@ int main(int argc, char* argv[])
                         case OS_PASSTHROUGH_FAILURE:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Operation not supported by low level driver or HBA.\n");
+                                print_str("Operation not supported by low level driver or HBA.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
@@ -1616,7 +1616,7 @@ int main(int argc, char* argv[])
                         case FROZEN:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Command completed with a failing status. See sense data.\n");
+                                print_str("Command completed with a failing status. See sense data.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             // check for an output file to open and save the data to if, if it's a data in transfer
@@ -1629,7 +1629,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to open/create file for saving returned sense data!\n");
+                                        print_str("ERROR: Failed to open/create file for saving returned sense data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
@@ -1673,7 +1673,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error writing data to a file!\n");
+                                        print_str("Error writing data to a file!\n");
                                     }
                                     exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                                 }
@@ -1688,7 +1688,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Error writing sense data to a file!\n");
+                                        print_str("Error writing sense data to a file!\n");
                                     }
                                     exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                                 }
@@ -1697,7 +1697,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Error flushing data!\n");
+                                    print_str("Error flushing data!\n");
                                 }
                                 exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
@@ -1708,7 +1708,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Unable to close handle to output file!\n");
+                                        print_str("ERROR: Unable to close handle to output file!\n");
                                     }
                                 }
                                 free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
@@ -1718,14 +1718,14 @@ int main(int argc, char* argv[])
                         // show the returned data on data in commands when verbosity is less than 3
                         if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN && toolVerbosity < VERBOSITY_BUFFERS)
                         {
-                            printf("\nReturned Data:\n");
+                            print_str("\nReturned Data:\n");
                             print_Data_Buffer(dataBuffer, allocatedDataLength, true);
                         }
 
                         // show the sense data if the flag is set and verbosity is less than 3
                         if (toolVerbosity < VERBOSITY_BUFFERS && showSenseData)
                         {
-                            printf("\nSense Data:\n");
+                            print_str("\nSense Data:\n");
                             print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN,
                                               true);
                         }
@@ -1735,7 +1735,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("ERROR: Data Length is required for data in and data out commands!\n");
+                            print_str("ERROR: Data Length is required for data in and data out commands!\n");
                         }
                         exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                     }
@@ -1744,7 +1744,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: Data Direction was not given!\n");
+                        print_str("ERROR: Data Direction was not given!\n");
                     }
                     exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 }
@@ -1753,7 +1753,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: CDB Length not given!\n");
+                    print_str("ERROR: CDB Length not given!\n");
                 }
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             }
@@ -1824,7 +1824,7 @@ int main(int argc, char* argv[])
                 passthroughCommand.commandType = ATA_CMD_TYPE_COMPLETE_TASKFILE;
                 break;
             default:
-                passthroughCommand.commandType = ATA_CMD_TYPE_UNKNOWN;
+                passthroughCommand.commandType = ATA_CMD_TYPE_EXTENDED_TASKFILE;
                 break;
             }
 
@@ -1891,7 +1891,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: Failed to allocate memory for data in command!\n");
+                                print_str("ERROR: Failed to allocate memory for data in command!\n");
                             }
                             exit(UTIL_EXIT_OPERATION_FAILURE);
                         }
@@ -1903,7 +1903,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: An input file is required for a data out command!\n");
+                                print_str("ERROR: An input file is required for a data out command!\n");
                             }
                             exit(UTIL_EXIT_OPERATION_FAILURE);
                         }
@@ -1933,7 +1933,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Failed to allocate memory for data in command!\n");
+                                    print_str("ERROR: Failed to allocate memory for data in command!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -1946,7 +1946,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Failed to open file for reading data to send to drive!\n");
+                                        print_str("ERROR: Failed to open file for reading data to send to drive!\n");
                                     }
                                     safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -1976,7 +1976,7 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("ERROR: Failed to seek to specified offset in file!\n");
+                                            print_str("ERROR: Failed to seek to specified offset in file!\n");
                                         }
                                         inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                         break;
@@ -2001,7 +2001,7 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: Unable to close handle to input file!\n");
+                                        print_str("ERROR: Unable to close handle to input file!\n");
                                     }
                                     inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -2017,7 +2017,7 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("ERROR: Unknown Data Direction. Utility Failure!\n");
+                            print_str("ERROR: Unknown Data Direction. Utility Failure!\n");
                         }
                         exit(UTIL_EXIT_OPERATION_FAILURE);
                         break;
@@ -2030,7 +2030,7 @@ int main(int argc, char* argv[])
                     case IN_PROGRESS: // separate case so we can save the sense data
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Command completed with an in progress status\n");
+                            print_str("Command completed with an in progress status\n");
                         }
                         // check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG)
@@ -2042,7 +2042,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Failed to open/create file for saving returned data!\n");
+                                    print_str("ERROR: Failed to open/create file for saving returned data!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -2070,7 +2070,7 @@ int main(int argc, char* argv[])
                         showSenseData = false; // no need to show the sense data or save it...
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Command completed with good status\n");
+                            print_str("Command completed with good status\n");
                         }
                         // check for an output file to open and save the data to if, if it's a data in transfer
                         if (RAW_OUTPUT_FILE_NAME_FLAG && RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN)
@@ -2082,7 +2082,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Failed to open/create file for saving returned data!\n");
+                                    print_str("ERROR: Failed to open/create file for saving returned data!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -2110,7 +2110,7 @@ int main(int argc, char* argv[])
                     case OS_PASSTHROUGH_FAILURE:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Operation not supported by low level driver or HBA.\n");
+                            print_str("Operation not supported by low level driver or HBA.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -2120,7 +2120,7 @@ int main(int argc, char* argv[])
                     case FROZEN:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Command completed with a failing status. See sense data.\n");
+                            print_str("Command completed with a failing status. See sense data.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         // check for an output file to open and save the data to if, if it's a data in transfer
@@ -2133,7 +2133,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Failed to open/create file for saving returned sense data!\n");
+                                    print_str("ERROR: Failed to open/create file for saving returned sense data!\n");
                                 }
                                 exit(UTIL_EXIT_OPERATION_FAILURE);
                             }
@@ -2177,7 +2177,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Error writing data to a file!\n");
+                                    print_str("Error writing data to a file!\n");
                                 }
                                 exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
@@ -2192,7 +2192,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Error writing sense data to a file!\n");
+                                    print_str("Error writing sense data to a file!\n");
                                 }
                                 exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                             }
@@ -2201,7 +2201,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Error flushing data!\n");
+                                print_str("Error flushing data!\n");
                             }
                             exitCode = UTIL_EXIT_ERROR_WRITING_FILE;
                         }
@@ -2212,7 +2212,7 @@ int main(int argc, char* argv[])
                             {
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("ERROR: Unable to close handle to output file!\n");
+                                    print_str("ERROR: Unable to close handle to output file!\n");
                                 }
                             }
                             free_Secure_File_Info(&RAW_OUTPUT_FILE_FLAG);
@@ -2222,14 +2222,14 @@ int main(int argc, char* argv[])
                     // show the returned data on data in commands when verbosity is less than 3
                     if (RAW_DATA_DIRECTION_FLAG == XFER_DATA_IN && toolVerbosity < VERBOSITY_BUFFERS)
                     {
-                        printf("\nReturned Data:\n");
+                        print_str("\nReturned Data:\n");
                         print_Data_Buffer(dataBuffer, allocatedDataLength, true);
                     }
 
                     // show the sense data if the flag is set and verbosity is less than 3
                     if (toolVerbosity < VERBOSITY_BUFFERS && showSenseData)
                     {
-                        printf("\nRTFRs:\n");
+                        print_str("\nRTFRs:\n");
                         printf("\t[Error] = %02" PRIX8 "h\n", passthroughCommand.rtfr.error);
                         if (passthroughCommand.commandType == ATA_CMD_TYPE_EXTENDED_TASKFILE ||
                             passthroughCommand.commandType == ATA_CMD_TYPE_COMPLETE_TASKFILE)
@@ -2257,8 +2257,8 @@ int main(int argc, char* argv[])
                         printf("\t[LBA Hi] = %02" PRIX8 "h\n", passthroughCommand.rtfr.lbaHi);
                         printf("\t[Device] = %02" PRIX8 "h\n", passthroughCommand.rtfr.device);
                         printf("\t[Status] = %02" PRIX8 "h\n", passthroughCommand.rtfr.status);
-                        printf("\n");
-                        printf("\nSense Data:\n");
+                        print_str("\n");
+                        print_str("\nSense Data:\n");
                         print_Data_Buffer(deviceList[deviceIter].drive_info.lastCommandSenseData, SPC3_SENSE_LEN, true);
                     }
                     safe_free_aligned_core(C_CAST(void**, &dataBuffer));
@@ -2267,7 +2267,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: Data Length is required for data in and data out commands!\n");
+                        print_str("ERROR: Data Length is required for data in and data out commands!\n");
                     }
                     exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 }
@@ -2276,7 +2276,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Data Direction was not given!\n");
+                    print_str("ERROR: Data Direction was not given!\n");
                 }
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             }
@@ -2350,27 +2350,27 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("\nExamples\n");
-    printf("========\n");
+    print_str("\nExamples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
-    printf("\tIdentify device:\n");
+    print_str("\tIdentify device:\n");
     printf("\t\t-d %s --dataDir in  --dataLen 512  --outputFile ID_dev.bin --tfrByteBlock 512  --tfrProtocol pio  "
            "--tfrSize 28  --command ECh --tfrXferLengthReg sectorCount --sectorCount 1\n",
            deviceHandleExample);
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -2393,8 +2393,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
@@ -2414,7 +2414,7 @@ void utility_Usage(bool shortUsage)
     print_Raw_Timeout_Help(shortUsage);
 
     // SATA Only Options
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_Raw_TFR_AUX1_Help(shortUsage);
     print_Raw_TFR_AUX2_Help(shortUsage);
     print_Raw_TFR_AUX3_Help(shortUsage);
@@ -2444,7 +2444,7 @@ void utility_Usage(bool shortUsage)
     print_Raw_TFR_XFer_Length_Register_Help(shortUsage);
 
     // SAS/SCSI Only
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     print_Raw_CDB_Help(shortUsage);
     print_Raw_CDB_Length_Help(shortUsage);
 }

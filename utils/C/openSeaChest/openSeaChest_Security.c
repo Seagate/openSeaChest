@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -587,19 +587,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -610,7 +610,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -623,7 +623,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -658,7 +658,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -667,7 +667,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -692,7 +692,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -924,7 +924,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -943,7 +943,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -958,7 +958,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -992,7 +992,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -1049,21 +1049,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1236,7 +1236,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1245,7 +1245,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1254,7 +1254,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1263,7 +1263,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -1277,7 +1277,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -1286,7 +1286,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1312,7 +1312,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1354,20 +1354,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Zero Validation Test passed.\n");
+                    print_str("Zero Validation Test passed.\n");
                 }
                 break;
             case VALIDATION_FAILURE:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Zero Validation failed.\n");
+                    print_str("Zero Validation failed.\n");
                 }
                 exitCode = SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Operation failure.\n");
+                    print_str("Operation failure.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1418,7 +1418,7 @@ int main(int argc, char* argv[])
             {
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    printf("This operation is not supported on this drive\n");
+                    print_str("This operation is not supported on this drive\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -1433,14 +1433,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    printf("Showing locked regions is not supported on this drive.\n");
+                    print_str("Showing locked regions is not supported on this drive.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    printf("Failed to retrieve locked region info.\n");
+                    print_str("Failed to retrieve locked region info.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1451,7 +1451,7 @@ int main(int argc, char* argv[])
         {
             if (toolVerbosity > VERBOSITY_QUIET)
             {
-                printf("Error: SID must be 32 characters long.\n");
+                print_str("Error: SID must be 32 characters long.\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         }
@@ -1460,14 +1460,14 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nSetting FWDL Port to ");
+                print_str("\nSetting FWDL Port to ");
                 if (FWDL_PORT_MODE_FLAG)
                 {
-                    printf("locked\n");
+                    print_str("locked\n");
                 }
                 else
                 {
-                    printf("unlocked\n");
+                    print_str("unlocked\n");
                 }
             }
             switch (set_Port_State(&deviceList[deviceIter], TCG_PORT_FIRMWARE_DOWNLOAD, FWDL_PORT_MODE_FLAG,
@@ -1476,20 +1476,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Set FWDL Port Successful!\n");
+                    print_str("Set FWDL Port Successful!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Set FWDL Port is not supported on this device.\n");
+                    print_str("Set FWDL Port is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Set FWDL Port Failure!\n");
+                    print_str("Set FWDL Port Failure!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1500,14 +1500,14 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nSetting IEEE1667 Port to ");
+                print_str("\nSetting IEEE1667 Port to ");
                 if (IEEE1667_PORT_MODE_FLAG)
                 {
-                    printf("locked\n");
+                    print_str("locked\n");
                 }
                 else
                 {
-                    printf("unlocked\n");
+                    print_str("unlocked\n");
                 }
             }
             // TODO: Seagate HDD and SAS SSD only
@@ -1518,20 +1518,20 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Set IEEE1667 Port Successful!\n");
+                        print_str("Set IEEE1667 Port Successful!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Set IEEE1667 Port is not supported on this device.\n");
+                        print_str("Set IEEE1667 Port is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Set IEEE1667 Port Failure!\n");
+                        print_str("Set IEEE1667 Port Failure!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1546,20 +1546,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Disable Data Locking Successful!\n");
+                    print_str("Disable Data Locking Successful!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Disable Data Locking is not supported on this device.\n");
+                    print_str("Disable Data Locking is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Disable Data Locking Failed!\n");
+                    print_str("Disable Data Locking Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1570,7 +1570,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nRevertSP\n");
+                print_str("\nRevertSP\n");
             }
             if (DATA_ERASE_FLAG)
             {
@@ -1587,7 +1587,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("\tPSID too short. PSID must be 32 characters long.\n");
+                        print_str("\tPSID too short. PSID must be 32 characters long.\n");
                     }
                     return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 }
@@ -1596,27 +1596,27 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("RevertSP Successful!\n");
+                        print_str("RevertSP Successful!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("RevertSP is not supported on this device.\n");
+                        print_str("RevertSP is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("RevertSP Failure!\n");
-                        printf("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str("RevertSP Failure!\n");
+                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
-                        printf("\tbut do NOT use O's and I's.\n");
-                        printf("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        printf("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
-                        printf("\tcycle of the device is required before you can try again.\n");
+                        print_str("\tbut do NOT use O's and I's.\n");
+                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1626,9 +1626,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a revertSP.\n\n");
+                    print_str("to the command line arguments to run a revertSP.\n\n");
                     printf("e.g.: %s -d %s --%s PUTTHIRTYTWOCHARACTERPSIDHERE --confirm %s\n\n", util_name,
                            deviceHandleExample, TCG_REVERT_SP_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
@@ -1638,7 +1638,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nRevert\n");
+                print_str("\nRevert\n");
             }
             if (DATA_ERASE_FLAG)
             {
@@ -1651,7 +1651,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("\tPSID too short. PSID must be 32 characters long.\n");
+                            print_str("\tPSID too short. PSID must be 32 characters long.\n");
                         }
                         return UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                     }
@@ -1677,7 +1677,7 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Revert Successful!\n");
+                        print_str("Revert Successful!\n");
                         if (!didEraseHappen)
                         {
                             printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been "
@@ -1690,22 +1690,22 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Revert is not supported on this device.\n");
+                        print_str("Revert is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Revert Failure!\n");
+                        print_str("Revert Failure!\n");
                         printf(
                             "\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
-                        printf("\tbut do NOT use O's and I's.\n");
-                        printf("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        printf("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
-                        printf("\tcycle of the device is required before you can try again.\n");
+                        print_str("\tbut do NOT use O's and I's.\n");
+                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1715,9 +1715,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a revert.\n\n");
+                    print_str("to the command line arguments to run a revert.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample,
                            TCG_REVERT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
@@ -1738,16 +1738,16 @@ int main(int argc, char* argv[])
                                             ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
-                printf("Successfully unlocked ATA security\n");
+                print_str("Successfully unlocked ATA security\n");
                 break;
             case NOT_SUPPORTED:
-                printf("ATA Security is not supported on this device.\n");
+                print_str("ATA Security is not supported on this device.\n");
                 break;
             case FROZEN:
-                printf("Unable to unlock ATA security. Device is frozen.\n");
+                print_str("Unable to unlock ATA security. Device is frozen.\n");
                 break;
             default:
-                printf("Failed to unlock ATA security.\n");
+                print_str("Failed to unlock ATA security.\n");
                 break;
             }
             explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
@@ -1765,16 +1765,16 @@ int main(int argc, char* argv[])
                                                       ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
-                printf("Successfully disabled ATA security password\n");
+                print_str("Successfully disabled ATA security password\n");
                 break;
             case NOT_SUPPORTED:
-                printf("ATA Security is not supported on this device.\n");
+                print_str("ATA Security is not supported on this device.\n");
                 break;
             case FROZEN:
-                printf("Unable to disable ATA security. Device is frozen.\n");
+                print_str("Unable to disable ATA security. Device is frozen.\n");
                 break;
             default:
-                printf("Failed to disable ATA security.\n");
+                print_str("Failed to disable ATA security.\n");
                 break;
             }
             explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
@@ -1795,16 +1795,16 @@ int main(int argc, char* argv[])
                                                   ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
-                printf("Successfully set ATA security password\n");
+                print_str("Successfully set ATA security password\n");
                 break;
             case NOT_SUPPORTED:
-                printf("ATA Security is not supported on this device.\n");
+                print_str("ATA Security is not supported on this device.\n");
                 break;
             case FROZEN:
-                printf("Unable to set ATA security password. Device is frozen.\n");
+                print_str("Unable to set ATA security password. Device is frozen.\n");
                 break;
             default:
-                printf("Failed to set ATA security.\n");
+                print_str("Failed to set ATA security.\n");
                 break;
             }
             explicit_zeroes(&ataPassword, sizeof(ataSecurityPassword));
@@ -1815,7 +1815,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nATA Security Erase\n");
+                print_str("\nATA Security Erase\n");
             }
             if (DATA_ERASE_FLAG)
             {
@@ -1852,9 +1852,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a secure erase.\n\n");
+                    print_str("to the command line arguments to run a secure erase.\n\n");
                     printf("e.g.: %s -d %s --%s normal --confirm %s\n\n", util_name, deviceHandleExample,
                            ATA_SECURITY_ERASE_OP_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
@@ -1869,13 +1869,13 @@ int main(int argc, char* argv[])
                 run_Freeze_ATA_Security(&deviceList[deviceIter], ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
             {
             case SUCCESS:
-                printf("Successfully froze ATA security\n");
+                print_str("Successfully froze ATA security\n");
                 break;
             case NOT_SUPPORTED:
-                printf("ATA Security is not supported on this device.\n");
+                print_str("ATA Security is not supported on this device.\n");
                 break;
             default:
-                printf("Failed to freeze ATA security.\n");
+                print_str("Failed to freeze ATA security.\n");
                 break;
             }
         }
@@ -1922,12 +1922,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("\nExamples\n");
-    printf("========\n");
+    print_str("\nExamples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -1948,8 +1948,8 @@ void utility_Usage(bool shortUsage)
 #endif // ENABLE_ATA_SET_PASSWORD
 
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     int totalErrorCodes = SEACHEST_SECURITY_EXIT_MAX_ERROR - SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE;
     ptrToolSpecificxitCode seachestSecurityExitCodes = M_REINTERPRET_CAST(
         ptrToolSpecificxitCode, safe_calloc(int_to_sizet(totalErrorCodes), sizeof(toolSpecificxitCode)));
@@ -1975,8 +1975,8 @@ void utility_Usage(bool shortUsage)
     print_SeaChest_Util_Exit_Codes(totalErrorCodes, seachestSecurityExitCodes, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -1999,8 +1999,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility arguments\n");
-    printf("=================\n");
+    print_str("\nUtility arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Display_LBA_Help(shortUsage);
@@ -2024,7 +2024,7 @@ void utility_Usage(bool shortUsage)
 #endif
     print_Zero_Verify_Help(shortUsage);
 
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Force_SAT_Security_Protocol_Help(shortUsage);
 #if defined ENABLE_ATA_SET_PASSWORD
     print_ATA_Security_Master_Password_Capability_Help(shortUsage);
@@ -2044,14 +2044,14 @@ void utility_Usage(bool shortUsage)
     print_ATA_Security_Unlock_Help(shortUsage);
 
     // data destructive commands - alphabetized
-    printf("Data Destructive Commands (Seagate only)\n");
-    printf("========================================\n");
+    print_str("Data Destructive Commands (Seagate only)\n");
+    print_str("========================================\n");
     // utility data destructive tests/operations go here
 #if !defined(DISABLE_TCG_SUPPORT)
     print_Revert_Help(shortUsage);
     print_RevertSP_Help(shortUsage);
 #endif
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_ATA_Security_Erase_Help(
         shortUsage, "SeaChest"); // old implementation used the utility name as the password, switching to SeaChest
 }

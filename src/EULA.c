@@ -20,17 +20,10 @@
 
 #include "EULA.h"
 #include "code_attributes.h"
+#include "io_utils.h"
 #include "predef_env_detect.h"
 
 #include <stdio.h>
-
-static M_INLINE void checked_fputs(const char* str, FILE* out)
-{
-    if (fputs(str, out) == EOF)
-    {
-        perror("output license with fputs");
-    }
-}
 
 void print_EULA_To_Screen(void)
 {

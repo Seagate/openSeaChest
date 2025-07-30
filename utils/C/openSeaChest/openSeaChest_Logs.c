@@ -420,7 +420,7 @@ int main(int argc, char* argv[])
                     NO_BANNER_FLAG = true;
                     if (!FARM_PULL_FLAG)
                     {
-                        printf("Unsupported pipe feature for this log! \n");
+                        print_str("Unsupported pipe feature for this log! \n");
                     }
                 }
                 else
@@ -454,7 +454,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -489,7 +489,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -498,7 +498,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -648,7 +648,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -667,7 +667,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -682,7 +682,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -708,7 +708,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -760,21 +760,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -944,7 +944,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -953,7 +953,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -962,7 +962,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -971,7 +971,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -985,7 +985,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -994,7 +994,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1023,7 +1023,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1219,13 +1219,13 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Telemetry log pulled successfully from device!\n");
+                        print_str("Telemetry log pulled successfully from device!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Telemetry log not supported by this device!\n");
+                        print_str("Telemetry log not supported by this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1239,7 +1239,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to pull telemetry log from this device!\n");
+                        print_str("Failed to pull telemetry log from this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1251,7 +1251,7 @@ int main(int argc, char* argv[])
                 {
                     printf(
                         "You must specify a Telemetry data set.\n\t1 - 3 are valid inputs for the data set on SATA\n");
-                    printf("\tOn SAS and NVMe, 1 - 4 are valid inputs for the data set.\n");
+                    print_str("\tOn SAS and NVMe, 1 - 4 are valid inputs for the data set.\n");
                 }
             }
         }
@@ -1268,7 +1268,7 @@ int main(int argc, char* argv[])
                 {
                     if (PULL_LOG_MODE != PULL_LOG_PIPE_MODE)
                     {
-                        printf("Successfully pulled FARM log\n");
+                        print_str("Successfully pulled FARM log\n");
                     }
                 }
                 break;
@@ -1277,11 +1277,11 @@ int main(int argc, char* argv[])
                 {
                     // if (0)
                     // {
-                    //     printf("Factory FARM Page not supported on this device\n");
+                    //     print_str("Factory FARM Page not supported on this device\n");
                     // }
                     // else
                     {
-                        printf("FARM log not supported on this device\n");
+                        print_str("FARM log not supported on this device\n");
                     }
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1296,7 +1296,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull FARM log\n");
+                    print_str("Failed to pull FARM log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1312,13 +1312,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully pulled FARM Combined log\n");
+                    print_str("Successfully pulled FARM Combined log\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("FARM Combined log not supported on this device\n");
+                    print_str("FARM Combined log not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1332,7 +1332,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull FARM Combined log\n");
+                    print_str("Failed to pull FARM Combined log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1346,13 +1346,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Self Test Log pulled successfully from device!\n");
+                    print_str("Self Test Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Self Test Log not supported by this device!\n");
+                    print_str("Self Test Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1366,7 +1366,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull Self Test Log from this device!\n");
+                    print_str("Failed to pull Self Test Log from this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1379,13 +1379,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Identify Device Data Log pulled successfully from device!\n");
+                    print_str("Identify Device Data Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Identify Device Data Log not supported by this device!\n");
+                    print_str("Identify Device Data Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1399,7 +1399,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull Identify Device Data Log from this device!\n");
+                    print_str("Failed to pull Identify Device Data Log from this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1412,13 +1412,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SATA Phy Event Counters Log pulled successfully from device!\n");
+                    print_str("SATA Phy Event Counters Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SATA Phy Event Counters Log not supported by this device!\n");
+                    print_str("SATA Phy Event Counters Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1432,7 +1432,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull SATA Phy Event Counters Log from this device!\n");
+                    print_str("Failed to pull SATA Phy Event Counters Log from this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1445,13 +1445,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Statistics Log pulled successfully from device!\n");
+                    print_str("Device Statistics Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Statistics Log not supported by this device!\n");
+                    print_str("Device Statistics Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1465,7 +1465,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull Device Statistics Log from this device!\n");
+                    print_str("Failed to pull Device Statistics Log from this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1478,13 +1478,13 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCSI Informational Exceptions Log pulled successfully from device!\n");
+                    print_str("SCSI Informational Exceptions Log pulled successfully from device!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SCSI Informational Exceptions Log not supported by this device!\n");
+                    print_str("SCSI Informational Exceptions Log not supported by this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1498,7 +1498,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to pull SCSI Informational Exceptions Log from this device!\n");
+                    print_str("Failed to pull SCSI Informational Exceptions Log from this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1546,12 +1546,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("\nExamples\n");
-    printf("========\n");
+    print_str("\nExamples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -1579,13 +1579,13 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s current --%s 4\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING,
            TELEMETRY_DATA_AREA_LONG_OPT_STRING);
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -1609,8 +1609,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
@@ -1623,7 +1623,7 @@ void utility_Usage(bool shortUsage)
     // utility tests/operations go here - alphabetized
     // multiple interfaces
     print_Fast_Discovery_Help(shortUsage);
-    printf("\n");
+    print_str("\n");
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
     print_FARM_Combined_Log_Help(shortUsage);
@@ -1637,12 +1637,12 @@ void utility_Usage(bool shortUsage)
 	print_Telemetry_Data_Set_Help(shortUsage);
 
     // SATA Only Options
-    printf("\n\tSATA Only:\n\n");
+    print_str("\n\tSATA Only:\n\n");
     print_Pull_Identify_Device_Data_Log_Help(shortUsage);
     print_Sata_FARM_Copy_Type_Flag_Help(shortUsage);
     print_Pull_SATA_Phy_Event_Counters_Log_Help(shortUsage);
     // SAS Only Options
-    printf("\n\tSAS Only:\n\n");
+    print_str("\n\tSAS Only:\n\n");
     print_Supported_Error_History_Help(shortUsage);
     print_Pull_Generic_Error_History_Help(shortUsage);
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);

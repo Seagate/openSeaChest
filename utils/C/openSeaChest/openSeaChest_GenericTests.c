@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -526,19 +526,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -549,7 +549,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -562,7 +562,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -597,7 +597,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -606,7 +606,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -631,7 +631,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -756,7 +756,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -775,7 +775,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -790,7 +790,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -818,7 +818,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -870,21 +870,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1056,7 +1056,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1065,7 +1065,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1074,7 +1074,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1083,7 +1083,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -1097,7 +1097,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -1106,7 +1106,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1142,7 +1142,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1194,7 +1194,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Performing buffer test. This may take a while...\n");
+                print_str("Performing buffer test. This may take a while...\n");
             }
             cableTestResults bufferTestResults;
             switch (perform_Cable_Test(&deviceList[deviceIter], &bufferTestResults))
@@ -1205,14 +1205,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Buffer test is not supported on this device!\n");
+                    print_str("Buffer test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Buffer test failed!\n");
+                    print_str("Buffer test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1223,7 +1223,7 @@ int main(int argc, char* argv[])
             // tell the user that only one repair flag is allowed
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("ERROR: You cannot specify both repairAtEnd and repairOnFly. They are mutually exclusive.\n");
+                print_str("ERROR: You cannot specify both repairAtEnd and repairOnFly. They are mutually exclusive.\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         }
@@ -1233,9 +1233,9 @@ int main(int argc, char* argv[])
             // user must provide the confirmation string to enable write testing.
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
                 printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                printf("to the command line arguments to use a write operation in a generic test.\n\n");
+                print_str("to the command line arguments to use a write operation in a generic test.\n\n");
                 printf("e.g.: %s -d %s --shortGeneric --confirm %s\n\n", util_name, deviceHandleExample,
                        DATA_ERASE_ACCEPT_STRING);
             }
@@ -1246,7 +1246,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Starting short generic test.\n");
+                print_str("Starting short generic test.\n");
             }
             switch (short_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
                                        M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
@@ -1254,20 +1254,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short generic test completed successfully!\n");
+                    print_str("Short generic test completed successfully!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short generic test is not supported on this device!\n");
+                    print_str("Short generic test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short generic test failed!\n");
+                    print_str("Short generic test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1277,7 +1277,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Starting two minute generic test.\n");
+                print_str("Starting two minute generic test.\n");
             }
             switch (two_Minute_Generic_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
                                             M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
@@ -1285,20 +1285,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Two minute generic test completed successfully!\n");
+                    print_str("Two minute generic test completed successfully!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Two minute generic test is not supported on this device!\n");
+                    print_str("Two minute generic test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Two minute generic test failed!\n");
+                    print_str("Two minute generic test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1308,7 +1308,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Starting long generic test.\n");
+                print_str("Starting long generic test.\n");
             }
             if (ERROR_LIMIT_LOGICAL_COUNT)
             {
@@ -1322,20 +1322,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Long generic test completed successfully!\n");
+                    print_str("Long generic test completed successfully!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Long generic test is not supported on this device!\n");
+                    print_str("Long generic test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Long generic test failed!\n");
+                    print_str("Long generic test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1397,20 +1397,20 @@ int main(int argc, char* argv[])
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("User generic test completed successfully!\n");
+                            print_str("User generic test completed successfully!\n");
                         }
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("User generic test is not supported on this device!\n");
+                            print_str("User generic test is not supported on this device!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("User generic test failed!\n");
+                            print_str("User generic test failed!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1422,7 +1422,7 @@ int main(int argc, char* argv[])
                         exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("You must enter a valid range!\n");
+                            print_str("You must enter a valid range!\n");
                         }
                         // you must enter a valid range
                     }
@@ -1432,7 +1432,7 @@ int main(int argc, char* argv[])
                         exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("You must enter a valid starting LBA!\n");
+                            print_str("You must enter a valid starting LBA!\n");
                         }
                     }
                 }
@@ -1452,7 +1452,7 @@ int main(int argc, char* argv[])
                     convert_Seconds_To_Displayable_Time(timeInSeconds, M_NULLPTR, &days, &hours, &minutes, &seconds);
                     printf("Starting user generic timed test at LBA %" PRIu64 " for", USER_GENERIC_START_FLAG);
                     print_Time_To_Screen(M_NULLPTR, &days, &hours, &minutes, &seconds);
-                    printf("\n");
+                    print_str("\n");
                 }
                 if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
@@ -1466,20 +1466,20 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("User generic test completed successfully!\n");
+                        print_str("User generic test completed successfully!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("User generic test is not supported on this device!\n");
+                        print_str("User generic test is not supported on this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("User generic test failed!\n");
+                        print_str("User generic test failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1492,7 +1492,7 @@ int main(int argc, char* argv[])
                 SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Starting Random test\n");
+                print_str("Starting Random test\n");
             }
             switch (random_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
                                 randomReadSeconds, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
@@ -1500,20 +1500,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Random test completed successfully!\n");
+                    print_str("Random test completed successfully!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Random test is not supported on this device!\n");
+                    print_str("Random test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Random test failed!\n");
+                    print_str("Random test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1525,7 +1525,7 @@ int main(int argc, char* argv[])
                 SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Starting Buttefly test.\n");
+                print_str("Starting Buttefly test.\n");
             }
             switch (butterfly_Test(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
                                    butterflyTestSeconds, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
@@ -1533,20 +1533,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Butterfly test completed successfully!\n");
+                    print_str("Butterfly test completed successfully!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Butterfly test is not supported on this device!\n");
+                    print_str("Butterfly test is not supported on this device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Butterfly test failed!\n");
+                    print_str("Butterfly test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1567,7 +1567,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Starting diameter test\n");
+                    print_str("Starting diameter test\n");
                 }
                 if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
@@ -1582,20 +1582,20 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test completed successfully!\n");
+                        print_str("Diameter test completed successfully!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test is not supported on this device!\n");
+                        print_str("Diameter test is not supported on this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test failed!\n");
+                        print_str("Diameter test failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1617,20 +1617,20 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test completed successfully!\n");
+                        print_str("Diameter test completed successfully!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test is not supported on this device!\n");
+                        print_str("Diameter test is not supported on this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Diameter test failed!\n");
+                        print_str("Diameter test failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1641,7 +1641,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must enter a range or a time!\n");
+                    print_str("You must enter a range or a time!\n");
                 }
             }
         }
@@ -1688,12 +1688,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
-    printf("========\n");
+    print_str("Examples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -1716,13 +1716,13 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s --%s read\n", util_name, deviceHandleExample, LONG_GENERIC_LONG_OPT_STRING,
            STOP_ON_ERROR_LONG_OPT_STRING);
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -1746,8 +1746,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common(across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Display_LBA_Help(shortUsage);
@@ -1778,8 +1778,8 @@ void utility_Usage(bool shortUsage)
     print_User_Generic_Range_Help(shortUsage);
 
     // data destructive commands - alphabetized
-    printf("\nData Destructive Commands\n");
-    printf("=========================\n");
+    print_str("\nData Destructive Commands\n");
+    print_str("=========================\n");
     // utility data destructive tests/operations go here
     print_Repair_At_End_Help(shortUsage);
     print_Repair_On_Fly_Help(shortUsage);

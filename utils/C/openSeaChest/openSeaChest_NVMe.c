@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -399,7 +399,7 @@ int main(int argc, char* argv[])
                 {
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        printf("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
+                        print_str("FirmwareSlot/FwBuffer ID must be between 0 and 7\n");
                     }
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
@@ -594,19 +594,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -617,7 +617,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -630,7 +630,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -668,7 +668,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -677,7 +677,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -702,7 +702,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -832,7 +832,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -851,7 +851,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -882,7 +882,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -917,21 +917,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1018,7 +1018,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1101,19 +1101,19 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: failed to get device information\n");
+                        print_str("ERROR: failed to get device information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
             }
             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)
             {
-                printf("Controller Identify Information:\n");
-                printf("================================\n");
+                print_str("Controller Identify Information:\n");
+                print_str("================================\n");
                 print_Data_Buffer((uint8_t*)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl,
                                   sizeof(nvmeIDCtrl), true);
-                printf("\nNamespace Identify Information:\n");
-                printf("================================\n");
+                print_str("\nNamespace Identify Information:\n");
+                print_str("================================\n");
                 print_Data_Buffer((uint8_t*)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns,
                                   sizeof(nvmeIDNameSpaces), true);
             }
@@ -1131,7 +1131,7 @@ int main(int argc, char* argv[])
                         secure_Flush_File(secureFile);
                         if (SEC_FILE_SUCCESS != secure_Close_File(secureFile))
                         {
-                            printf("Error closing file!\n");
+                            print_str("Error closing file!\n");
                         }
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
@@ -1152,7 +1152,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: failed to open file to write controller identify information\n");
+                                print_str("ERROR: failed to open file to write controller identify information\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -1170,7 +1170,7 @@ int main(int argc, char* argv[])
                             secure_Flush_File(secureFile);
                             if (SEC_FILE_SUCCESS != secure_Close_File(secureFile))
                             {
-                                printf("Error closing file!\n");
+                                print_str("Error closing file!\n");
                             }
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
@@ -1181,7 +1181,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: failed to open file to write namespace information\n");
+                                print_str("ERROR: failed to open file to write namespace information\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -1201,7 +1201,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("ERROR: failed to open file to write namespace identify information\n");
+                                print_str("ERROR: failed to open file to write namespace identify information\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -1212,7 +1212,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: failed to open file to write controller information\n");
+                        print_str("ERROR: failed to open file to write controller information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1263,14 +1263,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Device does not support showing supported formats\n");
+                        print_str("Device does not support showing supported formats\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to get supported sector sizes from device!\n");
+                        print_str("Failed to get supported sector sizes from device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1281,7 +1281,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to allocate memory for supported formats\n");
+                    print_str("Unable to allocate memory for supported formats\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1306,8 +1306,8 @@ int main(int argc, char* argv[])
                     // cannot parse details for at this time, so for now this message is a bit more of a catch-all
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Either the requested feature is not supported by the device, or the\n");
-                        printf("utility is unable to show details about the request feature at this time.\n");
+                        print_str("Either the requested feature is not supported by the device, or the\n");
+                        print_str("utility is unable to show details about the request feature at this time.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1350,9 +1350,9 @@ int main(int argc, char* argv[])
                             if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)
                             {
                                 printf("Log Page %d Buffer:\n", GET_NVME_LOG_IDENTIFIER);
-                                printf("================================\n");
+                                print_str("================================\n");
                                 print_Data_Buffer(C_CAST(uint8_t*, logBuffer), C_CAST(uint32_t, size), true);
-                                printf("================================\n");
+                                print_str("================================\n");
                             }
                             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
                             {
@@ -1390,21 +1390,21 @@ int main(int argc, char* argv[])
                                         {
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("ERROR: failed to write Log Page Information to file\n");
+                                                print_str("ERROR: failed to write Log Page Information to file\n");
                                             }
                                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                         }
                                     }
                                     if (SEC_FILE_SUCCESS != secure_Close_File(secureFile))
                                     {
-                                        printf("Error closing file!\n");
+                                        print_str("Error closing file!\n");
                                     }
                                 }
                                 else
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("ERROR: failed to open file to write Log Page Information\n");
+                                        print_str("ERROR: failed to open file to write Log Page Information\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -1477,14 +1477,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("SMART/Health Information Log not supported\n");
+                            print_str("SMART/Health Information Log not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to get SMART/Health Information Log\n");
+                            print_str("A failure occured while trying to get SMART/Health Information Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1499,14 +1499,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Error Information Log not supported\n");
+                            print_str("Error Information Log not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to get Error Information Log\n");
+                            print_str("A failure occured while trying to get Error Information Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1521,14 +1521,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("FW Slot Information Log not supported\n");
+                            print_str("FW Slot Information Log not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to get FW Slot Information Log\n");
+                            print_str("A failure occured while trying to get FW Slot Information Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1543,7 +1543,7 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Commands Supported and Effects Information Log not supported\n");
+                            print_str("Commands Supported and Effects Information Log not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1566,14 +1566,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Device Self-test Information Log not supported\n");
+                            print_str("Device Self-test Information Log not supported\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to get Device Self-test Information Log\n");
+                            print_str("A failure occured while trying to get Device Self-test Information Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1601,20 +1601,20 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Telemetry log pulled successfully from device!\n");
+                        print_str("Telemetry log pulled successfully from device!\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Telemetry log not supported by this device!\n");
+                        print_str("Telemetry log not supported by this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to pull telemetry log from this device!\n");
+                        print_str("Failed to pull telemetry log from this device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -1640,14 +1640,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Printing Temperature Statistics data is not supported on this drive type.\n");
+                    print_str("Printing Temperature Statistics data is not supported on this drive type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get Temp Statistics Information Log\n");
+                    print_str("A failure occured while trying to get Temp Statistics Information Log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1664,14 +1664,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Printing PCI Statistics data is not supported on this drive type.\n");
+                    print_str("Printing PCI Statistics data is not supported on this drive type.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get PCI Statistics Information Log\n");
+                    print_str("A failure occured while trying to get PCI Statistics Information Log\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1691,13 +1691,13 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\nSuccessfully transitioned to power state %" PRIi32 ".\n", TRANSITION_POWER_STATE_TO);
-                    printf("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
+                    print_str("\nHint:Use --checkPowerMode option to check the new Power Mode State.\n\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Transitioning power modes not allowed on this device\n");
+                    print_str("Transitioning power modes not allowed on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1724,14 +1724,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing NVM power states is not supported on this device\n");
+                    print_str("Showing NVM power states is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not read NVM power states from the device!\n");
+                    print_str("ERROR: Could not read NVM power states from the device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1750,14 +1750,14 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Checking current power mode not supported on this device.\n");
+                    print_str("Checking current power mode not supported on this device.\n");
                 }
                 break;
             default:
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed checking current power mode.\n");
+                    print_str("Failed checking current power mode.\n");
                 }
                 break;
             }
@@ -1775,14 +1775,14 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Extended smart logs not supported.\n");
+                    print_str("Extended smart logs not supported.\n");
                 }
                 break;
             default:
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed fetch Extended smart logs.\n");
+                    print_str("Failed fetch Extended smart logs.\n");
                 }
                 break;
             }
@@ -1798,14 +1798,14 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Clear Pcie correctable errors not supported.\n");
+                    print_str("Clear Pcie correctable errors not supported.\n");
                 }
                 break;
             default:
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed fetch Clear Pcie correctable errors.\n");
+                    print_str("Failed fetch Clear Pcie correctable errors.\n");
                 }
                 break;
             }
@@ -1853,14 +1853,14 @@ int main(int argc, char* argv[])
                         case POWER_CYCLE_REQUIRED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Firmware Download successful\n");
-                                printf("Firmware Download time");
+                                print_str("Firmware Download successful\n");
+                                print_str("Firmware Download time");
                                 print_Time(get_Nano_Seconds(commandTimer));
-                                printf("Average time/segment ");
+                                print_str("Average time/segment ");
                                 print_Time(dlOptions.avgSegmentDlTime);
                                 if (ret != POWER_CYCLE_REQUIRED && dlOptions.activateFWTime > 0)
                                 {
-                                    printf("Activate Time         ");
+                                    print_str("Activate Time         ");
                                     print_Time(dlOptions.activateFWTime);
                                 }
                             }
@@ -1878,7 +1878,7 @@ int main(int argc, char* argv[])
                                            ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
-                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
                             }
@@ -1892,7 +1892,7 @@ int main(int argc, char* argv[])
                                         if (strcmp(NEW_FW_STRING_FLAG,
                                                    deviceList[deviceIter].drive_info.product_revision) == 0)
                                         {
-                                            printf("Successfully validated firmware after download!\n");
+                                            print_str("Successfully validated firmware after download!\n");
                                             printf("New firmware version is %s\n",
                                                    deviceList[deviceIter].drive_info.product_revision);
                                         }
@@ -1911,7 +1911,7 @@ int main(int argc, char* argv[])
                                     }
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
-                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
                             }
@@ -1919,14 +1919,14 @@ int main(int argc, char* argv[])
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Firmware Download not supported\n");
+                                print_str("Firmware Download not supported\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Firmware Download failed\n");
+                                print_str("Firmware Download failed\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -1936,7 +1936,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Error reading contents of firmware file!\n");
+                            print_str("Error reading contents of firmware file!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1949,7 +1949,7 @@ int main(int argc, char* argv[])
                     {
                         if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
                         {
-                            printf("Error attempting to close file!\n");
+                            print_str("Error attempting to close file!\n");
                         }
                         free_Secure_File_Info(&fwfile);
                     }
@@ -1979,7 +1979,7 @@ int main(int argc, char* argv[])
             {
                 if (SEC_FILE_SUCCESS != secure_Close_File(fwfile))
                 {
-                    printf("Error attempting to close file!\n");
+                    print_str("Error attempting to close file!\n");
                 }
                 free_Secure_File_Info(&fwfile);
             }
@@ -2024,7 +2024,7 @@ int main(int argc, char* argv[])
                 case POWER_CYCLE_REQUIRED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activation successful\n");
+                        print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
                             printf("The Operating system has reported that a power cycle is required to complete the "
@@ -2037,7 +2037,7 @@ int main(int argc, char* argv[])
                             {
                                 if (strcmp(NEW_FW_STRING_FLAG, deviceList[deviceIter].drive_info.product_revision) == 0)
                                 {
-                                    printf("Successfully validated firmware after download!\n");
+                                    print_str("Successfully validated firmware after download!\n");
                                     printf("New firmware version is %s\n",
                                            deviceList[deviceIter].drive_info.product_revision);
                                 }
@@ -2055,7 +2055,7 @@ int main(int argc, char* argv[])
                         }
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
@@ -2064,11 +2064,11 @@ int main(int argc, char* argv[])
                     {
                         if (SWITCH_FW_FLAG && FIRMWARE_SLOT_FLAG == 0)
                         {
-                            printf("You must specify a valid slot number when switching firmware images.\n");
+                            print_str("You must specify a valid slot number when switching firmware images.\n");
                         }
                         else
                         {
-                            printf("Firmware activate not supported\n");
+                            print_str("Firmware activate not supported\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -2076,7 +2076,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Firmware activation failed\n");
+                        print_str("Firmware activation failed\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2086,7 +2086,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("This drive does not support the activate command.\n");
+                    print_str("This drive does not support the activate command.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2096,7 +2096,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("NVM Format\n");
+                print_str("NVM Format\n");
             }
             if (DATA_ERASE_FLAG)
             {
@@ -2177,11 +2177,11 @@ int main(int argc, char* argv[])
                     {
                         if (POLL_FLAG)
                         {
-                            printf("NVM Format was Successful!\n");
+                            print_str("NVM Format was Successful!\n");
                         }
                         else
                         {
-                            printf("NVM Format was started Successfully!\n");
+                            print_str("NVM Format was started Successfully!\n");
                             printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
                     }
@@ -2189,21 +2189,21 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format Not Supported or invalid option combination provided!\n");
+                        print_str("NVM Format Not Supported or invalid option combination provided!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 case OS_COMMAND_NOT_AVAILABLE:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format is not supported in this OS\n");
+                        print_str("NVM Format is not supported in this OS\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format Failed!\n");
+                        print_str("NVM Format Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2213,9 +2213,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a nvm format.\n\n");
+                    print_str("to the command line arguments to run a nvm format.\n\n");
                     printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample,
                            NVM_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
@@ -2233,7 +2233,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting NVM Format Progress.\n");
+                    print_str("Getting NVM Format Progress.\n");
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
@@ -2306,29 +2306,29 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
-    printf("========\n");
+    print_str("Examples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SAT_INFO_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, LOWLEVEL_INFO_LONG_OPT_STRING);
-    printf("\tUpdating firmware:\n");
+    print_str("\tUpdating firmware:\n");
     printf("\t%s -d %s --%s file.bin\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING);
-    printf("\tUpdating firmware with deferred download and activating:\n");
+    print_str("\tUpdating firmware with deferred download and activating:\n");
     printf("\t%s -d %s --%s file.bin --%s deferred --%s\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING,
            DOWNLOAD_FW_MODE_LONG_OPT_STRING, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING);
-    printf("\tUpdating firmware and specifying a firmware slot (NVMe)\n");
+    print_str("\tUpdating firmware and specifying a firmware slot (NVMe)\n");
     printf("\t%s -d %s --%s file.bin --%s deferred\n", util_name, deviceHandleExample, DOWNLOAD_FW_LONG_OPT_STRING,
            DOWNLOAD_FW_MODE_LONG_OPT_STRING);
-    printf("\t  +\n");
+    print_str("\t  +\n");
     printf("\t%s -d %s --%s --%s 2\n", util_name, deviceHandleExample, ACTIVATE_DEFERRED_FW_LONG_OPT_STRING,
            FIRMWARE_SLOT_LONG_OPT_STRING);
-    printf("\tFormatting an NVMe device:\n");
+    print_str("\tFormatting an NVMe device:\n");
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING,
            POLL_LONG_OPT_STRING);
@@ -2338,23 +2338,23 @@ void utility_Usage(bool shortUsage)
            POLL_LONG_OPT_STRING, NVM_FORMAT_SECURE_ERASE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s --%s 1\n", util_name, deviceHandleExample, NVM_FORMAT_LONG_OPT_STRING,
            POLL_LONG_OPT_STRING, NVM_FORMAT_PI_TYPE_LONG_OPT_STRING);
-    printf("\tChecking and changing power states:\n");
+    print_str("\tChecking and changing power states:\n");
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, CHECK_POWER_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 1\n", util_name, deviceHandleExample, TRANSITION_POWER_STATE_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_NVM_POWER_STATES_LONG_OPT_STRING);
-    printf("\tPulling the Telemetry log:\n");
+    print_str("\tPulling the Telemetry log:\n");
     printf("\t%s -d %s --%s host\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING);
     printf("\t%s -d %s --%s host, --%s 2 --%s bin\n", util_name, deviceHandleExample, GET_TELEMETRY_LONG_OPT_STRING,
            TELEMETRY_DATA_AREA_LONG_OPT_STRING, OUTPUT_MODE_LONG_OPT_STRING);
 
     // return codes
-    printf("Return codes\n");
-    printf("============\n");
+    print_str("Return codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
     print_Echo_Command_Line_Help(shortUsage);
     print_Help_Help(shortUsage);
     print_License_Help(shortUsage);
@@ -2368,8 +2368,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("Utility Arguments\n");
-    printf("=================\n");
+    print_str("Utility Arguments\n");
+    print_str("=================\n");
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
@@ -2402,8 +2402,8 @@ void utility_Usage(bool shortUsage)
     print_Show_Supported_Formats_Help(shortUsage);
 
     // data destructive commands
-    printf("\nData Destructive Commands\n");
-    printf("=========================\n");
+    print_str("\nData Destructive Commands\n");
+    print_str("=========================\n");
     // utility data destructive tests/operations go here
     print_NVM_Format_Metadata_Setting_Help(shortUsage);
     print_NVM_Format_Metadata_Size_Help(shortUsage);
