@@ -196,3 +196,8 @@ v2.9.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      Added options to reset SATA phy event counters log and reset supported SATA device statistics
                      to their default values. This can be useful when checking for CRC errors.
                      --deviceStatistics option will show ^ for statistics that support reset.
+v2.9.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

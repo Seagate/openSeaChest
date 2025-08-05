@@ -118,3 +118,10 @@ v3.0.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passi
                      the exit code is not set to 0 (success) when all the devices were skipped.
                      Fixed parsing some CLI options to allow empty units like previous versions.
                      Changed pulling telemetry log to save to a file and allow up to data area 4.
+v3.0.2  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Added new exit code for when paths are detected as insecure to be resolved by the user before
+                     files will be accessed in these directories (see https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path).
+                     Fixed NVMe firmware update in Windows 11 23H2 and 24H2.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.

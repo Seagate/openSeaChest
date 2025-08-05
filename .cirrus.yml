@@ -2,7 +2,7 @@
 task:
   name: FreeBSD
   env:
-    GITHUB_TOKEN: ENCRYPTED[!9434dd6eb694444496d0049dd361ea798f7b4247c163cf9e90ba3367791f951b1209e803e52d1720a49a84ac48b2ed74!]
+    GITHUB_TOKEN: ENCRYPTED[!805e0ec3f027150880429055bbe8c175ccb7894d5a62e10935f15c90557bfaff2a004d6184ca88cb00c690fedf7d6134!]
   freebsd_instance:
     matrix:
       image_family: freebsd-14-2
