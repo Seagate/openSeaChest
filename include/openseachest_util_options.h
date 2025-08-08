@@ -3614,6 +3614,51 @@ extern "C"
         M_NULLPTR, 0, M_NULLPTR, 0                                                                                     \
     }
 
+    // Set CDL Feature enable/disable
+#define CDL_FEATURE_IDENTIFIER      cdlFeature
+#define CDL_FEATURE_VAR             eCDLFeatureSet CDL_FEATURE_IDENTIFIER = CDL_FEATURE_UNKNOWN;
+#define CDL_FEATURE_LONG_OPT_STRING "CDLfeature"
+#define CDL_FEATURE_LONG_OPT                                                                                           \
+    {                                                                                                                  \
+        CDL_FEATURE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                                   \
+    }
+
+// CDL settings (display - raw/json)
+#define SHOW_CDL_SETTINGS_FLAG      showCDLSettings
+#define SHOW_CDL_SETTINGS_MODE_FLAG showCDLSettingsMode
+#define SHOW_CDL_SETTINGS_VAR                                                                                          \
+    getOptBool SHOW_CDL_SETTINGS_FLAG      = goFalse;                                                                  \
+    int        SHOW_CDL_SETTINGS_MODE_FLAG = 0;
+#define SHOW_CDL_SETTINGS_LONG_OPT_STRING "showCDLSettings"
+#define SHOW_CDL_SETTINGS_LONG_OPT                                                                                     \
+    {                                                                                                                  \
+        SHOW_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                             \
+    }
+
+// CDL settings (config)
+#define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
+#define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
+#define CONFIG_CDL_JSONFILENAME_FLAG    configCDLJsonFile
+#define CONFIG_CDL_SETTINGS_VAR                                                                                        \
+    getOptBool CONFIG_CDL_SETTINGS_FLAG = goFalse;                                                                     \
+    DECLARE_ZERO_INIT_ARRAY(char, configJsonFileName, CONFIG_CDL_JSONFILENAME_MAX_LEN);                                \
+    char* CONFIG_CDL_JSONFILENAME_FLAG = &configJsonFileName[0];
+#define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
+#define CONFIG_CDL_SETTINGS_LONG_OPT                                                                                   \
+    {                                                                                                                  \
+        CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                           \
+    }
+
+// Skip Validation
+#define SKIP_VALIDATION_FLAG            skipValidation
+#define SKIP_VALIDATION_VAR             getOptBool SKIP_VALIDATION_FLAG = goFalse;
+#define SKIP_VALIDATION_LONG_OPT_STRING "skipValidation"
+#define SKIP_VALIDATION_LONG_OPT                                                                                       \
+    {                                                                                                                  \
+        SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue                                    \
+    }
+
+
     extern const char* deviceHandleExample;
     extern const char* deviceHandleName;
     extern const char* commandWindowType;
@@ -5229,6 +5274,13 @@ extern "C"
     void print_Corrupt_Random_LBAs_Help(bool shortHelp);
 
     void print_SCSI_FW_Info_Help(bool shortHelp);
+
+    void print_EnableDisableCDL_Help(bool shortHelp);
+
+    void print_Show_CDL_Settings_Help(bool shortHelp);
+
+    void print_Config_CDL_Settings_Help(bool shortHelp);
+
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 

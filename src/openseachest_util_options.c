@@ -5652,3 +5652,50 @@ void print_Change_Id_String_Help(bool shortHelp)
                RESTORE_MAX_LBA_LONG_OPT_STRING);
     }
 }
+
+void print_EnableDisableCDL_Help(bool shortHelp)
+{
+    printf("\t--%s [enable | disable]\n", CDL_FEATURE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tEnables or disables Command Duration Limit (CDL) support for\n");
+        printf("\t\tdevices. To disable CDL use --CDLfeature disable. Note that the\n");
+        printf("\t\tCDL Feature Set is not supported on all devices.\n");
+        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n\n");
+    }
+}
+
+void print_Show_CDL_Settings_Help(bool shortHelp)
+{
+    printf("\t--%s [raw | json]\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the current CDL settings.\n");
+        printf("\t\tOnly drives supporting the CDL feature will show this data and\n");
+        printf("\t\tonly supported CDL settings will be shown.\n");
+        printf("\t\tOutput modes:\n");
+        printf("\t\t  raw - Show current CDL settings on screen.\n");
+        printf("\t\t  json - Create JSON file with current CDL settings.\n");
+        printf("\t\t         Time unit for time related fields in output are\n");
+        printf("\t\t         s - seconds\n");
+        printf("\t\t         ms - milliseconds\n");
+        printf("\t\t         us - microseconds\n");
+        printf("\t\t         500 ns - 500 nanoseconds(SAS only)\n");
+        printf("\t\t         10 ms - 10 milliseconds(SAS only)\n");
+        printf("\t\t         500 ms - 500 milliseconds(SAS only)\n\n");
+    }
+}
+
+void print_Config_CDL_Settings_Help(bool shortHelp)
+{
+    printf("\t--%s [fileName]\n", CONFIG_CDL_SETTINGS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change the CDL settings. Note that the\n");
+        printf("\t\tCDL Feature Set is not supported on all devices.\n");
+        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n");
+        printf("\t\tProvided JSON file will be used to read the new CDL settings.\n");
+        printf("\t\tUse --%s option to skip the validation on provided JSON file.\n", SKIP_VALIDATION_LONG_OPT_STRING);
+        printf("\t\tIf provided settings are not valid, then error will be returned.\n\n");
+    }
+}

@@ -36,6 +36,10 @@
 #include "set_max_lba.h"
 #include "smart.h"
 #include "trim_unmap.h"
+
+#include "cdl.h"
+#include "cdl_json.h"
+
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -92,6 +96,7 @@ int main(int argc, char* argv[])
     ONLY_SEAGATE_VAR
     FORCE_DRIVE_TYPE_VARS
     ENABLE_LEGACY_PASSTHROUGH_VAR
+    OUTPUTPATH_VAR
     // scan output flags
     SCAN_FLAGS_UTIL_VARS
     // tool specific
@@ -136,6 +141,12 @@ int main(int argc, char* argv[])
 
     SET_TIMESTAMP_VAR
 
+    CDL_FEATURE_VAR
+    SHOW_CDL_SETTINGS_VAR
+    CONFIG_CDL_SETTINGS_VAR
+    SKIP_VALIDATION_VAR
+
+
     int args        = 0;
     int argIndex    = 0;
     int optionIndex = 0;
@@ -169,6 +180,7 @@ int main(int argc, char* argv[])
         CONFIRM_LONG_OPT,
         VOLATILE_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
+        OUTPUTPATH_LONG_OPT,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
 #if defined(ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
@@ -206,7 +218,11 @@ int main(int argc, char* argv[])
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
         WRV_LONG_OPT,
         SET_TIMESTAMP_LONG_OPT,
-        LONG_OPT_TERMINATOR
+        LONG_OPT_TERMINATOR,
+        CDL_FEATURE_LONG_OPT,
+        SHOW_CDL_SETTINGS_LONG_OPT,
+        CONFIG_CDL_SETTINGS_LONG_OPT,
+        SKIP_VALIDATION_LONG_OPT
     };
     // clang-format on
 
@@ -1421,6 +1437,61 @@ int main(int argc, char* argv[])
                 CHILD_FW_MATCH_FLAG = true;
                 snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
             }
+            else if (strcmp(longopts[optionIndex].name, CDL_FEATURE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp("enable", optarg) == 0)
+                {
+                    CDL_FEATURE_IDENTIFIER = CDL_FEATURE_ENABLE;
+                }
+                else if (strcmp("disable", optarg) == 0)
+                {
+                    CDL_FEATURE_IDENTIFIER = CDL_FEATURE_DISABLE;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CDL_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                SHOW_CDL_SETTINGS_FLAG = true;
+                if (strcmp(optarg, "raw") == 0)
+                {
+                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                }
+                else if (strcmp(optarg, "json") == 0)
+                {
+                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, CONFIG_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                int res = snprintf(CONFIG_CDL_JSONFILENAME_FLAG, CONFIG_CDL_JSONFILENAME_MAX_LEN, "%s", optarg);
+                if (res > 0 && res <= CONFIG_CDL_JSONFILENAME_MAX_LEN)
+                {
+                    CONFIG_CDL_SETTINGS_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIG_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
+            {
+                OUTPUTPATH_PARSE
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
+                {
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             break;
         case ':': // missing required argument
             exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
@@ -1716,7 +1787,8 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP))
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP || 
+          (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG ||CONFIG_CDL_SETTINGS_FLAG))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -4553,6 +4625,159 @@ int main(int argc, char* argv[])
                 }
             }
         }
+
+        if (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN)
+        {
+            switch (enable_Disable_CDL_Feature(&deviceList[deviceIter], CDL_FEATURE_IDENTIFIER))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (CDL_FEATURE_IDENTIFIER == CDL_FEATURE_ENABLE)
+                    {
+                        printf("Successfully Enabled CDL Feature Set.\n");
+                    }
+                    else
+                    {
+                        printf("Successfully Disabled CDL Feature Set.\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("CDL Feature is not supported by this device.\n");
+                }
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Failed to send CDL command to drive.\n");
+                    printf("CDL Feature set might not be supported.\n");
+                    printf("Or CDL Feature might already be in the desired state.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_CDL_SETTINGS_FLAG)
+        {
+            tCDLSettings cdlSettings;
+            memset(&cdlSettings, 0, sizeof(tCDLSettings));
+
+            switch (get_CDL_Settings(&deviceList[deviceIter], &cdlSettings))
+            {
+            case SUCCESS:
+                if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
+                    print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+                else
+                {
+                    ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON file for CDL Settings\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing CDL Settings is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A failure occured while trying to get CDL Settings\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (CONFIG_CDL_SETTINGS_FLAG)
+        {
+            tCDLSettings cdlSettings;
+            memset(&cdlSettings, 0, sizeof(tCDLSettings));
+            // first get the current CDL settings to know what settings are valid
+            ret = get_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+            if (ret == SUCCESS)
+            {
+                ret = parse_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings,
+                                                       CONFIG_CDL_JSONFILENAME_FLAG, SKIP_VALIDATION_FLAG);
+                if (ret == SUCCESS)
+                {
+                    switch (config_CDL_Settings(&deviceList[deviceIter], &cdlSettings))
+                    {
+                    case SUCCESS:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Configured CDL Settings successfully.\n");
+                        }
+
+                        // get new current settings and print on console
+                        printf("New CDL Settings are : \n");
+                        tCDLSettings newCDLSettings;
+                        memset(&newCDLSettings, 0, sizeof(tCDLSettings));
+                        if (get_CDL_Settings(&deviceList[deviceIter], &newCDLSettings) == SUCCESS)
+                        {
+                            print_CDL_Settings(&deviceList[deviceIter], &newCDLSettings);
+                        }
+                        else
+                        {
+                            printf("A failure occured while trying to get CDL Settings\n");
+                        }
+                        break;
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Configuring CDL Settings is not supported on this device\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to config CDL Settings\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while parsing CDL Config File.\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else if (ret == NOT_SUPPORTED)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Configuring CDL Settings is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A failure occured while trying to config CDL Settings\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+            }
+        }
+
         // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
     }
@@ -4693,15 +4918,19 @@ void utility_Usage(bool shortUsage)
     // utility tests/operations go here - alphabetized
     print_Capacity_Model_Number_Mapping_Help(shortUsage);
     print_Change_Id_String_Help(shortUsage);
+    print_Config_CDL_Settings_Help(shortUsage);
+    print_Output_Mode_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);
     print_Restore_Max_LBA_Help(shortUsage);
     print_Set_Max_LBA_Help(shortUsage);
+    print_Show_CDL_Settings_Help(shortUsage);
     print_Set_Timestamp_Help(shortUsage);
     print_Write_Cache_Help(shortUsage);
 
     // SATA Only Options
     printf("\n\tSATA Only:\n\t========\n");
+    print_EnableDisableCDL_Help(shortUsage);
     print_DCO_FreezeLock_Help(shortUsage);
     print_DCO_Identify_Help(shortUsage);
     print_DCO_Restore_Help(shortUsage);
