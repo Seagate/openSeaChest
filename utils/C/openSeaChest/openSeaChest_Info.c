@@ -34,6 +34,7 @@
 #    include "csmi_helper_func.h"
 #endif
 #include "device_statistics_json.h"
+#include "scsi_defect_list_json.h"
 #include "partition_info.h"
 #include "sata_phy.h"
 #include "smart_attribute_json.h"
@@ -1132,7 +1133,31 @@ int main(int argc, char* argv[])
                                          SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
-                print_SCSI_Defect_List(defects);
+                if (JSON_OUTPUT_FLAG)
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                   ret =  create_JSON_Output_For_SCSI_Defect_List(defects, &jsonFormatOutput);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON format for SCSI Defect List\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                    else
+                    {
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                    }
+
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    print_SCSI_Defect_List(defects);
+                }
+                
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
