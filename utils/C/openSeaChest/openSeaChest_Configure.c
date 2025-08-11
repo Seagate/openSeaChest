@@ -40,7 +40,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Configure";
-const char* buildVersion = "2.9.2";
+const char* buildVersion = "2.9.3";
 
 ////////////////////////////
 //  functions to declare  //
@@ -2626,7 +2626,7 @@ int main(int argc, char* argv[])
                 switch (SSC_MODE)
                 {
                 case SSC_DEFAULT:
-                    printf("set to the drive's default value\n");
+                    printf("set to the drive's default value (Usually enabled by default).\n");
                     break;
                 case SSC_ENABLED:
                     printf("enabled\n");
