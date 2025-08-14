@@ -14,3 +14,6 @@
 [submodule "subprojects/opensea-jsonformat"]
 	path = subprojects/opensea-jsonformat
 	url = https://github.com/Seagate/opensea-jsonformat.git
+[submodule "subprojects/json-c"]
+	path = subprojects/json-c
+	url = https://github.com/json-c/json-c.git
