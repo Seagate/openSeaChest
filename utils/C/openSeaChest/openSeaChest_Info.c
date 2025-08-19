@@ -192,23 +192,26 @@ int main(int argc, char* argv[])
             // parse long options that have no short option and required arguments here
             if (strcmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING) == 0)
             {
-                SMART_ATTRIBUTES_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "analyzed") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
-                }
-                else if (strcmp(optarg, "hybrid") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
+                    }
+                    else if (strcmp(optarg, "analyzed") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                    }
+                    else if (strcmp(optarg, "hybrid") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SCSI_DEFECTS_LONG_OPT_STRING) == 0)
