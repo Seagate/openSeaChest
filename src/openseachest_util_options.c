@@ -129,19 +129,24 @@ void print_Elevated_Privileges_Text(void)
            "password.\n");
 #    elif defined(__FreeBSD__)
     print_str("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
-    print_str("In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    print_str(
+        "In FreeBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__OpenBSD__)
     print_str("In OpenBSD, put sudo before the command. This may require inputting your login password.\n");
-    print_str("In OpenBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    print_str(
+        "In OpenBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__NetBSD__)
     print_str("In NetBSD, put sudo before the command. This may require inputting your login password.\n");
-    print_str("In NetBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    print_str(
+        "In NetBSD, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__illumos__) || defined(THIS_IS_ILLUMOS)
     print_str("In Illumos, put sudo before the command. This may require inputting your login password.\n");
-    print_str("In Illumos, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    print_str(
+        "In Illumos, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    elif defined(__sun)
     print_str("In Solaris, put sudo before the command. This may require inputting your login password.\n");
-    print_str("In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
+    print_str(
+        "In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    else // generic unix/unix-like case //Add more OS specific ifdefs to customize messages above
     print_str("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
     printf(
@@ -3647,8 +3652,10 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
         print_str("\t\tof the depopulation operation.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-        print_str("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
-        print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        print_str(
+            "\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        print_str(
+            "\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         print_str("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         print_str("\t\t         with multiple logical units or namespaces.\n\n");
@@ -3680,7 +3687,8 @@ void print_Repopulate_Elements_Help(bool shortHelp)
         print_str("\t\tthe drive is usable.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
         print_str("\t\tThere is an additional risk when performing a repopulate as it low-level formats\n");
-        print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        print_str(
+            "\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         print_str("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         print_str("\t\t         with multiple logical units or namespaces.\n\n");
@@ -4089,7 +4097,7 @@ void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
                ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING);
 #if defined MD5_PASSWORD_SUPPORTED
         print_str("\t\t  md5 - sends a md5 sum of the password as the password\n"); // Internal SeaChest only since this
-                                                                                 // requires mbedtls library!!!
+                                                                                    // requires mbedtls library!!!
 #endif
         print_str("\t\t  byteswapped - byteswaps the password. EX: blah -> lbha\n");
         print_str("\t\t  zeropad - zero pads the password if less than 32 characters\n");
@@ -4346,7 +4354,8 @@ void print_Set_SCSI_MP_Help(bool shortHelp)
         printf("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
                "decimal)\n");
         print_str("\t\t   A maximum of 64bits can be set at a time with this option.\n");
-        print_str("\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
+        print_str(
+            "\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
         print_str("\t\t   must be separated by a space, new line, or underscore. It is recommended that this file\n");
         printf(
             "\t\t   is created by copy-pasting the output of the --%s option's default classic view, then modifying\n",
@@ -5319,7 +5328,8 @@ void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
         printf(
             "\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
         print_str("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
-        print_str("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
+        print_str(
+            "\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
     }
 }
 
