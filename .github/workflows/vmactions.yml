@@ -17,6 +17,7 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pkg install pkg:/package/pkg
           pkg update
           pkg install socat
 
