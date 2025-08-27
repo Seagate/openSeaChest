@@ -132,7 +132,6 @@ jobs:
       with:
         usesh: true
         prepare: |
-          pkg_add -u
           pkg_add curl
 
         run: |
@@ -156,7 +155,6 @@ jobs:
       with:
         usesh: true
         prepare: |
-          /usr/sbin/pkg_add -u
           /usr/sbin/pkg_add curl
 
         run: |
