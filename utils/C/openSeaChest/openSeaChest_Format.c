@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.4.0";
+const char* buildVersion = "3.4.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1426,7 +1426,6 @@ int main(int argc, char* argv[])
                                                                           &depopElementID, &maxDepop, &currentDepop,
                                                                           elementList))
                         {
-                            printf("Depop time (Dec/Hex): %" PRIu64 "/%" PRIX64 "h\n", depopTime, depopTime);
                             show_Physical_Element_Descriptors_2(numberOfDescriptors, elementList, depopTime,
                                                                 depopElementID, maxDepop, currentDepop);
                         }
