@@ -218,11 +218,11 @@ int main(int argc, char* argv[])
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
         WRV_LONG_OPT,
         SET_TIMESTAMP_LONG_OPT,
-        LONG_OPT_TERMINATOR,
         CDL_FEATURE_LONG_OPT,
         SHOW_CDL_SETTINGS_LONG_OPT,
         CONFIG_CDL_SETTINGS_LONG_OPT,
-        SKIP_VALIDATION_LONG_OPT
+        SKIP_VALIDATION_LONG_OPT,
+        LONG_OPT_TERMINATOR
     };
     // clang-format on
 
