@@ -1450,7 +1450,8 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], util_name, buildVersion,
+                                                                &jsonFormatOutput))
                 {
                 case SUCCESS:
                     // write the data on console

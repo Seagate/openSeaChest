@@ -35,6 +35,7 @@
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "scsi_defect_list_json.h"
 #include "seagate_operations.h"
 #include "smart.h"
 #include "smart_attribute_json.h"
@@ -1178,7 +1179,8 @@ int main(int argc, char* argv[])
                 if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
-                    switch (create_JSON_Output_For_FARM(&deviceList[deviceIter], &farmdata, &jsonFormatOutput))
+                    switch (create_JSON_Output_For_FARM(&deviceList[deviceIter], &farmdata, util_name, buildVersion,
+                                                        &jsonFormatOutput))
                     {
                     case SUCCESS:
                         // write the data on console
@@ -1241,7 +1243,39 @@ int main(int argc, char* argv[])
                                          SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
-                print_SCSI_Defect_List(defects);
+                if (JSON_OUTPUT_FLAG)
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                    switch (create_JSON_Output_For_SCSI_Defect_List(&deviceList[deviceIter], defects, util_name,
+                                                                    buildVersion, &jsonFormatOutput))
+                    {
+                    case SUCCESS:
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                        break;
+
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Showing SCSI Defect List is not supported on this device\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to show SCSI Defect List.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    print_SCSI_Defect_List(defects);
+                }
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
@@ -1315,7 +1349,8 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], util_name, buildVersion,
+                                                                &jsonFormatOutput))
                 {
                 case SUCCESS:
                     // write the data on console
@@ -2215,9 +2250,9 @@ int main(int argc, char* argv[])
                 if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
-                    ret = create_JSON_Output_For_Device_Statistics(&deviceList[deviceIter], &deviceStats,
-                                                                   &seagateDeviceStats,
-                                                                   seagateDeviceStatisticsAvailable, &jsonFormatOutput);
+                    ret                    = create_JSON_Output_For_Device_Statistics(
+                        &deviceList[deviceIter], &deviceStats, &seagateDeviceStats, seagateDeviceStatisticsAvailable,
+                        util_name, buildVersion, &jsonFormatOutput);
                     if (ret != SUCCESS)
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
