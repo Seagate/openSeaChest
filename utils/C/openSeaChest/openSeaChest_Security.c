@@ -38,7 +38,7 @@
 #endif
 #include "ata_Security.h"
 #include "generic_tests.h"
-
+#include "scan_json.h"
 // Uncomment this if we want the command line option to set an ATA security password.
 // This is currently removed because we may not be able to unlock it behind some devices due to poor implementation on
 // SAT with ATA security active #define ENABLE_ATA_SET_PASSWORD
@@ -140,6 +140,7 @@ int main(int argc, char* argv[])
     ATA_SECURITY_DISABLE_OP_VAR
     ATA_SECURITY_FREEZELOCK_OP_VAR
     LOWLEVEL_INFO_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -207,6 +208,7 @@ int main(int argc, char* argv[])
         ATA_SECURITY_FREEZELOCK_OP_LONG_OPT,
         HIDE_LBA_COUNTER_LONG_OPT,
         ZERO_VERIFY_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -465,7 +467,8 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &ATA_SECURITY_MASTER_PW_ID))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &ATA_SECURITY_MASTER_PW_ID))
                 {
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -779,7 +782,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1114,8 +1129,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1957,8 +1971,9 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                         TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                snprintf_err_handle(
+                    seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!

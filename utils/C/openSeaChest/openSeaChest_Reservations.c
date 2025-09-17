@@ -28,6 +28,7 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "reservations.h"
+#include "scan_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -106,6 +107,7 @@ int main(int argc, char* argv[])
     PERSISTENT_RESERVATION_PREEMPT_VARS
     PERSISTENT_RESERVATION_PREEMPT_ABORT_VAR
     LOWLEVEL_INFO_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -158,6 +160,7 @@ int main(int argc, char* argv[])
         PERSISTENT_RESERVATION_CLEAR_LONG_OPT,
         PERSISTENT_RESERVATION_PREEMPT_LONG_OPT,
         PERSISTENT_RESERVATION_PREEMPT_ABORT_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         // tool specific options go here
         LONG_OPT_TERMINATOR
     };
@@ -486,7 +489,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -703,8 +718,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1042,7 +1056,7 @@ int main(int argc, char* argv[])
                     // allocate memory to read them
                     registrationKeysDataSize = sizeof(registrationKeysData) + (sizeof(uint64_t) * registrationKeyCount);
                     registrationKeys         = M_REINTERPRET_CAST(ptrRegistrationKeysData,
-                                                                  safe_calloc(registrationKeysDataSize, sizeof(uint8_t)));
+                                                          safe_calloc(registrationKeysDataSize, sizeof(uint8_t)));
                     if (registrationKeys)
                     {
                         registrationKeys->size    = registrationKeysDataSize;
