@@ -22,6 +22,7 @@
 #include "memory_safety.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "scan_json.h"
 #include "string_utils.h"
 #include "type_conversion.h"
 #include "unit_conversion.h"
@@ -98,6 +99,7 @@ int main(int argc, char* argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -147,6 +149,7 @@ int main(int argc, char* argv[])
         RAW_TIMEOUT_LONG_OPT,
         RAW_OUTPUT_FILE_LONG_OPT,
         RAW_INPUT_FILE_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -917,7 +920,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1131,8 +1146,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1337,12 +1351,13 @@ int main(int argc, char* argv[])
                                 // allocate based on logical block size
                                 if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                 {
-                                    //get the blocksize from read capacity first
+                                    // get the blocksize from read capacity first
                                     readCapacityData readCapData;
                                     safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
                                     if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                     {
-                                        deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                        deviceList[deviceIter].drive_info.deviceBlockSize =
+                                            readCapData.logicalBlockLength;
                                     }
                                 }
                                 allocatedDataLength =
@@ -1383,12 +1398,15 @@ int main(int argc, char* argv[])
                                 {
                                     if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                     {
-                                        //get the blocksize from read capacity first
+                                        // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
-                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
+                                                    sizeof(readCapacityData));
+                                        if (SUCCESS ==
+                                            scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
-                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                            deviceList[deviceIter].drive_info.deviceBlockSize =
+                                                readCapData.logicalBlockLength;
                                         }
                                     }
                                     fileOffset =
@@ -1398,12 +1416,15 @@ int main(int argc, char* argv[])
                                 {
                                     if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                     {
-                                        //get the blocksize from read capacity first
+                                        // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
-                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
+                                                    sizeof(readCapacityData));
+                                        if (SUCCESS ==
+                                            scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
-                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                            deviceList[deviceIter].drive_info.deviceBlockSize =
+                                                readCapData.logicalBlockLength;
                                         }
                                     }
                                     // allocate based on logical block size
@@ -1753,7 +1774,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 &&
-            RAW_TFR_BYTE_BLOCK != -1)
+                 RAW_TFR_BYTE_BLOCK != -1)
         {
             ataPassthroughCommand passthroughCommand;
             safe_memset(&passthroughCommand, sizeof(ataPassthroughCommand), 0, sizeof(ataPassthroughCommand));

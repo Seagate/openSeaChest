@@ -34,6 +34,7 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
+#include "scan_json.h"
 #include "seagate_operations.h"
 #include "set_max_lba.h"
 #include "smart.h"
@@ -822,7 +823,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1450,7 +1463,8 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], &jsonFormatOutput))
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], util_name, buildVersion,
+                                                                &jsonFormatOutput))
                 {
                 case SUCCESS:
                     // write the data on console

@@ -48,6 +48,7 @@
 #include "host_erase.h"
 #include "platform_helper.h"
 #include "sanitize.h"
+#include "scan_json.h"
 #include "set_max_lba.h"
 #include "trim_unmap.h"
 #include "writesame.h"
@@ -169,6 +170,7 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     ERASE_RESTORE_MAX_VAR
     REFRESH_FILE_SYSTEMS_VAR
+    JSON_OUTPUT_VAR
 
     int     args        = 0;
     int     argIndex    = 0;
@@ -249,6 +251,7 @@ int main(int argc, char* argv[])
         ZERO_VERIFY_LONG_OPT,
         ERASE_RESTORE_MAX_PREP_LONG_OPT,
         REFRESH_FILE_SYSTEMS_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -857,7 +860,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                                        printf("Unable to read the file with the mode page data. Cannot set the mode "
+                                               "page.\n");
                                     }
                                     exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
                                 }
@@ -1155,7 +1159,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1453,7 +1469,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1483,8 +1499,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -3618,8 +3633,9 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                         TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                snprintf_err_handle(
+                    seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!

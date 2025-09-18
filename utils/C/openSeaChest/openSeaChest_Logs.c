@@ -32,8 +32,8 @@
 #include "farm_log.h"
 #include "logs.h"
 #include "openseachest_util_options.h"
+#include "scan_json.h"
 #include "smart.h"
-
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -115,6 +115,7 @@ int main(int argc, char* argv[])
     LOG_TRANSFER_LENGTH_BYTES_VAR
     LOG_LENGTH_BYTES_VAR
     LOWLEVEL_INFO_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -171,6 +172,7 @@ int main(int argc, char* argv[])
         INFROMATIONAL_EXCEPTIONS_LONG_OPT,
         LOG_TRANSFER_LENGTH_LONG_OPT,
         LOG_LENGTH_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -610,7 +612,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -687,9 +701,9 @@ int main(int argc, char* argv[])
     }
     // check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG || LOWLEVEL_INFO_FLAG || LIST_LOGS_FLAG || LIST_ERROR_HISTORY_FLAG ||
-          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG || (GET_TELEMETRY_IDENTIFIER > 0) ||
-          DST_LOG_FLAG || IDENTIFY_DEVICE_DATA_LOG_FLAG || SATA_PHY_COUNTERS_LOG_FLAG || DEVICE_STATS_LOG_FLAG ||
-          INFORMATIONAL_EXCEPTIONS_FLAG))
+          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG ||
+          (GET_TELEMETRY_IDENTIFIER > 0) || DST_LOG_FLAG || IDENTIFY_DEVICE_DATA_LOG_FLAG ||
+          SATA_PHY_COUNTERS_LOG_FLAG || DEVICE_STATS_LOG_FLAG || INFORMATIONAL_EXCEPTIONS_FLAG))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -825,8 +839,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1249,7 +1262,7 @@ int main(int argc, char* argv[])
                 }
             }
         }
-        
+
         if (FARM_PULL_FLAG)
         {
             // PULL_FARM_FACTORY_PAGE_FLAG
@@ -1621,14 +1634,14 @@ void utility_Usage(bool shortUsage)
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
     print_FARM_Combined_Log_Help(shortUsage);
-	print_Get_Telemetry_Help(shortUsage);
+    print_Get_Telemetry_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
     print_Log_Length_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
     print_Pull_Generic_Logs_Help(shortUsage);
     print_Pull_Self_Test_Results_Log_Help(shortUsage);
-	print_Telemetry_Data_Set_Help(shortUsage);
+    print_Telemetry_Data_Set_Help(shortUsage);
 
     // SATA Only Options
     printf("\n\tSATA Only:\n\n");

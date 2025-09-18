@@ -32,6 +32,7 @@
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "scan_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -322,6 +323,7 @@ int main(int argc, char* argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -365,6 +367,7 @@ int main(int argc, char* argv[])
         ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT,
         ENABLE_HANG_COMMANDS_TEST_LONG_OPT,
         FORCE_RETEST_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         // tool specific options go here
         LONG_OPT_TERMINATOR
     };
@@ -694,7 +697,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -915,8 +930,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1192,7 +1206,8 @@ static eReturnValues return_Response_Extend_Bit_Test(tDevice* device)
         // check HPA or AMAC support as those are preferred commands to be used.
         // The values that are returned should be greater than or equal to the current maxLBA of the drive.
         // Also, if the ext registers are 0xFF, then they were not reported correctly.
-        if (le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0xFFFF && le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0 &&
+        if (le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0xFFFF &&
+            le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0 &&
             le16_to_host(device->drive_info.IdentifyData.ata.Word082) & BIT10)
         {
             // HPA
@@ -2195,7 +2210,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
     printf("=========================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
-    #define SUPPORTED_PAGES_LEN 36
+#define SUPPORTED_PAGES_LEN 36
     DECLARE_ZERO_INIT_ARRAY(uint8_t, supportedPages, SUPPORTED_PAGES_LEN);
     uint8_t dummiedPageCount = UINT8_C(0);
     bool    dummiedPages     = false;
@@ -2413,7 +2428,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     uint8_t  association        = M_GETBITRANGE(pageToRead[offset + 1], 5, 4);
                     uint8_t  designatorType     = M_Nibble0(pageToRead[offset + 1]);
                     uint16_t designatorOffset   = C_CAST(
-                          uint16_t, offset + 4); // This cast to a smaller type should be ok since the offset should never
+                        uint16_t, offset + 4); // This cast to a smaller type should be ok since the offset should never
                                                  // even get to the max uint16_t length. There is a small possibility of
                     // ovverflow with the +4, but it is very slim due to how this is reported
                     // from a device. This should never really happen. - TJE
@@ -4534,9 +4549,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     // reallocate enough data and reread the page.
-                    uint8_t* temp =
-                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
-                                                         device->os_info.minimumAlignment));
+                    uint8_t* temp = M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength,
+                                                                                 pageLengthValidation,
+                                                                                 device->os_info.minimumAlignment));
                     if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
@@ -4606,9 +4621,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     // reallocate enough data and reread the page.
-                    uint8_t* temp =
-                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
-                                                         device->os_info.minimumAlignment));
+                    uint8_t* temp = M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength,
+                                                                                 pageLengthValidation,
+                                                                                 device->os_info.minimumAlignment));
                     if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
@@ -4691,7 +4706,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // control mode page
     modeDataLength = MP_CONTROL_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4735,7 +4750,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         // control extension mode page (not 6 byte, and check if it reports correctly)
         modeDataLength = MP_CONTROL_EXTENSION_LEN + commonModeDataLength;
         modeData       = M_REINTERPRET_CAST(
-                  uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+            uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -4771,7 +4786,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // read write error recovery mode page
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4825,7 +4840,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // caching mode page
     modeDataLength = MP_CACHING_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4879,7 +4894,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // rigid disk geometry page
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4967,7 +4982,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // informational exceptions mode page
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -5031,7 +5046,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // power condition control mode page
     modeDataLength = MP_POWER_CONDITION_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -5106,7 +5121,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             // pata control mode page - only read if the device could be a PATA drive.
             modeDataLength = 8 + commonModeDataLength;
             modeData       = C_CAST(uint8_t*,
-                                    safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+                              safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
             if (!modeData)
             {
                 return MEMORY_FAILURE;
@@ -5149,7 +5164,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         // ata power condition mode page
         modeDataLength = 16 + commonModeDataLength;
         modeData       = M_REINTERPRET_CAST(
-                  uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+            uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -7265,13 +7280,16 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
                                         inputs->device->drive_info.bridge_info.childDriveFW);
 
     // get the WWN
-    inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(
-        le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word108), le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word109),
-        le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word110), inputs->device->drive_info.IdentifyData.ata.Word111);
+    inputs->device->drive_info.bridge_info.childWWN =
+        M_WordsTo8ByteValue(le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word108),
+                            le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word109),
+                            le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word110),
+                            inputs->device->drive_info.IdentifyData.ata.Word111);
 
     // get the sector sizes from the identify data
-    if (((le16_to_host(ident_word[106]) & BIT14) == BIT14) && ((le16_to_host(ident_word[106]) & BIT15) == 0)) // making sure this word has valid
-                                                                                  // data
+    if (((le16_to_host(ident_word[106]) & BIT14) == BIT14) &&
+        ((le16_to_host(ident_word[106]) & BIT15) == 0)) // making sure this word has valid
+                                                        // data
     {
         // word 117 is only valid when word 106 bit 12 is set
         if ((le16_to_host(ident_word[106]) & BIT12) == BIT12)
@@ -7410,7 +7428,8 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
         {
             inputs->device->drive_info.ata_Options.readWriteMultipleSupported = true;
             // set the number of logical sectors per DRQ data block (current setting)
-            inputs->device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock = M_Byte0(le16_to_host(ident_word[59]));
+            inputs->device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock =
+                M_Byte0(le16_to_host(ident_word[59]));
         }
     }
     // check for tagged command queuing support
@@ -7888,7 +7907,8 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         // reports. For MN, SN, FW, check for commonly broken reporting methods.
 #define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
         DECLARE_ZERO_INIT_ARRAY(char, scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN);
-        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s", scsiInformation->inquiryData.productId);
+        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s",
+                            scsiInformation->inquiryData.productId);
         remove_Leading_And_Trailing_Whitespace(scsiProdID);
         if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN,
                     M_Min(16, safe_strlen(scsiProdID))) == 0)
@@ -7908,8 +7928,8 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 // Most likely had the vendor+productID set as the full ATA MN
 #define PASSTHROUGH_TEST_FULL_MN_LENGTH 42
                 DECLARE_ZERO_INIT_ARRAY(char, fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH);
-                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s", scsiInformation->inquiryData.vendorId,
-                         scsiInformation->inquiryData.productId);
+                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s",
+                                    scsiInformation->inquiryData.vendorId, scsiInformation->inquiryData.productId);
                 if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN,
                             M_Min(safe_strlen(fullMN),
                                   safe_strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
@@ -8215,7 +8235,7 @@ static eReturnValues scsi_Max_Transfer_Length_Test(tDevice* device, uint32_t rep
     }
     size_t   dataBufSize = uint32_to_sizet(maxTestSizeBlocks) * uint32_to_sizet(device->drive_info.deviceBlockSize);
     uint8_t* data        = M_REINTERPRET_CAST(
-               uint8_t*, safe_calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     set_Console_Colors(true, HEADING_COLOR);
     printf("\n==================================\n");
     printf("Testing SCSI Maximum Transfer Size\n");
@@ -8720,9 +8740,10 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     while (inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN)
                     {
                         // Try admin identify controller until we get success or run out of passthroughs to try
-                        if (SUCCESS == nvme_Identify(inputs->device,
-                                                     M_REINTERPRET_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.nvme.ctrl), 0,
-                                                     1))
+                        if (SUCCESS ==
+                            nvme_Identify(
+                                inputs->device,
+                                M_REINTERPRET_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.nvme.ctrl), 0, 1))
                         {
                             break;
                         }

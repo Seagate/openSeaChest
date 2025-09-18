@@ -28,13 +28,14 @@
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
+#include "scan_json.h"
+#include "scsi_defect_list_json.h"
 #include "seagate_operations.h"
 #include "smart.h"
-
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name = "openSeaChest_Defect";
+const char* util_name    = "openSeaChest_Defect";
 const char* buildVersion = "1.0.1";
 
 ////////////////////////////
@@ -108,6 +109,7 @@ int main(int argc, char* argv[])
     CORRUPT_RANDOM_LBAS_VAR
     BYTES_TO_CORRUPT_VAR
     SCSI_DEFECTS_VARS
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -160,6 +162,7 @@ int main(int argc, char* argv[])
         CORRUPT_RANDOM_LBAS_LONG_OPT,
         BYTES_TO_CORRUPT_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -668,7 +671,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -883,8 +898,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1258,7 +1272,39 @@ int main(int argc, char* argv[])
                                          SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
-                print_SCSI_Defect_List(defects);
+                if (JSON_OUTPUT_FLAG)
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                    switch (create_JSON_Output_For_SCSI_Defect_List(&deviceList[deviceIter], defects, util_name,
+                                                                    buildVersion, &jsonFormatOutput))
+                    {
+                    case SUCCESS:
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                        break;
+
+                    case NOT_SUPPORTED:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("Showing SCSI Defect List is not supported on this device\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                        break;
+
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to show SCSI Defect List.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    print_SCSI_Defect_List(defects);
+                }
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
@@ -1753,11 +1799,10 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 
-
-    //data destructive commands - alphabetized
+    // data destructive commands - alphabetized
     printf("Data Destructive Commands\n");
     printf("=========================\n");
-    //utility data destructive tests/operations go here
+    // utility data destructive tests/operations go here
     print_Bytes_To_Corrupt_Help(shortUsage);
     print_DST_And_Clean_Help(shortUsage);
     print_Corrupt_LBA_Help(shortUsage);

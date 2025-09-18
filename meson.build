@@ -332,6 +332,37 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 opensea_jsonformat = subproject('opensea-jsonformat')
 opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
+# add cmake to use cmake to compilie libsha2 and json-c
+cmake = import('cmake')
+
+# Retrieve the value of the b_vscrt option
+vscrt_option = get_option('b_vscrt')
+
+# Define the CMake subproject options
+opt_var = cmake.subproject_options()
+opt_var.add_cmake_defines({
+    'GEN_FILES': 'ON',
+    'BUILD_TESTING': 'OFF',
+    'CMAKE_BUILD_TYPE': 'Release',
+    'BUILD_SHARED_LIBS': 'OFF',
+    'DISABLE_EXTRA_LIBS': 'ON',
+    'DISABLE_BSYMBOLIC': 'ON',
+    'CMAKE_POLICY_DEFAULT_CMP0126' : 'NEW'
+})
+
+# Conditionally add the CMAKE_MSVC_RUNTIME_LIBRARY definition
+if vscrt_option == 'static_from_buildtype'
+    opt_var.add_cmake_defines({
+      'CMAKE_POLICY_DEFAULT_CMP0091' : 'NEW',
+      'CMAKE_MSVC_RUNTIME_LIBRARY': 'MultiThreaded'
+      })
+endif
+
+# Define the CMake subproject
+jsonc = cmake.subproject('json-c', options: opt_var)
+jsonc_dep = jsonc.dependency('json-c')
+
+# define include directories
 incdir = include_directories('include')
 
 exe_src_map = {
@@ -341,7 +372,7 @@ exe_src_map = {
 }
 
 foreach p : get_option('tools')
-  executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, opensea_jsonformat_dep, os_deps], include_directories : incdir, install : true)
+  executable('openSeaChest_' + p, common_sources, 'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c', dependencies : [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, opensea_jsonformat_dep, jsonc_dep, os_deps], include_directories : incdir, install : true)
   if usehelp2man
     #use help2man to generate manpages before installing them
     run_command(help2man, '-o', meson.project_source_root() + '/docs/man/man8/openSeaChest_'  + exe_src_map.get(p, p) + '.8', meson.project_build_root() + '/openSeaChest_' + exe_src_map.get(p, p), check: false)

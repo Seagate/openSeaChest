@@ -35,9 +35,8 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
+#include "scan_json.h"
 #include "smart.h"
-#include <math.h>
-
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -120,7 +119,7 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     LIST_LOGS_VAR
     FORCE_DRIVE_TYPE_VARS
-
+    JSON_OUTPUT_VAR
 #if defined(ENABLE_HWRAID_SUPPORT)
     RAID_PHYSICAL_DRIVE
     rDevice; // TODO: This should be a list so that we can talk to more than one raid device at a time!
@@ -182,6 +181,7 @@ int main(int argc, char* argv[])
         NVM_FORMAT_OPTIONS_LONG_OPTS,
         LIST_LOGS_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -789,7 +789,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -974,8 +986,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1367,7 +1378,7 @@ int main(int argc, char* argv[])
 #define SEACHEST_NVME_LOG_NAME_LENGTH 16
                                 DECLARE_ZERO_INIT_ARRAY(char, logName, SEACHEST_NVME_LOG_NAME_LENGTH);
                                 snprintf_err_handle(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d",
-                                         GET_NVME_LOG_IDENTIFIER);
+                                                    GET_NVME_LOG_IDENTIFIER);
                                 if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(
                                                    &deviceList[deviceIter], &secureFile, NAMING_SERIAL_NUMBER_DATE_TIME,
                                                    M_NULLPTR, logName, "bin"))
@@ -1859,8 +1870,8 @@ int main(int argc, char* argv[])
                         dlOptions.ignoreStatusOfFinalSegment = false;
                         dlOptions.firmwareFileMem            = firmwareMem;
                         dlOptions.firmwareMemoryLength       = C_CAST(
-                                  uint32_t,
-                                  fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
+                            uint32_t,
+                            fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);

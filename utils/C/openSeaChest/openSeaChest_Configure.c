@@ -33,6 +33,7 @@
 #include "operations.h"
 #include "power_control.h" //PUIS. transitions users to using openSeaChest_PowerControl for this feature.
 #include "power_control.h"
+#include "scan_json.h"
 #include "set_max_lba.h"
 #include "smart.h"
 #include "trim_unmap.h"
@@ -133,8 +134,8 @@ int main(int argc, char* argv[])
     ATA_DCO_SETMAXLBA_VARS
     ATA_DCO_SETMAXMODE_VARS
     ATA_DCO_DISABLE_FEATURES_VARS
-
     SET_TIMESTAMP_VAR
+    JSON_OUTPUT_VAR
 
     int args        = 0;
     int argIndex    = 0;
@@ -206,6 +207,7 @@ int main(int argc, char* argv[])
         ATA_DCO_DISABLE_FEEATURES_LONG_OPT,
         WRV_LONG_OPT,
         SET_TIMESTAMP_LONG_OPT,
+        JSON_OUTPUT_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -1627,7 +1629,19 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1716,7 +1730,8 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP))
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO ||
+          SET_TIMESTAMP))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1774,7 +1789,7 @@ int main(int argc, char* argv[])
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
         getDevsRet = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
-        ret = getDevsRet;
+        ret        = getDevsRet;
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
@@ -1851,8 +1866,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -4128,7 +4142,7 @@ int main(int argc, char* argv[])
                                 char*       saveptr    = M_NULLPTR;
                                 const char* delimiters = " \n\r-_\\/|\t:;";
                                 char*       token      = safe_String_Token(fileBuf, &filebuflen, delimiters,
-                                                                           &saveptr); // add more to the delimiter list as needed
+                                                                &saveptr); // add more to the delimiter list as needed
                                 if (token)
                                 {
                                     bool     invalidCharacterOrMissingSeparator = false;
