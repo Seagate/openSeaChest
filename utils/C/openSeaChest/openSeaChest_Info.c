@@ -39,6 +39,8 @@
 #include "scan_json.h"
 #include "scsi_defect_list_json.h"
 #include "smart_attribute_json.h"
+#include "drive_information_json.h"
+
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -947,7 +949,8 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, &jsonFormatOutput);
+                ret =
+                    create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, &jsonFormatOutput);
                 if (ret != SUCCESS)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
