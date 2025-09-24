@@ -39,6 +39,7 @@
 #include "ata_Security.h"
 #include "generic_tests.h"
 #include "scan_json.h"
+#include "drive_information_json.h"
 // Uncomment this if we want the command line option to set an ATA security password.
 // This is currently removed because we may not be able to unlock it behind some devices due to poor implementation on
 // SAT with ATA security active #define ENABLE_ATA_SET_PASSWORD
@@ -1316,13 +1317,36 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
+                                                               buildVersion, &jsonFormatOutput);
+                if (ret != SUCCESS)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 

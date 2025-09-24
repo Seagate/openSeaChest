@@ -40,6 +40,7 @@
 #include "seagate_operations.h"
 #include "smart.h"
 #include "smart_attribute_json.h"
+#include "drive_information_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -1172,13 +1173,36 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
+                                                               buildVersion, &jsonFormatOutput);
+                if (ret != SUCCESS)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        printf("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 

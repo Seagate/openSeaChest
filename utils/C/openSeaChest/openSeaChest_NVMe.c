@@ -37,6 +37,7 @@
 #include "power_control.h"
 #include "scan_json.h"
 #include "smart.h"
+#include "drive_information_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -1102,13 +1103,36 @@ int main(int argc, char* argv[])
         {
             if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
             {
-                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                if (JSON_OUTPUT_FLAG)
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
+                    char* jsonFormatOutput = M_NULLPTR;
+                    ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
+                                                                   buildVersion, &jsonFormatOutput);
+                    if (ret != SUCCESS)
                     {
-                        printf("ERROR: failed to get device information\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON format for Device Information\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    else
+                    {
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+                {
+                    if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("ERROR: failed to get device information\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
                 }
             }
             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)

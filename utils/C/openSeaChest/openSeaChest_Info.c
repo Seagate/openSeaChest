@@ -949,8 +949,8 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret =
-                    create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, &jsonFormatOutput);
+                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
+                                                               buildVersion, &jsonFormatOutput);
                 if (ret != SUCCESS)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
