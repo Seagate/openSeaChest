@@ -37,9 +37,9 @@
 #    include "tcg_drive_info.h"
 #endif
 #include "ata_Security.h"
+#include "drive_information_json.h"
 #include "generic_tests.h"
 #include "scan_json.h"
-#include "drive_information_json.h"
 // Uncomment this if we want the command line option to set an ATA security password.
 // This is currently removed because we may not be able to unlock it behind some devices due to poor implementation on
 // SAT with ATA security active #define ENABLE_ATA_SET_PASSWORD
@@ -1320,13 +1320,12 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
-                                                               buildVersion, &jsonFormatOutput);
-                if (ret != SUCCESS)
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                        printf("ERROR: failed to get device information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }

@@ -43,6 +43,7 @@
 #endif
 #include "ata_Security.h"
 #include "drive_info.h"
+#include "drive_information_json.h"
 #include "format.h"
 #include "generic_tests.h"
 #include "host_erase.h"
@@ -52,7 +53,6 @@
 #include "set_max_lba.h"
 #include "trim_unmap.h"
 #include "writesame.h"
-#include "drive_information_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -1470,7 +1470,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd = -1;
+            deviceList[handleIter].os_info.fd     = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1739,13 +1739,12 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
-                                                               buildVersion, &jsonFormatOutput);
-                if (ret != SUCCESS)
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                        printf("ERROR: failed to get device information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -2198,9 +2197,9 @@ int main(int argc, char* argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                writeAfterErase  writeReq;
-                eRevertAuthority authority     = REVERT_AUTHORITY_MSID;
-                char*            passwordToUse = M_NULLPTR;
+                writeAfterErase writeReq;
+                eRevertAuthority authority = REVERT_AUTHORITY_MSID;
+                char* passwordToUse = M_NULLPTR;
                 safe_memset(&writeReq, sizeof(writeAfterErase), 0, sizeof(writeAfterErase));
                 if (safe_strlen(TCG_PSID_FLAG) || safe_strlen(TCG_SID_FLAG))
                 {
@@ -2215,12 +2214,12 @@ int main(int argc, char* argv[])
                     }
                     else if (safe_strlen(TCG_PSID_FLAG) == 32)
                     {
-                        authority     = REVERT_AUTHORITY_PSID;
+                        authority = REVERT_AUTHORITY_PSID;
                         passwordToUse = TCG_PSID_FLAG;
                     }
                     else if (safe_strlen(TCG_SID_FLAG) > 0)
                     {
-                        authority     = REVERT_AUTHORITY_SID;
+                        authority = REVERT_AUTHORITY_SID;
                         passwordToUse = TCG_SID_FLAG;
                     }
                     else

@@ -29,12 +29,12 @@
 #include "operations.h"
 // include the seachest util options for the device option, drive info option and a few other things that are needed.
 #include "drive_info.h"
+#include "drive_information_json.h"
 #include "farm_log.h"
 #include "logs.h"
 #include "openseachest_util_options.h"
 #include "scan_json.h"
 #include "smart.h"
-#include "drive_information_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -1030,13 +1030,12 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
-                                                               buildVersion, &jsonFormatOutput);
-                if (ret != SUCCESS)
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                        printf("ERROR: failed to get device information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }

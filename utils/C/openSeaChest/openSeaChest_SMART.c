@@ -29,6 +29,7 @@
 #include "device_statistics.h"
 #include "device_statistics_json.h"
 #include "drive_info.h"
+#include "drive_information_json.h"
 #include "dst.h"
 #include "farm_json.h"
 #include "farm_log.h"
@@ -40,7 +41,6 @@
 #include "seagate_operations.h"
 #include "smart.h"
 #include "smart_attribute_json.h"
-#include "drive_information_json.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -1176,13 +1176,12 @@ int main(int argc, char* argv[])
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
-                ret = create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG, util_name,
-                                                               buildVersion, &jsonFormatOutput);
-                if (ret != SUCCESS)
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to create JSON format for Device Information\n");
+                        printf("ERROR: failed to get device information\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
