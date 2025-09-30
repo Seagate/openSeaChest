@@ -30,6 +30,7 @@
 #include "device_statistics_json.h"
 #include "drive_info.h"
 #include "dst.h"
+#include "dst_json.h"
 #include "farm_json.h"
 #include "farm_log.h"
 #include "getopt.h"
@@ -2081,7 +2082,29 @@ int main(int argc, char* argv[])
             switch (get_DST_Log_Entries(&deviceList[deviceIter], &dstEntries))
             {
             case SUCCESS:
-                print_DST_Log_Entries(&dstEntries);
+                if (JSON_OUTPUT_FLAG)
+                {
+                    char* jsonFormatOutput = M_NULLPTR;
+                    switch (create_JSON_Output_For_DST(&deviceList[deviceIter], &dstEntries, util_name, buildVersion,
+                                                       &jsonFormatOutput))
+                    {
+                    case SUCCESS:
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                        break;
+
+                    default:
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to show DST Log.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                        break;
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+                    print_DST_Log_Entries(&dstEntries);
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
