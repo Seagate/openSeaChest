@@ -165,6 +165,7 @@ jobs:
         usesh: true
         prepare: |
           /usr/sbin/pkg_add curl
+          /usr/sbin/pkg_add ntp
           
           ntpd -gq
 
