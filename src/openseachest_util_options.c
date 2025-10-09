@@ -155,17 +155,6 @@ void print_Elevated_Privileges_Text(void)
 #endif
 }
 
-char* get_current_year(char* temp_year)
-{
-    size_t len   = safe_strlen(__DATE__);
-    temp_year[4] = '\0';
-    temp_year[3] = __DATE__[len - 1];
-    temp_year[2] = __DATE__[len - 2];
-    temp_year[1] = __DATE__[len - 3];
-    temp_year[0] = __DATE__[len - 4];
-    return temp_year;
-}
-
 void openseachest_utility_Info(const char* utilityName, const char* buildVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
