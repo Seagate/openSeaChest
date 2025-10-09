@@ -21,6 +21,8 @@ jobs:
           pkg update
           pkg install socat
 
+          ntpdate -u pool.ntp.org
+
         run: |
           pkg install bison build-essential flex ninja pkg-config
 
@@ -45,6 +47,8 @@ jobs:
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
+
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install --accept developer/build/meson
@@ -112,6 +116,8 @@ jobs:
         prepare: |
           pkg update
           pkg install -y socat
+          pkg install -y ntp
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install -y meson
@@ -135,6 +141,12 @@ jobs:
         usesh: true
         prepare: |
           pkg_add curl
+          
+          rcctl enable ntpd
+          rcctl start ntpd
+          # force a sync in the VM
+          ntpd -s
+
 
         run: |
           pkg_add meson
@@ -158,6 +170,9 @@ jobs:
         usesh: true
         prepare: |
           /usr/sbin/pkg_add curl
+          /usr/sbin/pkg_add ntp
+
+          ntpdate -u pool.ntp.org
 
         run: |
           /usr/sbin/pkg_add meson
