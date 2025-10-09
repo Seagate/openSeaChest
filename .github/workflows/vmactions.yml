@@ -132,7 +132,7 @@ jobs:
       with:
         submodules: recursive
     - name: Build openSeaChest for OpenBSD
-      id: freebsd
+      id: openbsd
       uses: vmactions/openbsd-vm@v1
       with:
         usesh: true
@@ -159,7 +159,7 @@ jobs:
       with:
         submodules: recursive
     - name: Build openSeaChest for NetBSD
-      id: freebsd
+      id: netbsd
       uses: vmactions/netbsd-vm@v1
       with:
         usesh: true
@@ -167,7 +167,7 @@ jobs:
           /usr/sbin/pkg_add curl
           /usr/sbin/pkg_add ntp
           
-          ntpd -gq
+          /etc/rc.d/ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson
