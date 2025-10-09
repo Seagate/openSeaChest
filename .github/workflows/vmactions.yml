@@ -165,9 +165,8 @@ jobs:
         usesh: true
         prepare: |
           /usr/sbin/pkg_add curl
-          /usr/sbin/pkg_add ntpdate
           
-          ntpd --wait-sync=15
+          ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson
