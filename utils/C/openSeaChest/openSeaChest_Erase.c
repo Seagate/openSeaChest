@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.3";
+const char* buildVersion = "4.7.4";
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -2757,11 +2757,6 @@ int main(int argc, char* argv[])
                     currentBlockSize = false;
                 }
                 formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
-                if (FAST_FORMAT_FLAG > 0)
-                {
-                    formatUnitParameters.disableImmediate =
-                        true; // for fast format, we want to hold the bus busy until it is done.
-                }
                 formatUnitParameters.currentBlockSize     = currentBlockSize;
                 formatUnitParameters.newBlockSize         = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList                = M_NULLPTR;
