@@ -167,7 +167,9 @@ jobs:
           /usr/sbin/pkg_add curl
           /usr/sbin/pkg_add ntp
           
-          /etc/rc.d/ntpd -gq
+          find /usr/pkg -name ntpd
+
+          /usr/pkg/sbin/ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson
