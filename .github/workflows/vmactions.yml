@@ -60,8 +60,8 @@ jobs:
       matrix:
         config:
         - {
-            name: "FreeBSD 14.2",
-            releasename: "14.2",
+            name: "FreeBSD 14.3",
+            releasename: "14.3",
             arch: "x86_64",
           }
         # - {
@@ -88,6 +88,8 @@ jobs:
         prepare: |
           pkg update
           pkg install -y curl
+          pkg install -y ntp
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install -y meson
