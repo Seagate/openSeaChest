@@ -21,8 +21,6 @@ jobs:
           pkg update
           pkg install socat
 
-          svcadm enable ntp
-
         run: |
           pkg install bison build-essential flex ninja pkg-config
 
@@ -167,6 +165,7 @@ jobs:
         usesh: true
         prepare: |
           /usr/sbin/pkg_add curl
+          /usr/sbin/pkg_add ntpdate
           
           ntpd --wait-sync=15
 
