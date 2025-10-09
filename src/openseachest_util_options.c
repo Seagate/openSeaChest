@@ -155,17 +155,6 @@ void print_Elevated_Privileges_Text(void)
 #endif
 }
 
-char* get_current_year(char* temp_year)
-{
-    size_t len   = safe_strlen(__DATE__);
-    temp_year[4] = '\0';
-    temp_year[3] = __DATE__[len - 1];
-    temp_year[2] = __DATE__[len - 2];
-    temp_year[1] = __DATE__[len - 3];
-    temp_year[0] = __DATE__[len - 4];
-    return temp_year;
-}
-
 void openseachest_utility_Info(const char* utilityName, const char* buildVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
@@ -203,8 +192,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     printf("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     printf(" - NVMe Enabled");
-    printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n",
-           get_current_year(year));
+    printf("\n Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     printf("\n");

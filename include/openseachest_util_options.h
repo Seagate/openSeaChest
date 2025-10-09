@@ -3618,8 +3618,6 @@ extern "C"
     extern const char* deviceHandleName;
     extern const char* commandWindowType;
 
-    char* get_current_year(char* temp_year);
-
     void openseachest_utility_Info(const char* utilityName, const char* buildVersion);
 
     void utility_Full_Version_Info(const char* utilityName,

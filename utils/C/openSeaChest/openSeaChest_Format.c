@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.4.0";
+const char* buildVersion = "3.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1510,12 +1510,6 @@ int main(int argc, char* argv[])
                 // default format...This is basically obsolete now due to the above code, but left in place in case
                 // someone wants to try some weird bit combinations
                 formatUnitParameters.disableImmediate = FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE;
-                if (FAST_FORMAT_FLAG > 0)
-                {
-                    // For a fast format, make the drive hold the bus instead or return immediately for a better overall
-                    // result and reduced risk of being interrupted during the format.
-                    formatUnitParameters.disableImmediate = true;
-                }
                 // Set the same protection information as we discovered first.
                 formatUnitParameters.changeProtectionType = false;
                 // override protection info if we were asked to.
