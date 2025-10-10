@@ -5,6 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+     - dependency-name: "opensea-common"
+     - dependency-name: "opensea-transport"
+     - dependency-name: "opensea-operations"
   - package-ecosystem: "github-actions"
     directory: "/.github/workflows"
     schedule:
