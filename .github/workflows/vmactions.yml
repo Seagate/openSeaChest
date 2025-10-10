@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build openSeaChest for omnios
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for OmniOS
@@ -17,6 +17,7 @@ jobs:
       with:
         usesh: true
         prepare: |
+          pkg install pkg:/package/pkg
           pkg update
           pkg install socat
 
@@ -32,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build openSeaChest for Solaris
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for Solaris
@@ -44,6 +45,8 @@ jobs:
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
+
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install --accept developer/build/meson
@@ -74,7 +77,7 @@ jobs:
             arch: "x86_64",
           }
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for ${{ matrix.config.name }}
@@ -87,6 +90,8 @@ jobs:
         prepare: |
           pkg update
           pkg install -y curl
+          pkg install -y ntp
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install -y meson
@@ -98,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build openSeaChest for DragonflyBSD
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for  DragonflyBSD
@@ -109,6 +114,7 @@ jobs:
         prepare: |
           pkg update
           pkg install -y socat
+          /usr/sbin/dntpd -s
 
         run: |
           pkg install -y meson
@@ -122,17 +128,20 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for OpenBSD
-      id: freebsd
+      id: openbsd
       uses: vmactions/openbsd-vm@v1
       with:
         usesh: true
         prepare: |
-          pkg_add -u
           pkg_add curl
+
+          # force a sync in the VM
+          ntpctl -s status || true
+
 
         run: |
           pkg_add meson
@@ -146,17 +155,20 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         submodules: recursive
     - name: Build openSeaChest for NetBSD
-      id: freebsd
+      id: netbsd
       uses: vmactions/netbsd-vm@v1
       with:
         usesh: true
         prepare: |
-          /usr/sbin/pkg_add -u
           /usr/sbin/pkg_add curl
+          /usr/sbin/pkg_add ntp
+          
+          # Removed for now because this crashes from errors in a config file for unknown reasons.
+          # /usr/pkg/sbin/ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson

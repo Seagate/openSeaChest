@@ -26,7 +26,7 @@ subsystem = 'windows'
 kernel = 'nt'
 endian = 'little'
 cpu_family = 'x86_64'
-cpu = ''
+cpu = 'x86_64'
 
 [built-in options]
 default_library='static'

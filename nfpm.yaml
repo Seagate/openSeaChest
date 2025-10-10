@@ -2,7 +2,7 @@
 name: "openseachest"
 arch: "amd64"
 platform: "linux"
-version: "dev"
+version: "25.05.2"
 version_schema: "none"
 section: "default"
 maintainer: "Seagate Technology <opensource@seagate.com>"

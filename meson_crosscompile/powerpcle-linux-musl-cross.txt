@@ -25,7 +25,7 @@ skip_sanity_check = true
 [host_machine]
 system = 'linux'
 cpu_family = 'ppc'
-cpu = ''
+cpu = 'powerpcle'
 endian = 'little'
 
 [built-in options]

@@ -160,17 +160,6 @@ void print_Elevated_Privileges_Text(void)
 #endif
 }
 
-char* get_current_year(char* temp_year)
-{
-    size_t len   = safe_strlen(__DATE__);
-    temp_year[4] = '\0';
-    temp_year[3] = __DATE__[len - 1];
-    temp_year[2] = __DATE__[len - 2];
-    temp_year[1] = __DATE__[len - 3];
-    temp_year[0] = __DATE__[len - 4];
-    return temp_year;
-}
-
 void openseachest_utility_Info(const char* utilityName, const char* buildVersion)
 {
     eArchitecture architecture = get_Compiled_Architecture();
@@ -208,8 +197,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     print_str("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     print_str(" - NVMe Enabled");
-    printf("\n Copyright (c) 2014-%s Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n",
-           get_current_year(year));
+    print_str("\n Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     print_str("\n");
@@ -3659,6 +3647,27 @@ void print_Remove_Physical_Element_Status_Help(bool shortHelp)
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         print_str("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         print_str("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+
+void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp)
+{
+    printf("\t--%s [element #] (Zoned Only)\n", REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to remove a storage element and modify zones\n");
+        printf("\t\tfrom use on a Zoned drive (ZBD). When this is done, the\n");
+        printf("\t\tdrive will erase all user data and lower the\n");
+        printf("\t\tcapacity to a new point where the drive is still\n");
+        printf("\t\tusable without the provided element #.\n");
+        printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
+        printf("\t\tof the depopulation operation.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
+        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        printf("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 

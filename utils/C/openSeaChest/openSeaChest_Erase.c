@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.3";
+const char* buildVersion = "4.7.4";
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -2574,7 +2574,7 @@ int main(int argc, char* argv[])
                     print_str("may not be handling the sanitize in progress state correctly. If this happens\n");
                     print_str("the next best thing to do is leave the drive powered on with the interface\n");
                     print_str("cable(SATA / SAS HBA cable) disconnected. Sanitize will continue running\n");
-                    print_str("while the drive is powered onand the system will no longer be able to\n");
+                    print_str("while the drive is powered on and the system will no longer be able to\n");
                     print_str("interrupt or slow down the sanitize operation.\n");
                     print_str("NOTE: On an HDD, the approximate overwrite time is 1.5-2 hours per terabyte\n");
                     print_str("      of the native capacity of the drive. Reduced size for maxLBA does not\n");
@@ -2763,11 +2763,6 @@ int main(int argc, char* argv[])
                     currentBlockSize = false;
                 }
                 formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
-                if (FAST_FORMAT_FLAG > 0)
-                {
-                    formatUnitParameters.disableImmediate =
-                        true; // for fast format, we want to hold the bus busy until it is done.
-                }
                 formatUnitParameters.currentBlockSize     = currentBlockSize;
                 formatUnitParameters.newBlockSize         = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList                = M_NULLPTR;
