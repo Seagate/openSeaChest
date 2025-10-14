@@ -46,6 +46,8 @@ jobs:
           pkg update --accept || true
           pkgutil -y -i socat
 
+          ntpdate -u pool.ntp.org
+
         run: |
           pkg install --accept developer/build/meson
           pkg install --accept developer/build/cmake
@@ -61,8 +63,8 @@ jobs:
       matrix:
         config:
         - {
-            name: "FreeBSD 14.2",
-            releasename: "14.2",
+            name: "FreeBSD 14.3",
+            releasename: "14.3",
             arch: "x86_64",
           }
         # - {
@@ -89,6 +91,8 @@ jobs:
         prepare: |
           pkg update
           pkg install -y curl
+          pkg install -y ntp
+          ntpdate -u pool.ntp.org
 
         run: |
           pkg install -y meson cmake
@@ -111,6 +115,7 @@ jobs:
         prepare: |
           pkg update
           pkg install -y socat
+          /usr/sbin/dntpd -s
 
         run: |
           pkg install -y meson cmake
@@ -128,12 +133,16 @@ jobs:
       with:
         submodules: recursive
     - name: Build openSeaChest for OpenBSD
-      id: freebsd
+      id: openbsd
       uses: vmactions/openbsd-vm@v1
       with:
         usesh: true
         prepare: |
           pkg_add curl
+
+          # force a sync in the VM
+          ntpctl -s status || true
+
 
         run: |
           pkg_add meson cmake
@@ -151,12 +160,16 @@ jobs:
       with:
         submodules: recursive
     - name: Build openSeaChest for NetBSD
-      id: freebsd
+      id: netbsd
       uses: vmactions/netbsd-vm@v1
       with:
         usesh: true
         prepare: |
           /usr/sbin/pkg_add curl
+          /usr/sbin/pkg_add ntp
+          
+          # Removed for now because this crashes from errors in a config file for unknown reasons.
+          # /usr/pkg/sbin/ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson cmake
