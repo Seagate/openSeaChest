@@ -22,7 +22,7 @@ jobs:
           pkg install socat
 
         run: |
-          pkg install bison build-essential flex ninja pkg-config
+          pkg install bison build-essential flex ninja pkg-config cmake
 
           python3 -m pip install --upgrade pip setuptools wheel
           python3 -m pip install meson
@@ -48,6 +48,7 @@ jobs:
 
         run: |
           pkg install --accept developer/build/meson
+          pkg install --accept developer/build/cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -90,7 +91,7 @@ jobs:
           pkg install -y curl
 
         run: |
-          pkg install -y meson
+          pkg install -y meson cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -112,7 +113,7 @@ jobs:
           pkg install -y socat
 
         run: |
-          pkg install -y meson
+          pkg install -y meson cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -135,7 +136,7 @@ jobs:
           pkg_add curl
 
         run: |
-          pkg_add meson
+          pkg_add meson cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
@@ -158,7 +159,7 @@ jobs:
           /usr/sbin/pkg_add curl
 
         run: |
-          /usr/sbin/pkg_add meson
+          /usr/sbin/pkg_add meson cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
