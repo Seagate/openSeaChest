@@ -73,7 +73,7 @@ void print_Bug_Report_Email(bool shortHelp)
     if (!shortHelp)
     {
         print_str("\nPlease report bugs/suggestions to seaboard@seagate.com.\n");
-        printf("Include the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
+        print_str("Include the output of --" VERSION_LONG_OPT_STRING " information in the email.\n\n");
     }
 }
 
@@ -125,7 +125,7 @@ void print_Elevated_Privileges_Text(void)
 #        endif
 #    elif defined(__DragonFly__)
     print_str("In DragonFlyBSD, put sudo before the command. This may require inputting your login password.\n");
-    printf("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
+    print_str("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
            "password.\n");
 #    elif defined(__FreeBSD__)
     print_str("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
@@ -149,13 +149,13 @@ void print_Elevated_Privileges_Text(void)
         "In Solaris, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    else // generic unix/unix-like case //Add more OS specific ifdefs to customize messages above
     print_str("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
-    printf(
+    print_str(
         "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #    endif
 #else // generic, who knows what OS this is case
     print_str("In Windows, open the Command Prompt using \"Run as administrator\".\n");
     print_str("In Linux/Unix, put sudo before the command. This may require inputting your login password.\n");
-    printf(
+    print_str(
         "In Linux/Unix, log in to a root terminal (su), then execute the command. This requires the root password.\n");
 #endif
 }
@@ -532,7 +532,7 @@ void print_Help_Help(bool shortHelp)
     {
         print_str("\t\tShow utility options and example usage (this output you see now)\n");
         print_str("\t\tPlease report bugs/suggestions to seaboard@seagate.com.\n");
-        printf("\t\tInclude the output of --%s information in the email.\n\n", VERSION_LONG_OPT_STRING);
+        print_str("\t\tInclude the output of --" VERSION_LONG_OPT_STRING " information in the email.\n\n");
     }
 }
 
@@ -777,7 +777,7 @@ void print_Poll_Help(bool shortHelp)
     {
         print_str("\t\tUse this option to cause another operation to poll for progress\n");
         print_str("\t\tuntil it has completed.  This argument does not return to the\n");
-        printf("\t\tcommand prompt and prints ongoing completion percentages (%%)\n");
+        print_str("\t\tcommand prompt and prints ongoing completion percentages (%)\n");
         print_str("\t\t the final test result.  Full drive procedures will take a\n");
         print_str("\t\tvery long time.  Used with --sanitize, or --writeSame (SATA).\n\n");
     }
@@ -876,7 +876,7 @@ void print_Progress_Help(bool shortHelp, const char* testsTogetProgressFor)
         print_str("\t\tthe polling option (default). You must specify a test you wish to\n");
         printf("\t\tget progress from. Ex: \"--%s dst\" or \"--%s sanitize\"\n", PROGRESS_LONG_OPT_STRING,
                PROGRESS_LONG_OPT_STRING);
-        printf("\t\tThe progress counts up from 0%% to 100%%.\n\n");
+        print_str("\t\tThe progress counts up from 0% to 100%.\n\n");
     }
 }
 
@@ -917,7 +917,7 @@ void print_Short_DST_Help(bool shortHelp)
         print_str("\t\tup to 2 minutes to complete. Use the --poll argument to make\n");
         print_str("\t\tthis operation poll for progress until complete. Use the\n");
         print_str("\t\t--progress dst command to check on the completion percentage\n");
-        printf("\t\t(%%) and test result.\n");
+        print_str("\t\t(%) and test result.\n");
         print_str("\t\tNOTE: Short DST may take longer if there is other disk usage\n");
         print_str("\t\twhile the DST is running. If the DST takes longer than 10 minutes\n");
         print_str("\t\tit will automatically be aborted while polling for progress.\n");
@@ -935,7 +935,7 @@ void print_Conveyance_DST_Help(bool shortHelp)
         print_str("\t\tThis test can take up to 2 minutes to complete. Use the --poll\n");
         print_str("\t\targument to make this operation poll for progress until complete.\n");
         print_str("\t\tUse the --progress dst command to check on the completion\n");
-        printf("\t\tpercentage (%%) and test result.\n");
+        print_str("\t\tpercentage (%) and test result.\n");
         print_str("\t\tNOTE: conveyance DST may take longer if there is other disk usage\n");
         print_str("\t\twhile the DST is running. If the DST takes longer than 10 minutes\n");
         print_str("\t\tit will automatically be aborted while polling for progress.\n");
@@ -953,10 +953,10 @@ void print_Long_DST_Help(bool shortHelp, const char* helpcommandWindowType)
         print_str("\t\tcomplete. Use with the --poll argument to let SeaChest check\n");
         print_str("\t\tfor progress and print it to the screen until complete.\n");
         print_str("\t\tUse the --progress dst command to check on the completion\n");
-        printf("\t\tpercentage(%%) and test result.\n");
+        print_str("\t\tpercentage(%) and test result.\n");
         print_str("\t\tThis test stops on the first error. Use --abortDST\n");
-        printf("\t\tto manually stop the test. SAS drives give status in 1%%\n");
-        printf("\t\tincrements. SATA drives give status in 10%% increments which\n");
+        print_str("\t\tto manually stop the test. SAS drives give status in 1%\n");
+        print_str("\t\tincrements. SATA drives give status in 10% increments which\n");
         print_str("\t\tmeans more than an hour may elapse between updates on a SATA\n");
         print_str("\t\tdrive > 2TB.\n\n");
         print_str("\t\tIf the --longDST poll option is running and you want to abort\n");
@@ -1403,8 +1403,8 @@ void print_Short_Generic_Help(bool shortHelp)
         print_str("\t\tThis option will run a short generic read test on a\n");
         print_str("\t\tspecified device. A short generic read test has 3\n");
         print_str("\t\tcomponents. A read at the Outer Diameter (OD) of the\n");
-        printf("\t\tdrive for 1%% of the LBAs, then a read at the Inner\n");
-        printf("\t\tDiameter of the drive for 1%% of the LBAs, and lastly\n");
+        print_str("\t\tdrive for 1% of the LBAs, then a read at the Inner\n");
+        print_str("\t\tDiameter of the drive for 1% of the LBAs, and lastly\n");
         print_str("\t\ta random read of 5000 LBAs. This test will stop on\n");
         print_str("\t\tthe first read error that occurs.\n");
         print_str("\t\tInner and outer diameter tests refer to the physical\n");
@@ -4833,7 +4833,7 @@ void print_Zero_Verify_Help(bool shortHelp)
         print_str("\t\tthat address is zero or not.\n");
         print_str("\t\tValidation modes:\n");
         print_str("\t\t  full - Complete drive will be scanned for verification.\n");
-        printf("\t\t  quick - 0.1%% of total capacity will be scanned for ID and OD validation along with\n");
+        print_str("\t\t  quick - 0.1% of total capacity will be scanned for ID and OD validation along with\n");
         print_str("\t\t          2 random addresses from 10000 equal size sections each.\n\n");
     }
 }
