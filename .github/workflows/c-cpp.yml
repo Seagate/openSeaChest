@@ -56,6 +56,9 @@ jobs:
       run: |
         echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
 
+    - name: Make buildjsonc.sh executable
+      run: chmod +x Make/buildjsonc.sh
+
     - name: make
       working-directory: ${{ matrix.config.builddir }}
       run: |

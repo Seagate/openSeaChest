@@ -20,7 +20,7 @@ mkdir -p "$jsonc_build"
 export CC="$cc"
 
 # Run CMake
-cmake -G "Unix Makefiles" -S "$jsonc_src" -B "$jsonc_build" \
+cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DBUILD_TESTING=OFF \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=OFF \
