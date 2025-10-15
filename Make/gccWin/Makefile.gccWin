@@ -57,7 +57,7 @@ LDLIBS = \
 
 LIBJSONFORMATLFLAGS ?= \
 	../../subprojects/opensea-jsonformat/Make/gccWin/$(LIB_FILE_OUTPUT_DIR)/libopensea-jsonformat.a \
-	../../subprojects/json-c/build/libjson-c.a
+	../../subprojects/json-c/buildwin/libjson-c.a
 INC_DIR= \
 	-I../../subprojects/opensea-common/include \
 	-I../../subprojects/opensea-transport/include \
@@ -67,7 +67,7 @@ INC_DIR= \
 	-I../../subprojects/wingetopt/src \
 	-I../../subprojects/opensea-jsonformat/include \
 	-I../../subprojects/json-c \
-	-I../../subprojects/json-c/build \
+	-I../../subprojects/json-c/buildwin \
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
 	#CFLAGS += -mno-ms-bitfields
@@ -306,8 +306,8 @@ export CXXFLAGS
 export PROJECT_DEFINES
 
 json-c:
-	$(shell ./buildjsonc.sh)
-
+	../buildjsonc.sh buildwin $(CC)
+	
 #wingetopt has a GNUMakefile that should be automatically found.
 #it has CMake and meson support too, which are preferred
 wingetopt:

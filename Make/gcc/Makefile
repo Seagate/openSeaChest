@@ -309,7 +309,7 @@ export CXXFLAGS
 export PROJECT_DEFINES
 
 json-c:
-	$(shell ./buildjsonc.sh)
+	../buildjsonc.sh build $(CC)
 
 #wingetopt has a GNUMakefile that should be automatically found.
 #it has CMake and meson support too, which are preferred
