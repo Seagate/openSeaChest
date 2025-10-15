@@ -50,7 +50,8 @@ jobs:
 
         run: |
           pkg install --accept developer/build/meson
-          pkg install --accept developer/build/cmake
+          # Cmake appears to already be available in the version with gcc pre-installed.
+          # pkg install --accept developer/build/cmake
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
