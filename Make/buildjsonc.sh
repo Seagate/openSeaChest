@@ -30,7 +30,8 @@ cmake -G "Unix Makefiles" -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_POLICY_DEFAULT_CMP0126=NEW \
     -DCMAKE_POLICY_DEFAULT_CMP0156=NEW \
     -DCMAKE_POLICY_DEFAULT_CMP0179=NEW \
-    -DCMAKE_INSTALL_PREFIX="$jsonc_build/__no_install__"
+    -DCMAKE_INSTALL_PREFIX="$jsonc_build/__no_install__" \
+    -DCMAKE_C_COMPILER="$cc"
 
 # Build
 cmake --build "$jsonc_build"
