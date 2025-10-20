@@ -64,10 +64,18 @@ extern "C"
         // More generic exit codes go here
         UTIL_EXIT_NO_DEVICE,
         UTIL_EXIT_DEVICE_BUSY,
+        UTIL_EXIT_INSECURE_PATH,
         // Tool specific exit codes go here
         UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE =
             32, // Use this value in a tool to start the tool's specific error code enumeration
     } eUtilExitCodes;
+
+    static M_INLINE void print_Insecure_Path_Utility_Message(void)
+    {
+        print_str("ERROR: Path to write file is not secure. See the openSeaChest Wiki\n");
+        print_str("       at https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path\n");
+        print_str("       for more information on securing each directory in your path.\n");
+    }
 
     typedef enum eOutputModeEnum
     {
@@ -2319,6 +2327,15 @@ extern "C"
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                       \
     }
 
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG                                                                         \
+    removePhysicalElementModifyZones // zero means not set and is not a valid element. Must be non-zero
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_VAR             uint32_t REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG = UINT32_C(0);
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING "removeElementModifyZones"
+#define REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT                                                                     \
+    {                                                                                                                  \
+        REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                             \
+    }
+
 #define REPOPULATE_ELEMENTS_FLAG            repopulateElements
 #define REPOPULATE_ELEMENTS_VAR             getOptBool REPOPULATE_ELEMENTS_FLAG = goFalse;
 #define REPOPULATE_ELEMENTS_LONG_OPT_STRING "repopulateElements"
@@ -3601,8 +3618,6 @@ extern "C"
     extern const char* deviceHandleName;
     extern const char* commandWindowType;
 
-    char* get_current_year(char* temp_year);
-
     void openseachest_utility_Info(const char* utilityName, const char* buildVersion);
 
     void utility_Full_Version_Info(const char* utilityName,
@@ -4810,6 +4825,8 @@ extern "C"
     void print_Show_Physical_Element_Status_Help(bool shortHelp);
 
     void print_Remove_Physical_Element_Status_Help(bool shortHelp);
+
+    void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp);
 
     void print_Depop_MaxLBA_Help(bool shortHelp);
 

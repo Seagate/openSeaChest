@@ -25,7 +25,7 @@ skip_sanity_check = true
 [host_machine]
 system = 'linux'
 cpu_family = 'riscv64'
-cpu = ''
+cpu = 'riscv64'
 endian = 'little'
 
 [built-in options]
