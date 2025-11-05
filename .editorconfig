@@ -1,0 +1,129 @@
+# SPDX-License-Identifier: MPL-2.0
+# See https://spec.editorconfig.org/
+# See https://editorconfig.org/
+
+root = true
+
+# Rules for all files
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+spelling_language = en-US
+
+# Rules for C and C++ source files
+[*.{c, h, cpp, hpp}]
+indent_style = space
+indent_size = 4
+# Do not specify line endings since git's checkout will set to system's native value
+end_of_line = unset
+
+# Microsoft resource files
+[*.rc]
+indent_style = space
+indent_size = 4
+charset = utf-8-bom
+end_of_line = crlf
+
+# Rules for Makefiles
+[Makefile,GNUMakefile,GNUmakefile,Makefile.gccWin]
+indent_style = tab
+end_of_line = lf
+
+# Shell script rules
+[*.sh]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+# Batch files
+[*.{bat, cmd}]
+end_of_line = crlf
+charset = utf-8-bom
+indent_size = 4
+indent_style = space
+tab_width = 4
+
+# Powershell scripts
+[*.ps1]
+indent_style = space
+indent_size = 4
+end_of_line = crlf
+charset = utf-8-bom
+
+# Clang format and tidy configuration files
+[.clang-format]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+[.clang-tidy]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+# Configuration/CI/YAML/JSON/XML files
+[*.{yaml,yml,xml,json,whitesource,ini,cfg,toml,conf}]
+indent_style = space
+indent_size = 2
+charset = utf-8
+end_of_line = lf
+
+# Markdown files
+[*.md]
+indent_style = space
+indent_size = 2
+charset = utf-8
+end_of_line = lf
+trim_trailing_whitespace = false
+
+# Git configuration files
+[.{gitattributes,gitignore,gitmodules}]
+indent_style = space
+indent_size = 2
+charset = utf-8
+end_of_line = lf
+
+# Generic text files
+[*.txt]
+indent_style = space
+indent_size = 2
+charset = utf-8
+end_of_line = crlf   # For Windows compatibility when editors don't understand unix line endings
+
+# Visual studio
+[*.{vcxproj,csproj,sln,vcxproj.filters}]
+indent_style = space
+indent_size = 2
+charset = utf-8-bom
+end_of_line = crlf
+
+# UEFI build files
+[*.{dec,dsc,inf}]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+# Python files
+[*.py]
+indent_style = space
+indent_size = 4
+charset = utf-8
+end_of_line = lf
+
+# Meson build files
+[meson.build,meson_options.txt,meson.options]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+max_line_length = 120
+insert_final_newline = true
+tab_width = 4
+
+# Meson subproject wrappers
+[*.wrap]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
