@@ -50,8 +50,8 @@ jobs:
         run: |
           pkg install bison build-essential flex ninja pkg-config
 
-          python3 -m pip install --upgrade pip setuptools wheel --root-user-action
-          python3 -m pip install meson --root-user-action
+          python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
+          python3 -m pip install meson --root-user-action=ignore
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
 
