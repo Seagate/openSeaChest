@@ -41,6 +41,7 @@ jobs:
       id: omni
       uses: vmactions/omnios-vm@v1
       with:
+        envs: 'DESTDIR'
         usesh: true
         prepare: |
           pkg install pkg:/package/pkg
