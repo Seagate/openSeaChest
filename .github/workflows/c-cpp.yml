@@ -70,7 +70,7 @@ jobs:
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ format('{0}', env.DESTDIR) }}
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
