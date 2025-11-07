@@ -55,6 +55,22 @@ jobs:
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
 
+    - name: Packing release
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      run: |
+        cd build
+        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
+          if [[ -z "${{ matrix.config.image }}" ]]; then
+            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          else
+            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          fi
+        else
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        fi
+      shell: bash
+
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       run: |
