@@ -5,12 +5,38 @@ on: [push]
 
 jobs:
   omnios:
-    runs-on: ubuntu-latest
-    name: Build openSeaChest for omnios
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false # so that if one config fails, other won't be cancelled automatically
+      matrix:
+        config:
+        - {
+            name: "OmniOS Build",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            release_name: "omnios-x86_64-gcc",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            omnios_release: "r151054"
+          }
     steps:
     - uses: actions/checkout@v5
       with:
         submodules: recursive
+
+    - name: Escape backslash in branch name
+      shell: bash
+      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
+
+    - name: Setting release name
+      env:
+        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
+      run: |
+        echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
+      shell: bash
+
     - name: Build openSeaChest for OmniOS
       id: omni
       uses: vmactions/omnios-vm@v1
@@ -24,10 +50,53 @@ jobs:
         run: |
           pkg install bison build-essential flex ninja pkg-config
 
-          python3 -m pip install --upgrade pip setuptools wheel
-          python3 -m pip install meson
+          python3 -m pip install --upgrade pip setuptools wheel --root-user-action
+          python3 -m pip install meson --root-user-action
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
+
+    - name: Set ownership of executables to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown -R root:root build
+        else
+          chown -R root:root build
+        fi
+
+    - name: Packing release
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      run: |
+        cd build
+        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
+          if [[ -z "${{ matrix.config.image }}" ]]; then
+            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          else
+            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          fi
+        else
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+        fi
+      shell: bash
+
+    - name: Set ownership of tar archive to root:root
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: |
+        if [[ -z "${{ matrix.config.image }}" ]]; then
+          sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        else
+          chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
+        fi
+
+    - name: Uploading artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ format('{0}', matrix.config.release_name) }}
+        path: |
+          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          build/*.deb
+          build/*.rpm
 
   solaris:
     runs-on: ubuntu-latest
@@ -166,7 +235,7 @@ jobs:
         prepare: |
           /usr/sbin/pkg_add curl
           /usr/sbin/pkg_add ntp
-          
+
           # Removed for now because this crashes from errors in a config file for unknown reasons.
           # /usr/pkg/sbin/ntpd -gq
 
