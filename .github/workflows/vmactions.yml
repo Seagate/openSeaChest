@@ -14,9 +14,9 @@ jobs:
         - {
             name: "OmniOS Build",
             os: ubuntu-latest,
-            cc: "gcc",
-            cxx: "g++",
-            release_name: "omnios-x86_64-gcc",
+            cc: "",
+            cxx: "",
+            release_name: "omnios-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
             omnios_release: "r151054"
@@ -55,22 +55,6 @@ jobs:
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ --buildtype=release
           meson install -C build
 
-    - name: Packing release
-      env:
-        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
-      run: |
-        cd build
-        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
-          if [[ -z "${{ matrix.config.image }}" ]]; then
-            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
-          else
-            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
-          fi
-        else
-          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
-        fi
-      shell: bash
-
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       run: |
@@ -85,6 +69,7 @@ jobs:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
       run: |
         cd build
+        ls -la
         if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
           if [[ -z "${{ matrix.config.image }}" ]]; then
             sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR

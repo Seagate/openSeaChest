@@ -208,7 +208,7 @@ jobs:
       hash-linux-armv7l-portable:                                     ${{ steps.hash.outputs.hash-linux-armv7l-portable }}
       hash-linux-armv6-portable:                                      ${{ steps.hash.outputs.hash-linux-armv6-portable }}
       hash-linux-armv5l-portable:                                     ${{ steps.hash.outputs.hash-linux-armv5l-portable }}
-      hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}                
+      hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}
       hash-linux-powerpc64le-portable:                                ${{ steps.hash.outputs.hash-linux-powerpc64le-portable }}
 
     steps:
@@ -229,7 +229,7 @@ jobs:
         $latestRelease = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest'
         $releaseData = $latestRelease.Content | ConvertFrom-Json
         $assets = $releaseData.assets | Where-Object { $_.name -like "*win64.exe" }
-        
+
         if ($assets) {
           $downloadUrl = $assets.browser_download_url
           echo "LLVM_RELID=$($releaseData.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -238,7 +238,7 @@ jobs:
           Write-Host "No current Windows build available for the latest release. Searching for previous releases..."
           $releases = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases'
           $found = $false
-          
+
           foreach ($release in $releases.Content | ConvertFrom-Json) {
             $assets = $release.assets | Where-Object { $_.name -like "*win64.exe" }
             if ($assets) {
@@ -249,7 +249,7 @@ jobs:
               break
             }
           }
-          
+
           if (-not $found) {
             Write-Host "No Windows build available for any recent releases."
             exit 0
@@ -335,6 +335,7 @@ jobs:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
       run: |
         cd build
+        ls -la
         if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
           if [[ -z "${{ matrix.config.image }}" ]]; then
             sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
@@ -354,7 +355,7 @@ jobs:
         else
           chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
         fi
-      
+
 
     - name: Generate Hashes
       if: ${{ matrix.config.publish_release }}
