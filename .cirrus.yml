@@ -22,10 +22,11 @@ task:
     meson install -C build
     cd $CIRRUS_WORKING_DIR/output
     tar cvfJ $CIRRUS_WORKING_DIR/"openSeaChest-$branchName-$(uname -s)-$(uname -r)-$(uname -m).tar.xz" *
-    $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
+    # Removing upload to use the VMActions freebsd build instead so we also get SLSA provenance.
+    # $CIRRUS_WORKING_DIR/cirrus_ci_post_freebsd_release.sh
   binaries_artifacts:
     path: openSeaChest-*.tar.xz
-    
+
 
 task:
   name: windowsservercore:visualstudio2019

@@ -524,9 +524,8 @@ jobs:
         usesh: true
         prepare: |
           pkg update
-          pkg install -y curl
-          pkg install -y ntp
-          ntpdate -u pool.ntp.org
+          pkg install -y socat
+          /usr/sbin/dntpd -s
 
         run: |
           pkg install -y meson
