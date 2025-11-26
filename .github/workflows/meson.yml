@@ -300,7 +300,7 @@ jobs:
         meson install -C build
 
     # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
-    - uses: actions/setup-go@v5
+    - uses: actions/setup-go@v6
       if: ${{ matrix.config.create_package }}
       with:
         go-version: 'stable'
@@ -371,7 +371,7 @@ jobs:
           echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}
         path: |

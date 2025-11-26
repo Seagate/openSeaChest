@@ -63,7 +63,7 @@ jobs:
           echo "hash-SourceCode_With_Submodules-${{ matrix.config.name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: SourceCode_With_Submodules-${{ matrix.config.name }}
         path: SourceCode_With_Submodules${{ matrix.config.extension }}

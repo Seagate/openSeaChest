@@ -29,3 +29,22 @@ v0.4.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific ci
                      Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
                      Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
                      Added some more legacy USB devices to list of known devices to support these better when they are used.
+v0.4.2  06-Oct-2025  Fixed mismatch of GNU/clang access attribute description and how the code was actually written in many
+                     parts of the low-level library code. Also added const to many objects to make intention more clear and
+                     reduce the chance of accidental modification to memory intended to be used in a read-only way. No known
+                     bugs from this, but may affect some optimizations in the code.
+                     Fixed compatibility with some newer C23 capable compilers.
+                     Fixed incorrect pointer check in TRIM function causing a failure when trying to use this option with valid
+                     inputs.
+                     Fixed incorrect lookup for supported read defect data command in SCSI Defect list code.
+                     Added automatic selection of firmware download transfer size based on drive reported information for all
+                     interfaces (min/max/granularity, etc).
+                     Fixed out of bounds access when generating FARM combined log (was adding NULL terminator one past end of memory).
+                     Removed use of os_Update_File_System_Cache from situations where the drive may not be in a good state (still sanitizing,
+                     or after a sector size change) to minimize possible system interaction issues which may disconnect the device from the
+                     system.
+                     Fixed read/write logic on some USB devices which reported an ATA maxlba of 0.
+                     Added tracking lock/unlock requests to a tDevice to keep things in sync better between operations.
+                     Refactor SCSI device read/write logic on how commands are selected and issued (10B vs 16B)
+                     Removed automatic ATA passthrough reads/writes due to other side affects this created on some devices.
+                     Fixed a crash on NVMe devices in Windows when using the openfabrics NVMe driver.

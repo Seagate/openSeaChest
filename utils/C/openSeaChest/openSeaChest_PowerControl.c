@@ -35,8 +35,8 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_PowerControl";
-const char* buildVersion = "3.7.1";
+const char *util_name = "openSeaChest_PowerControl";
+const char *buildVersion = "3.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -201,7 +201,10 @@ int main(int argc, char* argv[])
     //       This is not necessary on most modern systems other than UEFI.
     //       This is not used in linux so that we don't depend on libbsd
     //       Update the above #define check if we port to another OS that needs this to be done.
-    setprogname(util_name);
+    if (getprogname() == M_NULLPTR)
+    {
+        setprogname(util_name);
+    }
 #endif
 
     ////////////////////////
@@ -211,7 +214,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -974,19 +977,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -997,7 +1000,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -1010,7 +1013,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -1045,7 +1048,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -1054,7 +1057,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -1062,7 +1065,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    atexit(print_Final_newline);
+    if (0 != atexit(print_Final_newline))
+    {
+        perror("Registering final newline print");
+    }
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -1076,7 +1082,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -1213,7 +1219,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -1232,7 +1238,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -1247,7 +1253,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -1281,7 +1287,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -1334,21 +1340,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1519,7 +1525,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1528,7 +1534,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1537,7 +1543,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1546,7 +1552,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -1560,7 +1566,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -1569,7 +1575,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1595,7 +1601,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1628,7 +1634,7 @@ int main(int argc, char* argv[])
                     }
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1643,8 +1649,8 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("Failed to send EPC command to %s.\n", deviceList[deviceIter].os_info.name);
-                    printf("EPC Feature set might not be supported.\n");
-                    printf("Or EPC Feature might already be in the desired state.\n");
+                    print_str("EPC Feature set might not be supported.\n");
+                    print_str("Or EPC Feature might already be in the desired state.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1661,7 +1667,7 @@ int main(int argc, char* argv[])
                            "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -1669,13 +1675,13 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Spin down not supported by this device.\n");
+                    print_str("Spin down not supported by this device.\n");
                 }
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to spin down device.\n");
+                    print_str("Failed to spin down device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1693,24 +1699,24 @@ int main(int argc, char* argv[])
                     {
                         printf(
                             "\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
-                        printf("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
+                        print_str("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Transitioning power modes not allowed on this device\n");
+                        print_str("Transitioning power modes not allowed on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("ERROR: Could not transition to the new power state\n");
+                        print_str("ERROR: Could not transition to the new power state\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1720,7 +1726,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a power mode identifier\n");
+                    print_str("You must specify a power mode identifier\n");
                 }
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
             }
@@ -1734,13 +1740,13 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("\nSuccessfully transitioned to power state %" PRIi32 ".\n", TRANSITION_POWER_STATE_TO);
-                    printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                    print_str("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Transitioning power states not allowed on this device\n");
+                    print_str("Transitioning power states not allowed on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1762,21 +1768,21 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\nSuccessfully performed PUIS spinup command\n");
-                    printf("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
+                    print_str("\nSuccessfully performed PUIS spinup command\n");
+                    print_str("\nHint:Use --checkPowerMode option to check the new Power State.\n\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("PUIS spinup command is not supported on this device.\n");
+                    print_str("PUIS spinup command is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to perform the PUIS spinup command\n");
+                    print_str("Failed to perform the PUIS spinup command\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1795,14 +1801,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing NVM power states is not supported on this device\n");
+                    print_str("Showing NVM power states is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: Could not read NVM power states from the device!\n");
+                    print_str("ERROR: Could not read NVM power states from the device!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1821,14 +1827,14 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Checking current power mode not supported on this device.\n");
+                    print_str("Checking current power mode not supported on this device.\n");
                 }
                 break;
             default:
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed checking current power mode.\n");
+                    print_str("Failed checking current power mode.\n");
                 }
                 break;
             }
@@ -2025,25 +2031,25 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully configured the requested EPC settings.\n");
+                    print_str("Successfully configured the requested EPC settings.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Configuring EPC Settings is not supported on this device.\n");
+                    print_str("Configuring EPC Settings is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to configure the EPC settings.\n");
-                    printf("NOTE: Some settings may have been changed, but at least one failed.\n");
+                    print_str("An Error occurred while trying to configure the EPC settings.\n");
+                    print_str("NOTE: Some settings may have been changed, but at least one failed.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2119,24 +2125,24 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Successfully configured the requested idle and standby settings.\n");
+                        print_str("Successfully configured the requested idle and standby settings.\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Configuring standby and idle settings is not supported on this device.\n");
+                        print_str("Configuring standby and idle settings is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("An Error occurred while trying to configure the standby and idle settings.\n");
+                        print_str("An Error occurred while trying to configure the standby and idle settings.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2159,20 +2165,20 @@ int main(int argc, char* argv[])
                             case SUCCESS:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Successfully configured the idle timer.\n");
+                                    print_str("Successfully configured the idle timer.\n");
                                 }
                                 break;
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Configuring idle timer is not supported on this device.\n");
+                                    print_str("Configuring idle timer is not supported on this device.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
                             default:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("An Error occurred while trying to configure the idle timer.\n");
+                                    print_str("An Error occurred while trying to configure the idle timer.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 break;
@@ -2215,7 +2221,7 @@ int main(int argc, char* argv[])
                                     printf("Successfully %s the requested idle settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
-                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
                                 break;
@@ -2242,7 +2248,7 @@ int main(int argc, char* argv[])
                         // not supported
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Configuring idle settings is not supported on this device.\n");
+                            print_str("Configuring idle settings is not supported on this device.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     }
@@ -2257,24 +2263,24 @@ int main(int argc, char* argv[])
                         case SUCCESS:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Successfully configured the requested standby timer.\n");
+                                print_str("Successfully configured the requested standby timer.\n");
                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                 {
-                                    printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                    print_str("NOTE: This command may have affected more than 1 logical unit\n");
                                 }
                             }
                             break;
                         case NOT_SUPPORTED:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Configuring standby timer is not supported on this device.\n");
+                                print_str("Configuring standby timer is not supported on this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An Error occurred while trying to configure the standby timer.\n");
+                                print_str("An Error occurred while trying to configure the standby timer.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -2321,7 +2327,7 @@ int main(int argc, char* argv[])
                                     printf("Successfully %s the requested standby settings.\n", modeChangeStrSuccess);
                                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                     {
-                                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                                     }
                                 }
                                 break;
@@ -2371,43 +2377,43 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("===PUIS Info===\n");
+                        print_str("===PUIS Info===\n");
                         if (info.puisSupported)
                         {
                             if (info.puisEnabled)
                             {
-                                printf("\tPUIS is supported and enabled\n");
+                                print_str("\tPUIS is supported and enabled\n");
                             }
                             else
                             {
-                                printf("\tPUIS is supported\n");
+                                print_str("\tPUIS is supported\n");
                             }
                             if (info.spinupCommandRequired)
                             {
-                                printf("\tSpin-Up command is required for medium access.\n");
+                                print_str("\tSpin-Up command is required for medium access.\n");
                             }
                             else
                             {
-                                printf("\tAutomatic spin-up as needed for medium access.\n");
+                                print_str("\tAutomatic spin-up as needed for medium access.\n");
                             }
                         }
                         else
                         {
-                            printf("\tPUIS is not supported on this device.\n");
+                            print_str("\tPUIS is not supported on this device.\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("PUIS is not available on this device type!\n");
+                        print_str("PUIS is not available on this device type!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to get PUIS info from this device\n");
+                        print_str("Failed to get PUIS info from this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2422,11 +2428,11 @@ int main(int argc, char* argv[])
                     {
                         if (PUIS_FEATURE_STATE_FLAG)
                         {
-                            printf("PUIS feature successfully enabled!\n");
+                            print_str("PUIS feature successfully enabled!\n");
                         }
                         else
                         {
-                            printf("PUIS feature successfully disabled!\n");
+                            print_str("PUIS feature successfully disabled!\n");
                         }
                     }
                     break;
@@ -2435,11 +2441,11 @@ int main(int argc, char* argv[])
                     {
                         if (PUIS_FEATURE_STATE_FLAG)
                         {
-                            printf("Enabling PUIS feature not supported on this device.\n");
+                            print_str("Enabling PUIS feature not supported on this device.\n");
                         }
                         else
                         {
-                            printf("Disabling PUIS feature not supported on this device.\n");
+                            print_str("Disabling PUIS feature not supported on this device.\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -2449,13 +2455,13 @@ int main(int argc, char* argv[])
                     {
                         if (PUIS_FEATURE_STATE_FLAG)
                         {
-                            printf("Failed to enable PUIS feature!\n");
+                            print_str("Failed to enable PUIS feature!\n");
                         }
                         else
                         {
-                            printf("Failed to disable PUIS feature!\n");
-                            printf("If PUIS is enabled with a jumper, it cannot be disabled with this command!\n");
-                            printf("Remove the PUIS jumper to disable the feature in this case.\n");
+                            print_str("Failed to disable PUIS feature!\n");
+                            print_str("If PUIS is enabled with a jumper, it cannot be disabled with this command!\n");
+                            print_str("Remove the PUIS jumper to disable the feature in this case.\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2476,14 +2482,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing EPC Settings not supported on this device.\n");
+                    print_str("Showing EPC Settings not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to get the EPC settings.\n");
+                    print_str("An Error occurred while trying to get the EPC settings.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2502,14 +2508,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Power Consumption information not available on this device.\n");
+                    print_str("Power Consumption information not available on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to read power consumption information.\n");
+                    print_str("An Error occurred while trying to read power consumption information.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2532,24 +2538,24 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Successfully set power consumption value for device!\n");
+                        print_str("Successfully set power consumption value for device!\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Setting power consumption is not supported on this device.\n");
+                        print_str("Setting power consumption is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("An Error occurred while trying to read power consumption information.\n");
+                        print_str("An Error occurred while trying to read power consumption information.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2559,7 +2565,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An invalid or unsupported value was entered for power consumption level.\n");
+                    print_str("An invalid or unsupported value was entered for power consumption level.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2572,20 +2578,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully set APM Level!\n");
+                    print_str("Successfully set APM Level!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Setting APM Level is not supported on this device.\n");
+                    print_str("Setting APM Level is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to set the APM Level.\n");
+                    print_str("An Error occurred while trying to set the APM Level.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2599,20 +2605,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully disabled APM feature!\n");
+                    print_str("Successfully disabled APM feature!\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Disabling APM is not supported on this device.\n");
+                    print_str("Disabling APM is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to disable APM.\n");
+                    print_str("An Error occurred while trying to disable APM.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2629,42 +2635,42 @@ int main(int argc, char* argv[])
                     printf("Current APM Level is %" PRIu8 " (", SHOW_APM_LEVEL_VALUE_FLAG);
                     if (SHOW_APM_LEVEL_VALUE_FLAG == 0x01)
                     {
-                        printf("Minimum power consumption with Standby mode");
+                        print_str("Minimum power consumption with Standby mode");
                     }
                     else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x02 && SHOW_APM_LEVEL_VALUE_FLAG <= 0x7F)
                     {
-                        printf("Intermediate power management with Standby mode");
+                        print_str("Intermediate power management with Standby mode");
                     }
                     else if (SHOW_APM_LEVEL_VALUE_FLAG == 0x80)
                     {
-                        printf("Minimum power consumption without Standby mode");
+                        print_str("Minimum power consumption without Standby mode");
                     }
                     else if (SHOW_APM_LEVEL_VALUE_FLAG >= 0x81 && SHOW_APM_LEVEL_VALUE_FLAG <= 0xFD)
                     {
-                        printf("Intermediate power management without Standby mode");
+                        print_str("Intermediate power management without Standby mode");
                     }
                     else if (SHOW_APM_LEVEL_VALUE_FLAG == 0xFE)
                     {
-                        printf("Maximum Performance");
+                        print_str("Maximum Performance");
                     }
                     else
                     {
-                        printf("Reserved");
+                        print_str("Reserved");
                     }
-                    printf(")\n");
+                    print_str(")\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing APM Level is not supported on this device.\n");
+                    print_str("Showing APM Level is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("An Error occurred while trying to get the APM Level.\n");
+                    print_str("An Error occurred while trying to get the APM Level.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2677,7 +2683,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2690,33 +2696,33 @@ int main(int argc, char* argv[])
                     {
                         if (SEAGATE_POWER_BALANCE_ENABLE_FLAG)
                         {
-                            printf("Successfully enabled Seagate Power Balance!\n");
+                            print_str("Successfully enabled Seagate Power Balance!\n");
                         }
                         else if (SEAGATE_POWER_BALANCE_LIMITED_FLAG)
                         {
-                            printf("Successfully limited Seagate Power Balance!\n");
+                            print_str("Successfully limited Seagate Power Balance!\n");
                         }
                         else
                         {
-                            printf("Successfully disabled Seagate Power Balance!\n");
+                            print_str("Successfully disabled Seagate Power Balance!\n");
                         }
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Setting Seagate Power Balance feature is not supported on this device.\n");
+                        print_str("Setting Seagate Power Balance feature is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to set the Seagate Power Balance feature!\n");
+                        print_str("Failed to set the Seagate Power Balance feature!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2730,7 +2736,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2744,35 +2750,35 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Seagate Power Balance: ");
+                        print_str("Seagate Power Balance: ");
                         if (powerBalanceSupported)
                         {
                             if (powerBalanceEnabled)
                             {
-                                printf("Enabled\n");
+                                print_str("Enabled\n");
                             }
                             else
                             {
-                                printf("Disabled\n");
+                                print_str("Disabled\n");
                             }
                         }
                         else
                         {
-                            printf("Not Supported\n");
+                            print_str("Not Supported\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Getting Seagate Power Balance info is not supported on this device.\n");
+                        print_str("Getting Seagate Power Balance info is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to get the Seagate Power Balance info!\n");
+                        print_str("Failed to get the Seagate Power Balance info!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2790,25 +2796,25 @@ int main(int argc, char* argv[])
                 {
                     if (SATA_DIPM_ENABLE_FLAG)
                     {
-                        printf("Successfully enabled Device Initiated Power Management (DIPM)!\n");
+                        print_str("Successfully enabled Device Initiated Power Management (DIPM)!\n");
                     }
                     else
                     {
-                        printf("Successfully disabled Device Initiated Power Management (DIPM)!\n");
+                        print_str("Successfully disabled Device Initiated Power Management (DIPM)!\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Setting DIPM feature is not supported on this device.\n");
+                    print_str("Setting DIPM feature is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to set the DIPM feature!\n");
+                    print_str("Failed to set the DIPM feature!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2824,35 +2830,35 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Initiated Power Management (DIPM): ");
+                    print_str("Device Initiated Power Management (DIPM): ");
                     if (dipmSupported)
                     {
                         if (dipmEnabled)
                         {
-                            printf("Enabled\n");
+                            print_str("Enabled\n");
                         }
                         else
                         {
-                            printf("Disabled\n");
+                            print_str("Disabled\n");
                         }
                     }
                     else
                     {
-                        printf("Not Supported\n");
+                        print_str("Not Supported\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting DIPM info is not supported on this device.\n");
+                    print_str("Getting DIPM info is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get the DIPM info!\n");
+                    print_str("Failed to get the DIPM info!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2869,25 +2875,25 @@ int main(int argc, char* argv[])
                 {
                     if (SATA_DAPS_ENABLE_FLAG)
                     {
-                        printf("Successfully enabled Device Automatic Partial To Slumber Transitions (DAPS)!\n");
+                        print_str("Successfully enabled Device Automatic Partial To Slumber Transitions (DAPS)!\n");
                     }
                     else
                     {
-                        printf("Successfully disabled Device Automatic Partial To Slumber Transitions (DAPS)!\n");
+                        print_str("Successfully disabled Device Automatic Partial To Slumber Transitions (DAPS)!\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Setting DAPS feature is not supported on this device.\n");
+                    print_str("Setting DAPS feature is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to set the DAPS feature!\n");
+                    print_str("Failed to set the DAPS feature!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2904,35 +2910,35 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Automatic Partial To Slumber Transitions (DAPS): ");
+                    print_str("Device Automatic Partial To Slumber Transitions (DAPS): ");
                     if (dapsSupported)
                     {
                         if (dapsEnabled)
                         {
-                            printf("Enabled\n");
+                            print_str("Enabled\n");
                         }
                         else
                         {
-                            printf("Disabled\n");
+                            print_str("Disabled\n");
                         }
                     }
                     else
                     {
-                        printf("Not Supported\n");
+                        print_str("Not Supported\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting DAPS info is not supported on this device.\n");
+                    print_str("Getting DAPS info is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get the DAPS info!\n");
+                    print_str("Failed to get the DAPS info!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2968,7 +2974,7 @@ int main(int argc, char* argv[])
                     printf("Successfully changed %s\n", partialSlumberString);
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
@@ -3036,7 +3042,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Error allocating memory before showing SAS Partial/Slumber info!\n");
+                        print_str("Error allocating memory before showing SAS Partial/Slumber info!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -3045,7 +3051,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get the phy count before showing SAS Partial/Slumber info!\n");
+                    print_str("Failed to get the phy count before showing SAS Partial/Slumber info!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -3074,7 +3080,7 @@ int main(int argc, char* argv[])
                         // show a time when the measurement is expected to be complete?
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Successfully requested a power measurement.\n");
+                            print_str("Successfully requested a power measurement.\n");
                             time_t currentTime = time(M_NULLPTR);
                             time_t futureTime =
                                 get_Future_Date_And_Time(currentTime, REQUEST_POWER_TELEMETRY_MEASUREMENT_TIME_SECONDS);
@@ -3091,14 +3097,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED: // unlikely since we checked for support first
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Requesting a power measurement is not supported on this device.\n");
+                            print_str("Requesting a power measurement is not supported on this device.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to request a power measurement!\n");
+                            print_str("Failed to request a power measurement!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3109,7 +3115,7 @@ int main(int argc, char* argv[])
                     // power telemetry is not supported
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Seagate Power Telemetry is not supported on this device.\n");
+                        print_str("Seagate Power Telemetry is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
@@ -3142,14 +3148,14 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED: // unlikely to happen due to outside guard
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Getting a power telemetry data is not supported on this device.\n");
+                            print_str("Getting a power telemetry data is not supported on this device.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to get a power telemetry data!\n");
+                            print_str("Failed to get a power telemetry data!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3160,7 +3166,7 @@ int main(int argc, char* argv[])
                     // power telemetry is not supported
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Seagate Power Telemetry is not supported on this device.\n");
+                        print_str("Seagate Power Telemetry is not supported on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
@@ -3210,12 +3216,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
-    printf("========\n");
+    print_str("Examples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -3244,13 +3250,13 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 12\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     printf("\t%s -d %s --%s lowest\n", util_name, deviceHandleExample, SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -3273,8 +3279,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
@@ -3303,7 +3309,7 @@ void utility_Usage(bool shortUsage)
     print_Transition_Power_Help(shortUsage);
 
     // SATA Only Options
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_Disable_APM_Help(shortUsage);
     print_DAPS_Help(shortUsage);
     print_DIPM_Help(shortUsage);
@@ -3311,7 +3317,7 @@ void utility_Usage(bool shortUsage)
     print_Set_APM_Level_Help(shortUsage);
     print_Show_APM_Level_Help(shortUsage);
     // SAS Only Options
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     print_Legacy_Idle_Help(shortUsage);
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
@@ -3319,7 +3325,7 @@ void utility_Usage(bool shortUsage)
     print_Set_Power_Consumption_Help(shortUsage);
     print_Show_Power_Consumption_Help(shortUsage);
     // NVMe Only
-    printf("\n\tNVMe Only:\n\t=========\n");
+    print_str("\n\tNVMe Only:\n\t=========\n");
     print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }

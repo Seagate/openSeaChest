@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_SMART";
-const char* buildVersion = "2.6.1";
+const char* buildVersion = "2.6.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -208,7 +208,10 @@ int main(int argc, char* argv[])
     //       This is not necessary on most modern systems other than UEFI.
     //       This is not used in linux so that we don't depend on libbsd
     //       Update the above #define check if we port to another OS that needs this to be done.
-    setprogname(util_name);
+    if (getprogname() == M_NULLPTR)
+    {
+        setprogname(util_name);
+    }
 #endif
 
     ////////////////////////
@@ -218,7 +221,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -428,7 +431,7 @@ int main(int argc, char* argv[])
                     printf(
                         "\n Error in option --%s. You must specify showing primary (p) or grown (g) defects or both\n",
                         SCSI_DEFECTS_LONG_OPT_STRING);
-                    printf("Use -h option to view command line help\n");
+                    print_str("Use -h option to view command line help\n");
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -533,39 +536,39 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("You must add a confirmation string to the confirm option\n");
+                        print_str("You must add a confirmation string to the confirm option\n");
                     }
                 }
                 else if (strcmp(longopts[optionIndex].name, IDD_TEST_LONG_OPT_STRING) == 0)
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("You must add a a test type to run for the idd option. Valid tests are short or long\n");
+                        print_str("You must add a a test type to run for the idd option. Valid tests are short or long\n");
                     }
                 }
                 break;
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             case PROGRESS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a test to get progress for.\n");
+                    print_str("You must specify a test to get progress for.\n");
                 }
                 break;
             default:
@@ -576,7 +579,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -592,7 +595,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -627,7 +630,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -636,7 +639,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -644,7 +647,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    atexit(print_Final_newline);
+    if (0 != atexit(print_Final_newline))
+    {
+        perror("Registering final newline print");
+    }
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -658,7 +664,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -795,7 +801,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -814,7 +820,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -829,7 +835,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -859,7 +865,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -917,21 +923,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1101,7 +1107,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1110,7 +1116,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1119,7 +1125,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1128,7 +1134,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -1142,7 +1148,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -1151,7 +1157,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1177,7 +1183,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1215,7 +1221,7 @@ int main(int argc, char* argv[])
                     print_FARM_Data(&farmdata);
                 break;
             default:
-                printf("Unable to read FARM data\n");
+                print_str("Unable to read FARM data\n");
                 break;
             }
         }
@@ -1235,15 +1241,15 @@ int main(int argc, char* argv[])
                 print_SMART_Info(&deviceList[deviceIter], &smartData);
                 break;
             case WARN_INVALID_CHECKSUM:
-                printf("Error: Device returned SMART data with an invalid checksum\n");
+                print_str("Error: Device returned SMART data with an invalid checksum\n");
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             case NOT_SUPPORTED:
-                printf("SMART Information is not supported on this device\n");
+                print_str("SMART Information is not supported on this device\n");
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                printf("Failed to get SMART Information from device\n");
+                print_str("Failed to get SMART Information from device\n");
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
@@ -1293,11 +1299,11 @@ int main(int argc, char* argv[])
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
-                printf("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                print_str("Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
-                printf("Failed to retrieve SCSI defect list from this device\n");
+                print_str("Failed to retrieve SCSI defect list from this device\n");
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
             }
@@ -1312,7 +1318,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("SMART Check\n");
+                print_str("SMART Check\n");
             }
             smartTripInfo tripInfo;
             safe_memset(&tripInfo, sizeof(smartTripInfo), 0, sizeof(smartTripInfo));
@@ -1321,7 +1327,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART has been tripped!\n");
+                    print_str("SMART has been tripped!\n");
                     if (tripInfo.reasonStringLength > 0)
                     {
                         printf("\t%s\n", tripInfo.reasonString);
@@ -1334,14 +1340,14 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART Check Passed!\n");
+                    print_str("SMART Check Passed!\n");
                 }
             }
             else if (IN_PROGRESS == ret)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART Warning condition detected!\n");
+                    print_str("SMART Warning condition detected!\n");
                     if (tripInfo.reasonStringLength > 0)
                     {
                         printf("\t%s\n", tripInfo.reasonString);
@@ -1352,7 +1358,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to run SMART Check!\n");
+                    print_str("Unable to run SMART Check!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -1374,7 +1380,7 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Showing SMART attributes is not supported on this device\n");
+                        print_str("Showing SMART attributes is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1382,7 +1388,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to get SMART attributes\n");
+                        print_str("A failure occured while trying to get SMART attributes\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1400,14 +1406,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Showing SMART attributes is not supported on this device\n");
+                        print_str("Showing SMART attributes is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while trying to get SMART attributes\n");
+                        print_str("A failure occured while trying to get SMART attributes\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1425,14 +1431,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing NVMe Health data is not supported on this device\n");
+                    print_str("Showing NVMe Health data is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get NVMe health data\n");
+                    print_str("A failure occured while trying to get NVMe health data\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1455,14 +1461,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("SMART Summary Error log is not supported on this device\n");
+                        print_str("SMART Summary Error log is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to read the SMART Summary Error log!\n");
+                        print_str("Failed to read the SMART Summary Error log!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1483,14 +1489,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("SMART (Ext) Comprehensive Error log is not supported on this device\n");
+                        print_str("SMART (Ext) Comprehensive Error log is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to read the SMART (Ext) Comprehensive Error log!\n");
+                        print_str("Failed to read the SMART (Ext) Comprehensive Error log!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1500,7 +1506,7 @@ int main(int argc, char* argv[])
             default: // error
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown SMART Error Log specified!\n");
+                    print_str("Unknown SMART Error Log specified!\n");
                 }
                 exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 break;
@@ -1512,7 +1518,7 @@ int main(int argc, char* argv[])
             eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Aborting DST\n");
+                print_str("Aborting DST\n");
             }
             abortResult = abort_DST(&deviceList[deviceIter]);
             switch (abortResult)
@@ -1520,7 +1526,7 @@ int main(int argc, char* argv[])
             case UNKNOWN:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown Error occurred while trying to abort DST\n");
+                    print_str("Unknown Error occurred while trying to abort DST\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1528,20 +1534,20 @@ int main(int argc, char* argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully aborted DST.\n");
+                    print_str("Successfully aborted DST.\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Aborting DST is not supported on this device.\n");
+                    print_str("Aborting DST is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Abort DST Failed!\n");
+                    print_str("Abort DST Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1553,7 +1559,7 @@ int main(int argc, char* argv[])
             eReturnValues abortResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Aborting IDD\n");
+                print_str("Aborting IDD\n");
             }
             abortResult = abort_DST(&deviceList[deviceIter]); // calls into the same code to do the abort - TJE
             switch (abortResult)
@@ -1561,7 +1567,7 @@ int main(int argc, char* argv[])
             case UNKNOWN:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown Error occurred while trying to abort IDD\n");
+                    print_str("Unknown Error occurred while trying to abort IDD\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1569,20 +1575,20 @@ int main(int argc, char* argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully aborted IDD.\n");
+                    print_str("Successfully aborted IDD.\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Aborting IDD is not supported on this device or IDD is not currently in progress.\n");
+                    print_str("Aborting IDD is not supported on this device or IDD is not currently in progress.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Abort IDD Failed! NOTE: IDD may not currently be running when the abort was sent.\n");
+                    print_str("Abort IDD Failed! NOTE: IDD may not currently be running when the abort was sent.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1593,14 +1599,14 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("SMART Offline Data Collection\n");
+                print_str("SMART Offline Data Collection\n");
             }
             switch (run_SMART_Offline(&deviceList[deviceIter]))
             {
             case UNKNOWN:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown Error occurred while trying to start SMART Offline Scan\n");
+                    print_str("Unknown Error occurred while trying to start SMART Offline Scan\n");
                 }
                 break;
             case SUCCESS:
@@ -1616,14 +1622,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART offline data collection is not supported on this device\n");
+                    print_str("SMART offline data collection is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART offline data collection Failed!\n");
+                    print_str("SMART offline data collection Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1635,7 +1641,7 @@ int main(int argc, char* argv[])
             eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Short DST\n");
+                print_str("Short DST\n");
             }
             DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_SHORT, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG,
                                 IGNORE_OPERATION_TIMEOUT);
@@ -1644,7 +1650,7 @@ int main(int argc, char* argv[])
             case UNKNOWN:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown Error occurred while trying to start DST\n");
+                    print_str("Unknown Error occurred while trying to start DST\n");
                 }
                 break;
             case SUCCESS:
@@ -1652,11 +1658,11 @@ int main(int argc, char* argv[])
                 {
                     if (POLL_FLAG || CAPTIVE_FOREGROUND_FLAG)
                     {
-                        printf("Short DST Passed!\n");
+                        print_str("Short DST Passed!\n");
                     }
                     else
                     {
-                        printf("Short DST started!\n");
+                        print_str("Short DST started!\n");
                         printf("use --progress dst -d %s to monitor Drive Self Test progress\n", deviceHandleExample);
                         printf("use --abortDST -d %s to stop Drive Self Test\n", deviceHandleExample);
                     }
@@ -1665,7 +1671,7 @@ int main(int argc, char* argv[])
             case IN_PROGRESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A self test is currently in progress.\n");
+                    print_str("A self test is currently in progress.\n");
                 }
                 break;
             case ABORTED:
@@ -1673,21 +1679,21 @@ int main(int argc, char* argv[])
                 {
                     printf("Short DST was aborted! You can add the --%s flag to allow DST to continue\n",
                            IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
-                    printf("running despite taking longer than expected.\n");
+                    print_str("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short DST is not supported on this device\n");
+                    print_str("Short DST is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Short DST Failed!\n");
+                    print_str("Short DST Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1699,7 +1705,7 @@ int main(int argc, char* argv[])
             eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Conveyance DST\n");
+                print_str("Conveyance DST\n");
             }
             DSTResult = run_DST(&deviceList[deviceIter], DST_TYPE_CONVEYENCE, POLL_FLAG, CAPTIVE_FOREGROUND_FLAG,
                                 IGNORE_OPERATION_TIMEOUT);
@@ -1708,7 +1714,7 @@ int main(int argc, char* argv[])
             case UNKNOWN:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unknown Error occurred while trying to start DST\n");
+                    print_str("Unknown Error occurred while trying to start DST\n");
                 }
                 break;
             case SUCCESS:
@@ -1716,11 +1722,11 @@ int main(int argc, char* argv[])
                 {
                     if (POLL_FLAG || CAPTIVE_FOREGROUND_FLAG)
                     {
-                        printf("Conveyance DST Passed!\n");
+                        print_str("Conveyance DST Passed!\n");
                     }
                     else
                     {
-                        printf("Conveyance DST started!\n");
+                        print_str("Conveyance DST started!\n");
                         printf("use --progress dst -d %s to monitor Drive Self Test progress\n", deviceHandleExample);
                         printf("use --abortDST -d %s to stop Drive Self Test\n", deviceHandleExample);
                     }
@@ -1729,7 +1735,7 @@ int main(int argc, char* argv[])
             case IN_PROGRESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A self test is currently in progress.\n");
+                    print_str("A self test is currently in progress.\n");
                 }
                 break;
             case ABORTED:
@@ -1737,21 +1743,21 @@ int main(int argc, char* argv[])
                 {
                     printf("Conveyance DST was aborted! You can add the --%s flag to allow DST to continue\n",
                            IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
-                    printf("running despite taking longer than expected.\n");
+                    print_str("running despite taking longer than expected.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Conveyance DST is not supported on this device\n");
+                    print_str("Conveyance DST is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Conveyance DST Failed!\n");
+                    print_str("Conveyance DST Failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1763,34 +1769,34 @@ int main(int argc, char* argv[])
             eReturnValues DSTResult = UNKNOWN;
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Long DST\n");
+                print_str("Long DST\n");
                 uint8_t hours   = UINT8_C(0);
                 uint8_t minutes = UINT8_C(0);
                 if (SUCCESS == get_Long_DST_Time(&deviceList[deviceIter], &hours, &minutes))
                 {
-                    printf("Drive reported long DST time as ");
+                    print_str("Drive reported long DST time as ");
                     if (hours > 0)
                     {
                         printf("%" PRIu8 " hour", hours);
                         if (hours > 1)
                         {
-                            printf("s ");
+                            print_str("s ");
                         }
                         else
                         {
-                            printf(" ");
+                            print_str(" ");
                         }
                     }
                     printf("%" PRIu8 " minute", minutes);
                     if (minutes > 1)
                     {
-                        printf("s");
+                        print_str("s");
                     }
-                    printf("\n");
+                    print_str("\n");
                 }
                 else
                 {
-                    printf("Drive does not report how long this test will take.\n\n");
+                    print_str("Drive does not report how long this test will take.\n\n");
                 }
             }
             if (!LONG_TEST_FLAG)
@@ -1799,7 +1805,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     printf("You must add the flag:\n\"%s\" \n", LONG_TEST_ACCEPT_STRING);
-                    printf("to the command line arguments to run the long DST.\n\n");
+                    print_str("to the command line arguments to run the long DST.\n\n");
                     printf("e.g.: %s -d %s --longDST --confirm %s\n\n", util_name, deviceHandleExample,
                            LONG_TEST_ACCEPT_STRING);
                 }
@@ -1813,7 +1819,7 @@ int main(int argc, char* argv[])
                 case UNKNOWN:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Unknown Error occurred while trying to start DST\n");
+                        print_str("Unknown Error occurred while trying to start DST\n");
                     }
                     break;
                 case SUCCESS:
@@ -1821,11 +1827,11 @@ int main(int argc, char* argv[])
                     {
                         if (POLL_FLAG || CAPTIVE_FOREGROUND_FLAG)
                         {
-                            printf("Long DST Passed!\n");
+                            print_str("Long DST Passed!\n");
                         }
                         else
                         {
-                            printf("Long DST started!\n");
+                            print_str("Long DST started!\n");
                             printf("use --progress dst -d %s to monitor Drive Self Test progress\n",
                                    deviceHandleExample);
                             printf("use --abortDST -d %s to stop Drive Self Test\n", deviceHandleExample);
@@ -1835,7 +1841,7 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A self test is currently in progress.\n");
+                        print_str("A self test is currently in progress.\n");
                     }
                     break;
                 case ABORTED:
@@ -1843,21 +1849,21 @@ int main(int argc, char* argv[])
                     {
                         printf("Long DST was aborted! You can add the --%s flag to allow DST to continue\n",
                                IGNORE_OPERATION_TIMEOUT_LONG_OPT_STRING);
-                        printf("running despite taking longer than expected.\n");
+                        print_str("running despite taking longer than expected.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_ABORTED;
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Short DST is not supported on this device\n");
+                        print_str("Short DST is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Long DST Failed!\n");
+                        print_str("Long DST Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1881,16 +1887,16 @@ int main(int argc, char* argv[])
                                              &iddTimeSeconds);
                     if (iddTimeSeconds == UINT64_MAX)
                     {
-                        printf("A time estimate is not available for this IDD operation");
+                        print_str("A time estimate is not available for this IDD operation");
                     }
                     else
                     {
-                        printf("The In Drive Diagnostics (IDD) test will take approximately ");
+                        print_str("The In Drive Diagnostics (IDD) test will take approximately ");
                         convert_Seconds_To_Displayable_Time(iddTimeSeconds, M_NULLPTR, M_NULLPTR, &hours, &minutes,
                                                             &seconds);
                         print_Time_To_Screen(M_NULLPTR, M_NULLPTR, &hours, &minutes, &seconds);
                     }
-                    printf("\n");
+                    print_str("\n");
                 }
                 IDDResult = run_IDD(&deviceList[deviceIter], C_CAST(eIDDTests, IDD_TEST_FLAG), POLL_FLAG,
                                     CAPTIVE_FOREGROUND_FLAG);
@@ -1905,37 +1911,37 @@ int main(int argc, char* argv[])
                         if (POLL_FLAG || IDD_TEST_FLAG == SEAGATE_IDD_SHORT ||
                             CAPTIVE_FOREGROUND_FLAG) // short test is run in captive mode, so polling doesn't make sense
                         {
-                            printf("IDD - ");
+                            print_str("IDD - ");
                             switch (IDD_TEST_FLAG)
                             {
                             case SEAGATE_IDD_SHORT:
-                                printf("short");
+                                print_str("short");
                                 break;
                             case SEAGATE_IDD_LONG:
-                                printf("long");
+                                print_str("long");
                                 break;
                             default:
-                                printf("unknown");
+                                print_str("unknown");
                                 break;
                             }
-                            printf(" - completed without error!\n");
+                            print_str(" - completed without error!\n");
                         }
                         else
                         {
-                            printf("IDD - ");
+                            print_str("IDD - ");
                             switch (IDD_TEST_FLAG)
                             {
                             case SEAGATE_IDD_SHORT:
-                                printf("short");
+                                print_str("short");
                                 break;
                             case SEAGATE_IDD_LONG:
-                                printf("long");
+                                print_str("long");
                                 break;
                             default:
-                                printf("unknown");
+                                print_str("unknown");
                                 break;
                             }
-                            printf(" - has been started.\n");
+                            print_str(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
                             printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
                             printf("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
@@ -1946,20 +1952,20 @@ int main(int argc, char* argv[])
                                    "fail and\n");
                             printf("      may cause the IDD to stop running in some cases. The software may also hang "
                                    "until the\n");
-                            printf("      drive is able to respond to commands again.\n\n");
+                            print_str("      drive is able to respond to commands again.\n\n");
                         }
                     }
                     break;
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A self test is currently in progress.\n");
+                        print_str("A self test is currently in progress.\n");
                     }
                     break;
                 case ABORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("IDD aborted!\n");
+                        print_str("IDD aborted!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_ABORTED;
                     break;
@@ -1968,11 +1974,11 @@ int main(int argc, char* argv[])
                     {
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE && CAPTIVE_FOREGROUND_FLAG)
                         {
-                            printf("Captive/foreground mode not supported on this IDD test on this drive.\n");
+                            print_str("Captive/foreground mode not supported on this IDD test on this drive.\n");
                         }
                         else
                         {
-                            printf("IDD not supported\n");
+                            print_str("IDD not supported\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1980,7 +1986,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("IDD Failed!\n");
+                        print_str("IDD Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1990,7 +1996,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("IDD not supported on this device\n");
+                    print_str("IDD not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -1998,7 +2004,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("IDD is only supported on Seagate Drives.\n");
+                    print_str("IDD is only supported on Seagate Drives.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2010,7 +2016,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("DST And Clean\n");
+                    print_str("DST And Clean\n");
                 }
                 if (ERROR_LIMIT_LOGICAL_COUNT)
                 {
@@ -2023,13 +2029,13 @@ int main(int argc, char* argv[])
                 case UNKNOWN:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Unknown Error occurred while trying to start DST and Clean\n");
+                        print_str("Unknown Error occurred while trying to start DST and Clean\n");
                     }
                     break;
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("DST and Clean completed successfully\n");
+                        print_str("DST and Clean completed successfully\n");
                     }
                     break;
                 case IN_PROGRESS:
@@ -2042,21 +2048,21 @@ int main(int argc, char* argv[])
                 case ABORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("DST And Clean was aborted!\n");
+                        print_str("DST And Clean was aborted!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_ABORTED;
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("DST and Clean is not supported on this device\n");
+                        print_str("DST and Clean is not supported on this device\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("DST and Clean Failed!\n");
+                        print_str("DST and Clean Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2066,9 +2072,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a dst and clean operation.\n\n");
+                    print_str("to the command line arguments to run a dst and clean operation.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample,
                            DST_AND_CLEAN_LONG_OPT_STRING, SINGLE_SECTOR_DATA_ERASE_ACCEPT_STRING);
                 }
@@ -2109,14 +2115,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing DST Log not supported on this device.\n");
+                    print_str("Showing DST Log not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to get DST log!\n");
+                    print_str("Failed to get DST log!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2130,29 +2136,29 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully ");
+                    print_str("Successfully ");
                     if (SMART_FEATURE_STATE_FLAG)
                     {
-                        printf("Enabled");
+                        print_str("Enabled");
                     }
                     else
                     {
-                        printf("Disabled");
+                        print_str("Disabled");
                     }
-                    printf(" SMART feature on this device\n");
+                    print_str(" SMART feature on this device\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Configuring SMART feature is not supported on this device\n");
+                    print_str("Configuring SMART feature is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occurred while trying to configure SMART feature\n");
+                    print_str("A failure occurred while trying to configure SMART feature\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2169,21 +2175,21 @@ int main(int argc, char* argv[])
                     printf("Successfully set MRIE mode to %" PRIu8 "\n", SET_MRIE_MODE_VALUE);
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
-                        printf("NOTE: This command may have affected more than 1 logical unit\n");
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
                     }
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Changing MRIE mode not supported or attempted to change to an unsupported mode\n");
+                    print_str("Changing MRIE mode not supported or attempted to change to an unsupported mode\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to change MRIE mode.\n");
+                    print_str("Failed to change MRIE mode.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2198,29 +2204,29 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully ");
+                    print_str("Successfully ");
                     if (SMART_ATTR_AUTOSAVE_FEATURE_STATE_FLAG)
                     {
-                        printf("Enabled");
+                        print_str("Enabled");
                     }
                     else
                     {
-                        printf("Disabled");
+                        print_str("Disabled");
                     }
-                    printf(" SMART attribute auto-save on this device\n");
+                    print_str(" SMART attribute auto-save on this device\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Configuring SMART attribute auto-save is not supported on this device\n");
+                    print_str("Configuring SMART attribute auto-save is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occurred while trying to configure SMART attribute auto-save\n");
+                    print_str("A failure occurred while trying to configure SMART attribute auto-save\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2234,29 +2240,29 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully ");
+                    print_str("Successfully ");
                     if (SMART_AUTO_OFFLINE_FEATURE_STATE_FLAG)
                     {
-                        printf("Enabled");
+                        print_str("Enabled");
                     }
                     else
                     {
-                        printf("Disabled");
+                        print_str("Disabled");
                     }
-                    printf(" SMART auto-off-line on this device\n");
+                    print_str(" SMART auto-off-line on this device\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Configuring SMART auto-off-line is not supported on this device\n");
+                    print_str("Configuring SMART auto-off-line is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occurred while trying to configure SMART auto-off-line\n");
+                    print_str("A failure occurred while trying to configure SMART auto-off-line\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2293,7 +2299,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to create JSON format for Device Statistics\n");
+                            print_str("A failure occured while trying to create JSON format for Device Statistics\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -2316,14 +2322,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Statistics not supported on this device\n");
+                    print_str("Device Statistics not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to retrieve Device Statistics from this device\n");
+                    print_str("Failed to retrieve Device Statistics from this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2342,7 +2348,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting DST progress.\n");
+                    print_str("Getting DST progress.\n");
                 }
                 result = print_DST_Progress(&deviceList[deviceIter]);
             }
@@ -2352,7 +2358,7 @@ int main(int argc, char* argv[])
                 DECLARE_ZERO_INIT_ARRAY(char, iddStatusString, MAX_DST_STATUS_STRING_LENGTH + 1);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting IDD progress.\n");
+                    print_str("Getting IDD progress.\n");
                 }
                 result = get_IDD_Status(&deviceList[deviceIter], &iddStatus);
                 translate_IDD_Status_To_String(iddStatus, iddStatusString, false);
@@ -2426,12 +2432,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
-    printf("========\n");
+    print_str("Examples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -2465,13 +2471,13 @@ void utility_Usage(bool shortUsage)
            ERROR_LIMIT_LONG_OPT_STRING);
 
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("Utility Options\n");
-    printf("===============\n");
+    print_str("Utility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -2495,8 +2501,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
@@ -2525,7 +2531,7 @@ void utility_Usage(bool shortUsage)
     print_SMART_Check_Help(shortUsage);
     print_SMART_Feature_Help(shortUsage);
     // SATA Only
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_SMART_Attributes_Help(shortUsage);
     print_SMART_Attribute_Autosave_Help(shortUsage);
     print_SMART_Auto_Offline_Help(shortUsage);
@@ -2535,17 +2541,17 @@ void utility_Usage(bool shortUsage)
     print_SMART_Info_Help(shortUsage);
 
     // SAS Only
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     print_SCSI_Defects_Format_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 
     // NVMe Only
-    printf("\n\tNVMe Only:\n\t=========\n");
+    print_str("\n\tNVMe Only:\n\t=========\n");
     print_NVME_Health_Help(shortUsage);
 
     // data destructive commands - alphabetized
-    printf("\nData Destructive Commands\n");
-    printf("=========================\n");
+    print_str("\nData Destructive Commands\n");
+    print_str("=========================\n");
     print_DST_And_Clean_Help(shortUsage);
 }

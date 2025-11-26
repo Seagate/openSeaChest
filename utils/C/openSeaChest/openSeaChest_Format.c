@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.4.1";
+const char* buildVersion = "3.5.1";
 
 ////////////////////////////
 //  functions to declare  //
@@ -185,7 +185,10 @@ int main(int argc, char* argv[])
     //       This is not necessary on most modern systems other than UEFI.
     //       This is not used in linux so that we don't depend on libbsd
     //       Update the above #define check if we port to another OS that needs this to be done.
-    setprogname(util_name);
+    if (getprogname() == M_NULLPTR)
+    {
+        setprogname(util_name);
+    }
 #endif
 
     ////////////////////////
@@ -195,7 +198,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -487,7 +490,7 @@ int main(int argc, char* argv[])
                         colonLocation += 1; // adding 1 to offset just beyond the colon for parsing the remaining data
                         if (strncmp("file:", optarg, 5) == 0)
                         {
-                            fileExt         allowedExt[] = {{".bin", false}, {".BIN", false}, {M_NULLPTR, false}};
+                            fileExt         allowedExt[] = FILE_EXT_LIST_DECL({".bin", false}, {".BIN", false});
                             secureFileInfo* fileinfo =
                                 secure_Open_File(colonLocation, "rb", allowedExt, M_NULLPTR, M_NULLPTR);
                             if (fileinfo)
@@ -541,7 +544,7 @@ int main(int argc, char* argv[])
                                 }
                                 else
                                 {
-                                    printf("secure file structure could not be closed! This is a fatal error!\n");
+                                    print_str("secure file structure could not be closed! This is a fatal error!\n");
                                 }
                             }
                             else
@@ -615,19 +618,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -638,7 +641,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -651,7 +654,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -689,7 +692,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -698,7 +701,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -706,7 +709,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    atexit(print_Final_newline);
+    if (0 != atexit(print_Final_newline))
+    {
+        perror("Registering final newline print");
+    }
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -720,7 +726,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -857,7 +863,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -876,7 +882,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -891,7 +897,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -920,7 +926,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -983,21 +989,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -1087,40 +1093,40 @@ int main(int argc, char* argv[])
     {
         // These options all do a low-level format that has a risk of leaving the drive inoperable if it is interrupted.
         // Warn the user one last time and provide 30 seconds to cancel the operation
-        printf("One or more of the options provided will perform a low-level format that cannot\n");
-        printf("be interrupted once started. All background software should be stopped, any filesystems\n");
-        printf("that are currently mounted should first be unmounted in order to reduce the risk of\n");
-        printf("interruption. Do not attempt these operations on multiple devices at the same time\n");
-        printf("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
-        printf("operations running in parallel without issuing a device reset.\n");
-        printf("Not all background activities can be stopped. Some are managed by the OS and are not\n");
-        printf("configurable. It is recommended that a format change is done from a live/bootable\n");
-        printf("environment to reduce the risk of these interruptions. If the OS is unable to complete\n");
-        printf("certain commands for it's background polling of the device, it may trigger a device\n");
-        printf("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
+        print_str("One or more of the options provided will perform a low-level format that cannot\n");
+        print_str("be interrupted once started. All background software should be stopped, any filesystems\n");
+        print_str("that are currently mounted should first be unmounted in order to reduce the risk of\n");
+        print_str("interruption. Do not attempt these operations on multiple devices at the same time\n");
+        print_str("to ensure the best possible outcome. Many controllers/drivers/HBAs cannot handle these\n");
+        print_str("operations running in parallel without issuing a device reset.\n");
+        print_str("Not all background activities can be stopped. Some are managed by the OS and are not\n");
+        print_str("configurable. It is recommended that a format change is done from a live/bootable\n");
+        print_str("environment to reduce the risk of these interruptions. If the OS is unable to complete\n");
+        print_str("certain commands for it's background polling of the device, it may trigger a device\n");
+        print_str("reset and interrupt the format, leaving the drive inoperable if it cannot be recovered.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-        printf("\t\tThere is a risk when performing a low-level format/fast format that may\n");
-        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+        print_str("\t\tThere is a risk when performing a low-level format/fast format that may\n");
+        print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
-        printf("\t\t         drive inoperable! Use this at your own risk!\n");
-        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
-        printf("\t\t         with multiple logical units or namespaces.\n");
-        printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
-        printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
-        printf("\t\t         activity that would attempt to communicate with the device while this\n");
-        printf("\t\t         operation is in progress\n");
-        printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
-        printf("\t\t         all USB adapters can handle a 4k sector size.\n");
-        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
-        printf("\t\t         before using this option. Interruptions can be caused by these\n");
-        printf("\t\t         and may prevent completion of a sector size change.\n");
-        printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
-        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
+        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+        print_str("\t\t         drive inoperable! Use this at your own risk!\n");
+        print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n");
+        print_str("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+        print_str("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+        print_str("\t\t         activity that would attempt to communicate with the device while this\n");
+        print_str("\t\t         operation is in progress\n");
+        print_str("\t\tWARNING: It is not recommended to do this on USB as not\n");
+        print_str("\t\t         all USB adapters can handle a 4k sector size.\n");
+        print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+        print_str("\t\t         before using this option. Interruptions can be caused by these\n");
+        print_str("\t\t         and may prevent completion of a sector size change.\n");
+        print_str("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+        print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-        printf("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
+        print_str("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
         // count down timer must go here
         for (int8_t counter = INT8_C(30); counter >= 0; --counter)
         {
@@ -1128,7 +1134,7 @@ int main(int argc, char* argv[])
             flush_stdout();
             delay_Seconds(UINT32_C(1));
         }
-        printf("\n");
+        print_str("\n");
     }
 
     uint32_t skippedDevices = UINT32_C(0);
@@ -1217,7 +1223,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -1226,7 +1232,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -1235,7 +1241,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -1244,7 +1250,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -1258,7 +1264,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -1267,7 +1273,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -1293,7 +1299,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1343,20 +1349,18 @@ int main(int argc, char* argv[])
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
-            uint32_t            numberOfSectorSizes = get_Number_Of_Supported_Sector_Sizes(&deviceList[deviceIter]);
-            uint32_t            memSize = sizeof(supportedFormats) + sizeof(sectorSize) * numberOfSectorSizes;
+            uint32_t            memSize = sizeof(supportedFormats);
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
 
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\nWARNING: Customer unique firmware may have specific requirements that \n");
-                printf("         restrict sector sizes on some products. It may not be possible to format/ \n");
-                printf("         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
+                print_str("\nWARNING: Customer unique firmware may have specific requirements that \n");
+                print_str("         restrict sector sizes on some products. It may not be possible to format/ \n");
+                print_str("         fast format to common sizes like 4K or 512B due to these customer requirements.\n\n");
             }
             if (formats)
             {
                 safe_memset(formats, memSize, 0, memSize);
-                formats->numberOfSectorSizes = numberOfSectorSizes;
                 switch (get_Supported_Formats(&deviceList[deviceIter], formats))
                 {
                 case SUCCESS:
@@ -1365,14 +1369,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Device does not support showing supported formats\n");
+                        print_str("Device does not support showing supported formats\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to get supported sector sizes from device!\n");
+                        print_str("Failed to get supported sector sizes from device!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1383,7 +1387,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to allocate memory for supported formats\n");
+                    print_str("Unable to allocate memory for supported formats\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -1402,14 +1406,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("The format status log is not supported on this device.\n");
+                    print_str("The format status log is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to read the format status log.\n");
+                    print_str("Failed to read the format status log.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1446,7 +1450,7 @@ int main(int argc, char* argv[])
                         {
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Failed to get physical element status.\n");
+                                print_str("Failed to get physical element status.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         }
@@ -1455,7 +1459,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Unable to allocate memory for physical element descriptors\n");
+                            print_str("Unable to allocate memory for physical element descriptors\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1464,7 +1468,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("No physical elements were found on this device.\n");
+                        print_str("No physical elements were found on this device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
@@ -1473,7 +1477,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
+                    print_str("The Storage Element Depopulation feature is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -1483,7 +1487,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Format Unit\n");
+                print_str("Format Unit\n");
             }
             if (DATA_ERASE_FLAG || (FAST_FORMAT_FLAG > 0 && LOW_LEVEL_FORMAT_FLAG))
             {
@@ -1522,12 +1526,6 @@ int main(int argc, char* argv[])
                 // default format...This is basically obsolete now due to the above code, but left in place in case
                 // someone wants to try some weird bit combinations
                 formatUnitParameters.disableImmediate = FORMAT_UNIT_DISABLE_IMMEDIATE_RESPONSE;
-                if (FAST_FORMAT_FLAG > 0)
-                {
-                    // For a fast format, make the drive hold the bus instead or return immediately for a better overall
-                    // result and reduced risk of being interrupted during the format.
-                    formatUnitParameters.disableImmediate = true;
-                }
                 // Set the same protection information as we discovered first.
                 formatUnitParameters.changeProtectionType = false;
                 // override protection info if we were asked to.
@@ -1554,46 +1552,46 @@ int main(int argc, char* argv[])
                     {
                         if (POLL_FLAG)
                         {
-                            printf("Format Unit was Successful!\n");
+                            print_str("Format Unit was Successful!\n");
                         }
                         else
                         {
-                            printf("Format Unit was started Successfully!\n");
+                            print_str("Format Unit was started Successfully!\n");
                             printf("Use --%s format to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                         if (FAST_FORMAT_FLAG > 0)
                         {
-                            printf("NOTE: After changing the sector size the drive may need to perform additional\n");
+                            print_str("NOTE: After changing the sector size the drive may need to perform additional\n");
                             printf(
                                 "      background operations in order to ensure full functionality and reliability.\n");
                             printf("      This background activity may take a long time and will prevent the drive "
                                    "from\n");
                             printf(
                                 "      entering power saving modes like idle or standby until these operations have\n");
-                            printf("      completed. These operations may take a very long time to complete.\n");
-                            printf("      While EPC timers are suspended during this background operation, manual\n");
+                            print_str("      completed. These operations may take a very long time to complete.\n");
+                            print_str("      While EPC timers are suspended during this background operation, manual\n");
                             printf("      transitions to lower power states is supported. Manually moving to a lower "
                                    "power\n");
                             printf("      state will pause all background activity until the drive has become activate "
                                    "again\n");
-                            printf("      from a command such as a read or write. If forcing a transition\n");
+                            print_str("      from a command such as a read or write. If forcing a transition\n");
                             printf("      to idle_a, be aware that this power condition keeps the heads above the "
                                    "medium\n");
                             printf("      and is considered a special case that the drive firmware will allow it to "
                                    "continue\n");
-                            printf("      these background operations. All EPC timers will be honored once the\n");
-                            printf("      background activity is completed.\n\n");
+                            print_str("      these background operations. All EPC timers will be honored once the\n");
+                            print_str("      background activity is completed.\n\n");
                         }
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Format Unit Not Supported or invalid option combination provided!\n");
+                        print_str("Format Unit Not Supported or invalid option combination provided!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1608,7 +1606,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Format Unit Failed!\n");
+                        print_str("Format Unit Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1620,34 +1618,34 @@ int main(int argc, char* argv[])
                 {
                     if (FAST_FORMAT_FLAG > 0)
                     {
-                        printf("\n");
+                        print_str("\n");
                         printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
-                        printf("to the command line arguments to run a format unit.\n\n");
+                        print_str("to the command line arguments to run a format unit.\n\n");
                         printf("e.g.: %s -d %s --%s current --%s 1 --confirm %s\n\n", util_name, deviceHandleExample,
                                FORMAT_UNIT_LONG_OPT_STRING, FAST_FORMAT_LONG_OPT_STRING,
                                LOW_LEVEL_FORMAT_ACCEPT_STRING);
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-                        printf("\t\tThere is an additional risk when performing a low-level fast format that may\n");
-                        printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                        print_str("\t\tThere is an additional risk when performing a low-level fast format that may\n");
+                        print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                        printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
-                        printf("\t\t         drive inoperable! Use this at your own risk!\n");
-                        printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
-                        printf("\t\t         with multiple logical units or namespaces.\n");
-                        printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
-                        printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                        printf("\t\t         and may prevent completion of a sector size change.\n\n");
+                        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        print_str("\t\t         drive inoperable! Use this at your own risk!\n");
+                        print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                        print_str("\t\t         with multiple logical units or namespaces.\n");
+                        print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                        print_str("\t\t         before using this option. Interruptions can be caused by these\n");
+                        print_str("\t\t         and may prevent completion of a sector size change.\n\n");
                         printf(
                             "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                        printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
-                        printf("\t\t         triggering a device reset while reformating the drive.\n\n");
+                        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
                     else
                     {
-                        printf("\n");
+                        print_str("\n");
                         printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                        printf("to the command line arguments to run a format unit.\n\n");
+                        print_str("to the command line arguments to run a format unit.\n\n");
                         printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample,
                                FORMAT_UNIT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                     }
@@ -1671,34 +1669,34 @@ int main(int argc, char* argv[])
                         printf("Successfully set sector size to %" PRIu32 "\n", SET_SECTOR_SIZE_SIZE);
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
-                            printf("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
-                        printf("NOTE: After changing the sector size the drive may need to perform additional\n");
-                        printf("      background operations in order to ensure full functionality and reliability.\n");
-                        printf("      This background activity may take a long time and will prevent the drive from\n");
-                        printf("      entering power saving modes like idle or standby until these operations have\n");
-                        printf("      completed. These operations may take a very long time to complete.\n");
-                        printf("      While EPC timers are suspended during this background operation, manual\n");
+                        print_str("NOTE: After changing the sector size the drive may need to perform additional\n");
+                        print_str("      background operations in order to ensure full functionality and reliability.\n");
+                        print_str("      This background activity may take a long time and will prevent the drive from\n");
+                        print_str("      entering power saving modes like idle or standby until these operations have\n");
+                        print_str("      completed. These operations may take a very long time to complete.\n");
+                        print_str("      While EPC timers are suspended during this background operation, manual\n");
                         printf(
                             "      transitions to lower power states is supported. Manually moving to a lower power\n");
                         printf("      state will pause all background activity until the drive has become activate "
                                "again\n");
-                        printf("      from a command such as a read or write. If forcing a transition\n");
+                        print_str("      from a command such as a read or write. If forcing a transition\n");
                         printf(
                             "      to idle_a, be aware that this power condition keeps the heads above the medium\n");
                         printf("      and is considered a special case that the drive firmware will allow it to "
                                "continue\n");
-                        printf("      these background operations. All EPC timers will be honored once the\n");
-                        printf("      background activity is completed.\n\n");
+                        print_str("      these background operations. All EPC timers will be honored once the\n");
+                        print_str("      background activity is completed.\n\n");
                     }
                     break;
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Setting sector size not supported on this device\n");
+                        print_str("Setting sector size not supported on this device\n");
                         if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                         {
-                            printf("For SCSI Drives, try a format unit operation\n");
+                            print_str("For SCSI Drives, try a format unit operation\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1714,13 +1712,13 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Failed to set sector size!\n");
+                        print_str("Failed to set sector size!\n");
                     }
                     if (deviceList[deviceIter].drive_info.drive_type == SCSI_DRIVE)
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("For SCSI Drives, try a format unit operation to recover the device\n");
+                            print_str("For SCSI Drives, try a format unit operation to recover the device\n");
                         }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1731,31 +1729,31 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
-                    printf("to the command line arguments to run a set sector size operation.\n\n");
+                    print_str("to the command line arguments to run a set sector size operation.\n\n");
                     printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample,
                            SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-                    printf("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
-                    printf("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
+                    print_str("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
+                    print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                    printf("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
-                    printf("\t\t         drive inoperable! Use this at your own risk!\n");
-                    printf("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
-                    printf("\t\t         with multiple logical units or namespaces.\n");
-                    printf("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
-                    printf("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
-                    printf("\t\t         activity that would attempt to communicate with the device while this\n");
-                    printf("\t\t         operation is in progress\n");
-                    printf("\t\tWARNING: It is not recommended to do this on USB as not\n");
-                    printf("\t\t         all USB adapters can handle a 4k sector size.\n");
-                    printf("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
-                    printf("\t\t         before using this option. Interruptions can be caused by these\n");
-                    printf("\t\t         and may prevent completion of a sector size change.\n");
-                    printf("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                    printf("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
-                    printf("\t\t         triggering a device reset while reformating the drive.\n\n");
+                    print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                    print_str("\t\t         drive inoperable! Use this at your own risk!\n");
+                    print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
+                    print_str("\t\t         with multiple logical units or namespaces.\n");
+                    print_str("\t\tWARNING (SATA): Do not interrupt this operation once it has started or \n");
+                    print_str("\t\t         it may cause the drive to become unusable. Stop all possible background\n");
+                    print_str("\t\t         activity that would attempt to communicate with the device while this\n");
+                    print_str("\t\t         operation is in progress\n");
+                    print_str("\t\tWARNING: It is not recommended to do this on USB as not\n");
+                    print_str("\t\t         all USB adapters can handle a 4k sector size.\n");
+                    print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
+                    print_str("\t\t         before using this option. Interruptions can be caused by these\n");
+                    print_str("\t\t         and may prevent completion of a sector size change.\n");
+                    print_str("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                    print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                    print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
@@ -1818,14 +1816,14 @@ int main(int argc, char* argv[])
                             }
                             if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                             {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                print_str("NOTE: This command may have affected more than 1 logical unit\n");
                             }
                         }
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("This operation is not supported on this drive.\n");
+                            print_str("This operation is not supported on this drive.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1848,7 +1846,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    printf("The Storage Element Depopulation feature is not supported on this device.\n");
+                    print_str("The Storage Element Depopulation feature is not supported on this device.\n");
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
             }
@@ -1856,9 +1854,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
-                    printf("to the command line arguments to run a remove physical element command.\n\n");
+                    print_str("to the command line arguments to run a remove physical element command.\n\n");
                     printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample,
                            REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
@@ -1885,11 +1883,11 @@ int main(int argc, char* argv[])
                         {
                             if (POLL_FLAG)
                             {
-                                printf("Successfully repopulated all physical elements!\n");
+                                print_str("Successfully repopulated all physical elements!\n");
                             }
                             else
                             {
-                                printf("Successfully started repopulation.\n");
+                                print_str("Successfully started repopulation.\n");
                                 printf("The device may take a long time before it is ready to accept all commands "
                                        "again.\n");
                                 printf("Use \"--%s repop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING,
@@ -1897,14 +1895,14 @@ int main(int argc, char* argv[])
                             }
                             if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                             {
-                                printf("NOTE: This command may have affected more than 1 logical unit\n");
+                                print_str("NOTE: This command may have affected more than 1 logical unit\n");
                             }
                         }
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("This operation is not supported on this drive.\n");
+                            print_str("This operation is not supported on this drive.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1919,7 +1917,7 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to repopulate physical elements!\n");
+                            print_str("Failed to repopulate physical elements!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1927,7 +1925,7 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    printf("Neither the standard or the Seagate remanufacture feature is supported on this device.\n");
+                    print_str("Neither the standard or the Seagate remanufacture feature is supported on this device.\n");
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
             }
@@ -1935,9 +1933,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", LOW_LEVEL_FORMAT_ACCEPT_STRING);
-                    printf("to the command line arguments to run a repopulate elements operation.\n\n");
+                    print_str("to the command line arguments to run a repopulate elements operation.\n\n");
                     printf("e.g.: %s -d %s --%s --confirm %s\n\n", util_name, deviceHandleExample,
                            REPOPULATE_ELEMENTS_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
@@ -1954,7 +1952,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("NVM Format\n");
+                print_str("NVM Format\n");
             }
             if (DATA_ERASE_FLAG)
             {
@@ -2035,11 +2033,11 @@ int main(int argc, char* argv[])
                     {
                         if (POLL_FLAG)
                         {
-                            printf("NVM Format was Successful!\n");
+                            print_str("NVM Format was Successful!\n");
                         }
                         else
                         {
-                            printf("NVM Format was started Successfully!\n");
+                            print_str("NVM Format was started Successfully!\n");
                             printf("Use --%s nvmformat to check for progress.\n", PROGRESS_LONG_OPT_STRING);
                         }
                     }
@@ -2047,14 +2045,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format Not Supported or invalid option combination provided!\n");
+                        print_str("NVM Format Not Supported or invalid option combination provided!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 case OS_COMMAND_NOT_AVAILABLE:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format is not supported in this OS\n");
+                        print_str("NVM Format is not supported in this OS\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -2069,7 +2067,7 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("NVM Format Failed!\n");
+                        print_str("NVM Format Failed!\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2079,9 +2077,9 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                     printf("You must add the flag:\n\"%s\" \n", DATA_ERASE_ACCEPT_STRING);
-                    printf("to the command line arguments to run a nvm format.\n\n");
+                    print_str("to the command line arguments to run a nvm format.\n\n");
                     printf("e.g.: %s -d %s --%s current --confirm %s\n\n", util_name, deviceHandleExample,
                            NVM_FORMAT_LONG_OPT_STRING, DATA_ERASE_ACCEPT_STRING);
                 }
@@ -2099,7 +2097,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting Format Unit Progress.\n");
+                    print_str("Getting Format Unit Progress.\n");
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
@@ -2107,7 +2105,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting NVM Format Progress.\n");
+                    print_str("Getting NVM Format Progress.\n");
                 }
                 result = show_Format_Unit_Progress(&deviceList[deviceIter]);
             }
@@ -2115,7 +2113,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Getting depop/repop Progress.\n");
+                    print_str("Getting depop/repop Progress.\n");
                 }
                 result = show_Depop_Repop_Progress(&deviceList[deviceIter]);
             }
@@ -2188,12 +2186,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("Examples\n");
-    printf("========\n");
+    print_str("Examples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -2227,13 +2225,13 @@ void utility_Usage(bool shortUsage)
     // TODO: Format and NVM format with PI
 
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -2257,8 +2255,8 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Display_LBA_Help(shortUsage);
@@ -2278,22 +2276,22 @@ void utility_Usage(bool shortUsage)
     print_Show_Physical_Element_Status_Help(shortUsage);
     print_Show_Supported_Formats_Help(shortUsage);
     // SATA Only Options
-    // printf("\n\tSATA Only:\n\n");
+    // print_str("\n\tSATA Only:\n\n");
 
     // SAS Only Options
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     print_Show_Format_Status_Log_Help(shortUsage);
 
     // data destructive commands - alphabetized
-    printf("\nData Destructive Commands\n");
-    printf("=========================\n");
+    print_str("\nData Destructive Commands\n");
+    print_str("=========================\n");
     // utility data destructive tests/operations go here
     print_Pattern_Help(shortUsage);
     print_Remove_Physical_Element_Status_Help(shortUsage);
     print_Remove_Physical_Element_And_Modify_Zones_Help(shortUsage);
     print_Repopulate_Elements_Help(shortUsage);
     print_Set_Sector_Size_Help(shortUsage);
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     // print_Format_Default_Format_Help(shortUsage);
     print_Format_Disable_Certification_Help(shortUsage);
     print_Format_Disable_Primary_List_Help(shortUsage);
@@ -2306,7 +2304,7 @@ void utility_Usage(bool shortUsage)
     print_Format_Unit_Help(shortUsage);
     print_Format_Security_Initialize_Help(shortUsage);
     print_Format_Stop_On_List_Error_Help(shortUsage);
-    printf("\n\tNVMe Only:\n\t=========\n");
+    print_str("\n\tNVMe Only:\n\t=========\n");
     print_NVM_Format_Metadata_Setting_Help(shortUsage);
     print_NVM_Format_Metadata_Size_Help(shortUsage);
     print_NVM_Format_NSID_Help(shortUsage);

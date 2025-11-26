@@ -72,9 +72,9 @@ extern "C"
 
     static M_INLINE void print_Insecure_Path_Utility_Message(void)
     {
-        printf("ERROR: Path to write file is not secure. See the openSeaChest Wiki\n");
-        printf("       at https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path\n");
-        printf("       for more information on securing each directory in your path.\n");
+        print_str("ERROR: Path to write file is not secure. See the openSeaChest Wiki\n");
+        print_str("       at https://github.com/Seagate/openSeaChest/wiki/Secure-File-And-Path\n");
+        print_str("       for more information on securing each directory in your path.\n");
     }
 
     typedef enum eOutputModeEnum
@@ -3624,8 +3624,6 @@ extern "C"
     extern const char* deviceHandleExample;
     extern const char* deviceHandleName;
     extern const char* commandWindowType;
-
-    char* get_current_year(char* temp_year);
 
     void openseachest_utility_Info(const char* utilityName, const char* buildVersion);
 
