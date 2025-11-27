@@ -378,6 +378,7 @@ extern "C"
         PROGRESS_LONG_OPT_STRING, required_argument, M_NULLPTR, PROGRESS_SHORT_OPT                                     \
     }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
 #define JSON_OUTPUT_FLAG            jsonOutput
 #define JSON_OUTPUT_VAR             getOptBool JSON_OUTPUT_FLAG = goFalse;
 #define JSON_OUTPUT_LONG_OPT_STRING "json"
@@ -385,6 +386,7 @@ extern "C"
     {                                                                                                                  \
         JSON_OUTPUT_LONG_OPT_STRING, no_argument, &JSON_OUTPUT_FLAG, goTrue                                            \
     }
+#endif
 
 #define DATA_ERASE_ACCEPT_STRING          "this-will-erase-data"
 #define POSSIBLE_DATA_ERASE_ACCEPT_STRING "this-may-erase-data"

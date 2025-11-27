@@ -33,12 +33,15 @@
 #if defined(ENABLE_CSMI)
 #    include "csmi_helper_func.h"
 #endif
-#include "device_statistics_json.h"
 #include "partition_info.h"
 #include "sata_phy.h"
-#include "scan_json.h"
-#include "scsi_defect_list_json.h"
-#include "smart_attribute_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "device_statistics_json.h"
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#    include "scsi_defect_list_json.h"
+#    include "smart_attribute_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -108,7 +111,9 @@ int main(int argc, char* argv[])
     SHOW_PHY_EVENT_COUNTERS_VAR
     REINITIALIZE_SATA_PHY_EVENTS_VAR
     REINITIALIZE_DEV_STATS_VARS
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -155,7 +160,9 @@ int main(int argc, char* argv[])
         SHOW_CONCURRENT_RANGES_LONG_OPT,
         PARTITION_INFO_LONG_OPT,
         SHOW_PHY_EVENT_COUNTERS_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -534,6 +541,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -543,6 +551,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -950,13 +959,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -997,6 +1030,7 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
@@ -1027,6 +1061,7 @@ int main(int argc, char* argv[])
                 safe_free(&jsonFormatOutput);
             }
             else
+#endif
             {
                 switch (print_SMART_Attributes(&deviceList[deviceIter],
                                                C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
@@ -1072,6 +1107,7 @@ int main(int argc, char* argv[])
                     }
                 }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
@@ -1082,7 +1118,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to create JSON format for Device Statistics\n");
+                            print_str("A failure occured while trying to create JSON format for Device Statistics\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1095,6 +1131,7 @@ int main(int argc, char* argv[])
                     safe_free(&jsonFormatOutput);
                 }
                 else
+#endif
                 {
                     print_DeviceStatistics(&deviceList[deviceIter], &deviceStats);
                     if (seagateDeviceStatisticsAvailable)
@@ -1156,6 +1193,7 @@ int main(int argc, char* argv[])
                                          SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
@@ -1170,7 +1208,7 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Showing SCSI Defect List is not supported on this device\n");
+                            print_str("Showing SCSI Defect List is not supported on this device\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1178,7 +1216,7 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to show SCSI Defect List.\n");
+                            print_str("A failure occured while trying to show SCSI Defect List.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1186,6 +1224,7 @@ int main(int argc, char* argv[])
                     safe_free(&jsonFormatOutput);
                 }
                 else
+#endif
                 {
                     print_SCSI_Defect_List(defects);
                 }

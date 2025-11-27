@@ -22,10 +22,13 @@
 #include "memory_safety.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
-#include "scan_json.h"
 #include "string_utils.h"
 #include "type_conversion.h"
 #include "unit_conversion.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -99,7 +102,9 @@ int main(int argc, char* argv[])
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
 #endif
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -149,7 +154,9 @@ int main(int argc, char* argv[])
         RAW_TIMEOUT_LONG_OPT,
         RAW_OUTPUT_FILE_LONG_OPT,
         RAW_INPUT_FILE_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -927,6 +934,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -936,6 +944,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1296,13 +1305,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1462,7 +1495,8 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            print_str("ERROR: Failed to open file for reading data to send to drive!\n");
+                                            print_str(
+                                                "ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
                                         safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -1650,7 +1684,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        print_str("ERROR: Failed to open/create file for saving returned sense data!\n");
+                                        print_str(
+                                            "ERROR: Failed to open/create file for saving returned sense data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }

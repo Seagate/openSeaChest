@@ -32,7 +32,10 @@
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
-#include "scan_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -323,7 +326,9 @@ int main(int argc, char* argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -367,7 +372,9 @@ int main(int argc, char* argv[])
         ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT,
         ENABLE_HANG_COMMANDS_TEST_LONG_OPT,
         FORCE_RETEST_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         // tool specific options go here
         LONG_OPT_TERMINATOR
     };
@@ -704,6 +711,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -713,6 +721,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1121,13 +1130,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -3141,7 +3174,8 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                         {
                             satRevision[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
-                            print_str("WARNING: SAT Product Revision contains non-ASCII or non-Printable Characters!\n");
+                            print_str(
+                                "WARNING: SAT Product Revision contains non-ASCII or non-Printable Characters!\n");
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
@@ -4402,8 +4436,10 @@ static eReturnValues scsi_Capacity_Information(tDevice* device, ptrScsiDevInform
         set_Console_Colors(true, WARNING_COLOR);
         print_str("WARNING: Failed read capacity 16. This should only happen on old legacy SPC & earlier devices.\n");
         print_str("         All new devices SHOULD support this command to report PI type (if any) and logical\n");
-        print_str("         to physical block relationships so that read/write can be properly aligned for the device.\n");
-        print_str("         this command also reports if logical block provisioning management is enabled and whether\n");
+        print_str(
+            "         to physical block relationships so that read/write can be properly aligned for the device.\n");
+        print_str(
+            "         this command also reports if logical block provisioning management is enabled and whether\n");
         print_str("         or not zeros are reported when reading an unmapped LBA.\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
@@ -4439,7 +4475,7 @@ static eReturnValues use_Mode_Sense_6(tDevice* device, uint8_t pageCode, bool* u
     if (SUCCESS != scsi_Mode_Sense_10(device, pageCode, 0, 0, false, false, MPC_CURRENT_VALUES, M_NULLPTR))
     {
         // if invalid operation code, try again with 6 byte command.
-        bool            tryAnotherPage = false;
+        bool tryAnotherPage = false;
         if (is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
         {
             // didn't like the operation code, so retrying with mode sense 6
@@ -4537,7 +4573,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(
             {
                 set_Console_Colors(true, HACK_COLOR);
                 print_str("HACK FOUND: NMSP\n"); // mode page subpages are not supported by this device and it does not
-                                              // properly validate all fields of the CDB
+                                                 // properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
@@ -4609,7 +4645,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(
             {
                 set_Console_Colors(true, HACK_COLOR);
                 print_str("HACK FOUND: NMSP\n"); // mode page subpages are not supported by this device and it does not
-                                              // properly validate all fields of the CDB
+                                                 // properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
@@ -5879,9 +5915,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                 switch (subPageCode)
                 {
                 case 0x00:
-                    print_str("Logical Block Provisioning\n"); // If this is a tape drive, then this is sequential access
-                                                            // device page! TODO: add an if in case someone runs this
-                                                            // against a tape
+                    print_str("Logical Block Provisioning\n"); // If this is a tape drive, then this is sequential
+                                                               // access device page! TODO: add an if in case someone
+                                                               // runs this against a tape
                     // TODO: Parse out this page
                     break;
                 case 0xFF:
@@ -9114,8 +9150,8 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 if (!inputs->hangCommandsToTest.sctLogWithGPL)
                 {
                     set_Console_Colors(true, LIKELY_HACK_COLOR);
-                    print_str(" SCTSM,"); // -please retest to ensure that reading the SCT status log with GPL commands is
-                                       // indeed a necessary hack");
+                    print_str(" SCTSM,"); // -please retest to ensure that reading the SCT status log with GPL commands
+                                          // is indeed a necessary hack");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }

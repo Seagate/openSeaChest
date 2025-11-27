@@ -38,11 +38,13 @@
 #endif
 #include "ata_Security.h"
 #include "generic_tests.h"
-#include "scan_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 // Uncomment this if we want the command line option to set an ATA security password.
 // This is currently removed because we may not be able to unlock it behind some devices due to poor implementation on
 // SAT with ATA security active #define ENABLE_ATA_SET_PASSWORD
-
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -140,7 +142,9 @@ int main(int argc, char* argv[])
     ATA_SECURITY_DISABLE_OP_VAR
     ATA_SECURITY_FREEZELOCK_OP_VAR
     LOWLEVEL_INFO_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -208,7 +212,9 @@ int main(int argc, char* argv[])
         ATA_SECURITY_FREEZELOCK_OP_LONG_OPT,
         HIDE_LBA_COUNTER_LONG_OPT,
         ZERO_VERIFY_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -789,6 +795,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -798,6 +805,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1322,13 +1330,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1624,12 +1656,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1717,8 +1752,10 @@ int main(int argc, char* argv[])
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;

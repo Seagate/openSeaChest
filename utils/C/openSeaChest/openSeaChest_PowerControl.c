@@ -29,14 +29,17 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
-#include "scan_json.h"
 #include "seagate_operations.h"                  //for power telemetry
 #include "vendor/seagate/seagate_common_types.h" //power telemetry type
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.7.2";
+const char* util_name    = "openSeaChest_PowerControl";
+const char* buildVersion = "3.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -122,7 +125,9 @@ int main(int argc, char* argv[])
 #endif
     LOWLEVEL_INFO_VAR
     VOLATILE_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -189,7 +194,9 @@ int main(int argc, char* argv[])
         REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         PUIS_FEATURE_LONG_OPT,
         VOLATILE_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -1176,6 +1183,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -1185,6 +1193,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1597,13 +1606,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -2683,7 +2716,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2736,7 +2770,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }

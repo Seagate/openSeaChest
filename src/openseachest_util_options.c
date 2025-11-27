@@ -126,7 +126,7 @@ void print_Elevated_Privileges_Text(void)
 #    elif defined(__DragonFly__)
     print_str("In DragonFlyBSD, put sudo before the command. This may require inputting your login password.\n");
     print_str("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
-           "password.\n");
+              "password.\n");
 #    elif defined(__FreeBSD__)
     print_str("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     print_str(
@@ -993,9 +993,11 @@ void print_SMART_Attributes_Help(bool shortHelp)
         print_str("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         print_str("\t\t             attribute's data. Full raw data interpretation only\n");
         print_str("\t\t             available on select devices.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         print_str("\t\t  json - a full breakdown of all parts of each individual\n");
         print_str("\t\t         attribute's data in json format. Full raw data interpretation only\n");
         print_str("\t\t         available on select devices.\n");
+#endif
         print_str("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }
@@ -1813,7 +1815,7 @@ void print_Firmware_Download_Mode_Help(bool shortHelp)
 
 void print_Output_Mode_Help(bool shortHelp)
 {
-    printf("\t--%s   [ raw | binary | json ]\n", OUTPUT_MODE_LONG_OPT_STRING);
+    printf("\t--%s   [ raw | binary ]\n", OUTPUT_MODE_LONG_OPT_STRING);
     if (!shortHelp)
     {
         printf("\t\tUse this option with others options such as --%s\n", GET_NVME_LOG_LONG_OPT_STRING);
@@ -1823,8 +1825,7 @@ void print_Output_Mode_Help(bool shortHelp)
         print_str("\t\t\traw    - prints the raw buffer on stdout\n");
         print_str("\t\t\t  \n");
         print_str("\t\t\tbinary - writes data to a file with device\n");
-        print_str("\t\t\t         Serial Number & time stamp\n");
-        print_str("\t\t\tjson   - prints the data into JSON format stdout\n\n");
+        print_str("\t\t\t         Serial Number & time stamp\n\n");
     }
 }
 

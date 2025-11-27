@@ -48,10 +48,13 @@
 #include "host_erase.h"
 #include "platform_helper.h"
 #include "sanitize.h"
-#include "scan_json.h"
 #include "set_max_lba.h"
 #include "trim_unmap.h"
 #include "writesame.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -170,7 +173,9 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     ERASE_RESTORE_MAX_VAR
     REFRESH_FILE_SYSTEMS_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int     args        = 0;
     int     argIndex    = 0;
@@ -251,7 +256,9 @@ int main(int argc, char* argv[])
         ZERO_VERIFY_LONG_OPT,
         ERASE_RESTORE_MAX_PREP_LONG_OPT,
         REFRESH_FILE_SYSTEMS_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -843,7 +850,8 @@ int main(int argc, char* argv[])
                                            fileinfo->filename);
                                     if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
                                     {
-                                        print_str("secure file structure could not be closed! This is a fatal error!\n");
+                                        print_str(
+                                            "secure file structure could not be closed! This is a fatal error!\n");
                                     }
                                     free_Secure_File_Info(&fileinfo);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -863,7 +871,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        print_str("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                                        print_str("Unable to read the file with the mode page data. Cannot set the "
+                                                  "mode page.\n");
                                     }
                                     exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
                                 }
@@ -1165,6 +1174,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -1174,6 +1184,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1740,13 +1751,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -2022,12 +2057,15 @@ int main(int argc, char* argv[])
                     print_str("Try power cycling the drive/system and try again or try a different system\n");
                     print_str("or method of attaching the drive to run this command.\n");
                     print_str("When a feature is \"frozen\" the drive must be power cycled to clear this condition.\n");
-                    print_str("Some systems will issue the freeze commands on boot which is why changing which system\n");
+                    print_str(
+                        "Some systems will issue the freeze commands on boot which is why changing which system\n");
                     print_str("is used or how the drive is attached to the system can get around this issue.\n");
-                    print_str("If the device supports the HPA security extension feature, then changes to HPA may be\n");
+                    print_str(
+                        "If the device supports the HPA security extension feature, then changes to HPA may be\n");
                     print_str("blocked by the password set by this feature. You must either unlock the HPA security\n");
                     print_str("feature, or power cycle the drive to remove the password and lock.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2051,7 +2089,8 @@ int main(int argc, char* argv[])
                     print_str("attached to the system (move from USB to SATA or from SAS HBA to\n");
                     print_str("the motherboard) and try again.\n");
                     print_str("If this does not work, try another system.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2066,7 +2105,8 @@ int main(int argc, char* argv[])
                     print_str("command may have been blocked, or some other unknown reason caused the failure.\n");
                     print_str("Try power cycling the drive/system and try again or try a different system\n");
                     print_str("or method of attaching the drive to run this command.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2147,12 +2187,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2179,9 +2222,9 @@ int main(int argc, char* argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                writeAfterErase  writeReq;
-                eRevertAuthority authority     = REVERT_AUTHORITY_MSID;
-                char*            passwordToUse = M_NULLPTR;
+                writeAfterErase writeReq;
+                eRevertAuthority authority = REVERT_AUTHORITY_MSID;
+                char* passwordToUse = M_NULLPTR;
                 safe_memset(&writeReq, sizeof(writeAfterErase), 0, sizeof(writeAfterErase));
                 if (safe_strlen(TCG_PSID_FLAG) || safe_strlen(TCG_SID_FLAG))
                 {
@@ -2196,12 +2239,12 @@ int main(int argc, char* argv[])
                     }
                     else if (safe_strlen(TCG_PSID_FLAG) == 32)
                     {
-                        authority     = REVERT_AUTHORITY_PSID;
+                        authority = REVERT_AUTHORITY_PSID;
                         passwordToUse = TCG_PSID_FLAG;
                     }
                     else if (safe_strlen(TCG_SID_FLAG) > 0)
                     {
-                        authority     = REVERT_AUTHORITY_SID;
+                        authority = REVERT_AUTHORITY_SID;
                         passwordToUse = TCG_SID_FLAG;
                     }
                     else
@@ -2261,8 +2304,10 @@ int main(int argc, char* argv[])
                         printf(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2602,7 +2647,8 @@ int main(int argc, char* argv[])
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
                             printf(
                                 "          PI bytes may be invalid and reading them results in logical block guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2620,7 +2666,8 @@ int main(int argc, char* argv[])
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
                             printf("          PI bytes may be scrambled and reading them results in logical block "
                                    "guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2776,7 +2823,7 @@ int main(int argc, char* argv[])
                 {
                     currentBlockSize = false;
                 }
-                formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
+                formatUnitParameters.formatType           = C_CAST(eFormatType, FAST_FORMAT_FLAG);
                 formatUnitParameters.currentBlockSize     = currentBlockSize;
                 formatUnitParameters.newBlockSize         = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList                = M_NULLPTR;
@@ -2872,7 +2919,8 @@ int main(int argc, char* argv[])
                         print_str("\t\tThere is an additional risk when performing a low-level fast format that may\n");
                         print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        print_str(
+                            "\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
                         print_str("\t\t         drive inoperable! Use this at your own risk!\n");
                         print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
                         print_str("\t\t         with multiple logical units or namespaces.\n");
@@ -2881,7 +2929,8 @@ int main(int argc, char* argv[])
                         print_str("\t\t         and may prevent completion of a sector size change.\n");
                         printf(
                             "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        print_str(
+                            "\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
                         print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }

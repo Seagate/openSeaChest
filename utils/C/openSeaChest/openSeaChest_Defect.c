@@ -28,14 +28,17 @@
 #include "getopt.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
-#include "scan_json.h"
-#include "scsi_defect_list_json.h"
 #include "seagate_operations.h"
 #include "smart.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#    include "scsi_defect_list_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name = "openSeaChest_Defect";
+const char* util_name    = "openSeaChest_Defect";
 const char* buildVersion = "1.0.2";
 
 ////////////////////////////
@@ -109,7 +112,9 @@ int main(int argc, char* argv[])
     CORRUPT_RANDOM_LBAS_VAR
     BYTES_TO_CORRUPT_VAR
     SCSI_DEFECTS_VARS
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -162,7 +167,9 @@ int main(int argc, char* argv[])
         CORRUPT_RANDOM_LBAS_LONG_OPT,
         BYTES_TO_CORRUPT_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -678,6 +685,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -687,6 +695,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1080,13 +1089,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1278,6 +1311,7 @@ int main(int argc, char* argv[])
                                          SCSI_DEFECTS_GROWN_LIST, SCSI_DEFECTS_PRIMARY_LIST, &defects))
             {
             case SUCCESS:
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 if (JSON_OUTPUT_FLAG)
                 {
                     char* jsonFormatOutput = M_NULLPTR;
@@ -1292,7 +1326,7 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Showing SCSI Defect List is not supported on this device\n");
+                            print_str("Showing SCSI Defect List is not supported on this device\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -1300,7 +1334,7 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to show SCSI Defect List.\n");
+                            print_str("A failure occured while trying to show SCSI Defect List.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1308,6 +1342,7 @@ int main(int argc, char* argv[])
                     safe_free(&jsonFormatOutput);
                 }
                 else
+#endif
                 {
                     print_SCSI_Defect_List(defects);
                 }
@@ -1316,7 +1351,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1536,11 +1571,13 @@ int main(int argc, char* argv[])
                 {
                     if (FLAG_UNCORRECTABLES_FLAG)
                     {
-                        print_str("Flagging random uncorrectable errors is not supported by this device at this time.\n");
+                        print_str(
+                            "Flagging random uncorrectable errors is not supported by this device at this time.\n");
                     }
                     else
                     {
-                        print_str("Creating random uncorrectable errors is not supported by this device at this time.\n");
+                        print_str(
+                            "Creating random uncorrectable errors is not supported by this device at this time.\n");
                     }
                 }
                 break;
@@ -1805,11 +1842,10 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 
-
-    //data destructive commands - alphabetized
+    // data destructive commands - alphabetized
     print_str("Data Destructive Commands\n");
     print_str("=========================\n");
-    //utility data destructive tests/operations go here
+    // utility data destructive tests/operations go here
     print_Bytes_To_Corrupt_Help(shortUsage);
     print_DST_And_Clean_Help(shortUsage);
     print_Corrupt_LBA_Help(shortUsage);

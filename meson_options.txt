@@ -27,3 +27,4 @@ option('libc_musl', type : 'boolean', value : false)
 #sent the ATA security freeze-lock command to the drive.
 #if you really want to enable this option, you can do it, but you have been warned!
 option('atasecsetpass', type : 'feature', value : 'disabled')
+option('json_outputformat', type : 'boolean', value : false)

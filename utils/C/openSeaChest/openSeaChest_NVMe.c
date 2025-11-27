@@ -35,8 +35,11 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
-#include "scan_json.h"
 #include "smart.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -119,7 +122,9 @@ int main(int argc, char* argv[])
     LOWLEVEL_INFO_VAR
     LIST_LOGS_VAR
     FORCE_DRIVE_TYPE_VARS
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 #if defined(ENABLE_HWRAID_SUPPORT)
     RAID_PHYSICAL_DRIVE
     rDevice; // TODO: This should be a list so that we can talk to more than one raid device at a time!
@@ -181,7 +186,9 @@ int main(int argc, char* argv[])
         NVM_FORMAT_OPTIONS_LONG_OPTS,
         LIST_LOGS_LONG_OPT,
         FORCE_DRIVE_TYPE_LONG_OPTS,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -796,6 +803,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -805,6 +813,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1108,13 +1117,37 @@ int main(int argc, char* argv[])
         {
             if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_HUMAN)
             {
-                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                if (JSON_OUTPUT_FLAG)
                 {
-                    if (VERBOSITY_QUIET < toolVerbosity)
+                    char* jsonFormatOutput = M_NULLPTR;
+                    if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                            util_name, buildVersion, &jsonFormatOutput))
                     {
-                        print_str("ERROR: failed to get device information\n");
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_str("ERROR: failed to get device information\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
-                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    else
+                    {
+                        // write the data on console
+                        printf("%s\n\n", jsonFormatOutput);
+                    }
+                    safe_free(&jsonFormatOutput);
+                }
+                else
+#endif
+                {
+                    if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_str("ERROR: failed to get device information\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
                 }
             }
             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_RAW)
@@ -1272,7 +1305,7 @@ int main(int argc, char* argv[])
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
-            uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats));
+            uint32_t            memSize = C_CAST(uint32_t, sizeof(supportedFormats));
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
             if (formats != M_NULLPTR)
             {

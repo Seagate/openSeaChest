@@ -34,12 +34,15 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
-#include "scan_json.h"
 #include "seagate_operations.h"
 #include "set_max_lba.h"
 #include "smart.h"
-#include "smart_attribute_json.h"
 #include "trim_unmap.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#    include "smart_attribute_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -135,7 +138,9 @@ int main(int argc, char* argv[])
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
     SHOW_CONCURRENT_RANGES_VAR
     LOWLEVEL_INFO_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -206,7 +211,9 @@ int main(int argc, char* argv[])
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
         SHOW_CONCURRENT_RANGES_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -830,6 +837,7 @@ int main(int argc, char* argv[])
             scanControl |= SCAN_SEAGATE_ONLY;
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
@@ -839,6 +847,7 @@ int main(int argc, char* argv[])
             safe_free(&jsonFormatOutput);
         }
         else
+#endif
         {
             scan_And_Print_Devs(scanControl, toolVerbosity);
         }
@@ -1248,13 +1257,37 @@ int main(int argc, char* argv[])
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1466,6 +1499,7 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
             if (JSON_OUTPUT_FLAG)
             {
                 char* jsonFormatOutput = M_NULLPTR;
@@ -1496,6 +1530,7 @@ int main(int argc, char* argv[])
                 safe_free(&jsonFormatOutput);
             }
             else
+#endif
             {
                 switch (print_SMART_Attributes(&deviceList[deviceIter],
                                                C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
@@ -1842,7 +1877,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    print_str(
+                        "Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");

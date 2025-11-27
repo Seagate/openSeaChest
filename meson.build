@@ -280,6 +280,11 @@ if get_option('libc_musl')
     add_project_arguments('-DUSING_MUSL_LIBC=1', language: 'c')
 endif
 
+# Add JSON format support flag if enabled
+if get_option('json_outputformat')
+  add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+endif
+
 exec_prefix = 'openSeaChest_'
 common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
@@ -326,35 +331,17 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 opensea_jsonformat = subproject('opensea-jsonformat')
 opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
-# add cmake to use cmake to compilie libsha2 and json-c
-cmake = import('cmake')
-
-# Retrieve the value of the b_vscrt option
-vscrt_option = get_option('b_vscrt')
-
-# Define the CMake subproject options
-opt_var = cmake.subproject_options()
-opt_var.add_cmake_defines({
-    'GEN_FILES': 'ON',
-    'BUILD_TESTING': 'OFF',
-    'CMAKE_BUILD_TYPE': 'Release',
-    'BUILD_SHARED_LIBS': 'OFF',
-    'DISABLE_EXTRA_LIBS': 'ON',
-    'DISABLE_BSYMBOLIC': 'ON',
-    'CMAKE_POLICY_DEFAULT_CMP0126' : 'NEW'
-})
-
-# Conditionally add the CMAKE_MSVC_RUNTIME_LIBRARY definition
-if vscrt_option == 'static_from_buildtype'
-    opt_var.add_cmake_defines({
-      'CMAKE_POLICY_DEFAULT_CMP0091' : 'NEW',
-      'CMAKE_MSVC_RUNTIME_LIBRARY': 'MultiThreaded'
-      })
-endif
-
-# Define the CMake subproject
-jsonc = cmake.subproject('json-c', options: opt_var)
-jsonc_dep = jsonc.dependency('json-c')
+jsonc = subproject(
+    'json-c',
+    default_options: [
+        'default_library=static',
+        'build_apps=false',
+        'disable_extra_libs=true',
+        'disable_json_pointer=false',
+        'disable_json_patch=false',
+    ],
+)
+jsonc_dep = jsonc.get_variable('jsonc_dep')
 
 # define include directories
 incdir = include_directories('include')
@@ -370,7 +357,7 @@ foreach p : get_option('tools')
         'openSeaChest_' + p,
         common_sources,
         'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c',
-        dependencies: [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps],
+        dependencies: [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps, jsonc_dep, opensea_jsonformat_dep],
         include_directories: incdir,
         install: true,
     )
