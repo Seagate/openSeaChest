@@ -462,8 +462,8 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         prepare: |
-          pkg install pkg:/package/pkg
-          pkg update
+          pkg install pkg:/package/pkg || true
+          pkg update || true
           pkg install socat
 
         run: |
@@ -503,7 +503,7 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         prepare: |
-          pkg update
+          pkg update || true
           pkg install -y curl
           pkg install -y ntp
           ntpdate -u pool.ntp.org
@@ -523,7 +523,7 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         prepare: |
-          pkg update
+          pkg update || true
           pkg install -y socat
           /usr/sbin/dntpd -s
 
