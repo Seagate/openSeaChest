@@ -371,7 +371,7 @@ jobs:
           echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}
         path: |
