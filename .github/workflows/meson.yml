@@ -196,7 +196,7 @@ jobs:
             image: "vonericsen/muslcc@sha256:04b60fc27f45b69896855da46f5be09fa9816b00e9948bf86cc82e56b8ce4468"
           }
         - {
-            name: "VMActions OmniOS Build",
+            name: "VMActions OmniOS Build (x86_64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
@@ -209,7 +209,20 @@ jobs:
             vm_arch: "x86_64",
           }
         - {
-            name: "VMActions Solaris Build",
+            name: "VMActions OpenIndiana Build (x86_64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "openindiana-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "",
+            vm_arch: "x86_64",
+          }
+        - {
+            name: "VMActions Solaris Build (x86_64)",
             os: ubuntu-latest,
             cc: "gcc",
             cxx: "g++",
@@ -219,6 +232,19 @@ jobs:
             archive_command: "tar cvfJ",
             vm_actions: true,
             vm_release: "11.4-gcc",
+            vm_arch: "x86_64",
+          }
+        - {
+            name: "VMActions FreeBSD 15.0 Build (x86_64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "freebsd_15_0-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "15.0",
             vm_arch: "x86_64",
           }
         - {
@@ -248,6 +274,19 @@ jobs:
             vm_arch: "x86_64",
           }
         - {
+            name: "VMActions FreeBSD 15.0 Build (aarch64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "freebsd_15_0-aarch64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "15.0",
+            vm_arch: "aarch64",
+          }
+        - {
             name: "VMActions FreeBSD 14.3 Build (aarch64)",
             os: ubuntu-latest,
             cc: "",
@@ -274,7 +313,46 @@ jobs:
             vm_arch: "aarch64",
           }
         - {
-            name: "VMActions DragonFlyBSD latest Build",
+            name: "VMActions FreeBSD 15.0 Build (riscv64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "freebsd_15_0-riscv64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "15.0",
+            vm_arch: "riscv64",
+          }
+        - {
+            name: "VMActions FreeBSD 14.3 Build (riscv64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "freebsd_14_3-riscv64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "14.3",
+            vm_arch: "riscv64",
+          }
+        - {
+            name: "VMActions FreeBSD 13.5 Build (riscv64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "freebsd_13_5-riscv64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "13.5",
+            vm_arch: "riscv64",
+          }
+        - {
+            name: "VMActions DragonFlyBSD latest Build (x86_64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
@@ -311,6 +389,19 @@ jobs:
             vm_actions: true,
             vm_release: "",
             vm_arch: "aarch64",
+          }
+        - {
+            name: "VMActions OpenBSD latest Build (riscv64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "openbsd-riscv64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "",
+            vm_arch: "riscv64",
           }
         - {
             name: "VMActions NetBSD latest Build (x86_64)",
@@ -354,14 +445,21 @@ jobs:
       hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}
       hash-linux-powerpc64le-portable:                                ${{ steps.hash.outputs.hash-linux-powerpc64le-portable }}
       hash-omnios_r151054-x86_64:                                     ${{ steps.hash.outputs.hash-omnios_r151054-x86_64 }}
+      hash-openindiana-x86_64:                                        ${{ steps.hash.outputs.hash-openindiana-x86_64 }}
       hash-solaris_11_4-x86_64:                                       ${{ steps.hash.outputs.hash-solaris_11_4-x86_64 }}
+      hash-freebsd_15_0-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_15_0-x86_64 }}
       hash-freebsd_14_3-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_14_3-x86_64 }}
       hash-freebsd_13_5-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_13_5-x86_64 }}
+      hash-freebsd_15_0-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_15_0-aarch64 }}
       hash-freebsd_14_3-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_14_3-aarch64 }}
       hash-freebsd_13_5-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_13_5-aarch64 }}
+      hash-freebsd_15_0-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_15_0-riscv64 }}
+      hash-freebsd_14_3-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_14_3-riscv64 }}
+      hash-freebsd_13_5-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_13_5-riscv64 }}
       hash-dragonflybsd-x86_64:                                       ${{ steps.hash.outputs.hash-dragonflybsd-x86_64 }}
       hash-openbsd-x86_64:                                            ${{ steps.hash.outputs.hash-openbsd-x86_64 }}
       hash-openbsd-aarch64:                                           ${{ steps.hash.outputs.hash-openbsd-aarch64 }}
+      hash-openbsd-riscv64:                                           ${{ steps.hash.outputs.hash-openbsd-riscv64 }}
       hash-netbsd-x86_64:                                             ${{ steps.hash.outputs.hash-netbsd-x86_64 }}
       hash-netbsd-aarch64:                                            ${{ steps.hash.outputs.hash-netbsd-aarch64 }}
 
@@ -456,6 +554,27 @@ jobs:
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
       uses: vmactions/omnios-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg install pkg:/package/pkg || true
+          pkg update || true
+          pkg install socat
+
+        run: |
+          pkg install bison build-essential flex ninja pkg-config
+
+          python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
+          python3 -m pip install meson --root-user-action=ignore
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson install -C build
+
+    - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
+      if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
+      uses: vmactions/openindiana-vm@v0
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
