@@ -8,7 +8,7 @@ task:
       #image_family: freebsd-15-0
       image_family: freebsd-14-3
       image_family: freebsd-13-5
-  install_script: pkg install -y git meson ntp
+  install_script: pkg install -y git meson cmake ntp
   submodules_script: git submodule update --init --recursive --progress
   release_script: |
     branchName=$(printf '%s' "$CIRRUS_BRANCH" | tr '/' '-')

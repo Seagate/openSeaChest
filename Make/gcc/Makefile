@@ -36,13 +36,19 @@ TCGLFLAGS ?= \
 	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
 	../../subprojects/wingetopt/lib/libwingetopt.a
+LIBJSONFORMATLFLAGS ?= \
+	../../subprojects/opensea-jsonformat/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-jsonformat.a \
+	../../subprojects/json-c/build/libjson-c.a
 INC_DIR ?= \
 	-I../../subprojects/opensea-common/include \
 	-I../../subprojects/opensea-transport/include \
 	-I../../subprojects/opensea-transport/include/vendor \
 	-I../../include \
 	-I../../subprojects/opensea-operations/include \
-	-I../../subprojects/wingetopt/src
+	-I../../subprojects/wingetopt/src \
+	-I../../subprojects/opensea-jsonformat/include \
+	-I../../subprojects/json-c \
+	-I../../subprojects/json-c/build \
 
 UNAME := $(shell uname -s)
 
@@ -54,7 +60,7 @@ COMPILER_VERSION := $(shell $(CC) --version)
 ifneq (,$(findstring clang,$(COMPILER_VERSION)))
 	#setup clang specific warnings/flags (centos 7's old version supports -Wno-unknown-warning-option so enabling all of them)
 	CFLAGS += -Wno-unknown-warning-option -Wcast-align=strict -Wvla -Wfloat-equal -Wnull-dereference -Wunused-const-variable \
-	-Wduplicated-cond -Wjump-misses-init -Wstringop-overflow -Wlogical-op -Wshift-overflow=2 -Wdouble-promotion -Wformat-security \
+	-Wduplicated-cond -Wjump-misses-init -Wstringop-overflow -Wlogical-op -Wshift-overflow=2 -Wdouble-promotion -Wformat -Wformat-security \
 	-Wold-style-definition -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes
 else 
 	ifneq (,$(findstring GCC,$(COMPILER_VERSION)))
@@ -111,7 +117,7 @@ else
 			CFLAGS += -std=gnu99
 		endif
 		
-		CFLAGS += -Wvla -Wfloat-equal -Wjump-misses-init -Wlogical-op -Wdouble-promotion -Wformat-security \
+		CFLAGS += -Wvla -Wfloat-equal -Wjump-misses-init -Wlogical-op -Wdouble-promotion -Wformat -Wformat-security \
 			-Wold-style-definition -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes
 	endif
 endif
@@ -249,7 +255,7 @@ debug: LOGSOUTFILE := $(LOGSOUTFILE)_dbg
 debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_dbg
 debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_dbg
 debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_dbg
-debug: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+debug: mkoutputdir wingetopt json-c opensea-libs seajsonformat $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-debug: CXXFLAGS += -g
 static-debug: CFLAGS += -g
@@ -271,11 +277,11 @@ static-debug: LOGSOUTFILE := $(LOGSOUTFILE)_static_dbg
 static-debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static_dbg
 static-debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static_dbg
 static-debug: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static_dbg
-static-debug: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-debug: mkoutputdir wingetopt json-c opensea-libs seajsonformat $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 release: CXXFLAGS += -O3
 release: CFLAGS += -O3
-release: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+release: mkoutputdir wingetopt json-c opensea-libs seajsonformat $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(NVMEOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-release: LFLAGS += -static
 static-release: TCGLFLAGS += -static
@@ -296,11 +302,14 @@ static-release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static
 static-release: FIRMWAREOUTFILE := $(FIRMWAREOUTFILE)_static
 static-release: CXXFLAGS += -O3
 static-release: CFLAGS += -O3
-static-release: mkoutputdir wingetopt opensea-libs $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-release: mkoutputdir wingetopt json-c opensea-libs seajsonformat $(ERASEOUTFILE) $(SMARTOUTFILE) $(POWERCONTROLOUTFILE) $(GENERICTESTSOUTFILE) $(BASICSOUTFILE) $(SECURITYOUTFILE) $(NVMEOUTFILE) $(CONFIGUREOUTFILE) $(FIRMWAREOUTFILE) $(INFOOUTFILE) $(ZBDOUTFILE) $(FORMATOUTFILE) $(LOGSOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 export CFLAGS
 export CXXFLAGS
 export PROJECT_DEFINES
+
+json-c:
+	../buildjsonc.sh build $(CC)
 
 #wingetopt has a GNUMakefile that should be automatically found.
 #it has CMake and meson support too, which are preferred
@@ -311,6 +320,9 @@ opensea-libs:
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-common/Make/gcc
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-transport/Make/gcc
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-operations/Make/gcc
+
+seajsonformat:
+	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-jsonformat/Make/gcc
 
 $(SMARTOUTFILE): $(SMARTOBJS)
 	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
@@ -343,14 +355,14 @@ $(SECURITYOUTFILE): $(SECURITYOBJS)
 
 
 $(CONFIGUREOUTFILE): $(CONFIGUREOBJS)
-	$(CC) $(CONFIGUREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	$(CC) $(CONFIGUREOBJS) $(LIBJSONFORMATLFLAGS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 #	$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 
 $(FIRMWAREOUTFILE): $(FIRMWAREOBJS)
 	$(CC) $(FIRMWAREOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(FIRMWAREOUTFILE)
 
 $(INFOOUTFILE): $(INFOOBJS)
-	$(CC) $(INFOOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	$(CC) $(INFOOBJS) $(LIBJSONFORMATLFLAGS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 #	$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 
 $(ZBDOUTFILE): $(ZBDOBJS)
@@ -402,6 +414,7 @@ clean_all: clean
 	$(MAKE) -C ../../subprojects/opensea-common/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-transport/Make/gcc clean
 	$(MAKE) -C ../../subprojects/opensea-operations/Make/gcc clean
+	$(MAKE) -C ../../subprojects/opensea-jsonformat/Make/gcc clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)
