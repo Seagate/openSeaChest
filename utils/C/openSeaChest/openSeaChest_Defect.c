@@ -34,13 +34,36 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name = "openSeaChest_Defect";
-const char* buildVersion = "1.0.2";
+const char* util_name    = "openSeaChest_Defect";
+const char* buildVersion = "1.1.0";
 
 ////////////////////////////
 //  functions to declare  //
 ////////////////////////////
 static void utility_Usage(bool shortUsage);
+
+void atexit_clean_reallocate_list(ptrErrorLBA errorLBAList);
+
+static void clean_reallocate_list(void)
+{
+    atexit_clean_reallocate_list(M_NULLPTR);
+}
+
+void atexit_clean_reallocate_list(ptrErrorLBA errorLBAList)
+{
+    static ptrErrorLBA savedErrorLBAList = M_NULLPTR;
+    if (errorLBAList != M_NULLPTR)
+    {
+        savedErrorLBAList = errorLBAList;
+        atexit(clean_reallocate_list);
+    }
+    else if (savedErrorLBAList != M_NULLPTR)
+    {
+        safe_free_error_lba(&savedErrorLBAList);
+        savedErrorLBAList = M_NULLPTR;
+    }
+}
+
 //-----------------------------------------------------------------------------
 //
 //  main()
@@ -108,6 +131,7 @@ int main(int argc, char* argv[])
     CORRUPT_RANDOM_LBAS_VAR
     BYTES_TO_CORRUPT_VAR
     SCSI_DEFECTS_VARS
+    SCSI_REALLOCATE_BLOCKS_LIST_VARS
 
     int args        = 0;
     int argIndex    = 0;
@@ -120,7 +144,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -160,6 +184,7 @@ int main(int argc, char* argv[])
         CORRUPT_RANDOM_LBAS_LONG_OPT,
         BYTES_TO_CORRUPT_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
+        SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT,
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -360,6 +385,53 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING) == 0)
+            {
+                // Parse a comma separated list of options, then register the allocated memory for cleanup at exit
+                char *opts = M_NULLPTR;
+                if (0 == safe_strdup(&opts, optarg))
+                {
+                    rsize_t optsMax = safe_strlen(opts);
+                    char *token = M_NULLPTR;
+                    char *saveptr = M_NULLPTR;
+                    token = safe_strtok(opts, &optsMax, ",", &saveptr);
+                    while (token != M_NULLPTR)
+                    {
+                        uint64_t lba = 0;
+                        if (get_And_Validate_Integer_Input_Uint64(token, M_NULLPTR, ALLOW_UNIT_NONE, &lba))
+                        {
+                            ++SCSI_REALLOCATE_BLOCKS_LIST_LENGTH;
+                            // reallocf the list to add another entry. If reallocf fails, exit with error not enough resources
+                            ptrErrorLBA temp = safe_reallocf(M_REINTERPRET_CAST(void**, &SCSI_REALLOCATE_BLOCKS_LIST), sizeof(errorLBA) * SCSI_REALLOCATE_BLOCKS_LIST_LENGTH);
+                            if (temp != M_NULLPTR)
+                            {
+                                SCSI_REALLOCATE_BLOCKS_LIST = temp;
+                                SCSI_REALLOCATE_BLOCKS_LIST[SCSI_REALLOCATE_BLOCKS_LIST_LENGTH - 1].errorAddress = lba;
+                                SCSI_REALLOCATE_BLOCKS_LIST[SCSI_REALLOCATE_BLOCKS_LIST_LENGTH - 1].repairStatus = NOT_REPAIRED;
+                            }
+                            else
+                            {
+                                safe_free(&opts);
+                                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                            }
+                        }
+                        else
+                        {
+                            print_Error_In_Cmd_Line_Args(SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING, token);
+                            safe_free_core(M_REINTERPRET_CAST(void**, &SCSI_REALLOCATE_BLOCKS_LIST));
+                            safe_free(&opts);
+                            exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                        }
+                        token = safe_strtok(M_NULLPTR, &optsMax, ",", &saveptr);
+                    }
+                    safe_free(&opts);
+                    atexit_clean_reallocate_list(SCSI_REALLOCATE_BLOCKS_LIST);
+                }
+                else
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, CREATE_UNCORRECTABLE_LONG_OPT_STRING) == 0)
@@ -564,7 +636,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (0 != atexit(print_Final_newline))
+    if (0 != atexit(atexit_Print_Final_newline))
     {
         perror("Registering final newline print");
     }
@@ -754,7 +826,7 @@ int main(int argc, char* argv[])
           // check for other tool specific options here
           || DST_AND_CLEAN_FLAG || CHECK_PENDING_LIST_COUNT_FLAG || CHECK_GROWN_LIST_COUNT_FLAG || SHOW_PENDING_LIST ||
           CREATE_UNCORRECTABLE_FLAG || UNCORRECTABLE_RANGE_FLAG > 1 || RANDOM_UNCORRECTABLES_FLAG || CORRUPT_LBA_FLAG ||
-          CORRUPT_RANDOM_LBAS || SCSI_DEFECTS_FLAG))
+          CORRUPT_RANDOM_LBAS || SCSI_DEFECTS_FLAG || SCSI_REALLOCATE_BLOCKS_LIST_LENGTH > 0))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -859,7 +931,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -889,8 +961,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1256,6 +1327,34 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (SCSI_REALLOCATE_BLOCKS_LIST_LENGTH > 0)
+        {
+            switch(reallocate_LBAs(&deviceList[deviceIter], SCSI_REALLOCATE_BLOCKS_LIST,
+                                     SCSI_REALLOCATE_BLOCKS_LIST_LENGTH))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Successfully sent reallocate command for specified LBAs\n");
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Reallocate command is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Failed to send reallocate command for specified LBAs\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = M_NULLPTR;
@@ -1490,11 +1589,13 @@ int main(int argc, char* argv[])
                 {
                     if (FLAG_UNCORRECTABLES_FLAG)
                     {
-                        print_str("Flagging random uncorrectable errors is not supported by this device at this time.\n");
+                        print_str(
+                            "Flagging random uncorrectable errors is not supported by this device at this time.\n");
                     }
                     else
                     {
-                        print_str("Creating random uncorrectable errors is not supported by this device at this time.\n");
+                        print_str(
+                            "Creating random uncorrectable errors is not supported by this device at this time.\n");
                     }
                 }
                 break;
@@ -1703,6 +1804,7 @@ void utility_Usage(bool shortUsage)
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
+    printf("\t%s -d %s --%s 123Fh,597,1467,0xA1295323\n", util_name, deviceHandleExample, SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
     // return codes
     print_str("\nReturn codes\n");
     print_str("============\n");
@@ -1740,7 +1842,7 @@ void utility_Usage(bool shortUsage)
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-    print_Agressive_Scan_Help(shortUsage);
+    print_Aggressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     print_Fast_Discovery_Help(shortUsage);
@@ -1758,12 +1860,12 @@ void utility_Usage(bool shortUsage)
     print_str("\n\tSAS Only:\n\n");
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
+    print_Reallocate_LBAs_Help(shortUsage);
 
-
-    //data destructive commands - alphabetized
+    // data destructive commands - alphabetized
     print_str("Data Destructive Commands\n");
     print_str("=========================\n");
-    //utility data destructive tests/operations go here
+    // utility data destructive tests/operations go here
     print_Bytes_To_Corrupt_Help(shortUsage);
     print_DST_And_Clean_Help(shortUsage);
     print_Corrupt_LBA_Help(shortUsage);

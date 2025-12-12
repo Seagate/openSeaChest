@@ -1,4 +1,8 @@
-# SPDX-License-Identifier: MPL-2.0
+# SPDX-License-Identifier: MIT AND MPL-2.0
+
+# See https://github.com/gitattributes/gitattributes/tree/master
+
+# Common settings that generally should always be used with your language specific settings
 
 # Auto detect text files and perform LF normalization
 *          text=auto
@@ -6,64 +10,6 @@
 #
 # The above will handle all files NOT found below
 #
-
-# Sources
-*.c     text diff=cpp
-*.cc    text diff=cpp
-*.cxx   text diff=cpp
-*.cpp   text diff=cpp
-*.cpi   text diff=cpp
-*.c++   text diff=cpp
-*.hpp   text diff=cpp
-*.h     text diff=cpp
-*.h++   text diff=cpp
-*.hh    text diff=cpp
-# Python Scripts
-*.pxd    text diff=python
-*.py     text diff=python
-*.py3    text diff=python
-*.pyw    text diff=python
-*.pyx    text diff=python
-*.pyz    text diff=python
-*.pyi    text diff=python
-
-# Compiled Object files
-*.slo   binary
-*.lo    binary
-*.o     binary
-*.obj   binary
-
-# Precompiled Headers
-*.gch   binary
-*.pch   binary
-
-# Compiled Dynamic libraries
-*.so    binary
-*.dylib binary
-*.dll   binary
-
-# Compiled Static libraries
-*.lai   binary
-*.la    binary
-*.a     binary
-*.lib   binary
-
-# Executables
-*.exe   binary
-*.out   binary
-*.app   binary
-
-# Binary files (Python related)
-*.db     binary
-*.p      binary
-*.pkl    binary
-*.pickle binary
-*.pyc    binary export-ignore
-*.pyo    binary export-ignore
-*.pyd    binary
-
-# Jupyter notebook
-*.ipynb  text eol=lf
 
 # Documents
 *.bibtex   text diff=bibtex
@@ -86,9 +32,14 @@
 *.csv      text eol=crlf
 *.tab      text
 *.tsv      text
-*.txt      text
 *.sql      text
 *.epub     diff=astextplain
+*.ini text eol=lf
+*.toml text eol=lf
+*.conf text eol=lf
+
+# Make txt files use CRLF line endings and match the .editorconfig settings.
+*.txt      text eol=crlf
 
 # Graphics
 *.png      binary
@@ -115,39 +66,6 @@
 *.bat      text eol=crlf
 *.cmd      text eol=crlf
 *.ps1      text eol=crlf
-*.ps1x     text eol=crlf
-*.psm1     text eol=crlf
-*.psd1     text eol=crlf
-*.ps1xml   text eol=crlf
-*.pssc     text eol=crlf
-*.psrc     text eol=crlf
-*.cdxml    text eol=crlf
-# Meson build files
-meson.build       text
-meson_options.txt text
-
-# Visual Studio Files
-*.sln        text eol=crlf
-*.csproj     text eol=crlf
-*.vbproj     text eol=crlf
-*.vcxproj    text eol=crlf
-*.vcproj     text eol=crlf
-*.dbproj     text eol=crlf
-*.fsproj     text eol=crlf
-*.lsproj     text eol=crlf
-*.wixproj    text eol=crlf
-*.modelproj  text eol=crlf
-*.sqlproj    text eol=crlf
-*.wwaproj    text eol=crlf
-
-*.xproj      text eol=crlf
-*.props      text eol=crlf
-*.filters    text eol=crlf
-*.vcxitems   text eol=crlf
-
-# VSCode
-# Fix syntax highlighting on GitHub to allow comments
-.vscode/*.json linguist-language=JSON-with-Comments
 
 # Serialization
 *.json     text
@@ -180,15 +98,152 @@ meson_options.txt text
 # Text files where line endings should be preserved
 *.patch    -text
 
+# Sources
+*.c     text diff=cpp
+*.cc    text diff=cpp
+*.cxx   text diff=cpp
+*.cpp   text diff=cpp
+*.cpi   text diff=cpp
+*.c++   text diff=cpp
+*.hpp   text diff=cpp
+*.h     text diff=cpp
+*.h++   text diff=cpp
+*.hh    text diff=cpp
+
+# Compiled Object files
+*.slo   binary
+*.lo    binary
+*.o     binary
+*.obj   binary
+
+# Precompiled Headers
+*.gch   binary
+*.pch   binary
+
+# Compiled Dynamic libraries
+*.so    binary
+*.dylib binary
+*.dll   binary
+
+# Compiled Static libraries
+*.lai   binary
+*.la    binary
+*.a     binary
+*.lib   binary
+
+# Executables
+*.exe   binary
+*.out   binary
+*.app   binary
+
+# Apply override to all files in the directory
+*.md linguist-detectable
+
+# Source files
+# ============
+*.ps1      text eol=crlf
+*.ps1x     text eol=crlf
+*.psm1     text eol=crlf
+*.psd1     text eol=crlf
+*.ps1xml   text eol=crlf
+*.pssc     text eol=crlf
+*.psrc     text eol=crlf
+*.cdxml    text eol=crlf
+
+# Source files
+# ============
+*.pxd    text diff=python
+*.py     text diff=python
+*.py3    text diff=python
+*.pyw    text diff=python
+*.pyx    text diff=python
+*.pyz    text diff=python
+*.pyi    text diff=python
+
+# Binary files
+# ============
+*.db     binary
+*.p      binary
+*.pkl    binary
+*.pickle binary
+*.pyc    binary export-ignore
+*.pyo    binary export-ignore
+*.pyd    binary
+
+# Jupyter notebook
+*.ipynb  text eol=lf
+
+# Note: .db, .p, and .pkl files are associated
+# with the python modules ``pickle``, ``dbm.*``,
+# ``shelve``, ``marshal``, ``anydbm``, & ``bsddb``
+# (among others).
+
+###############################################################################
+# Set the merge driver for project and solution files
+#
+# Merging from the command prompt will add diff markers to the files if there
+# are conflicts (Merging from VS is not affected by the settings below, in VS
+# the diff markers are never inserted). Diff markers may cause the following
+# file extensions to fail to load in VS. An alternative would be to treat
+# these files as binary and thus will always conflict and require user
+# intervention with every merge. To do so, just comment the entries below and
+# uncomment the group further below
+###############################################################################
+
+*.sln        text eol=crlf
+*.csproj     text eol=crlf
+*.vbproj     text eol=crlf
+*.vcxproj    text eol=crlf
+*.vcproj     text eol=crlf
+*.dbproj     text eol=crlf
+*.fsproj     text eol=crlf
+*.lsproj     text eol=crlf
+*.wixproj    text eol=crlf
+*.modelproj  text eol=crlf
+*.sqlproj    text eol=crlf
+*.wwaproj    text eol=crlf
+
+*.xproj      text eol=crlf
+*.props      text eol=crlf
+*.filters    text eol=crlf
+*.vcxitems   text eol=crlf
+
+
+#*.sln       merge=binary
+#*.csproj    merge=binary
+#*.vbproj    merge=binary
+#*.vcxproj   merge=binary
+#*.vcproj    merge=binary
+#*.dbproj    merge=binary
+#*.fsproj    merge=binary
+#*.lsproj    merge=binary
+#*.wixproj   merge=binary
+#*.modelproj merge=binary
+#*.sqlproj   merge=binary
+#*.wwaproj   merge=binary
+
+#*.xproj     merge=binary
+#*.props     merge=binary
+#*.filters   merge=binary
+#*.vcxitems  merge=binary
+
+# Fix syntax highlighting on GitHub to allow comments
+.vscode/*.json linguist-language=JSON-with-Comments
+
+# meson files
+meson.build   text diff=python
+meson.format  text diff=python
+meson.options text diff=python
+meson_options.txt text diff=python
+*.wrap text eol=lf
+
 #
 # Exclude files from exporting
 #
-
 .gitattributes export-ignore
 .gitignore     export-ignore
 .gitkeep       export-ignore
-.git		   export-ignore
-.github		   export-ignore
+.github		     export-ignore
 .cirrus.yml	   export-ignore
-.whitesource   export-ignore
-.vscode	       export-ignore
+.whitesource	 export-ignore
+.vscode		     export-ignore

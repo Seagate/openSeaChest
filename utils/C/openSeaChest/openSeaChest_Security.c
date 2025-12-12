@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (0 != atexit(print_Final_newline))
+    if (0 != atexit(atexit_Print_Final_newline))
     {
         perror("Registering final newline print");
     }
@@ -2008,7 +2008,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-    print_Agressive_Scan_Help(shortUsage);
+    print_Aggressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     print_Fast_Discovery_Help(shortUsage);
