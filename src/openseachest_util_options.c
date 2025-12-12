@@ -126,7 +126,7 @@ void print_Elevated_Privileges_Text(void)
 #    elif defined(__DragonFly__)
     print_str("In DragonFlyBSD, put sudo before the command. This may require inputting your login password.\n");
     print_str("In DragonFlyBSD, log in to a root terminal (su), then execute the command. This requires the root "
-           "password.\n");
+              "password.\n");
 #    elif defined(__FreeBSD__)
     print_str("In FreeBSD, put sudo before the command. This may require inputting your login password.\n");
     print_str(
@@ -257,7 +257,7 @@ void utility_Full_Version_Info(const char* utilityName,
 
 // This function is used in at_exit() only.
 // It will flush stdout and stderr after printing one final newline character.
-void print_Final_newline(void)
+void atexit_Print_Final_newline(void)
 {
     print_str("\n");
     // Flushing stdout and stderr
@@ -373,7 +373,7 @@ void print_Scan_Help(bool shortHelp, const char* helpdeviceHandleExample)
     }
 }
 
-void print_Agressive_Scan_Help(bool shortHelp)
+void print_Aggressive_Scan_Help(bool shortHelp)
 {
     printf("\t-%c, --%s\n", AGRESSIVE_SCAN_SHORT_OPT, AGRESSIVE_SCAN_LONG_OPT_STRING);
     if (!shortHelp)
@@ -3821,6 +3821,19 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
         print_str("\t\t bfi        | 4 - show the defects in bytes from index mode\n");
         print_str("\t\t chs        | 5 - show the defects in physical cylinder-head-sector mode\n");
         print_str("\n");
+    }
+}
+
+void print_Reallocate_LBAs_Help(bool shortHelp)
+{
+    printf("\t--%s [address,address,...]\t(SAS Only)\n", SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tThis option will reallocate the specified LBAs on a SCSI device.\n");
+        print_str("\t\tMultiple LBAs can be specified by separating them with commas.\n");
+        print_str("\t\tFor SATA and NVMe devices, this will be passed to a SCSI translator\n");
+        print_str("\t\twhich will handle all translation of this command.\n");
+        print_str("\t\tEx: --reallocate-blocks 123456,234567,345678\n\n");
     }
 }
 
