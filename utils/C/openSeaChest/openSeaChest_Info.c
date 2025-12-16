@@ -1232,6 +1232,7 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
                     print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 else
                 {
                     ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
@@ -1244,6 +1245,7 @@ int main(int argc, char* argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                 }
+#endif
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
