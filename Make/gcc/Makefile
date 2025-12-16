@@ -342,6 +342,8 @@ export PROJECT_DEFINES
 json-c:
 	../buildjsonc.sh build $(CC)
 
+#wingetopt has a GNUMakefile that should be automatically found.
+#it has CMake and meson support too, which are preferred
 wingetopt:
 	$(MAKE) -C ../../subprojects/wingetopt
 

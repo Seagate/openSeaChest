@@ -331,6 +331,7 @@ opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep
 opensea_jsonformat = subproject('opensea-jsonformat')
 opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
+# define include directories
 incdir = include_directories('include')
 
 exe_src_map = {

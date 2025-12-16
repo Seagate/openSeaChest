@@ -33,9 +33,11 @@
 #if defined(ENABLE_CSMI)
 #    include "csmi_helper_func.h"
 #endif
+#include "cdl.h"
 #include "partition_info.h"
 #include "sata_phy.h"
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
 #    include "device_statistics_json.h"
 #    include "drive_information_json.h"
 #    include "scan_json.h"
@@ -317,19 +319,24 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
             {
-                SHOW_CDL_SETTINGS_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
+#endif
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
@@ -1254,7 +1261,6 @@ int main(int argc, char* argv[])
                 break;
             }
         }
-
 
         if (SCSI_DEFECTS_FLAG)
         {

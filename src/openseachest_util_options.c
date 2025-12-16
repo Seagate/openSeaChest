@@ -5683,25 +5683,33 @@ void print_EnableDisableCDL_Help(bool shortHelp)
 
 void print_Show_CDL_Settings_Help(bool shortHelp)
 {
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     printf("\t--%s [raw | json]\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#else
+    printf("\t--%s\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#endif
+
     if (!shortHelp)
     {
         printf("\t\tUse this option to show the current CDL settings.\n");
         printf("\t\tOnly drives supporting the CDL feature will show this data and\n");
         printf("\t\tonly supported CDL settings will be shown.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         printf("\t\tOutput modes:\n");
         printf("\t\t  raw - Show current CDL settings on screen.\n");
         printf("\t\t  json - Create JSON file with current CDL settings.\n");
-        printf("\t\t         Time unit for time related fields in output are\n");
-        printf("\t\t         s - seconds\n");
-        printf("\t\t         ms - milliseconds\n");
-        printf("\t\t         us - microseconds\n");
-        printf("\t\t         500 ns - 500 nanoseconds(SAS only)\n");
-        printf("\t\t         10 ms - 10 milliseconds(SAS only)\n");
-        printf("\t\t         500 ms - 500 milliseconds(SAS only)\n\n");
+#endif
+        printf("\t\tTime unit for time related fields in output are\n");
+        printf("\t\t  s - seconds\n");
+        printf("\t\t  ms - milliseconds\n");
+        printf("\t\t  us - microseconds\n");
+        printf("\t\t  500 ns - 500 nanoseconds(SAS only)\n");
+        printf("\t\t  10 ms - 10 milliseconds(SAS only)\n");
+        printf("\t\t  500 ms - 500 milliseconds(SAS only)\n\n");
     }
 }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
 void print_Config_CDL_Settings_Help(bool shortHelp)
 {
     printf("\t--%s [fileName]\n", CONFIG_CDL_SETTINGS_LONG_OPT_STRING);
@@ -5715,3 +5723,4 @@ void print_Config_CDL_Settings_Help(bool shortHelp)
         printf("\t\tIf provided settings are not valid, then error will be returned.\n\n");
     }
 }
+#endif

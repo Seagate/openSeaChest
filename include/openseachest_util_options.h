@@ -379,13 +379,13 @@ extern "C"
     }
 
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
-#define JSON_OUTPUT_FLAG            jsonOutput
-#define JSON_OUTPUT_VAR             getOptBool JSON_OUTPUT_FLAG = goFalse;
-#define JSON_OUTPUT_LONG_OPT_STRING "json"
-#define JSON_OUTPUT_LONG_OPT                                                                                           \
-    {                                                                                                                  \
-        JSON_OUTPUT_LONG_OPT_STRING, no_argument, &JSON_OUTPUT_FLAG, goTrue                                            \
-    }
+#    define JSON_OUTPUT_FLAG            jsonOutput
+#    define JSON_OUTPUT_VAR             getOptBool JSON_OUTPUT_FLAG = goFalse;
+#    define JSON_OUTPUT_LONG_OPT_STRING "json"
+#    define JSON_OUTPUT_LONG_OPT                                                                                       \
+        {                                                                                                              \
+            JSON_OUTPUT_LONG_OPT_STRING, no_argument, &JSON_OUTPUT_FLAG, goTrue                                        \
+        }
 #endif
 
 #define DATA_ERASE_ACCEPT_STRING          "this-will-erase-data"
@@ -2503,15 +2503,15 @@ extern "C"
 #define SCSI_DEFECTS_LONG_OPTS SCSI_DEFECTS_LONG_OPT, SCSI_DEFECTS_MODE_LONG_OPTS
 
 // Reallocate Blocks Options
-#define SCSI_REALLOCATE_BLOCKS_LIST       scsiReallocateBlocksList
+#define SCSI_REALLOCATE_BLOCKS_LIST        scsiReallocateBlocksList
 #define SCSI_REALLOCATE_BLOCKS_LIST_LENGTH scsiReallocateBlocksListLength
-#define SCSI_REALLOCATE_BLOCKS_LIST_VARS \
-    ptrErrorLBA SCSI_REALLOCATE_BLOCKS_LIST = M_NULLPTR; \
-    uint32_t SCSI_REALLOCATE_BLOCKS_LIST_LENGTH = UINT32_C(0);
+#define SCSI_REALLOCATE_BLOCKS_LIST_VARS                                                                               \
+    ptrErrorLBA SCSI_REALLOCATE_BLOCKS_LIST        = M_NULLPTR;                                                        \
+    uint32_t    SCSI_REALLOCATE_BLOCKS_LIST_LENGTH = UINT32_C(0);
 #define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING "reallocateBlocks"
-#define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT                                                                                 \
+#define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT                                                                           \
     {                                                                                                                  \
-        SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                  \
+        SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                   \
     }
 
 // logTransferLength
@@ -3635,7 +3635,7 @@ extern "C"
         M_NULLPTR, 0, M_NULLPTR, 0                                                                                     \
     }
 
-    // Set CDL Feature enable/disable
+// Set CDL Feature enable/disable
 #define CDL_FEATURE_IDENTIFIER      cdlFeature
 #define CDL_FEATURE_VAR             eCDLFeatureSet CDL_FEATURE_IDENTIFIER = CDL_FEATURE_UNKNOWN;
 #define CDL_FEATURE_LONG_OPT_STRING "CDLfeature"
@@ -3653,32 +3653,33 @@ extern "C"
 #define SHOW_CDL_SETTINGS_LONG_OPT_STRING "showCDLSettings"
 #define SHOW_CDL_SETTINGS_LONG_OPT                                                                                     \
     {                                                                                                                  \
-        SHOW_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                             \
+        SHOW_CDL_SETTINGS_LONG_OPT_STRING, optional_argument, &SHOW_CDL_SETTINGS_FLAG, goTrue                          \
     }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
 // CDL settings (config)
-#define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
-#define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
-#define CONFIG_CDL_JSONFILENAME_FLAG    configCDLJsonFile
-#define CONFIG_CDL_SETTINGS_VAR                                                                                        \
-    getOptBool CONFIG_CDL_SETTINGS_FLAG = goFalse;                                                                     \
-    DECLARE_ZERO_INIT_ARRAY(char, configJsonFileName, CONFIG_CDL_JSONFILENAME_MAX_LEN);                                \
-    char* CONFIG_CDL_JSONFILENAME_FLAG = &configJsonFileName[0];
-#define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
-#define CONFIG_CDL_SETTINGS_LONG_OPT                                                                                   \
-    {                                                                                                                  \
-        CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                           \
-    }
+#    define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
+#    define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
+#    define CONFIG_CDL_JSONFILENAME_FLAG    configCDLJsonFile
+#    define CONFIG_CDL_SETTINGS_VAR                                                                                    \
+        getOptBool CONFIG_CDL_SETTINGS_FLAG = goFalse;                                                                 \
+        DECLARE_ZERO_INIT_ARRAY(char, configJsonFileName, CONFIG_CDL_JSONFILENAME_MAX_LEN);                            \
+        char* CONFIG_CDL_JSONFILENAME_FLAG = &configJsonFileName[0];
+#    define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
+#    define CONFIG_CDL_SETTINGS_LONG_OPT                                                                               \
+        {                                                                                                              \
+            CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                       \
+        }
 
 // Skip Validation
-#define SKIP_VALIDATION_FLAG            skipValidation
-#define SKIP_VALIDATION_VAR             getOptBool SKIP_VALIDATION_FLAG = goFalse;
-#define SKIP_VALIDATION_LONG_OPT_STRING "skipValidation"
-#define SKIP_VALIDATION_LONG_OPT                                                                                       \
-    {                                                                                                                  \
-        SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue                                    \
-    }
-
+#    define SKIP_VALIDATION_FLAG            skipValidation
+#    define SKIP_VALIDATION_VAR             getOptBool SKIP_VALIDATION_FLAG = goFalse;
+#    define SKIP_VALIDATION_LONG_OPT_STRING "skipValidation"
+#    define SKIP_VALIDATION_LONG_OPT                                                                                   \
+        {                                                                                                              \
+            SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue                                \
+        }
+#endif
 
     extern const char* deviceHandleExample;
     extern const char* deviceHandleName;
@@ -3740,7 +3741,8 @@ extern "C"
 
     void print_Aggressive_Scan_Help(bool shortHelp);
 
-    M_DEPRECATED_REASON("Use print_Aggressive_Scan_Help instead. This one is misspelled.") M_INLINE void print_Agressive_Scan_Help(bool shortHelp)
+    M_DEPRECATED_REASON("Use print_Aggressive_Scan_Help instead. This one is misspelled.")
+    M_INLINE void print_Agressive_Scan_Help(bool shortHelp)
     {
         print_Aggressive_Scan_Help(shortHelp);
     }
@@ -5300,8 +5302,9 @@ extern "C"
 
     void print_Show_CDL_Settings_Help(bool shortHelp);
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     void print_Config_CDL_Settings_Help(bool shortHelp);
-
+#endif
 
 #define OUTPUTPATH_PARSE outputPathPtr = optarg;
 
