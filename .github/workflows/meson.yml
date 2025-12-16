@@ -542,7 +542,7 @@ jobs:
     - name: Install Meson and Ninja and Build (MUSL container)
       if: matrix.config.image != '' && matrix.config.vm_actions == false
       run: |
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
 
@@ -553,7 +553,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
@@ -574,7 +574,7 @@ jobs:
 
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
@@ -595,7 +595,7 @@ jobs:
 
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
@@ -615,7 +615,7 @@ jobs:
         run: |
           pkg install --accept developer/build/meson
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions FreeBSD)
@@ -635,7 +635,7 @@ jobs:
         run: |
           pkg install -y meson
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
@@ -654,7 +654,7 @@ jobs:
         run: |
           pkg install -y meson
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
@@ -675,7 +675,7 @@ jobs:
         run: |
           pkg_add meson
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
     - name: Install Meson and Ninja and Build (VMActions NetBSD)
@@ -696,7 +696,7 @@ jobs:
         run: |
           /usr/sbin/pkg_add meson
 
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Djson_outputformat=true -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
 

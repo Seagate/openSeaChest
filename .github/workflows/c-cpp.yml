@@ -62,7 +62,7 @@ jobs:
     - name: make
       working-directory: ${{ matrix.config.builddir }}
       run: |
-        make release -f ${{ matrix.config.makefile }}
+        make release JSONOUTPUTSUPPORT=1 -f ${{ matrix.config.makefile }}
 
     - name: Packing release
       env:
