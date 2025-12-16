@@ -257,7 +257,7 @@ void utility_Full_Version_Info(const char* utilityName,
 
 // This function is used in at_exit() only.
 // It will flush stdout and stderr after printing one final newline character.
-void print_Final_newline(void)
+void atexit_Print_Final_newline(void)
 {
     print_str("\n");
     // Flushing stdout and stderr
@@ -373,7 +373,7 @@ void print_Scan_Help(bool shortHelp, const char* helpdeviceHandleExample)
     }
 }
 
-void print_Agressive_Scan_Help(bool shortHelp)
+void print_Aggressive_Scan_Help(bool shortHelp)
 {
     printf("\t-%c, --%s\n", AGRESSIVE_SCAN_SHORT_OPT, AGRESSIVE_SCAN_LONG_OPT_STRING);
     if (!shortHelp)
@@ -3829,6 +3829,19 @@ void print_SCSI_Defects_Format_Help(bool shortHelp)
     }
 }
 
+void print_Reallocate_LBAs_Help(bool shortHelp)
+{
+    printf("\t--%s [address,address,...]\t(SAS Only)\n", SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tThis option will reallocate the specified LBAs on a SCSI device.\n");
+        print_str("\t\tMultiple LBAs can be specified by separating them with commas.\n");
+        print_str("\t\tFor SATA and NVMe devices, this will be passed to a SCSI translator\n");
+        print_str("\t\twhich will handle all translation of this command.\n");
+        print_str("\t\tEx: --reallocate-blocks 123456,234567,345678\n\n");
+    }
+}
+
 void print_Show_Concurrent_Position_Ranges_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_CONCURRENT_RANGES_LONG_OPT_STRING);
@@ -5653,5 +5666,52 @@ void print_Change_Id_String_Help(bool shortHelp)
         print_str("\t\tUse this option to change ID string according to capacity - model number\n");
         printf("\t\tmapping. Need to use together with --%s or --%s\n\n", SET_MAX_LBA_LONG_OPT_STRING,
                RESTORE_MAX_LBA_LONG_OPT_STRING);
+    }
+}
+
+void print_EnableDisableCDL_Help(bool shortHelp)
+{
+    printf("\t--%s [enable | disable]\n", CDL_FEATURE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tEnables or disables Command Duration Limit (CDL) support for\n");
+        printf("\t\tdevices. To disable CDL use --CDLfeature disable. Note that the\n");
+        printf("\t\tCDL Feature Set is not supported on all devices.\n");
+        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n\n");
+    }
+}
+
+void print_Show_CDL_Settings_Help(bool shortHelp)
+{
+    printf("\t--%s [raw | json]\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to show the current CDL settings.\n");
+        printf("\t\tOnly drives supporting the CDL feature will show this data and\n");
+        printf("\t\tonly supported CDL settings will be shown.\n");
+        printf("\t\tOutput modes:\n");
+        printf("\t\t  raw - Show current CDL settings on screen.\n");
+        printf("\t\t  json - Create JSON file with current CDL settings.\n");
+        printf("\t\t         Time unit for time related fields in output are\n");
+        printf("\t\t         s - seconds\n");
+        printf("\t\t         ms - milliseconds\n");
+        printf("\t\t         us - microseconds\n");
+        printf("\t\t         500 ns - 500 nanoseconds(SAS only)\n");
+        printf("\t\t         10 ms - 10 milliseconds(SAS only)\n");
+        printf("\t\t         500 ms - 500 milliseconds(SAS only)\n\n");
+    }
+}
+
+void print_Config_CDL_Settings_Help(bool shortHelp)
+{
+    printf("\t--%s [fileName]\n", CONFIG_CDL_SETTINGS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        printf("\t\tUse this option to change the CDL settings. Note that the\n");
+        printf("\t\tCDL Feature Set is not supported on all devices.\n");
+        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n");
+        printf("\t\tProvided JSON file will be used to read the new CDL settings.\n");
+        printf("\t\tUse --%s option to skip the validation on provided JSON file.\n", SKIP_VALIDATION_LONG_OPT_STRING);
+        printf("\t\tIf provided settings are not valid, then error will be returned.\n\n");
     }
 }

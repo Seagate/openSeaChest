@@ -344,7 +344,7 @@ foreach p : get_option('tools')
         'openSeaChest_' + p,
         common_sources,
         'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c',
-        dependencies: [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, os_deps, opensea_jsonformat_dep],
+        dependencies: [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, opensea_jsonformat_dep, os_deps],
         include_directories: incdir,
         install: true,
     )

@@ -726,7 +726,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (0 != atexit(print_Final_newline))
+    if (0 != atexit(atexit_Print_Final_newline))
     {
         perror("Registering final newline print");
     }
@@ -2607,7 +2607,7 @@ void utility_Usage(bool shortUsage)
     // Common (across utilities) - alphabetized
     print_Scan_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
-    print_Agressive_Scan_Help(shortUsage);
+    print_Aggressive_Scan_Help(shortUsage);
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);

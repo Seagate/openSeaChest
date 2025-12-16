@@ -134,14 +134,14 @@ int main(int argc, char* argv[])
     int argIndex    = 0;
     int optionIndex = 0;
 
-    struct option longopts[] = 
+    struct option longopts[] =
     {
         // common command line options
         DEVICE_LONG_OPT,
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        // 
+        //
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -692,7 +692,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (0 != atexit(print_Final_newline))
+    if (0 != atexit(atexit_Print_Final_newline))
     {
         perror("Registering final newline print");
     }

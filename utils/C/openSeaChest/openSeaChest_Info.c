@@ -96,10 +96,12 @@ int main(int argc, char* argv[])
     ENABLE_LEGACY_PASSTHROUGH_VAR
     // scan output flags
     SCAN_FLAGS_UTIL_VARS
+    OUTPUTPATH_VAR
     // tool specific
     DEVICE_STATISTICS_VAR
     SMART_ATTRIBUTES_VARS
     SCSI_DEFECTS_VARS
+    SHOW_CDL_SETTINGS_VAR
 #if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -146,8 +148,10 @@ int main(int argc, char* argv[])
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
         LOWLEVEL_INFO_LONG_OPT,
+        OUTPUTPATH_LONG_OPT,
         // tool specific options go here
         DEVICE_STATISTICS_LONG_OPT,
+        SHOW_CDL_SETTINGS_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
         REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT,
@@ -311,6 +315,32 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                SHOW_CDL_SETTINGS_FLAG = true;
+                if (strcmp(optarg, "raw") == 0)
+                {
+                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                }
+                else if (strcmp(optarg, "json") == 0)
+                {
+                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
+            {
+                OUTPUTPATH_PARSE
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
+                {
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -430,7 +460,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (0 != atexit(print_Final_newline))
+    if (0 != atexit(atexit_Print_Final_newline))
     {
         perror("Registering final newline print");
     }
@@ -633,7 +663,7 @@ int main(int argc, char* argv[])
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG ||
           LOWLEVEL_INFO_FLAG
           // check for other tool specific options here
-          || DEVICE_STATISTICS_FLAG || SMART_ATTRIBUTES_FLAG || SCSI_DEFECTS_FLAG
+          || DEVICE_STATISTICS_FLAG || SHOW_CDL_SETTINGS_FLAG || SMART_ATTRIBUTES_FLAG || SCSI_DEFECTS_FLAG
 #if defined(ENABLE_CSMI)
           || CSMI_INFO_FLAG
 #endif
@@ -1185,6 +1215,47 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (SHOW_CDL_SETTINGS_FLAG)
+        {
+            tCDLSettings cdlSettings;
+            memset(&cdlSettings, 0, sizeof(tCDLSettings));
+
+            switch (get_CDL_Settings(&deviceList[deviceIter], &cdlSettings))
+            {
+            case SUCCESS:
+                if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
+                    print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+                else
+                {
+                    ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            printf("A failure occured while trying to create JSON file for CDL Settings\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Showing CDL Settings is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("A failure occured while trying to get CDL Settings\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+
         if (SCSI_DEFECTS_FLAG)
         {
             ptrSCSIDefectList defects = M_NULLPTR;
@@ -1426,7 +1497,7 @@ void utility_Usage(bool shortUsage)
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-    print_Agressive_Scan_Help(shortUsage);
+    print_Aggressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     // utility tests/operations go here
@@ -1435,6 +1506,7 @@ void utility_Usage(bool shortUsage)
     print_CSMI_Info_Help(shortUsage);
 #endif
     print_Device_Statistics_Help(shortUsage);
+    print_Show_CDL_Settings_Help(shortUsage);
     print_Show_Concurrent_Position_Ranges_Help(shortUsage);
     print_Output_Mode_Help(shortUsage);
     print_Partition_Info_Help(shortUsage);
