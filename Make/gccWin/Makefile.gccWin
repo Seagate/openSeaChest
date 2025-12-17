@@ -84,10 +84,10 @@ ifeq (1,$(JSONOUTPUTSUPPORT))
 
 LIBJSONFORMATLFLAGS += \
 	../../subprojects/opensea-jsonformat/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-jsonformat.a \
-	../../subprojects/json-c/build/libjson-c.a
+	../../subprojects/json-c/buildwin/libjson-c.a
 
 INC_DIR += 	-I../../subprojects/json-c \
-	-I../../subprojects/json-c/build \
+	-I../../subprojects/json-c/buildwin \
 	-I../../subprojects/opensea-jsonformat/include
 
 endif
