@@ -55,4 +55,7 @@ cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_TRY_COMPILE_TARGET_TYPE=EXECUTABLE
 
 # Build
+echo "Current user:" && whoami
+echo "Build directory permissions:"
+ls -ld "$jsonc_build"
 cmake --build "$jsonc_build"
