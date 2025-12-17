@@ -340,6 +340,18 @@ endif
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
+jsonc = subproject(
+    'json-c',
+    default_options: [
+        'default_library=static',
+        'build_apps=false',
+        'disable_extra_libs=true',
+        'disable_json_pointer=false',
+        'disable_json_patch=false',
+    ],
+)
+jsonc_dep = jsonc.get_variable('jsonc_dep')
+
 opensea_jsonformat = subproject('opensea-jsonformat')
 opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
@@ -357,7 +369,14 @@ foreach p : get_option('tools')
         'openSeaChest_' + p,
         common_sources,
         'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c',
-        dependencies: [opensea_common_dep, opensea_transport_dep, opensea_operations_dep, jsonc_dep, opensea_jsonformat_dep, os_deps],
+        dependencies: [
+            jsonc_dep,
+            opensea_common_dep,
+            opensea_transport_dep,
+            opensea_operations_dep,
+            opensea_jsonformat_dep,
+            os_deps,
+        ],
         include_directories: incdir,
         install: true,
     )
