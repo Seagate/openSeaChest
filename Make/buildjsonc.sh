@@ -55,7 +55,10 @@ cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_INSTALL_PREFIX="$jsonc_build/__no_install__" \
     -DCMAKE_C_COMPILER="$cc" \
     -DDISABLE_WERROR=ON \
-    -DCMAKE_TRY_COMPILE_TARGET_TYPE=EXECUTABLE
+    -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
+    -DCMAKE_DISABLE_SOURCE_CHANGES=ON \
+    -DCMAKE_DISABLE_IN_SOURCE_BUILD=ON \
+    -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Build
 cmake --build "$jsonc_build"
