@@ -32,9 +32,6 @@ jsonc_build="$jsonc_src/$build_dir"
 
 # Ensure build directory exists
 mkdir -p "$jsonc_build"
-echo "Current user:" && whoami
-echo "Build directory permissions:"
-ls -ld "$jsonc_build"
 
 # Set compiler
 export CC="$cc"
@@ -56,9 +53,7 @@ cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_C_COMPILER="$cc" \
     -DDISABLE_WERROR=ON \
     -DCMAKE_TRY_COMPILE_TARGET_TYPE=STATIC_LIBRARY \
-    -DCMAKE_DISABLE_SOURCE_CHANGES=ON \
-    -DCMAKE_DISABLE_IN_SOURCE_BUILD=ON \
-    -DCMAKE_VERBOSE_MAKEFILE=ON
+    -DCMAKE_DISABLE_SOURCE_CHANGES=ON
 
 # Build
 cmake --build "$jsonc_build"
