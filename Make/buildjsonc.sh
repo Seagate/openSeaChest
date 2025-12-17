@@ -32,6 +32,9 @@ jsonc_build="$jsonc_src/$build_dir"
 
 # Ensure build directory exists
 mkdir -p "$jsonc_build"
+echo "Current user:" && whoami
+echo "Build directory permissions:"
+ls -ld "$jsonc_build"
 
 # Set compiler
 export CC="$cc"
@@ -55,7 +58,4 @@ cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_TRY_COMPILE_TARGET_TYPE=EXECUTABLE
 
 # Build
-echo "Current user:" && whoami
-echo "Build directory permissions:"
-ls -ld "$jsonc_build"
 cmake --build "$jsonc_build"
