@@ -31,7 +31,8 @@ cmake -S "$jsonc_src" -B "$jsonc_build" \
     -DCMAKE_POLICY_DEFAULT_CMP0156=NEW \
     -DCMAKE_POLICY_DEFAULT_CMP0179=NEW \
     -DCMAKE_INSTALL_PREFIX="$jsonc_build/__no_install__" \
-    -DCMAKE_C_COMPILER="$cc"
+    -DCMAKE_C_COMPILER="$cc" \
+    -DDISABLE_WERROR=ON
 
 # Build
 cmake --build "$jsonc_build"
