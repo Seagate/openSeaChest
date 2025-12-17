@@ -340,18 +340,6 @@ endif
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
-jsonc = subproject(
-    'json-c',
-    default_options: [
-        'default_library=static',
-        'build_apps=false',
-        'disable_extra_libs=true',
-        'disable_json_pointer=false',
-        'disable_json_patch=false',
-    ],
-)
-jsonc_dep = jsonc.get_variable('jsonc_dep')
-
 opensea_jsonformat = subproject('opensea-jsonformat')
 opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
