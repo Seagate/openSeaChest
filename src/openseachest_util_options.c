@@ -3705,6 +3705,17 @@ void print_Repopulate_Elements_Help(bool shortHelp)
     }
 }
 
+void print_Show_Lba_Status_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SHOW_LBA_STATUS_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to see range & status of\n");
+        print_str("\t\tLBAs inside a drive.\n");
+        print_str("\n");
+    }
+}
+
 void print_Show_Locked_Regions_Help(bool shortHelp)
 {
     printf("\t--%s\n", SHOW_LOCKED_REGIONS_LONG_OPT_STRING);

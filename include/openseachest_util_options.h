@@ -2352,6 +2352,14 @@ extern "C"
         DEPOP_MAX_LBA_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                                 \
     }
 
+#define SHOW_LBA_STATUS_FLAG            showLbaStatus
+#define SHOW_LBA_STATUS_VAR             getOptBool SHOW_LBA_STATUS_FLAG = goFalse;
+#define SHOW_LBA_STATUS_LONG_OPT_STRING "showLbaStatus"
+#define SHOW_LBA_STATUS_LONG_OPT                                                                          \
+    {                                                                                                                  \
+        SHOW_LBA_STATUS_LONG_OPT_STRING, no_argument, &SHOW_LBA_STATUS_FLAG, goTrue          \
+    }
+
 // TCG Band/Range info
 #define SHOW_LOCKED_REGIONS                 showLockedRegions
 #define SHOW_LOCKED_REGIONS_VAR             getOptBool SHOW_LOCKED_REGIONS = goFalse;
@@ -4888,6 +4896,8 @@ extern "C"
     void print_Depop_MaxLBA_Help(bool shortHelp);
 
     void print_Repopulate_Elements_Help(bool shortHelp);
+
+    void print_Show_Lba_Status_Help(bool shortHelp);
 
     void print_Show_Locked_Regions_Help(bool shortHelp);
 
