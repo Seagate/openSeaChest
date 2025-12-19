@@ -29,7 +29,7 @@ jobs:
       hash-SourceCode_With_Submodules-Linux: ${{ steps.hash.outputs.hash-SourceCode_With_Submodules-Linux }}
 
     steps:  
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         submodules: recursive
 
@@ -63,7 +63,7 @@ jobs:
           echo "hash-SourceCode_With_Submodules-${{ matrix.config.name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: SourceCode_With_Submodules-${{ matrix.config.name }}
         path: SourceCode_With_Submodules${{ matrix.config.extension }}
