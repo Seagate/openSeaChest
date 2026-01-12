@@ -720,6 +720,15 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
+    #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    if (JSON_OUTPUT_FLAG)
+    {
+        NO_BANNER_FLAG = true;
+        ECHO_COMMAND_LINE_FLAG = false;
+        SHOW_BANNER_FLAG = false;
+    }
+    #endif
+
     if (ECHO_COMMAND_LINE_FLAG)
     {
         int commandLineIter =
@@ -1148,16 +1157,18 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        eVerbosityLevels tempVerbosity = toolVerbosity;
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = VERBOSITY_QUIET;
+        }
+        #endif
+
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
-                deviceList[deviceIter].drive_info.product_identification);
-                }*/
                 ++skippedDevices;
                 continue;
             }
@@ -1289,6 +1300,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
+            #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
+            {
+                toolVerbosity = tempVerbosity;
+            }
+            #endif
             continue;
         }
 
@@ -1299,6 +1316,13 @@ int main(int argc, char* argv[])
                    deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision,
                    print_drive_type(&deviceList[deviceIter]));
         }
+
+        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = tempVerbosity;
+        }
+        #endif
 
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
