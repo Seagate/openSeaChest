@@ -111,6 +111,7 @@ int main(int argc, char* argv[])
     REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_VAR
     REPOPULATE_ELEMENTS_VAR
     DEPOP_MAX_LBA_VAR
+    SHOW_LBA_STATUS_VAR
     NVM_FORMAT_VARS
     NVM_FORMAT_OPTION_VARS
 #if defined(ENABLE_CSMI)
@@ -173,6 +174,7 @@ int main(int argc, char* argv[])
         REMOVE_PHYSICAL_ELEMENT_LONG_OPT,
         REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT,
         REPOPULATE_ELEMENTS_LONG_OPT,
+        SHOW_LBA_STATUS_LONG_OPT,
         DEPOP_MAX_LBA_LONG_OPT,
         NVM_FORMAT_LONG_OPT,
         NVM_FORMAT_OPTIONS_LONG_OPTS,
@@ -929,7 +931,7 @@ int main(int argc, char* argv[])
           // check for other tool specific options here
           || FORMAT_UNIT_FLAG || DISPLAY_LBA_FLAG || (PROGRESS_CHAR != M_NULLPTR) || SHOW_FORMAT_STATUS_LOG_FLAG ||
           SET_SECTOR_SIZE_FLAG || SHOW_SUPPORTED_FORMATS_FLAG || SHOW_PHYSICAL_ELEMENT_STATUS_FLAG ||
-          REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG || NVM_FORMAT_FLAG ||
+          REMOVE_PHYSICAL_ELEMENT_FLAG > 0 || REPOPULATE_ELEMENTS_FLAG || NVM_FORMAT_FLAG || SHOW_LBA_STATUS_FLAG ||
           REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_FLAG > 0))
     {
         utility_Usage(true);
@@ -2153,6 +2155,60 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (SHOW_LBA_STATUS_FLAG)
+        {
+            uint64_t numberOfDescriptors = UINT64_C(0);
+            eReturnValues getLbaStatusRet = get_Number_Of_LBA_Status_Descriptors(&deviceList[deviceIter], &numberOfDescriptors);
+            if (getLbaStatusRet == SUCCESS && numberOfDescriptors > 0)
+            {
+                ptrLbaStatusDescriptor descriptorList = M_REINTERPRET_CAST(
+                    ptrLbaStatusDescriptor, safe_malloc(numberOfDescriptors * sizeof(lbaStatusDescriptor)));
+                if (descriptorList != M_NULLPTR)
+                {
+                    safe_memset(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor), 0,
+                                numberOfDescriptors * sizeof(lbaStatusDescriptor));
+                    if (SUCCESS == get_LBA_Status_Descriptors(&deviceList[deviceIter], numberOfDescriptors,
+                                                                        descriptorList))
+                    {
+                        show_LBA_Status_Descriptors(numberOfDescriptors, descriptorList);
+                    }
+                    else
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_str("Failed to get physical element status.\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                    safe_free_lba_status(&descriptorList);
+                }
+                else
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Unable to allocate memory for LBA Status descriptors\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
+            }
+            else if (getLbaStatusRet == SUCCESS)
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("No LBA Status descriptor present on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("The LBA Status feature is not supported on this device.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+            }
+        }
+
         if (PROGRESS_CHAR != M_NULLPTR)
         {
             eReturnValues result = UNKNOWN;
@@ -2268,6 +2324,7 @@ void utility_Usage(bool shortUsage)
     printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING);
     printf("\t%s -d %s --%s 2\n", util_name, deviceHandleExample, REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, REPOPULATE_ELEMENTS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_LBA_STATUS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_SUPPORTED_FORMATS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s\n", util_name, deviceHandleExample, SHOW_FORMAT_STATUS_LOG_LONG_OPT_STRING);
     printf("\t%s -d %s --%s current --%s\n", util_name, deviceHandleExample, FORMAT_UNIT_LONG_OPT_STRING,
@@ -2341,6 +2398,7 @@ void utility_Usage(bool shortUsage)
     // multiple interfaces
     print_Depop_MaxLBA_Help(shortUsage);
     print_Show_Physical_Element_Status_Help(shortUsage);
+    print_Show_Lba_Status_Help(shortUsage);
     print_Show_Supported_Formats_Help(shortUsage);
     // SATA Only Options
     // print_str("\n\tSATA Only:\n\n");

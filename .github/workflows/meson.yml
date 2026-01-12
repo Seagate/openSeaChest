@@ -469,7 +469,7 @@ jobs:
       hash-netbsd-aarch64:                                            ${{ steps.hash.outputs.hash-netbsd-aarch64 }}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v6.0.1
       with:
         submodules: recursive
 
@@ -579,7 +579,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
-      uses: vmactions/openindiana-vm@v0
+      uses: vmactions/openindiana-vm@v1
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
