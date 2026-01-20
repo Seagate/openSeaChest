@@ -34,8 +34,8 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.7.2";
+const char* util_name    = "openSeaChest_PowerControl";
+const char* buildVersion = "3.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -311,6 +311,10 @@ int main(int argc, char* argv[])
                 if (strcmp(optarg, "default") == 0)
                 {
                     SET_POWER_CONSUMPTION_DEFAULT_FLAG = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SET_POWER_CONSUMPTION_DISABLE_FLAG = true;
                 }
                 else if (strcmp(optarg, "highest") == 0)
                 {
@@ -1395,8 +1399,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2489,7 +2492,7 @@ int main(int argc, char* argv[])
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
-                print_Power_Consumption_Identifiers(&identifiers);
+                print_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers);
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2519,15 +2522,23 @@ int main(int argc, char* argv[])
             if (pcRet == SUCCESS)
             {
                 switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
-                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG))
+                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG,
+                                              SET_POWER_CONSUMPTION_DISABLE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Successfully set power consumption value for device!\n");
-                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
                         {
-                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            printf("Successfully disabled Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("Successfully set power consumption value for device!\n");
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                     }
                     break;
@@ -2541,7 +2552,14 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("An Error occurred while trying to read power consumption information.\n");
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
+                        {
+                            printf("An Error occurred while trying to disable Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("An Error occurred while trying to read power consumption information.\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2669,7 +2687,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2722,7 +2741,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2854,7 +2874,7 @@ int main(int argc, char* argv[])
         if (SATA_DAPS_FLAG)
         {
             switch (sata_Set_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter],
-                                                                               SATA_DAPS_ENABLE_FLAG))
+                                                                              SATA_DAPS_ENABLE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2891,7 +2911,7 @@ int main(int argc, char* argv[])
             bool dapsSupported = false;
             bool dapsEnabled   = false;
             switch (sata_Get_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported,
-                                                                               &dapsEnabled))
+                                                                              &dapsEnabled))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2938,15 +2958,17 @@ int main(int argc, char* argv[])
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
                 snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
-                         "SAS Partial & Slumber");
+                                    "SAS Partial & Slumber");
             }
             else if (SAS_PARTIAL_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                    "SAS Partial");
             }
             else if (SAS_SLUMBER_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                    "Slumber");
             }
             switch (scsi_Set_Partial_Slumber(
                 &deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG,
@@ -3284,7 +3306,9 @@ void utility_Usage(bool shortUsage)
     print_Request_Power_Measurement_Mode_Help(shortUsage);
     print_Request_Power_Measurement_Help(shortUsage);
     print_Seagate_Power_Balance_Help(shortUsage);
+    print_Set_Power_Consumption_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Show_Power_Consumption_Help(shortUsage);
     print_Show_Power_Telemetry_Help(shortUsage);
     print_Spindown_Help(shortUsage);
     print_Legacy_Standby_Help(shortUsage);
@@ -3306,8 +3330,6 @@ void utility_Usage(bool shortUsage)
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
     print_SAS_Phy_Slumber_Help(shortUsage);
-    print_Set_Power_Consumption_Help(shortUsage);
-    print_Show_Power_Consumption_Help(shortUsage);
     // NVMe Only
     print_str("\n\tNVMe Only:\n\t=========\n");
     print_Show_NVM_Power_States_Help(shortUsage);

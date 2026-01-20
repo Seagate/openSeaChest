@@ -25,6 +25,7 @@
 
 #include "EULA.h"
 #include "ata_device_config_overlay.h"
+#include "cdl.h"
 #include "device_statistics.h"
 #include "drive_info.h"
 #include "getopt.h"
@@ -36,10 +37,9 @@
 #include "set_max_lba.h"
 #include "smart.h"
 #include "trim_unmap.h"
-
-#include "cdl.h"
-#include "cdl_json.h"
-
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -138,14 +138,13 @@ int main(int argc, char* argv[])
     ATA_DCO_SETMAXLBA_VARS
     ATA_DCO_SETMAXMODE_VARS
     ATA_DCO_DISABLE_FEATURES_VARS
-
     SET_TIMESTAMP_VAR
-
     CDL_FEATURE_VAR
     SHOW_CDL_SETTINGS_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     CONFIG_CDL_SETTINGS_VAR
     SKIP_VALIDATION_VAR
-
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -160,7 +159,6 @@ int main(int argc, char* argv[])
         CAPACITY_MODEL_NUMBER_MAPPING_LONG_OPT,
         CHANGE_ID_STRING_LONG_OPT,
         SAT_INFO_LONG_OPT,
-
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
@@ -220,8 +218,10 @@ int main(int argc, char* argv[])
         SET_TIMESTAMP_LONG_OPT,
         CDL_FEATURE_LONG_OPT,
         SHOW_CDL_SETTINGS_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         CONFIG_CDL_SETTINGS_LONG_OPT,
         SKIP_VALIDATION_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -1458,21 +1458,27 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
             {
-                SHOW_CDL_SETTINGS_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
+#endif
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, CONFIG_CDL_SETTINGS_LONG_OPT_STRING) == 0)
             {
                 int res = snprintf(CONFIG_CDL_JSONFILENAME_FLAG, CONFIG_CDL_JSONFILENAME_MAX_LEN, "%s", optarg);
@@ -1486,6 +1492,7 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+#endif
             else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
             {
                 OUTPUTPATH_PARSE
@@ -1793,8 +1800,12 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP || 
-          (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG ||CONFIG_CDL_SETTINGS_FLAG))
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO ||
+          SET_TIMESTAMP || (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+          || CONFIG_CDL_SETTINGS_FLAG
+#endif
+          ))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -1846,13 +1857,12 @@ int main(int argc, char* argv[])
     eReturnValues getDevsRet = SUCCESS;
     if (RUN_ON_ALL_DRIVES && !USER_PROVIDED_HANDLE)
     {
-
         for (uint32_t devi = UINT32_C(0); devi < DEVICE_LIST_COUNT; ++devi)
         {
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
         getDevsRet = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
-        ret = getDevsRet;
+        ret        = getDevsRet;
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
@@ -1929,8 +1939,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2229,7 +2238,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot identify.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2276,7 +2286,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot restore DCO settings to factory.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2520,8 +2531,10 @@ int main(int argc, char* argv[])
                         print_str("Successfully configured available features/modes/maxLBA using DCO.\n");
                         if (!scsiAtaInSync)
                         {
-                            print_str("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
-                            print_str("         A reboot is strongly recommended to make sure the system works without\n");
+                            print_str(
+                                "\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                            print_str(
+                                "         A reboot is strongly recommended to make sure the system works without\n");
                             print_str("         errors with the drive at its new capacity.\n\n");
                         }
                     }
@@ -2549,7 +2562,8 @@ int main(int argc, char* argv[])
                     {
                         print_str("Failed DCO set command.\n");
                         print_str("DCO set may already have been used to configure the device and\n");
-                        print_str("a DCO restore settings may be required before making more modifications with DCO.\n");
+                        print_str(
+                            "a DCO restore settings may be required before making more modifications with DCO.\n");
                         print_str("Device may have active HPA that must be\n");
                         print_str("disabled before DCO set can be used.\n");
                     }
@@ -2572,7 +2586,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot set DCO features.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2639,7 +2654,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    print_str(
+                        "Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -4678,6 +4694,7 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
                     print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 else
                 {
                     ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
@@ -4690,6 +4707,7 @@ int main(int argc, char* argv[])
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                 }
+#endif
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -4708,6 +4726,7 @@ int main(int argc, char* argv[])
             }
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (CONFIG_CDL_SETTINGS_FLAG)
         {
             tCDLSettings cdlSettings;
@@ -4783,6 +4802,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
         }
+#endif
 
         // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
         close_Device(&deviceList[deviceIter]);
@@ -4924,7 +4944,9 @@ void utility_Usage(bool shortUsage)
     // utility tests/operations go here - alphabetized
     print_Capacity_Model_Number_Mapping_Help(shortUsage);
     print_Change_Id_String_Help(shortUsage);
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     print_Config_CDL_Settings_Help(shortUsage);
+#endif
     print_Output_Mode_Help(shortUsage);
     print_Phy_Speed_Help(shortUsage);
     print_Read_Look_Ahead_Help(shortUsage);

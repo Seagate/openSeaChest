@@ -1631,7 +1631,7 @@ void print_Trim_Unmap_Range_Help(bool shortHelp)
 
 void print_Show_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s\t(SAS Only)\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+    printf("\t--%s\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
         print_str("\t\tThis option will show the power consumption\n");
@@ -1644,21 +1644,30 @@ void print_Show_Power_Consumption_Help(bool shortHelp)
 
 void print_Set_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s [default | highest | intermediate | lowest | watt value]\t(SAS Only) \n",
+    printf("\t--%s [disable(SATA only) | default | highest | intermediate | lowest | watt value(SAS only) | power "
+           "target identifier(SATA "
+           "only)]\n",
            SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        print_str("\t\tThis option will set the power consumption rate of\n");
-        print_str("\t\tthe device to the value input.\n");
-        print_str("\t\tOptions:\n");
-        print_str("\t\t-default - sets the device back to default settings\n");
-        print_str("\t\t-highest - sets the active level to \"highest\"\n");
-        print_str("\t\t-intermediate - sets the active level to \"intermediate\"\n");
-        print_str("\t\t-lowest - sets the active level to \"lowest\"\n");
-        print_str("\t\t-watt value - sets the device to a nearest watt value\n");
-        print_str("\t\tless than or equal to the value entered.\n");
-        print_str("\t\tPower consumption watt values are listed with the\n");
-        printf("\t\t--%s command line option.\n\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\tThis option will set the power consumption rate of\n");
+        printf("\t\tthe device to the value input.\n");
+        printf("\t\tOptions:\n");
+        printf("\t\t  disable(For SATA) - disable the feature\n");
+        printf("\t\t  default - sets the device back to default settings\n");
+        printf("\t\t  highest - sets the active level to \"highest\"\n");
+        printf("\t\t  intermediate - sets the active level to \"intermediate\"\n");
+        printf("\t\t  lowest - sets the active level to \"lowest\"\n");
+        printf("\t\t  watt value(For SAS) - sets the device to a nearest watt value\n");
+        printf("\t\t                        less than or equal to the value entered.\n");
+        printf("\t\t                        Power consumption watt values are listed with the\n");
+        printf("\t\t                        --%s command line option.\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\t  power target identifier(For SATA) - sets the power target identifier\n");
+        printf("\t\t                                      Power target identifier values are listed with the\n");
+        printf("\t\t                                      --%s command line option.\n",
+               SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\tWARNING: When setting power consumption to high, intermediate, or low,\n");
+        printf("\t\t         a device may only implement a subset of these options.\n\n");
     }
 }
 
@@ -5689,25 +5698,33 @@ void print_EnableDisableCDL_Help(bool shortHelp)
 
 void print_Show_CDL_Settings_Help(bool shortHelp)
 {
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     printf("\t--%s [raw | json]\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#else
+    printf("\t--%s\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#endif
+
     if (!shortHelp)
     {
         printf("\t\tUse this option to show the current CDL settings.\n");
         printf("\t\tOnly drives supporting the CDL feature will show this data and\n");
         printf("\t\tonly supported CDL settings will be shown.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         printf("\t\tOutput modes:\n");
         printf("\t\t  raw - Show current CDL settings on screen.\n");
         printf("\t\t  json - Create JSON file with current CDL settings.\n");
-        printf("\t\t         Time unit for time related fields in output are\n");
-        printf("\t\t         s - seconds\n");
-        printf("\t\t         ms - milliseconds\n");
-        printf("\t\t         us - microseconds\n");
-        printf("\t\t         500 ns - 500 nanoseconds(SAS only)\n");
-        printf("\t\t         10 ms - 10 milliseconds(SAS only)\n");
-        printf("\t\t         500 ms - 500 milliseconds(SAS only)\n\n");
+#endif
+        printf("\t\tTime unit for time related fields in output are\n");
+        printf("\t\t  s - seconds\n");
+        printf("\t\t  ms - milliseconds\n");
+        printf("\t\t  us - microseconds\n");
+        printf("\t\t  500 ns - 500 nanoseconds(SAS only)\n");
+        printf("\t\t  10 ms - 10 milliseconds(SAS only)\n");
+        printf("\t\t  500 ms - 500 milliseconds(SAS only)\n\n");
     }
 }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
 void print_Config_CDL_Settings_Help(bool shortHelp)
 {
     printf("\t--%s [fileName]\n", CONFIG_CDL_SETTINGS_LONG_OPT_STRING);
@@ -5721,3 +5738,4 @@ void print_Config_CDL_Settings_Help(bool shortHelp)
         printf("\t\tIf provided settings are not valid, then error will be returned.\n\n");
     }
 }
+#endif
