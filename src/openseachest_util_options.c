@@ -1644,9 +1644,7 @@ void print_Show_Power_Consumption_Help(bool shortHelp)
 
 void print_Set_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s [disable(SATA only) | default | highest | intermediate | lowest | watt value(SAS only) | power "
-           "target identifier(SATA "
-           "only)]\n",
+    printf("\t--%s [disable(SATA only) | default | highest | intermediate | lowest | watt value]\n",
            SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
@@ -1658,14 +1656,10 @@ void print_Set_Power_Consumption_Help(bool shortHelp)
         printf("\t\t  highest - sets the active level to \"highest\"\n");
         printf("\t\t  intermediate - sets the active level to \"intermediate\"\n");
         printf("\t\t  lowest - sets the active level to \"lowest\"\n");
-        printf("\t\t  watt value(For SAS) - sets the device to a nearest watt value\n");
-        printf("\t\t                        less than or equal to the value entered.\n");
-        printf("\t\t                        Power consumption watt values are listed with the\n");
-        printf("\t\t                        --%s command line option.\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
-        printf("\t\t  power target identifier(For SATA) - sets the power target identifier\n");
-        printf("\t\t                                      Power target identifier values are listed with the\n");
-        printf("\t\t                                      --%s command line option.\n",
-               SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        printf("\t\t  watt value - sets the device to a nearest watt value\n");
+        printf("\t\t               less than or equal to the value entered.\n");
+        printf("\t\t               Power consumption watt values are listed with the\n");
+        printf("\t\t               --%s command line option.\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
         printf("\t\tWARNING: When setting power consumption to high, intermediate, or low,\n");
         printf("\t\t         a device may only implement a subset of these options.\n\n");
     }
