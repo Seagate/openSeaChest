@@ -2565,11 +2565,19 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-            else
+            else if(pcRet == BAD_PARAMETER)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("An invalid or unsupported value was entered for power consumption level.\n");
+                }
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    printf("Power Consumption feature not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
