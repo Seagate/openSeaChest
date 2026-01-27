@@ -31,7 +31,7 @@ jobs:
         language: ['cpp']
 
     steps:
-    - uses: actions/checkout@v6.0.1
+    - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
 
