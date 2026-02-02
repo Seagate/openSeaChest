@@ -1507,7 +1507,7 @@ int main(int argc, char* argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART offline data collection was aborted by the host or some other operation on the "
+                    print_str("SMART offline data collection was aborted by the host or some other operation on the "
                            "drive.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
@@ -1837,13 +1837,13 @@ int main(int argc, char* argv[])
                             print_str(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
                             printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
-                            printf("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
+                            print_str("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
                                    "possible.\n");
-                            printf("      In this time, the drive is performing a unique test which prevents it from "
+                            print_str("      In this time, the drive is performing a unique test which prevents it from "
                                    "responding\n");
-                            printf("      to other requests. Attempting to get progress or abort during this time will "
+                            print_str("      to other requests. Attempting to get progress or abort during this time will "
                                    "fail and\n");
-                            printf("      may cause the IDD to stop running in some cases. The software may also hang "
+                            print_str("      may cause the IDD to stop running in some cases. The software may also hang "
                                    "until the\n");
                             print_str("      drive is able to respond to commands again.\n\n");
                         }
@@ -1934,7 +1934,7 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A self test is currently in progress. Please wait for it to finish before starting DST "
+                        print_str("A self test is currently in progress. Please wait for it to finish before starting DST "
                                "and Clean\n");
                     }
                     break;

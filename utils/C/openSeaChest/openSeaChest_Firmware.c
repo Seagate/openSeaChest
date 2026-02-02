@@ -1092,7 +1092,7 @@ int main(int argc, char* argv[])
                   deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_JMICRON ||
                   deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_ASMEDIA))
             {
-                printf("\nERROR: Forcing specific commit actions or disabling resets is not possible in Windows on "
+                print_str("\nERROR: Forcing specific commit actions or disabling resets is not possible in Windows on "
                        "this device.\n");
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 continue;
@@ -1167,7 +1167,7 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                printf("The Operating system has reported that a power cycle is required to complete "
+                                print_str("The Operating system has reported that a power cycle is required to complete "
                                        "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
@@ -1341,7 +1341,7 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            printf("The Operating system has reported that a power cycle is required to complete the "
+                            print_str("The Operating system has reported that a power cycle is required to complete the "
                                    "firmware update\n");
                         }
                         else

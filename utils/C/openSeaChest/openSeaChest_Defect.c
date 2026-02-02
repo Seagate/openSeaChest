@@ -1415,7 +1415,7 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A self test is currently in progress. Please wait for it to finish before starting DST "
+                        print_str("A self test is currently in progress. Please wait for it to finish before starting DST "
                                "and Clean\n");
                     }
                     break;
@@ -1535,7 +1535,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    printf("The range specified is invalid. Please enter a range that does not exceed the MaxLBA of "
+                    print_str("The range specified is invalid. Please enter a range that does not exceed the MaxLBA of "
                            "the device from the specified starting LBA.\n");
                 }
             }
@@ -1547,7 +1547,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    printf("You must used the --createUncorrectable option with an LBA to provide a starting point for "
+                    print_str("You must used the --createUncorrectable option with an LBA to provide a starting point for "
                            "the range provided.\n");
                 }
             }

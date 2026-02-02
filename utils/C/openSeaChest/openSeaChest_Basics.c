@@ -1343,7 +1343,7 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
+                    print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
                            "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
@@ -1608,7 +1608,7 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                printf("The Operating system has reported that a power cycle is required to complete "
+                                print_str("The Operating system has reported that a power cycle is required to complete "
                                        "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
@@ -1742,7 +1742,7 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            printf("The Operating system has reported that a power cycle is required to complete the "
+                            print_str("The Operating system has reported that a power cycle is required to complete the "
                                    "firmware update\n");
                         }
                         else

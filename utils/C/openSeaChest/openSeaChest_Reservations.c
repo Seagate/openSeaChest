@@ -936,7 +936,7 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("This device does not support the ability to report persistent reservation "
+                        print_str("This device does not support the ability to report persistent reservation "
                                "capabilities.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;

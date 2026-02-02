@@ -3,6 +3,23 @@ project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', default_opt
 
 c = meson.get_compiler('c')
 
+machine = target_machine.system()
+architecture = target_machine.cpu()
+if architecture == ''
+    architecture = target_machine.cpu_family()
+endif
+# Add debug flag if debug option is enabled
+if get_option('debug')
+    add_project_arguments('-D_DEBUG', language: 'c')
+endif
+# Add libc musl flag if enabled
+if get_option('libc_musl')
+    add_project_arguments('-DUSING_MUSL_LIBC=1', language: 'c')
+endif
+# Add JSON format support flag if enabled
+if get_option('json_outputformat')
+  add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+endif
 warning_flags = []
 linker_flags = []  #additional linker flags to add per-compiler for hardening.
 
@@ -28,7 +45,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wshift-overflow=1',
         '-Wshift-overflow=2',
         '-Wdouble-promotion',
-        '-Wformat-security',
+        '-Werror=format-security',
         '-Wold-style-definition',
         '-Wstrict-prototypes',
         '-Wmissing-declarations',
@@ -48,6 +65,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-fno-strict-overflow',
         '-fno-strict-aliasing',
         '-ftrivial-auto-var-init=zero',
+        '-fzero-init-padding-bits=all',
         '-Wtrampolines',  #GCC only at this time
         '-Werror=implicit',
         '-Werror=incompatible-pointer-types',
@@ -75,6 +93,8 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wreturn-type',
         '-Wpointer-bool-conversion',
         '-fvisibility=hidden',  #to work similarly to Window's DLL import/export
+        '-Wmismatched-dealloc',
+        '-Wfree-nonheap-object',
     ]
 
     if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
@@ -272,14 +292,6 @@ if get_option('atasecsetpass').enabled()
     add_project_arguments('-DENABLE_ATA_SET_PASSWORD', language: 'c')
 endif
 
-if get_option('debug')
-    add_project_arguments('-D_DEBUG', language: 'c')
-endif
-
-if get_option('libc_musl')
-    add_project_arguments('-DUSING_MUSL_LIBC=1', language: 'c')
-endif
-
 exec_prefix = 'openSeaChest_'
 common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
@@ -322,6 +334,8 @@ endif
 
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
+opensea_jsonformat = subproject('opensea-jsonformat')
+opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
 jsonc = subproject(
     'json-c',
@@ -334,9 +348,6 @@ jsonc = subproject(
     ],
 )
 jsonc_dep = jsonc.get_variable('jsonc_dep')
-
-opensea_jsonformat = subproject('opensea-jsonformat')
-opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
 incdir = include_directories('include')
 

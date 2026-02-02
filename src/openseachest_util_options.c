@@ -54,6 +54,10 @@ const char* commandWindowType   = "shell";
 const char* deviceHandleExample = "/dev/rhdisk<#>";
 const char* deviceHandleName    = "<rhdisk_device>";
 const char* commandWindowType   = "shell";
+#elif defined(__hpux)
+const char* deviceHandleExample = "/dev/disk/disk<#>";
+const char* deviceHandleName    = "<disk_device>";
+const char* commandWindowType   = "shell";
 #else
 #    error "OS Not Defined or known"
 #endif
@@ -3358,7 +3362,7 @@ void print_FWDL_Segment_Size_Help(bool shortHelp)
 
 void print_FWDL_Ignore_Final_Segment_Help(bool shortHelp)
 {
-    printf("\t--%s\n", SHOW_LOCKED_REGIONS_LONG_OPT_STRING);
+    printf("\t--%s\n", FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT_STRING);
     if (!shortHelp)
     {
         print_str("\t\tThis option should only be used when performing firmware\n");
@@ -3655,19 +3659,19 @@ void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp)
     printf("\t--%s [element #] (Zoned Only)\n", REMOVE_PHYSICAL_ELEMENT_MOD_ZONES_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to remove a storage element and modify zones\n");
-        printf("\t\tfrom use on a Zoned drive (ZBD). When this is done, the\n");
-        printf("\t\tdrive will erase all user data and lower the\n");
-        printf("\t\tcapacity to a new point where the drive is still\n");
-        printf("\t\tusable without the provided element #.\n");
+        print_str("\t\tUse this option to remove a storage element and modify zones\n");
+        print_str("\t\tfrom use on a Zoned drive (ZBD). When this is done, the\n");
+        print_str("\t\tdrive will erase all user data and lower the\n");
+        print_str("\t\tcapacity to a new point where the drive is still\n");
+        print_str("\t\tusable without the provided element #.\n");
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
-        printf("\t\tof the depopulation operation.\n");
+        print_str("\t\tof the depopulation operation.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-        printf("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
-        printf("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        print_str("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-        printf("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
-        printf("\t\t         with multiple logical units or namespaces.\n\n");
+        print_str("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
 
@@ -4116,7 +4120,7 @@ void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
 #if defined MD5_PASSWORD_SUPPORTED
     print_str("md5 | ");
 #endif
-    printf("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] "
+    print_str("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] "
            "(SATA Only)\n");
     if (!shortHelp)
     {
@@ -4384,7 +4388,7 @@ void print_Set_SCSI_MP_Help(bool shortHelp)
         print_str("\t\tThere are two argument formats to this option:\n");
         print_str("\t\t1. The first format expects a mode page (in hex), optionally a subpage code (in hex),\n");
         print_str("\t\t   the byte offset that the field starts at (in decimal), the highest bit the field starts\n");
-        printf("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
+        print_str("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
                "decimal)\n");
         print_str("\t\t   A maximum of 64bits can be set at a time with this option.\n");
         print_str(
@@ -5358,11 +5362,9 @@ void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
         print_str("\t\tArguments:\n");
         print_str("\t\t  512 - the data transfer is a number of 512B blocks (most commands)\n");
         print_str("\t\t  logical - data transfer is a number of logical block sizes transfers (read commands)\n");
-        printf(
-            "\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
+        print_str("\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
         print_str("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
-        print_str(
-            "\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
+        printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
     }
 }
 
@@ -5680,44 +5682,52 @@ void print_EnableDisableCDL_Help(bool shortHelp)
     printf("\t--%s [enable | disable]\n", CDL_FEATURE_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tEnables or disables Command Duration Limit (CDL) support for\n");
-        printf("\t\tdevices. To disable CDL use --CDLfeature disable. Note that the\n");
-        printf("\t\tCDL Feature Set is not supported on all devices.\n");
-        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n\n");
+        print_str("\t\tEnables or disables Command Duration Limit (CDL) support for\n");
+        print_str("\t\tdevices. To disable CDL use --CDLfeature disable. Note that the\n");
+        print_str("\t\tCDL Feature Set is not supported on all devices.\n");
+        print_str("\t\tUse --deviceInfo option to see if CDL is supported.\n\n");
     }
 }
 
 void print_Show_CDL_Settings_Help(bool shortHelp)
 {
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     printf("\t--%s [raw | json]\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#else
+    printf("\t--%s\n", SHOW_CDL_SETTINGS_LONG_OPT_STRING);
+#endif
     if (!shortHelp)
     {
-        printf("\t\tUse this option to show the current CDL settings.\n");
-        printf("\t\tOnly drives supporting the CDL feature will show this data and\n");
-        printf("\t\tonly supported CDL settings will be shown.\n");
-        printf("\t\tOutput modes:\n");
-        printf("\t\t  raw - Show current CDL settings on screen.\n");
-        printf("\t\t  json - Create JSON file with current CDL settings.\n");
-        printf("\t\t         Time unit for time related fields in output are\n");
-        printf("\t\t         s - seconds\n");
-        printf("\t\t         ms - milliseconds\n");
-        printf("\t\t         us - microseconds\n");
-        printf("\t\t         500 ns - 500 nanoseconds(SAS only)\n");
-        printf("\t\t         10 ms - 10 milliseconds(SAS only)\n");
-        printf("\t\t         500 ms - 500 milliseconds(SAS only)\n\n");
+        print_str("\t\tUse this option to show the current CDL settings.\n");
+        print_str("\t\tOnly drives supporting the CDL feature will show this data and\n");
+        print_str("\t\tonly supported CDL settings will be shown.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        print_str("\t\tOutput modes:\n");
+        print_str("\t\t  raw - Show current CDL settings on screen.\n");
+        print_str("\t\t  json - Create JSON file with current CDL settings.\n");
+#endif
+        print_str("\t\tTime unit for time related fields in output are\n");
+        print_str("\t\t  s - seconds\n");
+        print_str("\t\t  ms - milliseconds\n");
+        print_str("\t\t  us - microseconds\n");
+        print_str("\t\t  500 ns - 500 nanoseconds(SAS only)\n");
+        print_str("\t\t  10 ms - 10 milliseconds(SAS only)\n");
+        print_str("\t\t  500 ms - 500 milliseconds(SAS only)\n\n");
     }
 }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
 void print_Config_CDL_Settings_Help(bool shortHelp)
 {
     printf("\t--%s [fileName]\n", CONFIG_CDL_SETTINGS_LONG_OPT_STRING);
     if (!shortHelp)
     {
-        printf("\t\tUse this option to change the CDL settings. Note that the\n");
-        printf("\t\tCDL Feature Set is not supported on all devices.\n");
-        printf("\t\tUse --deviceInfo option to see if CDL is supported.\n");
-        printf("\t\tProvided JSON file will be used to read the new CDL settings.\n");
+        print_str("\t\tUse this option to change the CDL settings. Note that the\n");
+        print_str("\t\tCDL Feature Set is not supported on all devices.\n");
+        print_str("\t\tUse --deviceInfo option to see if CDL is supported.\n");
+        print_str("\t\tProvided JSON file will be used to read the new CDL settings.\n");
         printf("\t\tUse --%s option to skip the validation on provided JSON file.\n", SKIP_VALIDATION_LONG_OPT_STRING);
-        printf("\t\tIf provided settings are not valid, then error will be returned.\n\n");
+        print_str("\t\tIf provided settings are not valid, then error will be returned.\n\n");
     }
 }
+#endif

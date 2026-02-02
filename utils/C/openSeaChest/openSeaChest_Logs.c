@@ -1249,8 +1249,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
-                        "You must specify a Telemetry data set.\n\t1 - 3 are valid inputs for the data set on SATA\n");
+                    print_str("You must specify a Telemetry data set.\n\t1 - 3 are valid inputs for the data set on SATA\n");
                     print_str("\tOn SAS and NVMe, 1 - 4 are valid inputs for the data set.\n");
                 }
             }

@@ -97,9 +97,9 @@ int main(int argc, char* argv[])
     OUTPUTPATH_VAR
     // tool specific
     DEVICE_STATISTICS_VAR
+    SHOW_CDL_SETTINGS_VAR
     SMART_ATTRIBUTES_VARS
     SCSI_DEFECTS_VARS
-    SHOW_CDL_SETTINGS_VAR
 #if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -303,19 +303,24 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
             {
-                SHOW_CDL_SETTINGS_FLAG = true;
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
+                {
+                    optarg = argv[optind++];
                 if (strcmp(optarg, "raw") == 0)
                 {
                     SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
                 }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 else if (strcmp(optarg, "json") == 0)
                 {
                     SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
                 }
+#endif
                 else
                 {
                     print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
@@ -1108,6 +1113,7 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
                     print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
                 else
                 {
                     ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
@@ -1115,23 +1121,24 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to create JSON file for CDL Settings\n");
+                            print_str("A failure occured while trying to create JSON file for CDL Settings\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
                 }
+#endif
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing CDL Settings is not supported on this device\n");
+                    print_str("Showing CDL Settings is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get CDL Settings\n");
+                    print_str("A failure occured while trying to get CDL Settings\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1153,8 +1160,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
-                        "Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                    print_str("Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
