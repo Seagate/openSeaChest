@@ -2393,9 +2393,9 @@ extern "C"
 #define SHOW_LBA_STATUS_FLAG            showLbaStatus
 #define SHOW_LBA_STATUS_VAR             getOptBool SHOW_LBA_STATUS_FLAG = goFalse;
 #define SHOW_LBA_STATUS_LONG_OPT_STRING "showLbaStatus"
-#define SHOW_LBA_STATUS_LONG_OPT                                                                          \
+#define SHOW_LBA_STATUS_LONG_OPT                                                                                       \
     {                                                                                                                  \
-        SHOW_LBA_STATUS_LONG_OPT_STRING, no_argument, &SHOW_LBA_STATUS_FLAG, goTrue          \
+        SHOW_LBA_STATUS_LONG_OPT_STRING, no_argument, &SHOW_LBA_STATUS_FLAG, goTrue                                    \
     }
 
 // TCG Band/Range info
@@ -2541,15 +2541,15 @@ extern "C"
 #define SCSI_DEFECTS_LONG_OPTS SCSI_DEFECTS_LONG_OPT, SCSI_DEFECTS_MODE_LONG_OPTS
 
 // Reallocate Blocks Options
-#define SCSI_REALLOCATE_BLOCKS_LIST       scsiReallocateBlocksList
+#define SCSI_REALLOCATE_BLOCKS_LIST        scsiReallocateBlocksList
 #define SCSI_REALLOCATE_BLOCKS_LIST_LENGTH scsiReallocateBlocksListLength
-#define SCSI_REALLOCATE_BLOCKS_LIST_VARS \
-    ptrErrorLBA SCSI_REALLOCATE_BLOCKS_LIST = M_NULLPTR; \
-    uint32_t SCSI_REALLOCATE_BLOCKS_LIST_LENGTH = UINT32_C(0);
+#define SCSI_REALLOCATE_BLOCKS_LIST_VARS                                                                               \
+    ptrErrorLBA SCSI_REALLOCATE_BLOCKS_LIST        = M_NULLPTR;                                                        \
+    uint32_t    SCSI_REALLOCATE_BLOCKS_LIST_LENGTH = UINT32_C(0);
 #define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING "reallocateBlocks"
-#define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT                                                                                 \
+#define SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT                                                                           \
     {                                                                                                                  \
-        SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                  \
+        SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                   \
     }
 
 // logTransferLength
@@ -3734,7 +3734,8 @@ extern "C"
 
     void print_Aggressive_Scan_Help(bool shortHelp);
 
-    M_DEPRECATED_REASON("Use print_Aggressive_Scan_Help instead. This one is misspelled.") M_INLINE void print_Agressive_Scan_Help(bool shortHelp)
+    M_DEPRECATED_REASON("Use print_Aggressive_Scan_Help instead. This one is misspelled.")
+    M_INLINE void print_Agressive_Scan_Help(bool shortHelp)
     {
         print_Aggressive_Scan_Help(shortHelp);
     }

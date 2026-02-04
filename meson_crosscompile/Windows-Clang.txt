@@ -31,3 +31,5 @@ cpu = 'x86_64'
 [built-in options]
 default_library='static'
 b_pie='false'
+# TODO: Need to modify how json-c find strcasecmp with Clang to reenable this option again. -TJE
+json_outputformat=false

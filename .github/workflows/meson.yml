@@ -8,11 +8,19 @@ on:
   pull_request:
     branches: [ develop ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     container: ${{ matrix.config.image }}
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      packages: read
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -73,6 +81,36 @@ jobs:
             archive_command: "7z a -tzip -mmt"
           }
         - {
+            name: "MSYS2 MINGW64 GCC",
+            os: windows-latest,
+            msys2_msystem: "MINGW64",
+            cc: "gcc",
+            cxx: "g++",
+            release_name: "win-x86_64-msys2-mingw64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
+            name: "MSYS2 UCRT64 GCC",
+            os: windows-latest,
+            msys2_msystem: "UCRT64",
+            cc: "gcc",
+            cxx: "g++",
+            release_name: "win-x86_64-msys2-ucrt64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
+            name: "MSYS2 CLANG64",
+            os: windows-latest,
+            msys2_msystem: "CLANG64",
+            cc: "clang",
+            cxx: "clang++",
+            release_name: "win-x86_64-msys2-clang64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
             name: "Ubuntu GCC",
             os: ubuntu-latest,
             cc: "gcc",
@@ -110,6 +148,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/i686-linux-musl-cross.txt",
             cross_compiler_arch: "i686",
             release_name: "linux-i686-portable",
@@ -123,6 +162,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/aarch64-linux-musl-cross.txt",
             cross_compiler_arch: "aarch64",
             release_name: "linux-aarch64-portable",
@@ -136,6 +176,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/armv7l-linux-musl-cross.txt",
             cross_compiler_arch: "armv7l",
             release_name: "linux-armv7l-portable",
@@ -149,6 +190,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/armv6-linux-musl-cross.txt",
             cross_compiler_arch: "armv6",
             release_name: "linux-armv6-portable",
@@ -162,6 +204,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/armv5l-linux-musl-cross.txt",
             cross_compiler_arch: "armv5l",
             release_name: "linux-armv5l-portable",
@@ -175,6 +218,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/powerpc64-linux-musl-cross.txt",
             cross_compiler_arch: "powerpc64",
             release_name: "linux-powerpc64-portable",
@@ -188,6 +232,7 @@ jobs:
             cc: "",
             cxx: "",
             publish_release: true,
+            create_package: true,
             meson_opts: "--cross-file=./meson_crosscompile/powerpc64le-linux-musl-cross.txt",
             cross_compiler_arch: "powerpc64le",
             release_name: "linux-powerpc64le-portable",
@@ -469,9 +514,30 @@ jobs:
       hash-netbsd-aarch64:                                            ${{ steps.hash.outputs.hash-netbsd-aarch64 }}
 
     steps:
+    # Even with the if's this still interferes with the VMs so disabling until we get a better idea.
+    # - name: Harden Runner
+    #   if: matrix.config.image == '' && matrix.config.vm_actions != true
+    #   uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+    #   with:
+    #     egress-policy: audit
+
     - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
+
+    - name: Setup MSYS2
+      if: matrix.config.msys2_msystem != ''
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.config.msys2_msystem }}
+        update: true
+        install: >-
+          base-devel
+          git
+        pacboy: >-
+          toolchain:p
+          meson:p
+          ninja:p
 
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
@@ -532,22 +598,59 @@ jobs:
       shell: bash
       run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
 
-    - name: Setting release name
-      env:
-        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
+    - name: Set release name
       run: |
+        DESTDIR="openSeaChest-${BRANCH_NAME}-${{ matrix.config.release_name }}"
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
     - name: Install Meson and Ninja and Build (MUSL container)
-      if: matrix.config.image != '' && matrix.config.vm_actions == false
+      if: matrix.config.image != '' && matrix.config.vm_actions != true
+      shell: bash
+      env:
+        DESTDIR: ${{ env.DESTDIR }}
+      run: |
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (MSYS2)
+      if: matrix.config.msys2_msystem != ''
+      shell: msys2 {0}
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
       run: |
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
 
-    - name: Install Meson and Ninja and Build (Github runners)
-      if: matrix.config.image == '' && matrix.config.vm_actions == false
+    # Disabled since this caused strange behavior with openBSD VMActions. Can investigate fixes in the future.
+    # - name: Setup pip cache
+    #   if: matrix.config.image == '' && matrix.config.vm_actions == false
+    #   uses: actions/cache@v5.0.0
+    #   with:
+    #     path: |
+    #       ~/.cache/pip
+    #       ~\AppData\Local\pip\Cache
+    #     key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-pip-meson-
+    #       ${{ runner.os }}-pip-
+
+    - name: Install Meson and Ninja and Build (Github runners - MSVC)
+      if: matrix.config.image == '' && matrix.config.vm_actions == false && matrix.config.msys2_msystem == '' && startsWith(matrix.config.name, 'Windows MSVC')
+      shell: pwsh
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        pip install meson ninja
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
+      if: matrix.config.image == '' && matrix.config.vm_actions == false && matrix.config.msys2_msystem == '' && !startsWith(matrix.config.name, 'Windows MSVC')
+      shell: bash
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
@@ -701,9 +804,9 @@ jobs:
 
 
 
-    # add `GOBIN` to the `PATH` otherwise nfpm in next step can't be found
-    - uses: actions/setup-go@v6
+    - name: Install Go for nfpm
       if: ${{ matrix.config.create_package }}
+      uses: actions/setup-go@v6
       with:
         go-version: 'stable'
         cache: false
@@ -711,20 +814,39 @@ jobs:
     - name: Create packages
       if: ${{ matrix.config.create_package }}
       working-directory: ${{ format('build/{0}', env.DESTDIR) }}
-      run: | # https://nfpm.goreleaser.com/install/
-        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.36.1
+      shell: bash
+      run: |
+        # Install nfpm
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+        # Map cross_compiler_arch to Debian/RPM package arch
+        case "${{ matrix.config.cross_compiler_arch }}" in
+          x86_64) package_arch="amd64" ;;
+          i686) package_arch="i386" ;;
+          aarch64) package_arch="arm64" ;;
+          armv7l) package_arch="armhf" ;;
+          armv6) package_arch="armhf" ;;
+          armv5l) package_arch="armel" ;;
+          powerpc64) package_arch="ppc64" ;;
+          powerpc64le) package_arch="ppc64el" ;;
+          *) package_arch="amd64" ;;  # fallback
+        esac
+
+        # Set version and arch
         if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
           version=$(echo ${{ github.ref_name }} | tr -d 'v')
         else
           version=$(printf "%s-dev" $(date +'%y.%m.%d'))
         fi
         sed -i '/version:/ s/"[^"][^"]*"/"'"$version"'"/' ../../nfpm.yaml
+        sed -i '/^arch:/ s/"[^"][^"]*"/"'"$package_arch"'"/' ../../nfpm.yaml
+
         nfpm package -f ../../nfpm.yaml -p deb -t ..
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
-      shell: bash
 
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
+      shell: bash
       run: |
         if [[ -z "${{ matrix.config.image }}" ]]; then
           sudo chown -R root:root build
@@ -751,6 +873,7 @@ jobs:
 
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
+      shell: bash
       run: |
         if [[ -z "${{ matrix.config.image }}" ]]; then
           sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
@@ -774,7 +897,7 @@ jobs:
           echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}
         path: |
@@ -784,7 +907,7 @@ jobs:
 
     - name: Publish release
       if: ${{ (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')) && matrix.config.publish_release }}
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.0
       with:
         files: |
           ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
@@ -801,6 +924,7 @@ jobs:
       HASHES: ${{ toJSON(needs.build.outputs) }}
     steps:
       - id: hashes
+        shell: bash
         run: |
           echo "$HASHES"
           echo "$HASHES" | jq -r '.[] | @base64d' | sed "/^$/d" > hashes.txt

@@ -693,9 +693,9 @@ int main(int argc, char* argv[])
     }
     // check that we were given at least one test to perform...if not, show the help and exit
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG || LOWLEVEL_INFO_FLAG || LIST_LOGS_FLAG || LIST_ERROR_HISTORY_FLAG ||
-          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG || (GET_TELEMETRY_IDENTIFIER > 0) ||
-          DST_LOG_FLAG || IDENTIFY_DEVICE_DATA_LOG_FLAG || SATA_PHY_COUNTERS_LOG_FLAG || DEVICE_STATS_LOG_FLAG ||
-          INFORMATIONAL_EXCEPTIONS_FLAG))
+          GENERIC_LOG_PULL_FLAG || GENERIC_ERROR_HISTORY_PULL_FLAG || FARM_PULL_FLAG || FARM_COMBINED_FLAG ||
+          (GET_TELEMETRY_IDENTIFIER > 0) || DST_LOG_FLAG || IDENTIFY_DEVICE_DATA_LOG_FLAG ||
+          SATA_PHY_COUNTERS_LOG_FLAG || DEVICE_STATS_LOG_FLAG || INFORMATIONAL_EXCEPTIONS_FLAG))
     {
         utility_Usage(true);
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
@@ -800,7 +800,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -831,8 +831,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1626,14 +1625,14 @@ void utility_Usage(bool shortUsage)
     print_Pull_Device_Statistics_Log_Help(shortUsage);
     print_FARM_Log_Help(shortUsage);
     print_FARM_Combined_Log_Help(shortUsage);
-	print_Get_Telemetry_Help(shortUsage);
+    print_Get_Telemetry_Help(shortUsage);
     print_Supported_Logs_Help(shortUsage);
     print_Log_Length_Help(shortUsage);
     print_Log_Mode_Help(shortUsage);
     print_Log_Transfer_Length_Help(shortUsage);
     print_Pull_Generic_Logs_Help(shortUsage);
     print_Pull_Self_Test_Results_Log_Help(shortUsage);
-	print_Telemetry_Data_Set_Help(shortUsage);
+    print_Telemetry_Data_Set_Help(shortUsage);
 
     // SATA Only Options
     print_str("\n\tSATA Only:\n\n");

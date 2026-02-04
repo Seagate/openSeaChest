@@ -1662,9 +1662,12 @@ int main(int argc, char* argv[])
                             print_str("NOTE: This command may have affected more than 1 logical unit\n");
                         }
                         print_str("NOTE: After changing the sector size the drive may need to perform additional\n");
-                        print_str("      background operations in order to ensure full functionality and reliability.\n");
-                        print_str("      This background activity may take a long time and will prevent the drive from\n");
-                        print_str("      entering power saving modes like idle or standby until these operations have\n");
+                        print_str(
+                            "      background operations in order to ensure full functionality and reliability.\n");
+                        print_str(
+                            "      This background activity may take a long time and will prevent the drive from\n");
+                        print_str(
+                            "      entering power saving modes like idle or standby until these operations have\n");
                         print_str("      completed. These operations may take a very long time to complete.\n");
                         print_str("      While EPC timers are suspended during this background operation, manual\n");
                         print_str("      transitions to lower power states is supported. Manually moving to a lower power\n");
@@ -1723,7 +1726,8 @@ int main(int argc, char* argv[])
                     printf("e.g.: %s -d %s --%s 4096 --%s %s\n\n", util_name, deviceHandleExample,
                            SET_SECTOR_SIZE_LONG_OPT_STRING, CONFIRM_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-                    print_str("\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
+                    print_str(
+                        "\t\tThere is an additional risk when performing a low-level format/fast format that may\n");
                     print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
                     print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
@@ -1739,7 +1743,8 @@ int main(int argc, char* argv[])
                     print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                     print_str("\t\t         before using this option. Interruptions can be caused by these\n");
                     print_str("\t\t         and may prevent completion of a sector size change.\n");
-                    print_str("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                    print_str(
+                        "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
                     print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
                     print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
@@ -1913,7 +1918,8 @@ int main(int argc, char* argv[])
                 }
                 else
                 {
-                    print_str("Neither the standard or the Seagate remanufacture feature is supported on this device.\n");
+                    print_str(
+                        "Neither the standard or the Seagate remanufacture feature is supported on this device.\n");
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 }
             }

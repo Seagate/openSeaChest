@@ -95,11 +95,30 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-fvisibility=hidden',  #to work similarly to Window's DLL import/export
         '-Wmismatched-dealloc',
         '-Wfree-nonheap-object',
+        '-Wnullability',  # Warnings for nullability annotations
+        '-Wnullability-completeness',  # Warn if nullability annotations are incomplete
+        '-Wnullability-completeness-on-arrays',  # Warn if nullability annotations are incomplete
+        #'-Wswitch-enum',
+        '-Walloc-zero',
+        '-Walloc-size',
+        '-Wcalloc-transposed-args',
+        '-Werror=alloca',  # Do not allow use of the alloca function
+        '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
     ]
 
-    if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
-        #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
-        warning_flags += '-Wsign-conversion'
+    if get_option('cc-suggest-attribute')
+        warning_flags += [
+            '-Wsuggest-attribute=pure',
+            '-Wsuggest-attribute=const',
+            '-Wsuggest-attribute=noreturn',
+            '-Wsuggest-attribute=returns_nonnull',
+            '-Wmissing-noreturn',
+            '-Wsuggest-attribute=malloc',
+            '-Wsuggest-attribute=format',
+            '-Wmissing-format-attribute',
+            '-Wsuggest-attribute=cold',
+            '-fipa-pure-const',
+        ]
     endif
 
     if target_machine.system() != 'sunos'
@@ -334,20 +353,29 @@ endif
 
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
-opensea_jsonformat = subproject('opensea-jsonformat')
-opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 
-jsonc = subproject(
-    'json-c',
-    default_options: [
-        'default_library=static',
-        'build_apps=false',
-        'disable_extra_libs=true',
-        'disable_json_pointer=false',
-        'disable_json_patch=false',
-    ],
-)
-jsonc_dep = jsonc.get_variable('jsonc_dep')
+jsonc_dep = disabler()
+opensea_jsonformat_dep = disabler()
+
+if get_option('json_outputformat')
+
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+
+    opensea_jsonformat = subproject('opensea-jsonformat')
+    opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
+
+    jsonc = subproject(
+        'json-c',
+        default_options: [
+            'default_library=static',
+            'build_apps=false',
+            'disable_extra_libs=true',
+            'disable_json_pointer=false',
+            'disable_json_patch=false',
+        ],
+    )
+    jsonc_dep = jsonc.get_variable('jsonc_dep')
+endif
 
 incdir = include_directories('include')
 
@@ -358,18 +386,23 @@ exe_src_map = {
 }
 
 foreach p : get_option('tools')
+    exe_deps = [
+        opensea_common_dep,
+        opensea_transport_dep,
+        opensea_operations_dep,
+        os_deps,
+    ]
+
+    # Only add JSON dependencies if the feature is enabled
+    if get_option('json_outputformat')
+        exe_deps += [jsonc_dep, opensea_jsonformat_dep]
+    endif
+
     executable(
         'openSeaChest_' + p,
         common_sources,
         'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c',
-        dependencies: [
-            jsonc_dep,
-            opensea_common_dep,
-            opensea_transport_dep,
-            opensea_operations_dep,
-            opensea_jsonformat_dep,
-            os_deps,
-        ],
+        dependencies: exe_deps,
         include_directories: incdir,
         install: true,
     )

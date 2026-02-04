@@ -957,7 +957,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -980,8 +980,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1262,7 +1261,7 @@ int main(int argc, char* argv[])
 
         if (SHOW_SUPPORTED_FORMATS_FLAG)
         {
-            uint32_t memSize = C_CAST(uint32_t, sizeof(supportedFormats));
+            uint32_t            memSize = C_CAST(uint32_t, sizeof(supportedFormats));
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
             if (formats != M_NULLPTR)
             {
@@ -1372,7 +1371,7 @@ int main(int argc, char* argv[])
 #define SEACHEST_NVME_LOG_NAME_LENGTH 16
                                 DECLARE_ZERO_INIT_ARRAY(char, logName, SEACHEST_NVME_LOG_NAME_LENGTH);
                                 snprintf_err_handle(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d",
-                                         GET_NVME_LOG_IDENTIFIER);
+                                                    GET_NVME_LOG_IDENTIFIER);
                                 if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(
                                                    &deviceList[deviceIter], &secureFile, NAMING_SERIAL_NUMBER_DATE_TIME,
                                                    M_NULLPTR, logName, "bin"))
@@ -1864,8 +1863,8 @@ int main(int argc, char* argv[])
                         dlOptions.ignoreStatusOfFinalSegment = false;
                         dlOptions.firmwareFileMem            = firmwareMem;
                         dlOptions.firmwareMemoryLength       = C_CAST(
-                                  uint32_t,
-                                  fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
+                            uint32_t,
+                            fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = FIRMWARE_SLOT_FLAG;
                         start_Timer(&commandTimer);
                         ret = firmware_Download(&deviceList[deviceIter], &dlOptions);

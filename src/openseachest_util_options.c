@@ -3848,7 +3848,7 @@ void print_Reallocate_LBAs_Help(bool shortHelp)
         print_str("\t\tMultiple LBAs can be specified by separating them with commas.\n");
         print_str("\t\tFor SATA and NVMe devices, this will be passed to a SCSI translator\n");
         print_str("\t\twhich will handle all translation of this command.\n");
-        print_str("\t\tEx: --reallocate-blocks 123456,234567,345678\n\n");
+        printf("\t\tEx: --%s 123456,234567,345678\n\n", SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
     }
 }
 

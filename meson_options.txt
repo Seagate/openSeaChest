@@ -28,3 +28,4 @@ option('json_outputformat', type : 'boolean', value : false)
 #sent the ATA security freeze-lock command to the drive.
 #if you really want to enable this option, you can do it, but you have been warned!
 option('atasecsetpass', type : 'feature', value : 'disabled')
+option('cc-suggest-attribute', type : 'boolean', value : false, description : 'Enable warnings where the compiler can suggest various attributes to be applied to functions for optimization and correctness.')

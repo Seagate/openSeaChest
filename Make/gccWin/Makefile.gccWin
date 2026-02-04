@@ -25,9 +25,9 @@ endif
 # example: BUILD_ALL = firmware   for just firmware
 # BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart zbd
 ifneq (,$(findstring Linux,$(MYUNAME)))
-	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart security zbd passthrough reservations 
+	BUILD_ALL = basics configure erase firmware format info generictests logs powercontrol smart security zbd passthrough reservations
 else
-	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart security zbd passthrough reservations 
+	BUILD_ALL = basics configure erase firmware format info generictests logs nvme powercontrol smart security zbd passthrough reservations
 endif
 
 UTIL_SRC_DIR = ../../utils/C/openSeaChest
@@ -64,10 +64,7 @@ INC_DIR= \
 	-I../../subprojects/opensea-transport/include/vendor \
 	-I../../include \
 	-I../../subprojects/opensea-operations/include \
-	-I../../subprojects/wingetopt/src \
-	-I../../subprojects/opensea-jsonformat/include \
-	-I../../subprojects/json-c \
-	-I../../subprojects/json-c/buildwin \
+	-I../../subprojects/wingetopt/src
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
 	#CFLAGS += -mno-ms-bitfields
@@ -199,7 +196,7 @@ PROJECT_DEFINES += -DSTATIC_OPENSEA_TRANSPORT -DSTATIC_OPENSEA_OPERATIONS -D__US
 PROJECT_DEFINES += -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS
 
 PROJECT_DEFINES += -DENABLE_CSMI
-PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT 
+PROJECT_DEFINES += -DDISABLE_TCG_SUPPORT
 
 ifneq (,$(findstring MINGW64,$(UNAME)))
 	#BR note: trying different stuff during debugging
@@ -237,7 +234,7 @@ debug: SMARTOUTFILE := $(SMARTOUTFILE)_dbg.exe
 debug: ZBDOUTFILE := $(ZBDOUTFILE)_dbg.exe
 debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_dbg.exe
 debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_dbg.exe
-debug: mkoutputdir  wingetopt json-c opensea-libs seajsonformat $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+debug: mkoutputdir  wingetopt opensea-libs $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-debug: CXXFLAGS += -g
 static-debug: CFLAGS += -g
@@ -258,7 +255,7 @@ static-debug: SMARTOUTFILE := $(SMARTOUTFILE)_static_dbg.exe
 static-debug: ZBDOUTFILE := $(ZBDOUTFILE)_static_dbg.exe
 static-debug: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static_dbg.exe
 static-debug: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static_dbg.exe
-static-debug: mkoutputdir  wingetopt json-c opensea-libs seajsonformat $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-debug: mkoutputdir  wingetopt opensea-libs $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 release: CXXFLAGS += -O3
 release: CFLAGS += -O3
@@ -277,7 +274,7 @@ release: SMARTOUTFILE := $(SMARTOUTFILE).exe
 release: ZBDOUTFILE := $(ZBDOUTFILE).exe
 release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE).exe
 release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE).exe
-release: mkoutputdir  wingetopt json-c opensea-libs seajsonformat $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+release: mkoutputdir  wingetopt opensea-libs $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 static-release: CXXFLAGS += -O3
 static-release: CFLAGS += -O3
@@ -299,7 +296,7 @@ static-release: SMARTOUTFILE := $(SMARTOUTFILE)_static.exe
 static-release: ZBDOUTFILE := $(ZBDOUTFILE)_static.exe
 static-release: PASSTHROUGHTESTOUTFILE := $(PASSTHROUGHTESTOUTFILE)_static.exe
 static-release: RESERVATIONSOUTFILE := $(RESERVATIONSOUTFILE)_static.exe
-static-release: mkoutputdir  wingetopt json-c opensea-libs seajsonformat $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
+static-release: mkoutputdir  wingetopt opensea-libs $(BASICSOUTFILE) $(CONFIGUREOUTFILE) $(ERASEOUTFILE) $(FIRMWAREOUTFILE) $(GENERICTESTSOUTFILE) $(FORMATOUTFILE) $(INFOOUTFILE) $(LOGSOUTFILE) $(NVMEOUTFILE) $(POWERCONTROLOUTFILE) $(SMARTOUTFILE) $(SECURITYOUTFILE) $(ZBDOUTFILE) $(PASSTHROUGHTESTOUTFILE) $(RESERVATIONSOUTFILE)
 
 export CFLAGS
 export CXXFLAGS
@@ -307,7 +304,7 @@ export PROJECT_DEFINES
 
 json-c:
 	../buildjsonc.sh buildwin $(CC)
-	
+
 #wingetopt has a GNUMakefile that should be automatically found.
 #it has CMake and meson support too, which are preferred
 wingetopt:
@@ -342,7 +339,7 @@ endif
 #configure
 ifneq (,$(findstring configure,$(BUILD_ALL)))
     $(CONFIGUREOUTFILE): $(CONFIGUREOBJS)
-	$(CC) $(CONFIGUREOBJS) $(LIBJSONFORMATLFLAGS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
+	$(CC) $(CONFIGUREOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 	#sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(CONFIGUREOUTFILE)
 endif
@@ -387,7 +384,7 @@ endif
 #info
 ifneq (,$(findstring info,$(BUILD_ALL)))
     $(INFOOUTFILE): $(INFOOBJS)
-	$(CC) $(INFOOBJS) $(LIBJSONFORMATLFLAGS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
+	$(CC) $(INFOOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 	$(STRIP) -s $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 	#sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(INFOOUTFILE)
 endif
@@ -440,7 +437,7 @@ ifneq (,$(findstring passthrough,$(BUILD_ALL)))
 	#sh rename_seachest.sh $(FILE_OUTPUT_DIR)/$(PASSTHROUGHTESTOUTFILE)
 endif
 
-#reservations 
+#reservations
 ifneq (,$(findstring reservations,$(BUILD_ALL)))
     $(RESERVATIONSOUTFILE): $(RESERVATIONSOBJS)
 	$(CC) $(RESERVATIONSOBJS) $(LDFLAGS) $(LDLIBS) -o $(FILE_OUTPUT_DIR)/$(RESERVATIONSOUTFILE)
@@ -463,7 +460,6 @@ clean_all: clean
 	$(MAKE) -C ../../subprojects/opensea-common/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../subprojects/opensea-transport/Make/gccWin -f Makefile.gccWin clean
 	$(MAKE) -C ../../subprojects/opensea-operations/Make/gccWin -f Makefile.gccWin clean
-	$(MAKE) -C ../../subprojects/opensea-jsonformat/Make/gcc clean
 
 mkoutputdir:
 	mkdir -p $(FILE_OUTPUT_DIR)

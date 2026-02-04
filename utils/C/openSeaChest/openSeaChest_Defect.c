@@ -390,26 +390,29 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING) == 0)
             {
                 // Parse a comma separated list of options, then register the allocated memory for cleanup at exit
-                char *opts = M_NULLPTR;
+                char* opts = M_NULLPTR;
                 if (0 == safe_strdup(&opts, optarg))
                 {
                     rsize_t optsMax = safe_strlen(opts);
-                    char *token = M_NULLPTR;
-                    char *saveptr = M_NULLPTR;
-                    token = safe_strtok(opts, &optsMax, ",", &saveptr);
+                    char*   token   = M_NULLPTR;
+                    char*   saveptr = M_NULLPTR;
+                    token           = safe_strtok(opts, &optsMax, ",", &saveptr);
                     while (token != M_NULLPTR)
                     {
                         uint64_t lba = 0;
                         if (get_And_Validate_Integer_Input_Uint64(token, M_NULLPTR, ALLOW_UNIT_NONE, &lba))
                         {
                             ++SCSI_REALLOCATE_BLOCKS_LIST_LENGTH;
-                            // reallocf the list to add another entry. If reallocf fails, exit with error not enough resources
-                            ptrErrorLBA temp = safe_reallocf(M_REINTERPRET_CAST(void**, &SCSI_REALLOCATE_BLOCKS_LIST), sizeof(errorLBA) * SCSI_REALLOCATE_BLOCKS_LIST_LENGTH);
+                            // reallocf the list to add another entry. If reallocf fails, exit with error not enough
+                            // resources
+                            ptrErrorLBA temp = safe_reallocf(M_REINTERPRET_CAST(void**, &SCSI_REALLOCATE_BLOCKS_LIST),
+                                                             sizeof(errorLBA) * SCSI_REALLOCATE_BLOCKS_LIST_LENGTH);
                             if (temp != M_NULLPTR)
                             {
-                                SCSI_REALLOCATE_BLOCKS_LIST = temp;
+                                SCSI_REALLOCATE_BLOCKS_LIST                                                      = temp;
                                 SCSI_REALLOCATE_BLOCKS_LIST[SCSI_REALLOCATE_BLOCKS_LIST_LENGTH - 1].errorAddress = lba;
-                                SCSI_REALLOCATE_BLOCKS_LIST[SCSI_REALLOCATE_BLOCKS_LIST_LENGTH - 1].repairStatus = NOT_REPAIRED;
+                                SCSI_REALLOCATE_BLOCKS_LIST[SCSI_REALLOCATE_BLOCKS_LIST_LENGTH - 1].repairStatus =
+                                    NOT_REPAIRED;
                             }
                             else
                             {
@@ -1329,8 +1332,8 @@ int main(int argc, char* argv[])
 
         if (SCSI_REALLOCATE_BLOCKS_LIST_LENGTH > 0)
         {
-            switch(reallocate_LBAs(&deviceList[deviceIter], SCSI_REALLOCATE_BLOCKS_LIST,
-                                     SCSI_REALLOCATE_BLOCKS_LIST_LENGTH))
+            switch (reallocate_LBAs(&deviceList[deviceIter], SCSI_REALLOCATE_BLOCKS_LIST,
+                                    SCSI_REALLOCATE_BLOCKS_LIST_LENGTH))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1804,7 +1807,8 @@ void utility_Usage(bool shortUsage)
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
-    printf("\t%s -d %s --%s 123Fh,597,1467,0xA1295323\n", util_name, deviceHandleExample, SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s 123Fh,597,1467,0xA1295323\n", util_name, deviceHandleExample,
+           SCSI_REALLOCATE_BLOCKS_LIST_LONG_OPT_STRING);
     // return codes
     print_str("\nReturn codes\n");
     print_str("============\n");

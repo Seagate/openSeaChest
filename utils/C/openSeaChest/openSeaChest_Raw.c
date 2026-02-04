@@ -1107,7 +1107,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1137,8 +1137,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1343,12 +1342,13 @@ int main(int argc, char* argv[])
                                 // allocate based on logical block size
                                 if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                 {
-                                    //get the blocksize from read capacity first
+                                    // get the blocksize from read capacity first
                                     readCapacityData readCapData;
                                     safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
                                     if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                     {
-                                        deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                        deviceList[deviceIter].drive_info.deviceBlockSize =
+                                            readCapData.logicalBlockLength;
                                     }
                                 }
                                 allocatedDataLength =
@@ -1389,12 +1389,15 @@ int main(int argc, char* argv[])
                                 {
                                     if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                     {
-                                        //get the blocksize from read capacity first
+                                        // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
-                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
+                                                    sizeof(readCapacityData));
+                                        if (SUCCESS ==
+                                            scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
-                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                            deviceList[deviceIter].drive_info.deviceBlockSize =
+                                                readCapData.logicalBlockLength;
                                         }
                                     }
                                     fileOffset =
@@ -1404,12 +1407,15 @@ int main(int argc, char* argv[])
                                 {
                                     if (deviceList[deviceIter].drive_info.deviceBlockSize == 0)
                                     {
-                                        //get the blocksize from read capacity first
+                                        // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
-                                        if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
+                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
+                                                    sizeof(readCapacityData));
+                                        if (SUCCESS ==
+                                            scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
-                                            deviceList[deviceIter].drive_info.deviceBlockSize = readCapData.logicalBlockLength;
+                                            deviceList[deviceIter].drive_info.deviceBlockSize =
+                                                readCapData.logicalBlockLength;
                                         }
                                     }
                                     // allocate based on logical block size
@@ -1441,7 +1447,8 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            print_str("ERROR: Failed to open file for reading data to send to drive!\n");
+                                            print_str(
+                                                "ERROR: Failed to open file for reading data to send to drive!\n");
                                         }
                                         safe_free_aligned_core(C_CAST(void**, &dataBuffer));
                                         exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -1629,7 +1636,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        print_str("ERROR: Failed to open/create file for saving returned sense data!\n");
+                                        print_str(
+                                            "ERROR: Failed to open/create file for saving returned sense data!\n");
                                     }
                                     exit(UTIL_EXIT_OPERATION_FAILURE);
                                 }
@@ -1759,7 +1767,7 @@ int main(int argc, char* argv[])
             }
         }
         else if (RAW_TFR_SIZE_FLAG != 0 && RAW_TFR_PROTOCOL != -1 && RAW_TFR_XFER_LENGTH_LOCATION != -1 &&
-            RAW_TFR_BYTE_BLOCK != -1)
+                 RAW_TFR_BYTE_BLOCK != -1)
         {
             ataPassthroughCommand passthroughCommand;
             safe_memset(&passthroughCommand, sizeof(ataPassthroughCommand), 0, sizeof(ataPassthroughCommand));

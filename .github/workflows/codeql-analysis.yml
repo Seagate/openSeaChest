@@ -15,10 +15,18 @@ on:
   schedule:
     - cron: '0 12 * * 6'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -58,6 +66,11 @@ jobs:
           }
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
       uses: actions/checkout@v6.0.2
       with:
@@ -65,7 +78,7 @@ jobs:
         # a pull request then we can checkout the head.
         fetch-depth: 2
         submodules: recursive
-    
+
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
       uses: ilammy/msvc-dev-cmd@v1
@@ -83,7 +96,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file. 
+        # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
@@ -99,7 +112,19 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
+    - name: Setup pip cache
+      uses: actions/cache@v5.0.0
+      with:
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-meson-
+          ${{ runner.os }}-pip-
+
     - name: Configuring and compiling with meson
+      shell: bash
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}

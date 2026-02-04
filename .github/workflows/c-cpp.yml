@@ -7,10 +7,17 @@ on:
   pull_request:
     branches: [ develop ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -38,6 +45,11 @@ jobs:
         shell: bash
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+      with:
+        egress-policy: audit
+
     - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
@@ -45,10 +57,9 @@ jobs:
     - name: Escape backslash in branch name
       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
-    - name: Setting release name
-      env:
-        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
+    - name: Set release name
       run: |
+        DESTDIR="openSeaChest-${BRANCH_NAME}-${{ matrix.config.release_name }}"
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
 
     - name: Add Mingw-w64 to path
@@ -73,7 +84,7 @@ jobs:
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: ${{ format('{0}', env.DESTDIR) }}
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}

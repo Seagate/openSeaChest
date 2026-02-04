@@ -34,8 +34,8 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char *util_name = "openSeaChest_PowerControl";
-const char *buildVersion = "3.7.2";
+const char* util_name    = "openSeaChest_PowerControl";
+const char* buildVersion = "3.7.2";
 
 ////////////////////////////
 //  functions to declare  //
@@ -1365,7 +1365,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1395,8 +1395,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2668,7 +2667,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2721,7 +2721,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Balance is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -2853,7 +2854,7 @@ int main(int argc, char* argv[])
         if (SATA_DAPS_FLAG)
         {
             switch (sata_Set_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter],
-                                                                               SATA_DAPS_ENABLE_FLAG))
+                                                                              SATA_DAPS_ENABLE_FLAG))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2890,7 +2891,7 @@ int main(int argc, char* argv[])
             bool dapsSupported = false;
             bool dapsEnabled   = false;
             switch (sata_Get_Device_Automatic_Partial_To_Slumber_Transtisions(&deviceList[deviceIter], &dapsSupported,
-                                                                               &dapsEnabled))
+                                                                              &dapsEnabled))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2937,15 +2938,17 @@ int main(int argc, char* argv[])
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
                 snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
-                         "SAS Partial & Slumber");
+                                    "SAS Partial & Slumber");
             }
             else if (SAS_PARTIAL_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "SAS Partial");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                    "SAS Partial");
             }
             else if (SAS_SLUMBER_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber");
+                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                    "Slumber");
             }
             switch (scsi_Set_Partial_Slumber(
                 &deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG,

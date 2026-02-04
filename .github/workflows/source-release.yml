@@ -4,11 +4,13 @@ name: Create Complete Source Archive
 on:
   push:
     tags: [ v* ]
-    
+
 jobs:
   archive:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -28,7 +30,12 @@ jobs:
       hash-SourceCode_With_Submodules-Windows: ${{ steps.hash.outputs.hash-SourceCode_With_Submodules-Windows }}
       hash-SourceCode_With_Submodules-Linux: ${{ steps.hash.outputs.hash-SourceCode_With_Submodules-Linux }}
 
-    steps:  
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+      with:
+        egress-policy: audit
+
     - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
@@ -37,14 +44,14 @@ jobs:
       shell: bash
       run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
 
-    - name: Setting release name
-      env:
-        ARCHIVENAME: ${{ format('openSeaChest-{0}', env.BRANCH_NAME) }}
-      run: |
-        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
+    - name: Set release name
       shell: bash
+      run: |
+        ARCHIVENAME="openSeaChest-${BRANCH_NAME}"
+        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
 
     - name: Create Source Archive
+      shell: bash
       run: |
         pip install git-archive-all
         git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules${{ matrix.config.extension }}
@@ -63,17 +70,17 @@ jobs:
           echo "hash-SourceCode_With_Submodules-${{ matrix.config.name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v6.0.0
       with:
         name: SourceCode_With_Submodules-${{ matrix.config.name }}
         path: SourceCode_With_Submodules${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v2.2.0
       with:
         files: SourceCode_With_Submodules${{ matrix.config.extension }}
-  
+
   # Generate the slsa provenance
   provenance:
     needs: [archive]

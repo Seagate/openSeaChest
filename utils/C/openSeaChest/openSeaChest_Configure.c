@@ -38,7 +38,10 @@
 #include "trim_unmap.h"
 
 #include "cdl.h"
+
+#if defined (FEATURE_JSONOUTPUT_SUPPORT)
 #include "cdl_json.h"
+#endif
 
 ////////////////////////
 //  Global Variables  //
@@ -1867,7 +1870,7 @@ int main(int argc, char* argv[])
             DEVICE_LIST[devi].deviceVerbosity = toolVerbosity;
         }
         getDevsRet = get_Device_List(DEVICE_LIST, DEVICE_LIST_COUNT * sizeof(tDevice), version, flags);
-        ret = getDevsRet;
+        ret        = getDevsRet;
         if (SUCCESS != ret)
         {
             if (ret == WARN_NOT_ALL_DEVICES_ENUMERATED)
@@ -1914,7 +1917,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1944,8 +1947,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2244,7 +2246,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot identify.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2291,7 +2294,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot restore DCO settings to factory.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2535,8 +2539,10 @@ int main(int argc, char* argv[])
                         print_str("Successfully configured available features/modes/maxLBA using DCO.\n");
                         if (!scsiAtaInSync)
                         {
-                            print_str("\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
-                            print_str("         A reboot is strongly recommended to make sure the system works without\n");
+                            print_str(
+                                "\nWARNING: The adapter/driver/bridge is not in sync with the capacity change!\n");
+                            print_str(
+                                "         A reboot is strongly recommended to make sure the system works without\n");
                             print_str("         errors with the drive at its new capacity.\n\n");
                         }
                     }
@@ -2563,7 +2569,8 @@ int main(int argc, char* argv[])
                     {
                         print_str("Failed DCO set command.\n");
                         print_str("DCO set may already have been used to configure the device and\n");
-                        print_str("a DCO restore settings may be required before making more modifications with DCO.\n");
+                        print_str(
+                            "a DCO restore settings may be required before making more modifications with DCO.\n");
                         print_str("Device may have active HPA that must be\n");
                         print_str("disabled before DCO set can be used.\n");
                     }
@@ -2586,7 +2593,8 @@ int main(int argc, char* argv[])
                 {
                     print_str("DCO is Frozen. Cannot set DCO features.\n");
                     print_str("Device must be power cycled to clear freeze-lock.\n");
-                    print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                    print_str(
+                        "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                     print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2653,7 +2661,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    print_str(
+                        "Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");

@@ -891,7 +891,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -921,8 +921,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1198,7 +1197,8 @@ static eReturnValues return_Response_Extend_Bit_Test(tDevice* device)
         // check HPA or AMAC support as those are preferred commands to be used.
         // The values that are returned should be greater than or equal to the current maxLBA of the drive.
         // Also, if the ext registers are 0xFF, then they were not reported correctly.
-        if (le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0xFFFF && le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0 &&
+        if (le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0xFFFF &&
+            le16_to_host(device->drive_info.IdentifyData.ata.Word082) != 0 &&
             le16_to_host(device->drive_info.IdentifyData.ata.Word082) & BIT10)
         {
             // HPA
@@ -2201,7 +2201,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
     print_str("=========================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
 
-    #define SUPPORTED_PAGES_LEN 36
+#define SUPPORTED_PAGES_LEN 36
     DECLARE_ZERO_INIT_ARRAY(uint8_t, supportedPages, SUPPORTED_PAGES_LEN);
     uint8_t dummiedPageCount = UINT8_C(0);
     bool    dummiedPages     = false;
@@ -2419,7 +2419,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     uint8_t  association        = M_GETBITRANGE(pageToRead[offset + 1], 5, 4);
                     uint8_t  designatorType     = M_Nibble0(pageToRead[offset + 1]);
                     uint16_t designatorOffset   = C_CAST(
-                          uint16_t, offset + 4); // This cast to a smaller type should be ok since the offset should never
+                        uint16_t, offset + 4); // This cast to a smaller type should be ok since the offset should never
                                                  // even get to the max uint16_t length. There is a small possibility of
                     // ovverflow with the +4, but it is very slim due to how this is reported
                     // from a device. This should never really happen. - TJE
@@ -3126,7 +3126,8 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                         {
                             satRevision[iter] = ' ';
                             set_Console_Colors(true, WARNING_COLOR);
-                            print_str("WARNING: SAT Product Revision contains non-ASCII or non-Printable Characters!\n");
+                            print_str(
+                                "WARNING: SAT Product Revision contains non-ASCII or non-Printable Characters!\n");
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
@@ -4387,8 +4388,10 @@ static eReturnValues scsi_Capacity_Information(tDevice* device, ptrScsiDevInform
         set_Console_Colors(true, WARNING_COLOR);
         print_str("WARNING: Failed read capacity 16. This should only happen on old legacy SPC & earlier devices.\n");
         print_str("         All new devices SHOULD support this command to report PI type (if any) and logical\n");
-        print_str("         to physical block relationships so that read/write can be properly aligned for the device.\n");
-        print_str("         this command also reports if logical block provisioning management is enabled and whether\n");
+        print_str(
+            "         to physical block relationships so that read/write can be properly aligned for the device.\n");
+        print_str(
+            "         this command also reports if logical block provisioning management is enabled and whether\n");
         print_str("         or not zeros are reported when reading an unmapped LBA.\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
@@ -4424,7 +4427,7 @@ static eReturnValues use_Mode_Sense_6(tDevice* device, uint8_t pageCode, bool* u
     if (SUCCESS != scsi_Mode_Sense_10(device, pageCode, 0, 0, false, false, MPC_CURRENT_VALUES, M_NULLPTR))
     {
         // if invalid operation code, try again with 6 byte command.
-        bool            tryAnotherPage = false;
+        bool tryAnotherPage = false;
         if (is_Invalid_Opcode(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN))
         {
             // didn't like the operation code, so retrying with mode sense 6
@@ -4522,7 +4525,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(
             {
                 set_Console_Colors(true, HACK_COLOR);
                 print_str("HACK FOUND: NMSP\n"); // mode page subpages are not supported by this device and it does not
-                                              // properly validate all fields of the CDB
+                                                 // properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
@@ -4534,9 +4537,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     // reallocate enough data and reread the page.
-                    uint8_t* temp =
-                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
-                                                         device->os_info.minimumAlignment));
+                    uint8_t* temp = M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength,
+                                                                                 pageLengthValidation,
+                                                                                 device->os_info.minimumAlignment));
                     if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
@@ -4594,7 +4597,7 @@ static eReturnValues get_SCSI_Mode_Page_Data(
             {
                 set_Console_Colors(true, HACK_COLOR);
                 print_str("HACK FOUND: NMSP\n"); // mode page subpages are not supported by this device and it does not
-                                              // properly validate all fields of the CDB
+                                                 // properly validate all fields of the CDB
                 device->drive_info.passThroughHacks.scsiHacks.noModeSubPages = true;
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             }
@@ -4606,9 +4609,9 @@ static eReturnValues get_SCSI_Mode_Page_Data(
                 if (*dataBufferLength < pageLengthValidation)
                 {
                     // reallocate enough data and reread the page.
-                    uint8_t* temp =
-                        M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength, pageLengthValidation,
-                                                         device->os_info.minimumAlignment));
+                    uint8_t* temp = M_REINTERPRET_CAST(uint8_t*, realloc_aligned(*dataBuffer, *dataBufferLength,
+                                                                                 pageLengthValidation,
+                                                                                 device->os_info.minimumAlignment));
                     if (temp != M_NULLPTR)
                     {
                         *dataBuffer       = temp;
@@ -4691,7 +4694,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // control mode page
     modeDataLength = MP_CONTROL_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4735,7 +4738,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         // control extension mode page (not 6 byte, and check if it reports correctly)
         modeDataLength = MP_CONTROL_EXTENSION_LEN + commonModeDataLength;
         modeData       = M_REINTERPRET_CAST(
-                  uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+            uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -4771,7 +4774,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // read write error recovery mode page
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4825,7 +4828,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // caching mode page
     modeDataLength = MP_CACHING_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4879,7 +4882,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // rigid disk geometry page
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -4967,7 +4970,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // informational exceptions mode page
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -5031,7 +5034,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     // power condition control mode page
     modeDataLength = MP_POWER_CONDITION_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
-              uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
     if (!modeData)
     {
         return MEMORY_FAILURE;
@@ -5149,7 +5152,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         // ata power condition mode page
         modeDataLength = 16 + commonModeDataLength;
         modeData       = M_REINTERPRET_CAST(
-                  uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
+            uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
         if (!modeData)
         {
             return MEMORY_FAILURE;
@@ -5864,9 +5867,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                 switch (subPageCode)
                 {
                 case 0x00:
-                    print_str("Logical Block Provisioning\n"); // If this is a tape drive, then this is sequential access
-                                                            // device page! TODO: add an if in case someone runs this
-                                                            // against a tape
+                    print_str("Logical Block Provisioning\n"); // If this is a tape drive, then this is sequential
+                                                               // access device page! TODO: add an if in case someone
+                                                               // runs this against a tape
                     // TODO: Parse out this page
                     break;
                 case 0xFF:
@@ -7237,13 +7240,16 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
                                         inputs->device->drive_info.bridge_info.childDriveFW);
 
     // get the WWN
-    inputs->device->drive_info.bridge_info.childWWN = M_WordsTo8ByteValue(
-        le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word108), le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word109),
-        le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word110), inputs->device->drive_info.IdentifyData.ata.Word111);
+    inputs->device->drive_info.bridge_info.childWWN =
+        M_WordsTo8ByteValue(le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word108),
+                            le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word109),
+                            le16_to_host(inputs->device->drive_info.IdentifyData.ata.Word110),
+                            inputs->device->drive_info.IdentifyData.ata.Word111);
 
     // get the sector sizes from the identify data
-    if (((le16_to_host(ident_word[106]) & BIT14) == BIT14) && ((le16_to_host(ident_word[106]) & BIT15) == 0)) // making sure this word has valid
-                                                                                  // data
+    if (((le16_to_host(ident_word[106]) & BIT14) == BIT14) &&
+        ((le16_to_host(ident_word[106]) & BIT15) == 0)) // making sure this word has valid
+                                                        // data
     {
         // word 117 is only valid when word 106 bit 12 is set
         if ((le16_to_host(ident_word[106]) & BIT12) == BIT12)
@@ -7382,7 +7388,8 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
         {
             inputs->device->drive_info.ata_Options.readWriteMultipleSupported = true;
             // set the number of logical sectors per DRQ data block (current setting)
-            inputs->device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock = M_Byte0(le16_to_host(ident_word[59]));
+            inputs->device->drive_info.ata_Options.logicalSectorsPerDRQDataBlock =
+                M_Byte0(le16_to_host(ident_word[59]));
         }
     }
     // check for tagged command queuing support
@@ -7860,7 +7867,8 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         // reports. For MN, SN, FW, check for commonly broken reporting methods.
 #define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
         DECLARE_ZERO_INIT_ARRAY(char, scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN);
-        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s", scsiInformation->inquiryData.productId);
+        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s",
+                            scsiInformation->inquiryData.productId);
         remove_Leading_And_Trailing_Whitespace(scsiProdID);
         if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN,
                     M_Min(16, safe_strlen(scsiProdID))) == 0)
@@ -7880,8 +7888,8 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 // Most likely had the vendor+productID set as the full ATA MN
 #define PASSTHROUGH_TEST_FULL_MN_LENGTH 42
                 DECLARE_ZERO_INIT_ARRAY(char, fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH);
-                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s", scsiInformation->inquiryData.vendorId,
-                         scsiInformation->inquiryData.productId);
+                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s",
+                                    scsiInformation->inquiryData.vendorId, scsiInformation->inquiryData.productId);
                 if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN,
                             M_Min(safe_strlen(fullMN),
                                   safe_strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
@@ -8187,7 +8195,7 @@ static eReturnValues scsi_Max_Transfer_Length_Test(tDevice* device, uint32_t rep
     }
     size_t   dataBufSize = uint32_to_sizet(maxTestSizeBlocks) * uint32_to_sizet(device->drive_info.deviceBlockSize);
     uint8_t* data        = M_REINTERPRET_CAST(
-               uint8_t*, safe_calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint8_t*, safe_calloc_aligned(dataBufSize, sizeof(uint8_t), device->os_info.minimumAlignment));
     set_Console_Colors(true, HEADING_COLOR);
     print_str("\n==================================\n");
     print_str("Testing SCSI Maximum Transfer Size\n");
@@ -8676,9 +8684,10 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     while (inputs->device->drive_info.passThroughHacks.passthroughType < NVME_PASSTHROUGH_UNKNOWN)
                     {
                         // Try admin identify controller until we get success or run out of passthroughs to try
-                        if (SUCCESS == nvme_Identify(inputs->device,
-                                                     M_REINTERPRET_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.nvme.ctrl), 0,
-                                                     1))
+                        if (SUCCESS ==
+                            nvme_Identify(
+                                inputs->device,
+                                M_REINTERPRET_CAST(uint8_t*, &inputs->device->drive_info.IdentifyData.nvme.ctrl), 0, 1))
                         {
                             break;
                         }
@@ -9093,8 +9102,8 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                 if (!inputs->hangCommandsToTest.sctLogWithGPL)
                 {
                     set_Console_Colors(true, LIKELY_HACK_COLOR);
-                    print_str(" SCTSM,"); // -please retest to ensure that reading the SCT status log with GPL commands is
-                                       // indeed a necessary hack");
+                    print_str(" SCTSM,"); // -please retest to ensure that reading the SCT status log with GPL commands
+                                          // is indeed a necessary hack");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }

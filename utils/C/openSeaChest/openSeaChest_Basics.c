@@ -19,6 +19,7 @@
 #include "common_types.h"
 #include "io_utils.h"
 #include "memory_safety.h"
+#include "precision_timer.h"
 #include "secure_file.h"
 #include "sleep.h"
 #include "string_utils.h"
@@ -1010,7 +1011,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1040,8 +1041,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1594,8 +1594,8 @@ int main(int argc, char* argv[])
                         dlOptions.ignoreStatusOfFinalSegment = M_ToBool(FWDL_IGNORE_FINAL_SEGMENT_STATUS_FLAG);
                         dlOptions.firmwareFileMem            = firmwareMem;
                         dlOptions.firmwareMemoryLength       = C_CAST(
-                                  uint32_t,
-                                  fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
+                            uint32_t,
+                            fwfile->fileSize); // firmware files shouldn't be larger than a few MBs for a LONG time
                         dlOptions.firmwareSlot = 0;
                         ret                    = firmware_Download(&deviceList[deviceIter], &dlOptions);
                         switch (ret)
@@ -1790,7 +1790,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
+                    print_str(
+                        "Successfully set the PHY speed. Please power cycle the device to complete this change.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
