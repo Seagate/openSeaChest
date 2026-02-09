@@ -119,6 +119,8 @@ jobs:
         - {
             name: "VMActions Solaris 11.4 (x86_64) Make Build",
             os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
             vm_actions: true,
             vm_platform: "solaris",
             vm_release: "11.4-gcc",
@@ -295,8 +297,11 @@ jobs:
     - name: Build with Make (VMActions Solaris)
       if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'solaris'
       uses: vmactions/solaris-vm@v1
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR CC CXX'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
@@ -308,6 +313,16 @@ jobs:
           ntpdate -u pool.ntp.org
 
         run: |
+          # Debug: Check for gcc
+          echo "=== Compiler Detection ==="
+          which gcc || echo "gcc not found in PATH"
+          which g++ || echo "g++ not found in PATH"
+          which cc || echo "cc not found in PATH"
+          gcc --version 2>/dev/null || echo "gcc command failed"
+          echo "CC=${CC}"
+          echo "CXX=${CXX}"
+          echo "========================="
+
           chmod +x Make/buildjsonc.sh
           gmake BUILD_TYPE=release
 
@@ -330,7 +345,11 @@ jobs:
         # Create archive from build directory (simpler, matches meson.yml)
         cd build
         ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" "${DESTDIR}"
-        name: ${{ format('{0}', env.DESTDIR) }}
-        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 
-    # Not packaging release from make since this comes from meson instead. This CI is meant to check that we preserve compatibility with older make systems as a backup only.
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.DESTDIR }}
+        path: ./build/${{ env.DESTDIR }}${{ matrix.config.release_extension }}
+
+    # Not publishing release from make since this comes from meson instead. This CI is meant to check that we preserve compatibility with older make systems as a backup only.
