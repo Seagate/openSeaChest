@@ -127,18 +127,33 @@ endif
 HARDENING_FLAGS += -ffunction-sections -fdata-sections
 
 #===============================================================================
-# Position Independent Code (PIE)
+# Position Independent Code (PIC/PIE)
 #===============================================================================
+
+# Test for -fPIC support (needed for static libraries on some platforms like BSD)
+# This prevents relocation errors when linking static libraries into executables
+PIC_SUPPORT := $(call cc_supports,-fPIC)
+ifneq ($(PIC_SUPPORT),)
+    # Add -fPIC globally for static library compatibility
+    HARDENING_FLAGS += -fPIC
+endif
 
 # PIE (Position Independent Executable) for ASLR
 # Only apply for executables, not libraries (libraries are PIC by default)
-PIE_SUPPORT := $(call cc_supports,-fPIE)
-ifneq ($(PIE_SUPPORT),)
-    # Will be applied per-target (executables only)
+# Test both compiler flag (-fPIE) and linker flag (-pie) support
+PIE_CFLAGS_SUPPORT := $(call cc_supports,-fPIE)
+PIE_LDFLAGS_SUPPORT := $(shell echo 'int main(void) { return 0; }' | \
+                        $(CC) -fPIE -pie -x c - -o /dev/null 2>/dev/null && echo yes)
+
+ifneq ($(PIE_CFLAGS_SUPPORT),)
     PIE_CFLAGS := -fPIE
-    PIE_LDFLAGS := -pie
 else
     PIE_CFLAGS :=
+endif
+
+ifneq ($(PIE_LDFLAGS_SUPPORT),)
+    PIE_LDFLAGS := -pie
+else
     PIE_LDFLAGS :=
 endif
 
