@@ -164,6 +164,15 @@ We provide **38 pre-configured cross-compilation files** in `meson_crosscompile/
       # Using Ubuntu cross-compiler
       meson setup --cross-file meson_crosscompile/ubuntu_ppc64le.txt buildppc
 
+**Alternative: muon and samurai (Python-free)**
+
+For environments where Python is unavailable, you can use [muon](https://sr.ht/~lattis/muon/) and [samurai](https://github.com/michaelforney/samurai) as drop-in replacements for Meson and Ninja:
+
+      muon setup builddir
+      samu -C builddir
+
+These tools aim to be compatible with Meson/Ninja but are written in C and have no Python dependency. openSeaChest should be compatible with muon and samurai, although we have only done limited testing to confirm successful builds. For installation instructions and full documentation, see the respective project pages.
+
 **Tips and Troubleshooting:**
 
 *Faster Builds:*
