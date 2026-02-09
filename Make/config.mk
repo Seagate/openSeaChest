@@ -191,6 +191,10 @@ else
     CXX ?= c++
 endif
 
+# Export CC/CXX immediately so compiler-detection.mk uses the correct compiler
+export CC
+export CXX
+
 #===============================================================================
 # Build Configuration
 #===============================================================================
