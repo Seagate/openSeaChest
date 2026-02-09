@@ -56,23 +56,55 @@ endif
 # GCC Version Detection
 #===============================================================================
 
+# VMware ESXi cross-compiler special case
+# VMware's GCC-based cross-compiler doesn't respond to -dumpversion
+# Force GCC detection and set a known-good version manually
+ifeq ($(PLATFORM),vmware)
+    IS_GCC := 1
+    IS_CLANG := 0
+    # TODO: Update this version based on actual VMware DDK GCC version
+    # This is a placeholder - user will provide the correct version
+    GCC_VERSION_FULL := 4.9.0
+    GCC_MAJOR := 4
+    GCC_MINOR := 9
+    GCC_PATCH := 0
+endif
+
 ifeq ($(IS_GCC),1)
     # Get GCC version (format: major.minor.patch)
-    GCC_VERSION_FULL := $(shell $(CC) -dumpversion 2>/dev/null)
+    # Skip version detection for VMware (already set above)
+    ifneq ($(PLATFORM),vmware)
+        GCC_VERSION_FULL := $(shell $(CC) -dumpversion 2>/dev/null)
+    endif
+
+    # Get GCC version (format: major.minor.patch)
+    # Skip version detection for VMware (already set above)
+    ifneq ($(PLATFORM),vmware)
+        GCC_VERSION_FULL := $(shell $(CC) -dumpversion 2>/dev/null)
+    endif
 
     # Parse major version (strip non-numeric suffixes like "-win32" from MinGW)
-    GCC_MAJOR := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f1 | sed 's/[^0-9].*//')
+    # Skip parsing for VMware (already set above)
+    ifneq ($(PLATFORM),vmware)
+        GCC_MAJOR := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f1 | sed 's/[^0-9].*//')
+    endif
 
     # Parse minor version (default to 0 if not present)
-    GCC_MINOR := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f2 | sed 's/[^0-9].*//' 2>/dev/null || echo 0)
-    ifeq ($(GCC_MINOR),)
-        GCC_MINOR := 0
+    # Skip parsing for VMware (already set above)
+    ifneq ($(PLATFORM),vmware)
+        GCC_MINOR := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f2 | sed 's/[^0-9].*//' 2>/dev/null || echo 0)
+        ifeq ($(GCC_MINOR),)
+            GCC_MINOR := 0
+        endif
     endif
 
     # Parse patch version (default to 0 if not present)
-    GCC_PATCH := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f3 | sed 's/[^0-9].*//' 2>/dev/null || echo 0)
-    ifeq ($(GCC_PATCH),)
-        GCC_PATCH := 0
+    # Skip parsing for VMware (already set above)
+    ifneq ($(PLATFORM),vmware)
+        GCC_PATCH := $(shell echo $(GCC_VERSION_FULL) | cut -d. -f3 | sed 's/[^0-9].*//' 2>/dev/null || echo 0)
+        ifeq ($(GCC_PATCH),)
+            GCC_PATCH := 0
+        endif
     endif
 
     # Combined version for comparisons (e.g., 40900 for 4.9.0)
