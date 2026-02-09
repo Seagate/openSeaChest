@@ -303,8 +303,8 @@ jobs:
           exit 1
         fi
         echo "Found executables in: $BIN_DIR"
-        cd build/package
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" -C ../../${BIN_DIR} .
+        cd "${BIN_DIR}"
+        ${{ matrix.config.archive_command }} "../../build/package/${DESTDIR}${ARCHIVE_EXT}" .
 
     - name: Uploading artifacts
       uses: actions/upload-artifact@v6.0.0
