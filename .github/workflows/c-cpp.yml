@@ -310,6 +310,6 @@ jobs:
       uses: actions/upload-artifact@v6.0.0
       with:
         name: ${{ format('{0}', env.DESTDIR) }}
-        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        path: ${{ format('./build/package/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 
     # Not packaging release from make since this comes from meson instead. This CI is meant to check that we preserve compatibility with older make systems as a backup only.
