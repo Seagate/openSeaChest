@@ -35,9 +35,14 @@ MAKEFLAGS += --warn-undefined-variables
 .DELETE_ON_ERROR:
 
 # Safe shell with error handling
-# Use bash from PATH (handles BSD systems where bash is at /usr/local/bin/bash)
-SHELL := bash
-.SHELLFLAGS := -eu -o pipefail -c
+# Prefer bash for pipefail support (catches errors in pipes), fall back to POSIX sh
+# NOTE: bash is recommended for best error detection. Install with:
+#   - Linux/BSD: pkg install bash (or apt/yum/dnf install bash)
+#   - AIX: installp -a -d . bash (from AIX Toolbox)
+#   - HP-UX: swinstall bash (from HP-UX porting centre)
+#   - Solaris: pkg install bash
+SHELL := $(shell command -v bash 2>/dev/null || echo sh)
+.SHELLFLAGS := $(if $(findstring bash,$(SHELL)),-eu -o pipefail -c,-eu -c)
 
 #===============================================================================
 # Platform Detection
