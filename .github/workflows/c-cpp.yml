@@ -39,6 +39,9 @@ jobs:
         - {
             name: "Ubuntu MinGW Cross-Compile",
             os: ubuntu-latest,
+            cc: "x86_64-w64-mingw32-gcc",
+            cxx: "x86_64-w64-mingw32-g++",
+            ar: "x86_64-w64-mingw32-ar",
             mingw_cross: true,
             release_name: "win-x86_64-ubuntu-mingw",
             release_extension: ".zip",
@@ -183,8 +186,12 @@ jobs:
     # Ubuntu MinGW cross-compile build
     - name: make (MinGW cross-compile)
       if: matrix.config.mingw_cross == true
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+        AR: ${{ matrix.config.ar }}
       run: |
-        make BUILD_TYPE=release CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
+        make BUILD_TYPE=release
 
     # Traditional make builds (Windows/Ubuntu native)
     - name: make
@@ -313,16 +320,6 @@ jobs:
           ntpdate -u pool.ntp.org
 
         run: |
-          # Debug: Check for gcc
-          echo "=== Compiler Detection ==="
-          which gcc || echo "gcc not found in PATH"
-          which g++ || echo "g++ not found in PATH"
-          which cc || echo "cc not found in PATH"
-          gcc --version 2>/dev/null || echo "gcc command failed"
-          echo "CC=${CC}"
-          echo "CXX=${CXX}"
-          echo "========================="
-
           chmod +x Make/buildjsonc.sh
           gmake BUILD_TYPE=release
 
