@@ -168,7 +168,7 @@ jobs:
     - name: make
       if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == ''
       run: |
-        make release BUILD_TYPE=release
+        make BUILD_TYPE=release
 
     # MSYS2 make builds (MINGW64/UCRT64)
     - name: make (MSYS2)
@@ -176,7 +176,7 @@ jobs:
       shell: msys2 {0}
       run: |
         chmod +x Make/buildjsonc.sh
-        make release BUILD_TYPE=release
+        make BUILD_TYPE=release
 
     # VMActions FreeBSD Build
     - name: Build with Make (VMActions FreeBSD)
@@ -195,7 +195,7 @@ jobs:
 
         run: |
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     # VMActions OpenBSD Build
     - name: Build with Make (VMActions OpenBSD)
@@ -214,7 +214,7 @@ jobs:
 
         run: |
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     # VMActions NetBSD Build
     - name: Build with Make (VMActions NetBSD)
@@ -226,12 +226,12 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         prepare: |
-          /usr/sbin/pkg_add curl gmake bash
+          /usr/sbin/pkg_add curl gmake
           /usr/sbin/pkg_add ntp
 
         run: |
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     # VMActions DragonFlyBSD Build
     - name: Build with Make (VMActions DragonFlyBSD)
@@ -249,7 +249,7 @@ jobs:
 
         run: |
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     # VMActions OmniOS Build
     - name: Build with Make (VMActions OmniOS)
@@ -269,7 +269,7 @@ jobs:
           pkg install build-essential pkg-config
 
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     # VMActions Solaris Build
     - name: Build with Make (VMActions Solaris)
@@ -290,7 +290,7 @@ jobs:
           pkg install --accept developer/build/gnu-make
 
           chmod +x Make/buildjsonc.sh
-          gmake release BUILD_TYPE=release
+          gmake BUILD_TYPE=release
 
     - name: Packing release
       env:
