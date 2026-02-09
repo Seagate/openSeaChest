@@ -15,7 +15,7 @@ jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     permissions:
       contents: read
     strategy:
@@ -40,19 +40,116 @@ jobs:
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
           }
+        - {
+            name: "MSYS2 MINGW64 GCC",
+            os: windows-latest,
+            msys2_msystem: "MINGW64",
+            release_name: "win-x86_64-msys2-mingw64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        - {
+            name: "MSYS2 UCRT64 GCC",
+            os: windows-latest,
+            msys2_msystem: "UCRT64",
+            release_name: "win-x86_64-msys2-ucrt64",
+            release_extension: ".zip",
+            archive_command: "7z a -tzip -mmt"
+          }
+        # VMActions builds for BSD and Solaris platforms
+        - {
+            name: "VMActions FreeBSD latest (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "freebsd",
+            vm_release: "",
+            vm_arch: "x86_64",
+            release_name: "freebsd-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "VMActions OpenBSD latest (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "openbsd",
+            vm_release: "",
+            vm_arch: "x86_64",
+            release_name: "openbsd-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "VMActions NetBSD latest (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "netbsd",
+            vm_release: "",
+            vm_arch: "x86_64",
+            release_name: "netbsd-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "VMActions DragonFlyBSD latest (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "dragonflybsd",
+            vm_release: "",
+            vm_arch: "x86_64",
+            release_name: "dragonflybsd-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "VMActions OmniOS r151054 (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "omnios",
+            vm_release: "r151054",
+            vm_arch: "x86_64",
+            release_name: "omnios_r151054-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
+        - {
+            name: "VMActions Solaris 11.4 (x86_64) Make Build",
+            os: ubuntu-latest,
+            vm_actions: true,
+            vm_platform: "solaris",
+            vm_release: "11.4",
+            vm_arch: "x86_64",
+            release_name: "solaris_11_4-x86_64-make",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ"
+          }
     defaults:
       run:
         shell: bash
 
     steps:
-    - name: Harden Runner
-      uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
-      with:
-        egress-policy: audit
+    # No runner hardening since it breaks the VMActions even though there is an ifcondition here
+    # - name: Harden Runner
+    #   if: matrix.config.vm_actions != true
+    #   uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+    #   with:
+    #     egress-policy: audit
 
     - uses: actions/checkout@v6.0.2
       with:
         submodules: recursive
+
+    - name: Setup MSYS2
+      if: matrix.config.msys2_msystem != ''
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.config.msys2_msystem }}
+        update: true
+        install: >-
+          base-devel
+          git
+        pacboy: >-
+          toolchain:p
 
     - name: Escape backslash in branch name
       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
@@ -68,12 +165,137 @@ jobs:
         echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
 
     - name: Make buildjsonc.sh executable
+      if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == ''
       run: chmod +x Make/buildjsonc.sh
 
+    # Traditional make builds (Windows/Ubuntu)
     - name: make
+      if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == ''
       working-directory: ${{ matrix.config.builddir }}
       run: |
         make release -f ${{ matrix.config.makefile }}
+
+    # MSYS2 make builds (MINGW64/UCRT64)
+    - name: make (MSYS2)
+      if: matrix.config.msys2_msystem != ''
+      shell: msys2 {0}
+      run: |
+        chmod +x Make/buildjsonc.sh
+        cd Make && make release BUILD_TYPE=release
+
+    # VMActions FreeBSD Build
+    - name: Build with Make (VMActions FreeBSD)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'freebsd'
+      uses: vmactions/freebsd-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg update || true
+          pkg install -y curl gmake bash
+          pkg install -y ntp
+          ntpdate -u pool.ntp.org
+
+        run: |
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
+
+    # VMActions OpenBSD Build
+    - name: Build with Make (VMActions OpenBSD)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'openbsd'
+      uses: vmactions/openbsd-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg_add curl gmake bash
+
+          # force a sync in the VM
+          ntpctl -s status || true
+
+        run: |
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
+
+    # VMActions NetBSD Build
+    - name: Build with Make (VMActions NetBSD)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'netbsd'
+      uses: vmactions/netbsd-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          /usr/sbin/pkg_add curl gmake bash
+          /usr/sbin/pkg_add ntp
+
+        run: |
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
+
+    # VMActions DragonFlyBSD Build
+    - name: Build with Make (VMActions DragonFlyBSD)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'dragonflybsd'
+      uses: vmactions/dragonflybsd-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg update || true
+          pkg install -y curl gmake bash
+          /usr/sbin/dntpd -s
+
+        run: |
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
+
+    # VMActions OmniOS Build
+    - name: Build with Make (VMActions OmniOS)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'omnios'
+      uses: vmactions/omnios-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg install pkg:/package/pkg || true
+          pkg update || true
+          pkg install socat
+
+        run: |
+          pkg install build-essential pkg-config
+
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
+
+    # VMActions Solaris Build
+    - name: Build with Make (VMActions Solaris)
+      if: matrix.config.vm_actions == true && matrix.config.vm_platform == 'solaris'
+      uses: vmactions/solaris-vm@v1
+      with:
+        envs: 'DESTDIR'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        usesh: true
+        prepare: |
+          pkg update --accept || true
+          pkgutil -y -i socat
+
+          ntpdate -u pool.ntp.org
+
+        run: |
+          pkg install --accept developer/build/gnu-make
+
+          chmod +x Make/buildjsonc.sh
+          cd Make && gmake release BUILD_TYPE=release
 
     - name: Packing release
       env:
@@ -81,7 +303,16 @@ jobs:
       run: |
         mkdir build
         cd build
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
+        if [ "${{ matrix.config.vm_actions }}" = "true" ]; then
+          # VMActions builds: package from Make/openseachest_exes
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../Make/openseachest_exes
+        elif [ "${{ matrix.config.msys2_msystem }}" != "" ]; then
+          # MSYS2 builds: package from Make/openseachest_exes
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../Make/openseachest_exes
+        else
+          # Traditional builds: package from builddir
+          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
+        fi
 
     - name: Uploading artifacts
       uses: actions/upload-artifact@v6.0.0
@@ -89,8 +320,4 @@ jobs:
         name: ${{ format('{0}', env.DESTDIR) }}
         path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 
-    # - name: Publish release
-    #   if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
-    #   uses: softprops/action-gh-release@v2
-    #   with:
-    #     files: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+    # Not packaging release from make since this comes from meson instead. This CI is meant to check that we preserve compatibility with older make systems as a backup only.

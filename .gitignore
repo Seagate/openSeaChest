@@ -370,3 +370,7 @@ dkms.conf
 
 # Meson build dir
 /builddir
+
+# Meson build artifacts
+**/.wraplock
+**/meson-private/
