@@ -245,11 +245,9 @@ ifeq ($(PLATFORM),windows)
     # that aren't available in older toolchains
     WARNING_FLAGS += -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 
-    # MinGW builds without UCRT64 need NO_FILE_ID_INFO to work around API issues
-    # MSYSTEM is set by MSYS2 to UCRT64, MINGW64, MINGW32, CLANG64, etc.
-    ifneq ($(MSYSTEM),UCRT64)
-        WARNING_FLAGS += -DNO_FILE_ID_INFO
-    endif
+    # MinGW builds need NO_FILE_ID_INFO to work around API issues
+    # FILE_ID_INFO is not reliably available across all MinGW toolchains
+    WARNING_FLAGS += -DNO_FILE_ID_INFO
 endif
 
 # DragonFlyBSD specific
@@ -262,6 +260,11 @@ endif
 ifeq ($(filter $(PLATFORM),netbsd openbsd),$(PLATFORM))
     # NetBSD/OpenBSD don't have NVMe ioctl headers, disable NVMe passthrough
     WARNING_FLAGS += -DDISABLE_NVME_PASSTHROUGH
+endif
+
+# BSD systems need -fPIC for static libraries to avoid relocation errors
+ifeq ($(filter $(PLATFORM),freebsd openbsd netbsd dragonflybsd),$(PLATFORM))
+    WARNING_FLAGS += -fPIC
 endif
 
 # MUSL libc specific

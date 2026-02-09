@@ -165,6 +165,33 @@ endif
 ARCH ?= $(ARCH_DETECTED)
 
 #===============================================================================
+# Compiler Selection
+#===============================================================================
+
+# Auto-detect compiler
+# On Solaris/Illumos, prefer gcc/clang if available, otherwise fall back to cc
+# This avoids issues where 'cc' may not be in PATH on some Solaris installations
+ifeq ($(PLATFORM_DETECTED),sunos)
+    # Check for gcc first, then clang, then cc
+    HAS_GCC := $(shell command -v gcc 2>/dev/null)
+    HAS_CLANG := $(shell command -v clang 2>/dev/null)
+    ifneq ($(HAS_GCC),)
+        CC ?= gcc
+        CXX ?= g++
+    else ifneq ($(HAS_CLANG),)
+        CC ?= clang
+        CXX ?= clang++
+    else
+        CC ?= cc
+        CXX ?= c++
+    endif
+else
+    # All other platforms: use cc by default (respects system defaults)
+    CC ?= cc
+    CXX ?= c++
+endif
+
+#===============================================================================
 # Build Configuration
 #===============================================================================
 
@@ -215,6 +242,26 @@ ifeq ($(BUILD_JSON),1)
         $(error BUILD_JSON=1 requires CMake but cmake was not found in PATH)
     endif
 endif
+
+#===============================================================================
+# Reproducible Builds Support
+# Reference: https://reproducible-builds.org/docs/source-date-epoch/
+#===============================================================================
+
+# SOURCE_DATE_EPOCH: Unix timestamp for reproducible builds
+# If set, use it for BUILD_TIMESTAMP; otherwise use current date/time
+# This supports reproducible builds while maintaining compatibility
+ifdef SOURCE_DATE_EPOCH
+    # Use SOURCE_DATE_EPOCH if set (for reproducible builds)
+    # Try GNU date format first (-d flag), fall back to BSD date format (-r flag)
+    BUILD_TIMESTAMP := $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" 2>/dev/null || date -u)
+else
+    # Use current date/time if SOURCE_DATE_EPOCH not set
+    BUILD_TIMESTAMP := $(shell date -u)
+endif
+
+# Export for use in build flags if needed
+export BUILD_TIMESTAMP
 
 #===============================================================================
 # Build Directories

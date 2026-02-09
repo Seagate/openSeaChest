@@ -118,8 +118,9 @@ LINKER_HARDENING += -Wl,--gc-sections
 
 # Platform-specific linker adjustments
 ifeq ($(PLATFORM),sunos)
-    # Solaris linker uses different syntax
-    LINKER_HARDENING := $(subst -Wl$(comma)-z$(comma),-Wl,-z ,$(LINKER_HARDENING))
+    # Solaris linker uses different syntax for -z flags
+    # Convert: "-Wl,-z,relro" to "-Wl,-z relro"
+    LINKER_HARDENING := $(subst -Wl$(comma)-z$(comma),-Wl$(comma)-z ,$(LINKER_HARDENING))
 endif
 
 # Dead code elimination (compiler flag, linker uses --gc-sections above)
