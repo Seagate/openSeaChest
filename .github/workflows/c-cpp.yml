@@ -113,7 +113,7 @@ jobs:
             os: ubuntu-latest,
             vm_actions: true,
             vm_platform: "solaris",
-            vm_release: "11.4",
+            vm_release: "11.4-gcc",
             vm_arch: "x86_64",
             release_name: "solaris_11_4-x86_64-make",
             release_extension: ".tar.xz",
@@ -282,13 +282,12 @@ jobs:
         usesh: true
         prepare: |
           pkg update --accept || true
+          pkg install --accept developer/build/gnu-make || true
           pkgutil -y -i socat
 
           ntpdate -u pool.ntp.org
 
         run: |
-          pkg install --accept developer/build/gnu-make
-
           chmod +x Make/buildjsonc.sh
           gmake BUILD_TYPE=release
 
@@ -296,10 +295,16 @@ jobs:
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
       run: |
-        mkdir -p build
-        cd build
-        # All builds now use Make/openseachest_exes
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../Make/openseachest_exes
+        mkdir -p build/package
+        # Find the bin directory (target triplet varies by platform)
+        BIN_DIR=$(find build -type d -name bin | head -n 1)
+        if [ -z "$BIN_DIR" ]; then
+          echo "Error: No bin directory found in build/"
+          exit 1
+        fi
+        echo "Found executables in: $BIN_DIR"
+        cd build/package
+        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" -C ../../${BIN_DIR} .
 
     - name: Uploading artifacts
       uses: actions/upload-artifact@v6.0.0
