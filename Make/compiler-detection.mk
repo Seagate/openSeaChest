@@ -29,6 +29,13 @@ endif
 ifneq ($(findstring g++,$(COMPILER_ID_LOWER)),)
     IS_GCC := 1
 endif
+# BSD systems often have GCC but it identifies as "cc (platform-tag) version"
+# e.g., NetBSD: "cc (nb3 20231008) 10.5.0", OpenBSD: "cc (GCC) 8.4.0"
+# Check for version pattern like "cc (...) X.Y.Z" which indicates GCC
+# Note: Use basic grep for Solaris compatibility (no -E support)
+ifneq ($(shell echo '$(COMPILER_ID)' | grep 'cc (.*) [0-9]'),)
+    IS_GCC := 1
+endif
 
 # Clang detection (case-insensitive)
 IS_CLANG := 0

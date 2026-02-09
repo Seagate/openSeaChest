@@ -216,12 +216,15 @@ endif
 DEBUG_FLAGS := $(BUILD_DEFINES)
 
 # Link-time optimization for release and minsize builds
+# Disabled on BSD systems due to ar/ranlib plugin issues
 ifeq ($(filter $(BUILD_TYPE),release minsize),$(BUILD_TYPE))
-    LTO := $(call cc_supports,-flto)
-    ifneq ($(LTO),)
-        OPT_FLAGS += -flto
-        # Need to pass LTO flag to linker too
-        LDFLAGS += -flto
+    ifneq ($(filter $(PLATFORM),freebsd openbsd netbsd dragonflybsd),$(PLATFORM))
+        LTO := $(call cc_supports,-flto)
+        ifneq ($(LTO),)
+            OPT_FLAGS += -flto
+            # Need to pass LTO flag to linker too
+            LDFLAGS += -flto
+        endif
     endif
 endif
 
@@ -241,6 +244,24 @@ ifeq ($(PLATFORM),windows)
     # This prevents use of newer APIs like STORAGE_HW_FIRMWARE_INFO_QUERY (Win10+)
     # that aren't available in older toolchains
     WARNING_FLAGS += -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
+
+    # MinGW builds without UCRT64 need NO_FILE_ID_INFO to work around API issues
+    # MSYSTEM is set by MSYS2 to UCRT64, MINGW64, MINGW32, CLANG64, etc.
+    ifneq ($(MSYSTEM),UCRT64)
+        WARNING_FLAGS += -DNO_FILE_ID_INFO
+    endif
+endif
+
+# DragonFlyBSD specific
+ifeq ($(PLATFORM),dragonflybsd)
+    # DragonFlyBSD doesn't have dev/nvme/nvme.h header, disable NVMe passthrough
+    WARNING_FLAGS += -DDISABLE_NVME_PASSTHROUGH
+endif
+
+# NetBSD/OpenBSD specific
+ifeq ($(filter $(PLATFORM),netbsd openbsd),$(PLATFORM))
+    # NetBSD/OpenBSD don't have NVMe ioctl headers, disable NVMe passthrough
+    WARNING_FLAGS += -DDISABLE_NVME_PASSTHROUGH
 endif
 
 # MUSL libc specific
