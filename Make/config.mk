@@ -68,7 +68,8 @@ else
 endif
 
 # Check for VMware ESXi build environment first (special case)
-HAS_VMWARE_DDK := $(shell rpm -qa 2>/dev/null | grep -E 'vmware-esx-(nativeddk|vmkapiddk)-devtools' || true)
+# Note: Use basic grep for Solaris compatibility (no -E support)
+HAS_VMWARE_DDK := $(shell rpm -qa 2>/dev/null | grep 'vmware-esx-.*ddk-devtools' || true)
 
 # Check if using MinGW cross-compiler (e.g., x86_64-w64-mingw32-gcc on Linux)
 CC_NAME := $(shell $(CC) --version 2>/dev/null | head -n1)
@@ -258,9 +259,15 @@ $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR) $(OBJ_DIRS):
 # Compiler and tools
 # Auto-detect system default compiler (cc points to gcc or clang depending on system)
 # FreeBSD/OpenBSD use clang by default, most Linux use gcc
+# Solaris doesn't have 'cc' by default, use gcc
 # Only override if CC is unset (not if it's already set to 'cc')
-CC ?= cc
-CXX ?= c++
+ifeq ($(PLATFORM),sunos)
+    CC ?= gcc
+    CXX ?= g++
+else
+    CC ?= cc
+    CXX ?= c++
+endif
 AR ?= ar
 STRIP ?= strip
 INSTALL ?= install

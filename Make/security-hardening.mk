@@ -14,6 +14,9 @@
 # \brief OpenSSF security hardening flags from meson.build
 # \note Reference: https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++
 
+# Define comma variable for use in subst/patsubst (Make doesn't allow literal commas in function calls)
+comma := ,
+
 #===============================================================================
 # Stack Protection
 #===============================================================================

@@ -236,6 +236,11 @@ ifeq ($(PLATFORM),windows)
 
     # Suppress Windows CRT secure warnings (we use safe_ functions from opensea-common)
     WARNING_FLAGS += -D_CRT_SECURE_NO_WARNINGS
+
+    # Limit Windows API to Windows 7 (0x0601) for compatibility
+    # This prevents use of newer APIs like STORAGE_HW_FIRMWARE_INFO_QUERY (Win10+)
+    # that aren't available in older toolchains
+    WARNING_FLAGS += -DWINVER=0x0601 -D_WIN32_WINNT=0x0601
 endif
 
 # MUSL libc specific
