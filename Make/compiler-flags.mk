@@ -262,11 +262,6 @@ ifeq ($(filter $(PLATFORM),netbsd openbsd),$(PLATFORM))
     WARNING_FLAGS += -DDISABLE_NVME_PASSTHROUGH
 endif
 
-# BSD systems need -fPIC for static libraries to avoid relocation errors
-ifeq ($(filter $(PLATFORM),freebsd openbsd netbsd dragonflybsd),$(PLATFORM))
-    WARNING_FLAGS += -fPIC
-endif
-
 # MUSL libc specific
 ifeq ($(USING_MUSL),1)
     # MUSL doesn't have certain GLibC features
