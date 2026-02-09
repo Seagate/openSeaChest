@@ -37,6 +37,14 @@ jobs:
             archive_command: "tar cvfJ"
           }
         - {
+            name: "Ubuntu MinGW Cross-Compile",
+            os: ubuntu-latest,
+            mingw_cross: true,
+            release_name: "win-x86_64-ubuntu-mingw",
+            release_extension: ".zip",
+            archive_command: "zip -r"
+          }
+        - {
             name: "MSYS2 MINGW64 GCC",
             os: windows-latest,
             msys2_msystem: "MINGW64",
@@ -160,13 +168,25 @@ jobs:
       run: |
         echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
 
+    - name: Install MinGW cross-compiler
+      if: matrix.config.mingw_cross == true
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 zip
+
     - name: Make buildjsonc.sh executable
       if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == ''
       run: chmod +x Make/buildjsonc.sh
 
-    # Traditional make builds (Windows/Ubuntu)
+    # Ubuntu MinGW cross-compile build
+    - name: make (MinGW cross-compile)
+      if: matrix.config.mingw_cross == true
+      run: |
+        make BUILD_TYPE=release CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
+
+    # Traditional make builds (Windows/Ubuntu native)
     - name: make
-      if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == ''
+      if: matrix.config.vm_actions != true && matrix.config.msys2_msystem == '' && matrix.config.mingw_cross != true
       run: |
         make BUILD_TYPE=release
 
@@ -244,7 +264,7 @@ jobs:
         usesh: true
         prepare: |
           pkg update || true
-          pkg install -y curl gmake bash
+          pkg install -y curl gmake bash gcc
           /usr/sbin/dntpd -s
 
         run: |
@@ -295,21 +315,22 @@ jobs:
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
       run: |
-        mkdir -p build/package
-        # Find the bin directory (target triplet varies by platform)
+        # Find the bin directory and copy to DESTDIR for packaging
         BIN_DIR=$(find build -type d -name bin | head -n 1)
         if [ -z "$BIN_DIR" ]; then
           echo "Error: No bin directory found in build/"
           exit 1
         fi
         echo "Found executables in: $BIN_DIR"
-        cd "${BIN_DIR}"
-        ${{ matrix.config.archive_command }} "../../build/package/${DESTDIR}${ARCHIVE_EXT}" .
 
-    - name: Uploading artifacts
-      uses: actions/upload-artifact@v6.0.0
-      with:
+        # Copy binaries to a clean directory for packaging (matches meson approach)
+        mkdir -p "build/${DESTDIR}"
+        cp -r "${BIN_DIR}"/* "build/${DESTDIR}/"
+
+        # Create archive from build directory (simpler, matches meson.yml)
+        cd build
+        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" "${DESTDIR}"
         name: ${{ format('{0}', env.DESTDIR) }}
-        path: ${{ format('./build/package/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
 
     # Not packaging release from make since this comes from meson instead. This CI is meant to check that we preserve compatibility with older make systems as a backup only.
