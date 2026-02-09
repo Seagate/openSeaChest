@@ -177,22 +177,23 @@ ifeq ($(filter $(BUILD_TYPE),$(VALID_BUILD_TYPES)),)
 endif
 
 # Optimization and debug flags based on build type
+# Use ?= so downstream packagers can override (e.g., OPTIMIZATION_FLAGS="-O2" make)
 ifeq ($(BUILD_TYPE),debug)
     # No optimization, maximum debug information
-    OPTIMIZATION_FLAGS := -O0 -g3
-    BUILD_DEFINES := -DDEBUG -D_DEBUG
+    OPTIMIZATION_FLAGS ?= -O0 -g3
+    BUILD_DEFINES ?= -DDEBUG -D_DEBUG
 else ifeq ($(BUILD_TYPE),release)
     # Full optimization, no debug info
-    OPTIMIZATION_FLAGS := -O3
-    BUILD_DEFINES := -DNDEBUG -DRELEASE
+    OPTIMIZATION_FLAGS ?= -O3
+    BUILD_DEFINES ?= -DNDEBUG -DRELEASE
 else ifeq ($(BUILD_TYPE),relwithdebinfo)
     # Optimized with debug symbols (for production debugging/profiling)
-    OPTIMIZATION_FLAGS := -O2 -g
-    BUILD_DEFINES := -DNDEBUG
+    OPTIMIZATION_FLAGS ?= -O2 -g
+    BUILD_DEFINES ?= -DNDEBUG
 else ifeq ($(BUILD_TYPE),minsize)
     # Optimize for binary size
-    OPTIMIZATION_FLAGS := -Os
-    BUILD_DEFINES := -DNDEBUG
+    OPTIMIZATION_FLAGS ?= -Os
+    BUILD_DEFINES ?= -DNDEBUG
 endif
 
 # Legacy support for static builds (deprecated, use IS_STATIC variable instead)
@@ -255,11 +256,11 @@ $(OBJ_DIR) $(LIB_DIR) $(BIN_DIR) $(OBJ_DIRS):
 #===============================================================================
 
 # Compiler and tools
-# Note: Make has a built-in default CC=cc, so we override it
-ifeq ($(CC),cc)
-    CC := gcc
-endif
-CXX ?= g++
+# Auto-detect system default compiler (cc points to gcc or clang depending on system)
+# FreeBSD/OpenBSD use clang by default, most Linux use gcc
+# Only override if CC is unset (not if it's already set to 'cc')
+CC ?= cc
+CXX ?= c++
 AR ?= ar
 STRIP ?= strip
 INSTALL ?= install

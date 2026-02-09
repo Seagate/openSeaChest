@@ -123,14 +123,19 @@ endif
 NEWER_WARNINGS := $(foreach flag,$(NEWER_WARNING_CANDIDATES),$(if $(call cc_supports,$(flag)),$(flag)))
 
 #===============================================================================
-# Conversion Warnings (commonly supported)
+# Conversion Warnings (test for support, some require newer compilers)
 #===============================================================================
 
+# Always available conversion warnings
 CONVERSION_WARNING_FLAGS := \
     -Wint-conversion \
-    -Wenum-conversion \
     -Wfloat-conversion \
     -Wint-to-pointer-cast
+
+# Test for -Wenum-conversion (GCC 10+, Clang 3.2+)
+ifeq ($(call cc_supports,-Wenum-conversion),yes)
+    CONVERSION_WARNING_FLAGS += -Wenum-conversion
+endif
 
 # GCC 10+ specific: -Wsign-conversion (very noisy, use while debugging)
 # NOTE: Intentionally not enabled by default per meson.build comments
@@ -243,13 +248,17 @@ endif
 # Combined CFLAGS and CXXFLAGS
 #===============================================================================
 
-# Initialize if not already set
+# Initialize if not already set (allows user to provide CFLAGS/CXXFLAGS from environment)
 CFLAGS ?=
 CXXFLAGS ?=
+LDFLAGS ?=
 
-# Combine all flags
+# Prepend our flags (our flags first, then user flags - this allows user to override)
+# Use := for one-time expansion to avoid recursive evaluation issues
 CFLAGS := $(WARNING_FLAGS) $(OPT_FLAGS) $(DEBUG_FLAGS) $(CFLAGS)
 CXXFLAGS := $(WARNING_FLAGS) $(OPT_FLAGS) $(DEBUG_FLAGS) $(CXXFLAGS)
+
+# Note: LDFLAGS is only initialized here, actual flags are added in security-hardening.mk and other files
 
 #===============================================================================
 # Save Tested Flags to Cache (for debugging)
