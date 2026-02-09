@@ -35,7 +35,8 @@ MAKEFLAGS += --warn-undefined-variables
 .DELETE_ON_ERROR:
 
 # Safe shell with error handling
-SHELL := /bin/bash
+# Use bash from PATH (handles BSD systems where bash is at /usr/local/bin/bash)
+SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 
 #===============================================================================
