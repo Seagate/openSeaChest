@@ -88,27 +88,372 @@ This is a brief list of the known features used from C99 that a compiler should 
 
 ## Building
 
-Run the following commands:
+openSeaChest supports two build systems:
 
-      meson --buildtype=release builddir
+1. **Meson** (recommended) - Modern, cross-platform, well-documented
+2. **GNU Make** - Maintained for backwards compatibility and platforms where Meson is unavailable
+
+**We recommend using Meson** for new builds. The GNU Make build system is provided for:
+- Platforms where Meson is not available or not working
+- Backwards compatibility with existing build workflows
+- Environments where installing Python (required for Meson) is not feasible
+- Supporting platforms the meson does not currently support (ex: AIX, HP-UX)
+
+### Building with Meson (Recommended)
+
+Meson is a modern build system with excellent cross-platform support and comprehensive documentation.
+
+**Quick Start:**
+
+      # Basic build
+      meson setup --buildtype=release builddir
       ninja -C builddir
 
-The tools will be in the builddir.
-To install them system-wide, simply run `ninja -C builddir install` with appropriate permissions
+      # Parallel build (faster)
+      ninja -C builddir -j$(nproc)
 
-To cross-compile, see [the official docs](https://mesonbuild.com/Cross-compilation.html)
+      # Install system-wide
+      sudo ninja -C builddir install
 
-To build with a different compiler, set the CC environment variable to your desired compiler.
-Example:
+The tools will be in `builddir/` after building.
 
-      CC=clang meson --buildtype=release buildclang
-      ninja -C buildclang
+**Build Types:**
 
-NOTE: If using GCC and older than [5.5.0](https://gcc.gnu.org/onlinedocs/gcc-4.9.4/gcc/Standards.html#Standards), the C standard defaults to gnu90. Add the flag `-Dc_std=gnu99` to build openSeaChest. This is needed for CentOS 7 which uses GCC [4.8.5](https://gcc.gnu.org/onlinedocs/gcc-4.8.5/gcc/Standards.html#Standards)
-Example:
+      meson setup --buildtype=release builddir      # Optimized (-O2, default)
+      meson setup --buildtype=debug builddir        # Debug (-O0 -g)
+      meson setup --buildtype=debugoptimized builddir  # Debug + optimization (-O2 -g)
+      meson setup --buildtype=minsize builddir      # Minimize size (-Os)
 
-      meson --buildtype=release -Dc_std=gnu99 buildOldGCC
-      ninja -C buildOldGCC
+**Build Options:**
+
+      # Enable JSON support
+      meson setup -Denable_json=true builddir
+
+      # Use different compiler
+      CC=clang CXX=clang++ meson setup builddir
+
+      # Custom installation prefix
+      meson setup --prefix=/usr builddir
+
+      # Old GCC (< 5.5.0) requiring C99
+      meson setup -Dc_std=gnu99 builddir
+
+**Cross-Compilation:**
+
+We provide **38 pre-configured cross-compilation files** in `meson_crosscompile/` for various architectures:
+
+*MUSL-based cross-compilers (portable, static):*
+- ARM: `aarch64`, `armv5l`, `armv6`, `armv7l`, `armv7r`
+- x86: `i486`, `i686`, `x86_64`
+- MIPS: `mips`, `mips64`, `mipsel`, `mips64el`
+- PowerPC: `powerpc`, `powerpc64`, `powerpc64le`
+- Others: `riscv64`, `s390x`
+
+*Ubuntu-based cross-compilers:*
+- Various architectures: `aarch64`, `armhf`, `ppc`, `ppc64le`, `riscv64`, `s390x`, `sparc64`, etc.
+
+*Windows:*
+- `Windows-Clang.txt` - Clang on Windows
+- `msvc_arm64.txt` - MSVC ARM64
+
+**Example cross-compilation:**
+
+      # Using MUSL cross-compiler for ARM
+      meson setup --cross-file meson_crosscompile/aarch64-linux-musl-cross.txt buildarm
+
+      # Using Ubuntu cross-compiler
+      meson setup --cross-file meson_crosscompile/ubuntu_ppc64le.txt buildppc
+
+**Tips and Troubleshooting:**
+
+*Faster Builds:*
+
+      ninja -C builddir -j$(nproc)    # Use all CPU cores
+
+*Optimization Flags:*
+
+      # Maximum optimization (may increase size)
+      meson setup -Dc_args='-O3 -march=native' builddir
+
+      # Link-time optimization
+      meson setup -Db_lto=true builddir
+
+*Debugging:*
+
+      # Verbose build output
+      ninja -C builddir -v
+
+      # Introspect configuration
+      meson introspect builddir --buildoptions
+      meson configure builddir
+
+*Reconfigure existing build:*
+
+      meson configure builddir --buildtype=debug
+      ninja -C builddir
+
+*Common Issues:*
+- Meson requires Python 3.6+ - install with `pip3 install meson ninja`
+- For detailed cross-compilation docs, see: https://mesonbuild.com/Cross-compilation.html
+- For all Meson options and features, see: https://mesonbuild.com/
+
+### Building with GNU Make
+
+The GNU Make build system is maintained for backwards compatibility and platforms where Meson is unavailable.
+
+**Note:** We recommend using Meson for new builds. Use Make only when:
+- Meson is not available on your platform
+- You cannot install Python (required for Meson)
+- You have existing Make-based workflows
+
+**Requirements:**
+* GNU Make 3.81 or later
+* GCC 4.7+ or Clang 3.0+
+* For JSON support (optional): CMake and json-c library
+
+**Quick Start:**
+
+      # Basic build (auto-detects platform, builds release)
+      make
+
+      # Parallel build using all CPU cores
+      make -j$(nproc)
+
+      # Install to system (default: /usr/local)
+      sudo make install
+
+      # Create distribution tarball
+      make package
+
+**Build Configuration:**
+
+      # Build types
+      make BUILD_TYPE=debug           # Debug build (-g -O0)
+      make BUILD_TYPE=release         # Release build (-O2, default)
+      make BUILD_TYPE=static-debug    # Static debug build
+      make BUILD_TYPE=static-release  # Static release build
+
+      # Optional features
+      make BUILD_JSON=1               # Enable JSON output support
+      make BUILD_SHARED_LIBS=1        # Build shared libraries (.so)
+
+      # Platform override (for cross-compilation)
+      make PLATFORM=windows CC=x86_64-w64-mingw32-gcc
+      make PLATFORM=freebsd
+
+      # Custom installation prefix
+      make install PREFIX=/opt/seagate
+
+**Available Targets:**
+
+      make all                 # Build all libraries and tools (default)
+      make libraries           # Build only opensea-* libraries
+      make tools               # Build only openSeaChest utilities
+      make check / test        # Run basic smoke tests
+      make clean               # Clean current build type
+      make clean-all           # Clean all build types
+      make mostlyclean         # Clean objects and tools (keep libraries)
+      make distclean           # Remove all generated files including packages
+      make install             # Install binaries, libraries, headers
+      make install-strip       # Install with debug symbols stripped
+      make installdirs         # Create installation directories only
+      make uninstall           # Remove installed files
+      make package             # Create tar.gz distribution
+      make show-config         # Display build configuration
+      make print-tools         # List all tools to build
+      make print-libs          # List all libraries to build
+      make help                # Show all available targets
+
+**Build Type Shortcuts:**
+
+      make release             # Optimized build (-O3, default)
+      make debug               # Debug build (-O0 -g3)
+      make relwithdebinfo      # Optimized with debug symbols (-O2 -g)
+      make minsize             # Minimize binary size (-Os)
+      make static-release      # Static release build
+      make static-debug        # Static debug build
+
+**Individual Library Targets:**
+
+      make opensea-common      # Build opensea-common library only
+      make opensea-transport   # Build opensea-transport library only
+      make opensea-operations  # Build opensea-operations library only
+      make opensea-jsonformat  # Build opensea-jsonformat (if BUILD_JSON=1)
+
+**Individual Tool Targets:**
+
+All 18 openSeaChest utilities can be built individually:
+
+      make openSeaChest_Basics
+      make openSeaChest_Configure
+      make openSeaChest_Defect
+      make openSeaChest_Erase
+      make openSeaChest_Firmware
+      make openSeaChest_Format
+      make openSeaChest_GenericTests
+      make openSeaChest_Info
+      make openSeaChest_Logs
+      make openSeaChest_NVMe
+      make openSeaChest_PassthroughTest
+      make openSeaChest_PowerControl
+      make openSeaChest_Raw
+      make openSeaChest_Reservations
+      make openSeaChest_Security
+      make openSeaChest_SMART
+      make openSeaChest_ZBD
+
+**Supported Platforms:**
+* Linux (all architectures)
+* Windows (MinGW/MSYS2)
+* FreeBSD, OpenBSD, NetBSD, DragonFlyBSD
+* Solaris, Illumos
+* AIX
+* VMware ESXi (requires VMware DDK)
+
+**Build System Features:**
+* Automatic dependency tracking (`.d` files)
+* Parallel build support (`make -j`)
+* Cross-platform support with automatic detection
+* OpenSSF security hardening (stack protection, RELRO, NX, PIE)
+* Compiler warning flags from Meson build (50+ warnings)
+* Platform-specific optimizations
+
+**Directory Structure:**
+
+Build outputs are organized by platform and configuration:
+
+      build/
+      └── linux-x86_64-release/
+          ├── bin/           # openSeaChest utilities
+          ├── lib/           # Static/shared libraries
+          └── obj/           # Object files and .d dependencies
+              ├── common/
+              ├── transport/
+              ├── operations/
+              └── tools/
+
+**Examples:**
+
+      # Development build with verbose output
+      make BUILD_TYPE=debug V=1
+
+      # Optimized static build
+      make BUILD_TYPE=static-release -j$(nproc)
+
+      # Build with JSON support and install to /usr
+      make BUILD_JSON=1 PREFIX=/usr install
+
+      # Cross-compile for Windows from Linux
+      make PLATFORM=windows CC=x86_64-w64-mingw32-gcc
+
+      # Package for distribution
+      make BUILD_TYPE=static-release package
+      # Creates: openSeaChest-<VERSION>-<PLATFORM>-<ARCH>.tar.gz
+
+**Tips and Troubleshooting:**
+
+**Faster Builds:**
+
+Use parallel compilation to significantly reduce build time:
+
+      # Use all CPU cores
+      make -j$(nproc)
+
+      # Use specific number of cores
+      make -j8
+
+**Debugging Build Failures:**
+
+Enable verbose output to see full compiler commands:
+
+      make V=1                    # See all compiler commands
+      make V=1 BUILD_TYPE=debug   # Verbose debug build
+
+Check build configuration:
+
+      make show-config            # Display current settings
+      make print-tools            # List tools to build
+      make print-libs             # List libraries to build
+
+**Cross-Compilation:**
+
+When cross-compiling, explicitly set compiler and platform:
+
+      # MinGW cross-compile from Linux
+      make PLATFORM=windows \
+           CC=x86_64-w64-mingw32-gcc \
+           CXX=x86_64-w64-mingw32-g++ \
+           AR=x86_64-w64-mingw32-ar
+
+      # Install MinGW toolchain on Ubuntu/Debian:
+      sudo apt-get install mingw-w64
+
+**Platform-Specific Notes:**
+
+*Solaris/OmniOS:* Explicitly set compiler if needed:
+
+      # Use GCC on Solaris
+      make CC=gcc CXX=g++
+
+      # Some linker flags may not be supported
+      # The build system tests flags automatically
+
+*BSD Systems:* Default compiler is usually Clang:
+
+      # FreeBSD/OpenBSD/NetBSD auto-detect Clang
+      make
+
+      # Force GCC if installed
+      make CC=gcc CXX=g++
+
+*Windows (MinGW/MSYS2):* Use the appropriate shell:
+
+      # From MSYS2 MinGW64 shell
+      make
+
+      # From MSYS2 UCRT64 shell
+      make
+
+**Common Issues:**
+
+1. **Compiler Warnings (Make vs Meson):**
+   - Some warnings may appear in Make builds but not Meson builds (or vice versa)
+   - This is typically due to differences in how compilers are invoked
+   - Example: `safe_strlen()` may warn about string overread checks in Make builds, but not in meson, however this is guarded within the C code properly and may not be detected by the compiler properly in some situations.
+   - These are usually false positives - the code is safely handled
+   - If Meson builds without warnings but Make shows them, it's likely not a real issue
+   - The code is tested with both build systems and compiler warning configurations
+   - If you do find an error or bug, or can contribute a way to fix these warnings, please open a pull request!
+
+2. **Case-Sensitive Headers (MinGW cross-compile):**
+   - Windows headers in MinGW are lowercase (e.g., `windows.h`, `basetsd.h`)
+   - Fixed in codebase but useful to know if adding new Windows code
+
+3. **Missing Compiler:**
+   - Install build tools: `apt install build-essential` (Debian/Ubuntu)
+   - Install gcc/clang: `pkg install gcc` (Solaris/BSD)
+
+3. **Linker Errors:**
+   - The build system automatically tests linker flags
+   - Unsupported flags are skipped on incompatible platforms
+
+4. **Submodule Issues:**
+   - Ensure submodules are initialized: `git submodule update --init --recursive`
+
+5. **Stale Build:**
+   - Clean and rebuild: `make clean-all && make`
+
+**Performance Tuning:**
+
+      # Minimal size (embedded systems)
+      make BUILD_TYPE=minsize
+
+      # Maximum optimization (may increase size)
+      make CFLAGS="-O3 -march=native"
+
+      # Link-time optimization (LTO)
+      make CFLAGS="-flto" LDFLAGS="-flto"
+
 
 ## Documentation
 
