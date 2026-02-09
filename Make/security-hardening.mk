@@ -98,29 +98,45 @@ endif
 # Linker Hardening (Security Flags)
 #===============================================================================
 
-# These flags are ELF-specific and not supported on Windows
+# Test each linker flag individually - not all linkers support all flags
+# OmniOS/Solaris linkers don't support many GNU ld flags
+LINKER_HARDENING :=
+
 ifneq ($(PLATFORM),windows)
     # RELRO (Relocation Read-Only): prevents GOT overwrite attacks
-    LINKER_HARDENING := -Wl,-z,relro
+    RELRO_TEST := $(shell echo 'int main(void) { return 0; }' | \
+                  $(CC) -Wl,-z,relro -x c - -o /dev/null 2>/dev/null && echo yes)
+    ifneq ($(RELRO_TEST),)
+        LINKER_HARDENING += -Wl,-z,relro
+    endif
 
     # BIND_NOW: resolve all symbols at program startup (prevents lazy binding attacks)
-    LINKER_HARDENING += -Wl,-z,now
+    NOW_TEST := $(shell echo 'int main(void) { return 0; }' | \
+                $(CC) -Wl,-z,now -x c - -o /dev/null 2>/dev/null && echo yes)
+    ifneq ($(NOW_TEST),)
+        LINKER_HARDENING += -Wl,-z,now
+    endif
 
     # NX Stack (No-Execute): prevent code execution on stack
-    LINKER_HARDENING += -Wl,-z,noexecstack
+    NOEXEC_TEST := $(shell echo 'int main(void) { return 0; }' | \
+                   $(CC) -Wl,-z,noexecstack -x c - -o /dev/null 2>/dev/null && echo yes)
+    ifneq ($(NOEXEC_TEST),)
+        LINKER_HARDENING += -Wl,-z,noexecstack
+    endif
 
     # Disable dlopen() on the executable (library hardening)
-    LINKER_HARDENING += -Wl,-z,nodlopen
+    NODLOPEN_TEST := $(shell echo 'int main(void) { return 0; }' | \
+                     $(CC) -Wl,-z,nodlopen -x c - -o /dev/null 2>/dev/null && echo yes)
+    ifneq ($(NODLOPEN_TEST),)
+        LINKER_HARDENING += -Wl,-z,nodlopen
+    endif
 endif
 
 # Garbage collection of unused sections (security + size reduction)
-LINKER_HARDENING += -Wl,--gc-sections
-
-# Platform-specific linker adjustments
-ifeq ($(PLATFORM),sunos)
-    # Solaris linker uses different syntax for -z flags
-    # Convert: "-Wl,-z,relro" to "-Wl,-z relro"
-    LINKER_HARDENING := $(subst -Wl$(comma)-z$(comma),-Wl$(comma)-z ,$(LINKER_HARDENING))
+GC_SECTIONS_TEST := $(shell echo 'int main(void) { return 0; }' | \
+                    $(CC) -Wl,--gc-sections -x c - -o /dev/null 2>/dev/null && echo yes)
+ifneq ($(GC_SECTIONS_TEST),)
+    LINKER_HARDENING += -Wl,--gc-sections
 endif
 
 # Dead code elimination (compiler flag, linker uses --gc-sections above)
