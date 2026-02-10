@@ -83,12 +83,6 @@ jobs:
         fetch-depth: 2
         submodules: recursive
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'   # pick one version and keep it consistent across OSes
-        cache: 'pip'             # optional (if you use this, you can remove the actions/cache step)
-
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
       uses: ilammy/msvc-dev-cmd@v1
@@ -121,6 +115,17 @@ jobs:
     # ✏️ If the Autobuild fails above, remove it and uncomment the following three lines
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
+
+    - name: Setup pip cache
+      uses: actions/cache@v5.0.0
+      with:
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-meson-
+          ${{ runner.os }}-pip-
 
     - name: Install Meson and Ninja and Build (Github runners - MSVC)
       if: startsWith(matrix.config.name, 'Windows MSVC')
