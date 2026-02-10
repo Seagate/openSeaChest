@@ -131,7 +131,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build -Dprefix=$PWD/install -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
@@ -142,7 +142,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build -Dprefix=$PWD/install -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Perform CodeQL Analysis
