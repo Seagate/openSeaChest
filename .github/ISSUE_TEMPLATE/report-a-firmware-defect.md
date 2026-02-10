@@ -1,3 +1,11 @@
+---
+name: "Firmware / Security Defect Intake (Data Collection)"
+about: "Collect required openSeaChest diagnostics before submitting a firmware defect via Seagate's Responsible Disclosure process."
+title: "[Firmware Defect]"
+labels: ["bug", "Firmware"]
+assignees: []
+---
+
 # Firmware Defect Intake Template  
 _For reporting drive behavior that may indicate a firmware or security defect_
 
