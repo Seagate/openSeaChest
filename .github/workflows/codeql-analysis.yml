@@ -56,13 +56,17 @@ jobs:
           name: "Ubuntu GCC",
           os: ubuntu-latest,
           cc: "gcc",
-          cxx: "g++"
+          cxx: "g++",
+          arch: "",
+          meson_opts: ""
         }
         - {
           name: "Ubuntu Clang",
           os: ubuntu-latest,
           cc: "clang",
-          cxx: "clang++"
+          cxx: "clang++",
+          arch: "",
+          meson_opts: ""
           }
 
     steps:
@@ -78,6 +82,12 @@ jobs:
         # a pull request then we can checkout the head.
         fetch-depth: 2
         submodules: recursive
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'   # pick one version and keep it consistent across OSes
+        cache: 'pip'             # optional (if you use this, you can remove the actions/cache step)
 
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
@@ -112,17 +122,6 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - name: Setup pip cache
-      uses: actions/cache@v5.0.0
-      with:
-        path: |
-          ~/.cache/pip
-          ~\AppData\Local\pip\Cache
-        key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-meson-
-          ${{ runner.os }}-pip-
-
     - name: Install Meson and Ninja and Build (Github runners - MSVC)
       if: startsWith(matrix.config.name, 'Windows MSVC')
       shell: pwsh
@@ -131,7 +130,8 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=$PWD/install -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        $prefix = Join-Path $env:GITHUB_WORKSPACE 'install'
+        meson setup build --prefix "$prefix" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
@@ -142,7 +142,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=$PWD/install -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build --prefix "$GITHUB_WORKSPACE/install" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
     - name: Perform CodeQL Analysis
