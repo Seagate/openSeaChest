@@ -205,7 +205,13 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     print_str("\n");
+#if defined (BUILD_TIMESTAMP)
+    // Use the date passed from the Makefile/Meson (Reproducible)
+    printf(" Build Date: %s\n", BUILD_TIMESTAMP);
+#else
+    // Fallback to the compiler's current date (Not reproducible)
     printf(" Build Date: %s\n", __DATE__);
+#endif
     if (get_current_timestamp() == false)
     {
         snprintf_err_handle(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
@@ -243,7 +249,13 @@ void utility_Full_Version_Info(const char* utilityName,
     printf("\topensea-transport Version: %" PRId32 ".%" PRId32 ".%" PRId32 "\n", seaCPublicMajorVersion,
            seaCPublicMinorVersion, seaCPublicPatchVersion);
     printf("\topensea-operations Version: %s\n", openseaOperationVersion);
+#if defined (BUILD_TIMESTAMP)
+    // Use the date passed from the Makefile/Meson (Reproducible)
+    printf("\tBuild Date: %s\n", BUILD_TIMESTAMP);
+#else
+    // Fallback to the compiler's current date (Not reproducible)
     printf("\tBuild Date: %s\n", __DATE__);
+#endif
     print_str("\tCompiled Architecture: ");
     print_Architecture(get_Compiled_Architecture());
     print_str("\n\tDetected Endianness: ");

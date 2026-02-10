@@ -123,7 +123,19 @@ jobs:
           ${{ runner.os }}-pip-meson-
           ${{ runner.os }}-pip-
 
-    - name: Configuring and compiling with meson
+    - name: Install Meson and Ninja and Build (Github runners - MSVC)
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      shell: pwsh
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        pip install meson ninja
+        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
+      if: "!startsWith(matrix.config.name, 'Windows MSVC')"
       shell: bash
       env:
         CC: ${{ matrix.config.cc }}
@@ -131,6 +143,7 @@ jobs:
       run: |
         pip install meson ninja
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
