@@ -253,22 +253,19 @@ jobs:
             vm_release: "r151054",
             vm_arch: "x86_64",
           }
-        # Disabled due to being extremely slow to install required packages for builds.
-        # Will revisit in future versions of this action to see if it improves. Not sure if this is a
-        # action issue or an OpenIndiana package repo issue.
-        # - {
-        #     name: "VMActions OpenIndiana Build (x86_64)",
-        #     os: ubuntu-latest,
-        #     cc: "",
-        #     cxx: "",
-        #     publish_release: true,
-        #     release_name: "openindiana-x86_64",
-        #     release_extension: ".tar.xz",
-        #     archive_command: "tar cvfJ",
-        #     vm_actions: true,
-        #     vm_release: "",
-        #     vm_arch: "x86_64",
-        #   }
+        - {
+            name: "VMActions OpenIndiana Build (x86_64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "openindiana-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "202510-build",
+            vm_arch: "x86_64",
+          }
         - {
             name: "VMActions Solaris Build (x86_64)",
             os: ubuntu-latest,
@@ -671,10 +668,8 @@ jobs:
           pkg install pkg:/package/pkg || true
           pkg update || true
           pkg install socat
-
-        run: |
           pkg install build-essential ninja pkg-config
-
+        run: |
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -692,10 +687,8 @@ jobs:
           pkg install pkg:/package/pkg || true
           pkg update || true
           pkg install socat
-
+          pkg install ninja pkg-config
         run: |
-          pkg install build-essential ninja pkg-config
-
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -712,12 +705,9 @@ jobs:
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
-
           ntpdate -u pool.ntp.org
-
-        run: |
           pkg install --accept developer/build/meson
-
+        run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
@@ -734,10 +724,8 @@ jobs:
           pkg install -y curl
           pkg install -y ntp
           ntpdate -u pool.ntp.org
-
-        run: |
           pkg install -y meson
-
+        run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
@@ -753,10 +741,9 @@ jobs:
           pkg update || true
           pkg install -y socat
           /usr/sbin/dntpd -s
-
-        run: |
           pkg install -y meson
 
+        run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
@@ -774,10 +761,8 @@ jobs:
           # force a sync in the VM
           ntpctl -s status || true
 
-
-        run: |
           pkg_add meson
-
+        run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
 
@@ -795,14 +780,10 @@ jobs:
 
           # Removed for now because this crashes from errors in a config file for unknown reasons.
           # /usr/pkg/sbin/ntpd -gq
-
-        run: |
           /usr/sbin/pkg_add meson
-
+        run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build
-
-
 
     - name: Install Go for nfpm
       if: ${{ matrix.config.create_package }}
