@@ -11,8 +11,9 @@ _For reporting drive behavior that may indicate a firmware or security defect_
 
 This template collects all information needed before submitting a firmware-related issue to Seagate.
 
-openSeaChest **cannot** accept firmware defect reports directly, and will automatically close such submissions.  
-Firmware defects may still need evaluation by Seagate engineering, and in many cases they qualify as **security defects** (for example, if the drive becomes unresponsive or “bricked”).
+openSeaChest **cannot** accept firmware defect reports directly and will automatically close such submissions.
+
+Firmware defects may still require evaluation by Seagate engineering and, in many cases, may qualify as **security defects** (for example, if the drive becomes unresponsive or “bricked”).
 
 To submit to Seagate, use:
 
@@ -21,19 +22,24 @@ To submit to Seagate, use:
 ---
 
 ## 1. Purpose  
-Some firmware anomalies represent security defects. Others are functional issues requiring engineering review.  
-This template helps you gather all necessary data to ensure your report is complete when submitted to Seagate’s Responsible Vulnerability Disclosure process.
+
+Some firmware anomalies represent security defects. Others are functional issues requiring engineering review.
+
+This template ensures your report contains the correct data before submission through Seagate’s Responsible Vulnerability Disclosure process.
 
 ---
 
 ## 2. Reproduction Steps  
+
 Provide exact, copy-pasteable steps to reliably reproduce the issue.
 
 1.  
 2.  
 3.  
 
-If intermittent, describe the frequency and conditions (thermal, load, idle time, power cycles, etc.).
+If intermittent, describe:
+- Frequency  
+- Conditions (thermal, workload, idle time, power cycles, etc.)
 
 ---
 
@@ -47,6 +53,7 @@ If intermittent, describe the frequency and conditions (thermal, load, idle time
 - **Form Factor:**  
 
 ### Host System / Connection Method  
+
 Provide exact attachment method:
 
 - Motherboard model + revision  
@@ -54,14 +61,8 @@ Provide exact attachment method:
 - USB-to-SATA/NVMe adapter model (if used)  
 - Product link (optional)  
 
-Provide system outputs if available:
-```
-lspci
-lsusb
-openSeaChest_SMART --llInfo
-```
-
 ### Operating System  
+
 - OS name + version  
 - Kernel/build version  
 - CPU architecture (x86_64 / ARM64)  
@@ -70,11 +71,21 @@ openSeaChest_SMART --llInfo
 
 ## 4. Mandatory Diagnostic Data (openSeaChest)
 
-The following commands **must** be executed and their full, raw output included unmodified.
+Run:
 
-### Required for ALL drives (SATA, SAS, NVMe)
 ```
 openSeaChest_SMART --scan
+```
+
+Identify the correct device handle, then run the following using:
+
+```
+-d <handle>
+```
+
+### Required for ALL drives (SATA, SAS, NVMe)
+
+```
 openSeaChest_SMART -d <handle> -i
 openSeaChest_SMART -d <handle> --llInfo
 openSeaChest_SMART -d <handle> --smartCheck
@@ -84,88 +95,92 @@ openSeaChest_SMART -d <handle> --showDSTLog
 ```
 
 ### Required for SATA
+
 ```
 openSeaChest_SMART -d <handle> --smartAttributes raw
 ```
 
 ### Required for NVMe
+
 ```
 openSeaChest_SMART -d <handle> --showNVMeHealth
 ```
 
-### Required for Drives supporting IDD, FARM, and Telemetry
+---
 
-IDD (In Drive Diagnostics) is run prior to pulling FARM in order to make sure all fields in the FARM data are up to date. This test sequence will update many fields within FARM to give the most current snapshot of information for your drive which will help Seagate better understand your issue and the state of your device when this defect was encountered.
+## 4A. IDD + FARM (Strongly Recommended When Supported)
+
+If supported by the drive (capabilities visible in `-i` output), run IDD before collecting FARM.  
+This updates many diagnostic fields and provides the most current snapshot of device state.
 
 ```
 openSeaChest_SMART -d <handle> --idd short --poll
 openSeaChest_SMART -d <handle> --showFARM
 ```
 
-#### If you are willing to share binary telemetry logs with Seagate
+Including this data significantly improves firmware root-cause analysis.
 
-We understand sharing unknown binary data may not be allowed by your organization or due to not trusting that your user data is not included. This is not new to Seagate as we work with many customers with the same kinds of concerns and organization policies.
-These logs do not contain any user data in them and may contain additional information that can help Seagate further review and debug the issue you are reporting. Without this data, it may not be possible to resolve the reported issue.
+---
+
+## 4B. Optional: Raw FARM and Telemetry Binaries
+
+If you are willing and allowed to share unparsed diagnostic binaries through Seagate’s official disclosure process, these may accelerate investigation.
+
+If you cannot attach binaries publicly due to policy or internal restrictions, indicate that you can provide them through Seagate’s official intake channel.
 
 ```
 openSeaChest_Logs -d <handle> --farmCombined
 openSeaChest_Logs -d <handle> --getTelemetry current --telemetryDataArea 3
 ```
 
+These logs are intended to contain device telemetry information rather than user data.  
+Only provide them if permitted by your organization.
+
 ---
 
-## 4A. Additional Required Data for SATA/NVMe Behind HBAs, RAID Controllers, or USB Adapters
+## 4C. Additional Required Data for SATA/NVMe Behind HBAs, RAID Controllers, or USB Adapters
 
-If the drive is **SATA or NVMe** and is connected through:
+If the drive is **SATA or NVMe** and connected through:
 
 - an HBA  
 - a RAID controller  
 - a USB bridge/adapter  
 - any controller that may translate drive protocol behavior  
 
-…the controller may alter, filter, or reinterpret native drive responses.
+…the controller may alter or reinterpret native drive responses.
 
-To distinguish **drive-reported** behavior from **controller-interpreted** behavior, run each relevant openSeaChest feature in both default and forced protocol modes.
+To distinguish **drive-reported** behavior from **controller-interpreted** behavior, run relevant commands using both default and forced protocol modes.
 
-### General comparison patterns  
-Use these across any feature involved in diagnosing the issue:
+### General comparison pattern
 
 ```
-openSeaChest_<tool> <feature>                     # Normal (controller-interpreted)
-openSeaChest_<tool> <feature> --forceSCSI         # Force SCSI translation path
-openSeaChest_<tool> <feature> --forceATA          # Force ATA path (if supported)
+openSeaChest_<tool> -d <handle> <feature>
+openSeaChest_<tool> -d <handle> <feature> --forceSCSI
+openSeaChest_<tool> -d <handle> <feature> --forceATA
 ```
 
-### Examples (NOT limited to EPC or power management)
+### Example
+
 ```
 openSeaChest_SMART -d <handle> --deviceStatistics
 openSeaChest_SMART -d <handle> --deviceStatistics --forceSCSI
 openSeaChest_SMART -d <handle> --deviceStatistics --forceATA
-
-openSeaChest_PowerControl -d <handle> --showEPCSettings
-openSeaChest_PowerControl -d <handle> --showEPCSettings --forceSCSI
 ```
 
-### Notes  
-- This helps identify whether the issue originates in **drive firmware** or **HBA/bridge firmware**.  
-- **This requirement does NOT apply to SAS drives**, since SAS provides native device data without translation.  
-- EPC was only an example; forced protocol modes apply across many diagnostic paths.
+**This requirement does NOT apply to SAS drives**, since SAS exposes native device behavior without protocol translation.
 
-Include the output from:
-```
-<controller-reported output>
-<forced SCSI output>
-<forced ATA output (if available)>
-```
+Include all output from these comparisons.
 
 ---
 
 ## 5. Expected Behavior  
+
 Describe what the drive or command sequence *should* have done.
 
 ---
 
 ## 6. Actual Behavior  
+
 Describe what actually occurred:
 
 - Errors  
@@ -187,7 +202,8 @@ Describe what actually occurred:
 - [ ] The firmware update attempt **failed**  
 - [ ] I have **not checked** for firmware updates yet  
 
-Describe behavior if updated:
+If updated, describe behavior changes:
+
 ```
 <Before/after firmware update observations>
 ```
@@ -200,15 +216,20 @@ Describe behavior if updated:
 - [ ] I included logs/output from any other software that reproduced the issue  
 - [ ] Hardware/HBA/adapter connection details are complete  
 - [ ] Logs are full and unmodified  
+- [ ] IDD and FARM output are included when supported  
+- [ ] Raw telemetry binaries are available (if willing to share through official channel)  
 - [ ] The issue appears to originate from drive firmware (based on observed data)  
 
 ---
 
 ## 9. Additional Evidence  
+
 Attach anything else relevant:
 
 - SMART logs  
 - NVMe/SATA log pages  
+- FARM output  
+- Raw FARM/Telemetry binaries (if permitted)  
 - Kernel/system messages  
 - Screenshots  
 - Diagnostic captures  
@@ -219,43 +240,37 @@ Attach anything else relevant:
 
 # Optional: AI Assistant Collection Prompt
 
-Use this with any AI assistant to help gather all fields:
+Use this with any AI assistant to gather required data:
 
 ```
 I need to collect data for a Seagate drive firmware-defect report 
 before submitting it through the Responsible Vulnerability Disclosure process.
 
-Guide me step-by-step to gather:
+Guide me step-by-step and validate completeness.
 
-- Drive model, serial number, firmware version
-- Host system hardware (motherboard, HBA, RAID card, USB adapter)
-- OS and kernel/build versions
-- All required openSeaChest commands:
-  --scan
-  -i
-  --llInfo
-  --smartCheck
-  --deviceStatistics
-  --shortDST
-  --showDSTLog
-  --smartAttributes raw (SATA only)
-  --showNVMeHealth (NVMe only)
+1) Run openSeaChest_SMART --scan and help me select the correct -d <handle>
+2) Collect full raw outputs for:
+   - openSeaChest_SMART -d <handle> -i
+   - openSeaChest_SMART -d <handle> --llInfo
+   - openSeaChest_SMART -d <handle> --smartCheck
+   - openSeaChest_SMART -d <handle> --deviceStatistics
+   - openSeaChest_SMART -d <handle> --shortDST
+   - openSeaChest_SMART -d <handle> --showDSTLog
+3) If SATA:
+   - openSeaChest_SMART -d <handle> --smartAttributes raw
+4) If NVMe:
+   - openSeaChest_SMART -d <handle> --showNVMeHealth
+5) If supported:
+   - openSeaChest_SMART -d <handle> --idd short --poll
+   - openSeaChest_SMART -d <handle> --showFARM
+6) If SATA/NVMe behind HBA/RAID/USB:
+   - collect controller vs drive comparisons using --forceSCSI and --forceATA
 
-Also check whether the drive is SATA or NVMe behind an HBA/RAID/USB adapter.
-If it is, help me collect:
-  <feature>
-  <feature> --forceSCSI
-  <feature> --forceATA   (if supported)
-
-This comparison helps distinguish controller behavior from drive firmware behavior.
-
-Then collect:
+Also collect:
 - Reproduction steps
 - Expected vs actual behavior
 - Firmware update status
-- Additional logs or evidence
+- Additional logs or binaries (if permitted)
 
-Validate each answer for completeness
-and output a final Markdown report using the provided template.
+Finally, generate a complete Markdown report using this template.
 ```
-
