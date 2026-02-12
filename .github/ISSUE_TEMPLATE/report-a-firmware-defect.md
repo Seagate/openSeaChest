@@ -58,7 +58,7 @@ Provide system outputs if available:
 ```
 lspci
 lsusb
-openSeaChest --llInfo
+openSeaChest_SMART --llInfo
 ```
 
 ### Operating System  
@@ -74,23 +74,42 @@ The following commands **must** be executed and their full, raw output included 
 
 ### Required for ALL drives (SATA, SAS, NVMe)
 ```
-openSeaChest --scan
-openSeaChest -i
-openSeaChest --llInfo
-openSeaChest --smartCheck
-openSeaChest --deviceStatistics
-openSeaChest --shortDST
-openSeaChest --showDSTLog
+openSeaChest_SMART --scan
+openSeaChest_SMART -d <handle> -i
+openSeaChest_SMART -d <handle> --llInfo
+openSeaChest_SMART -d <handle> --smartCheck
+openSeaChest_SMART -d <handle> --deviceStatistics
+openSeaChest_SMART -d <handle> --shortDST
+openSeaChest_SMART -d <handle> --showDSTLog
 ```
 
 ### Required for SATA
 ```
-openSeaChest --smartAttributes raw
+openSeaChest_SMART -d <handle> --smartAttributes raw
 ```
 
 ### Required for NVMe
 ```
-openSeaChest --showNVMeHealth
+openSeaChest_SMART -d <handle> --showNVMeHealth
+```
+
+### Required for Drives supporting IDD, FARM, and Telemetry
+
+IDD (In Drive Diagnostics) is run prior to pulling FARM in order to make sure all fields in the FARM data are up to date. This test sequence will update many fields within FARM to give the most current snapshot of information for your drive which will help Seagate better understand your issue and the state of your device when this defect was encountered.
+
+```
+openSeaChest_SMART -d <handle> --idd short --poll
+openSeaChest_SMART -d <handle> --showFARM
+```
+
+#### If you are willing to share binary telemetry logs with Seagate
+
+We understand sharing unknown binary data may not be allowed by your organization or due to not trusting that your user data is not included. This is not new to Seagate as we work with many customers with the same kinds of concerns and organization policies.
+These logs do not contain any user data in them and may contain additional information that can help Seagate further review and debug the issue you are reporting. Without this data, it may not be possible to resolve the reported issue.
+
+```
+openSeaChest_Logs -d <handle> --farmCombined
+openSeaChest_Logs -d <handle> --getTelemetry current --telemetryDataArea 3
 ```
 
 ---
@@ -112,19 +131,19 @@ To distinguish **drive-reported** behavior from **controller-interpreted** behav
 Use these across any feature involved in diagnosing the issue:
 
 ```
-openSeaChest <feature>                     # Normal (controller-interpreted)
-openSeaChest <feature> --forceSCSI         # Force SCSI translation path
-openSeaChest <feature> --forceATA          # Force ATA path (if supported)
+openSeaChest_<tool> <feature>                     # Normal (controller-interpreted)
+openSeaChest_<tool> <feature> --forceSCSI         # Force SCSI translation path
+openSeaChest_<tool> <feature> --forceATA          # Force ATA path (if supported)
 ```
 
 ### Examples (NOT limited to EPC or power management)
 ```
-openSeaChest --deviceStatistics
-openSeaChest --deviceStatistics --forceSCSI
-openSeaChest --deviceStatistics --forceATA
+openSeaChest_SMART -d <handle> --deviceStatistics
+openSeaChest_SMART -d <handle> --deviceStatistics --forceSCSI
+openSeaChest_SMART -d <handle> --deviceStatistics --forceATA
 
-openSeaChest --showEPCSettings
-openSeaChest --showEPCSettings --forceSCSI
+openSeaChest_PowerControl -d <handle> --showEPCSettings
+openSeaChest_PowerControl -d <handle> --showEPCSettings --forceSCSI
 ```
 
 ### Notes  
