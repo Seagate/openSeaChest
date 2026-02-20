@@ -601,12 +601,40 @@ jobs:
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
       shell: bash
 
+    - name: Set SOURCE_DATE_EPOCH for Reproducible Builds
+      shell: bash
+      run: |
+        # Fix git ownership in containers
+        if [[ -n "${{ matrix.config.image }}" ]]; then
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        fi
+
+        # Get commit timestamp as Unix epoch for reproducible builds
+        COMMIT_TIMESTAMP=$(git log -1 --pretty=%ct)
+        echo "SOURCE_DATE_EPOCH=${COMMIT_TIMESTAMP}" >> $GITHUB_ENV
+        echo "Reproducible build timestamp: ${COMMIT_TIMESTAMP} ($(date -u -d @${COMMIT_TIMESTAMP} 2>/dev/null || date -u -r ${COMMIT_TIMESTAMP} 2>/dev/null))"
+
     - name: Install Meson and Ninja and Build (MUSL container)
       if: matrix.config.image != '' && matrix.config.vm_actions != true
       shell: bash
       env:
         DESTDIR: ${{ env.DESTDIR }}
       run: |
+        # Install GNU tar for reproducible archives (BusyBox tar lacks --sort option)
+        if command -v apk &> /dev/null; then
+          apk add --no-cache tar
+        elif command -v apt-get &> /dev/null; then
+          apt-get update && apt-get install -y tar
+        elif command -v dnf &> /dev/null; then
+          dnf install -y tar
+        elif command -v yum &> /dev/null; then
+          yum install -y tar
+        elif command -v pacman &> /dev/null; then
+          pacman -Sy --noconfirm tar
+        elif command -v zypper &> /dev/null; then
+          zypper install -y tar
+        fi
+
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
         meson install -C build
 
@@ -835,6 +863,14 @@ jobs:
           chown -R root:root build
         fi
 
+    - name: Normalize file timestamps for reproducibility
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      shell: bash
+      run: |
+        # Touch all files to set mtime to SOURCE_DATE_EPOCH for reproducible archives
+        echo "Clamping file timestamps to SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+        find build/$DESTDIR -print0 | xargs -0 touch -h -d "@${SOURCE_DATE_EPOCH}" 2>/dev/null || true
+
     - name: Packing release
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
@@ -842,15 +878,47 @@ jobs:
         cd build
         ls -la
         if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
-          if [[ -z "${{ matrix.config.image }}" ]]; then
-            sudo ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          # Create reproducible tar archive
+          echo "Creating reproducible tar.xz archive with SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+
+          # Check if we have GNU tar (supports --sort) or BusyBox tar
+          if tar --sort=name --version &>/dev/null; then
+            TAR_TYPE="GNU tar"
+            # GNU tar with full reproducible options
+            TAR_CMD="tar --sort=name --mtime=\"@${SOURCE_DATE_EPOCH}\" --owner=0 --group=0 --numeric-owner --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime -cf -"
           else
-            ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+            TAR_TYPE="BusyBox tar"
+            # BusyBox tar: basic options only (files already have correct timestamps from previous step)
+            TAR_CMD="tar --numeric-owner -cf -"
+          fi
+
+          echo "Using ${TAR_TYPE} for archive creation"
+
+          if [[ -z "${{ matrix.config.image }}" ]]; then
+            # GitHub-hosted runner: use sudo for tar command
+            sudo bash -c "${TAR_CMD} $DESTDIR | xz -c > \"${DESTDIR}${ARCHIVE_EXT}\""
+            sudo chown $(id -u):$(id -g) "${DESTDIR}${ARCHIVE_EXT}"
+          else
+            # Container: already running as root
+            bash -c "${TAR_CMD} $DESTDIR | xz -c > \"${DESTDIR}${ARCHIVE_EXT}\""
           fi
         else
+          # Windows: 7zip (not fully reproducible, will address with strip-nondeterminism later)
           ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
         fi
       shell: bash
+
+    - name: Verify Archive Reproducibility
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      shell: bash
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+      run: |
+        cd build
+        echo "Verifying archive timestamps:"
+        tar -tvf "${DESTDIR}${ARCHIVE_EXT}"
+        echo ""
+        echo "Expected timestamp: $(date -u -d @${SOURCE_DATE_EPOCH} 2>/dev/null || date -u -r ${SOURCE_DATE_EPOCH} 2>/dev/null)"
 
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}

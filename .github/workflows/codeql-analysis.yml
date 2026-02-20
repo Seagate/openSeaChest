@@ -56,13 +56,17 @@ jobs:
           name: "Ubuntu GCC",
           os: ubuntu-latest,
           cc: "gcc",
-          cxx: "g++"
+          cxx: "g++",
+          arch: "",
+          meson_opts: ""
         }
         - {
           name: "Ubuntu Clang",
           os: ubuntu-latest,
           cc: "clang",
-          cxx: "clang++"
+          cxx: "clang++",
+          arch: "",
+          meson_opts: ""
           }
 
     steps:
@@ -123,14 +127,28 @@ jobs:
           ${{ runner.os }}-pip-meson-
           ${{ runner.os }}-pip-
 
-    - name: Configuring and compiling with meson
+    - name: Install Meson and Ninja and Build (Github runners - MSVC)
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      shell: pwsh
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        pip install meson ninja
+        $prefix = Join-Path $env:GITHUB_WORKSPACE 'install'
+        meson setup build --prefix "$prefix" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
+      if: "!startsWith(matrix.config.name, 'Windows MSVC')"
       shell: bash
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson setup build --prefix "$GITHUB_WORKSPACE/install" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

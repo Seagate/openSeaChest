@@ -53,8 +53,23 @@ jobs:
     - name: Create Source Archive
       shell: bash
       run: |
+        # Set reproducible timestamp from git commit
+        export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+        echo "Creating source archive with SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+        echo "Timestamp: $(date -u -d @${SOURCE_DATE_EPOCH} 2>/dev/null || date -u -r ${SOURCE_DATE_EPOCH} 2>/dev/null)"
+
         pip install git-archive-all
-        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules${{ matrix.config.extension }}
+        git-archive-all --prefix=${{ env.ARCHIVENAME }}/ SourceCode_With_Submodules${{ matrix.config.extension }}
+
+    - name: Verify Source Archive Timestamps
+      shell: bash
+      run: |
+        echo "Verifying source archive (first 10 files):"
+        if [[ "${{ matrix.config.extension }}" == ".tar.xz" ]]; then
+          tar -tvf SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 10
+        else
+          unzip -l SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 15
+        fi
 
     - name: Generate Hashes
       shell: bash
