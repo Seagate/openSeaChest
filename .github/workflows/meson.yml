@@ -716,6 +716,7 @@ jobs:
           pkg update || true
           pkg install socat
           pkg install ninja pkg-config
+          pkg install library/python/pip || true
         run: |
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
