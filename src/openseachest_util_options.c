@@ -3460,7 +3460,7 @@ int parse_Device_Handle_Argument(char*     optarg,
 #if defined(_WIN32)
 #    define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
             DECLARE_ZERO_INIT_ARRAY(char, windowsHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH);
-            char* deviceHandle = &windowsHandle[0];
+            char*       deviceHandle = &windowsHandle[0];
             const char* physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
             if (strncasecmp(optarg, "PD", 2) == 0)
