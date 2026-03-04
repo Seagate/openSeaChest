@@ -498,22 +498,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -850,7 +862,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1171,7 +1183,7 @@ int main(int argc, char* argv[])
         if (SHOW_FARM_FLAG)
         {
             farmLogData farmdata;
-            safe_memset(&farmdata, sizeof(farmLogData), 0, sizeof(farmLogData));
+            M_INITIALIZE_STRUCTURE(&farmdata, sizeof(farmLogData));
             switch (read_FARM_Data(&deviceList[deviceIter], &farmdata))
             {
             case SUCCESS:
@@ -1191,7 +1203,7 @@ int main(int argc, char* argv[])
         if (SMART_INFO_FLAG)
         {
             smartFeatureInfo smartData;
-            safe_memset(&smartData, sizeof(smartFeatureInfo), 0, sizeof(smartFeatureInfo));
+            M_INITIALIZE_STRUCTURE(&smartData, sizeof(smartFeatureInfo));
             switch (get_SMART_Info(&deviceList[deviceIter], &smartData))
             {
             case SUCCESS:
@@ -1247,7 +1259,7 @@ int main(int argc, char* argv[])
                 print_str("SMART Check\n");
             }
             smartTripInfo tripInfo;
-            safe_memset(&tripInfo, sizeof(smartTripInfo), 0, sizeof(smartTripInfo));
+            M_INITIALIZE_STRUCTURE(&tripInfo, sizeof(smartTripInfo));
             ret = run_SMART_Check(&deviceList[deviceIter], &tripInfo);
             if (FAILURE == ret)
             {
@@ -1346,7 +1358,7 @@ int main(int argc, char* argv[])
             case 0: // summary
             {
                 summarySMARTErrorLog sumErrorLog;
-                safe_memset(&sumErrorLog, sizeof(summarySMARTErrorLog), 0, sizeof(summarySMARTErrorLog));
+                M_INITIALIZE_STRUCTURE(&sumErrorLog, sizeof(summarySMARTErrorLog));
                 switch (get_ATA_Summary_SMART_Error_Log(&deviceList[deviceIter], &sumErrorLog))
                 {
                 case SUCCESS:
@@ -1372,7 +1384,7 @@ int main(int argc, char* argv[])
             case 1: //(ext) comprehensive
             {
                 comprehensiveSMARTErrorLog compErrorLog;
-                safe_memset(&compErrorLog, sizeof(comprehensiveSMARTErrorLog), 0, sizeof(comprehensiveSMARTErrorLog));
+                M_INITIALIZE_STRUCTURE(&compErrorLog, sizeof(comprehensiveSMARTErrorLog));
                 switch (get_ATA_Comprehensive_SMART_Error_Log(
                     &deviceList[deviceIter], &compErrorLog,
                     false /*force reading SMART comprehensive log is turned off right now*/))
@@ -1509,7 +1521,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("SMART offline data collection was aborted by the host or some other operation on the "
-                           "drive.\n");
+                              "drive.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
@@ -1839,13 +1851,16 @@ int main(int argc, char* argv[])
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
                             printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
                             print_str("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
-                                   "possible.\n");
-                            print_str("      In this time, the drive is performing a unique test which prevents it from "
-                                   "responding\n");
-                            print_str("      to other requests. Attempting to get progress or abort during this time will "
-                                   "fail and\n");
-                            print_str("      may cause the IDD to stop running in some cases. The software may also hang "
-                                   "until the\n");
+                                      "possible.\n");
+                            print_str(
+                                "      In this time, the drive is performing a unique test which prevents it from "
+                                "responding\n");
+                            print_str(
+                                "      to other requests. Attempting to get progress or abort during this time will "
+                                "fail and\n");
+                            print_str(
+                                "      may cause the IDD to stop running in some cases. The software may also hang "
+                                "until the\n");
                             print_str("      drive is able to respond to commands again.\n\n");
                         }
                     }
@@ -1935,8 +1950,9 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("A self test is currently in progress. Please wait for it to finish before starting DST "
-                               "and Clean\n");
+                        print_str(
+                            "A self test is currently in progress. Please wait for it to finish before starting DST "
+                            "and Clean\n");
                     }
                     break;
                 case ABORTED:
@@ -1978,7 +1994,7 @@ int main(int argc, char* argv[])
         if (SHOW_DST_LOG_FLAG)
         {
             dstLogEntries dstEntries;
-            safe_memset(&dstEntries, sizeof(dstLogEntries), 0, sizeof(dstLogEntries));
+            M_INITIALIZE_STRUCTURE(&dstEntries, sizeof(dstLogEntries));
             switch (get_DST_Log_Entries(&deviceList[deviceIter], &dstEntries))
             {
             case SUCCESS:
@@ -2144,7 +2160,7 @@ int main(int argc, char* argv[])
         if (DEVICE_STATISTICS_FLAG)
         {
             deviceStatistics deviceStats;
-            safe_memset(&deviceStats, sizeof(deviceStatistics), 0, sizeof(deviceStatistics));
+            M_INITIALIZE_STRUCTURE(&deviceStats, sizeof(deviceStatistics));
             switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
             {
             case SUCCESS:
@@ -2153,8 +2169,7 @@ int main(int argc, char* argv[])
                 if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
                 {
                     seagateDeviceStatistics seagateDeviceStats;
-                    safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0,
-                                sizeof(seagateDeviceStatistics));
+                    M_INITIALIZE_STRUCTURE(&seagateDeviceStats, sizeof(seagateDeviceStatistics));
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
                     {
                         print_str("\n");

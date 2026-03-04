@@ -946,22 +946,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -1278,7 +1290,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1649,7 +1661,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
-                           "spinning down.\n");
+                              "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1682,7 +1694,8 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
+                        print_str(
+                            "\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
                         print_str("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
@@ -1776,7 +1789,7 @@ int main(int argc, char* argv[])
         if (SHOW_NVM_POWER_STATES)
         {
             nvmeSupportedPowerStates ps;
-            safe_memset(&ps, sizeof(nvmeSupportedPowerStates), 0, sizeof(nvmeSupportedPowerStates));
+            M_INITIALIZE_STRUCTURE(&ps, sizeof(nvmeSupportedPowerStates));
             switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
             {
             case SUCCESS:
@@ -1829,7 +1842,7 @@ int main(int argc, char* argv[])
         {
             // setup the structure and send these changes to the drive.
             powerConditionTimers powerTimers;
-            safe_memset(&powerTimers, sizeof(powerConditionTimers), 0, sizeof(powerConditionTimers));
+            M_INITIALIZE_STRUCTURE(&powerTimers, sizeof(powerConditionTimers));
             if (IDLE_A_POWER_MODE_FLAG)
             {
                 powerTimers.idle_a.powerConditionValid = true;
@@ -2048,8 +2061,8 @@ int main(int argc, char* argv[])
                 // SCSI drive can set both of these timers at the same time
                 powerConditionSettings standbyTimer, idleTimer;
                 uint8_t                restoreCount = UINT8_C(0);
-                safe_memset(&standbyTimer, sizeof(powerConditionSettings), 0, sizeof(powerConditionSettings));
-                safe_memset(&idleTimer, sizeof(powerConditionSettings), 0, sizeof(powerConditionSettings));
+                M_INITIALIZE_STRUCTURE(&standbyTimer, sizeof(powerConditionSettings));
+                M_INITIALIZE_STRUCTURE(&idleTimer, sizeof(powerConditionSettings));
                 switch (LEGACY_STANDBY_STATE)
                 {
                 case POWER_MODE_STATE_ENABLE:
@@ -2177,22 +2190,52 @@ int main(int argc, char* argv[])
                             {
                             case POWER_MODE_STATE_ENABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], true, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "enabling the");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "enabling the"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 idleRet = scsi_Set_Idle_Timer_State(&deviceList[deviceIter], false, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "disabling the");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "disabling the"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 idleRet = set_Idle_Timer(&deviceList[deviceIter], 0, true, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "restored defaults");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "restoring the default");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "restored defaults"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "restoring the default"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error copying scsi mode change string for legacy idle state. Likely "
+                                               "truncation");
+                                    }
                                 break;
                             default:
                                 break;
@@ -2282,23 +2325,53 @@ int main(int argc, char* argv[])
                             case POWER_MODE_STATE_ENABLE:
                                 standbyRet =
                                     scsi_Set_Standby_Timer_State(&deviceList[deviceIter], true, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "enabling the");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "enabled"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "enabling the"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
                                 break;
                             case POWER_MODE_STATE_DISABLE:
                                 standbyRet =
                                     scsi_Set_Standby_Timer_State(&deviceList[deviceIter], false, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "disabling the");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN, "disable"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "disabling the"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
                                 break;
                             case POWER_MODE_STATE_DEFAULT:
                                 standbyRet = set_Standby_Timer(&deviceList[deviceIter], 0, true, !VOLATILE_FLAG);
-                                snprintf_err_handle(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "restored defaults");
-                                snprintf_err_handle(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
-                                                    "restoring the default");
+                                if (0 != safe_strcpy(modeChangeStrSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "restored defaults"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
+                                if (0 != safe_strcpy(modeChangeStrNotSuccess, LEGACY_POWER_MODE_CHANGE_STR_LEN,
+                                                     "restoring the default"))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error coping SAS power control mode page change string. Likely "
+                                               "truncation.");
+                                    }
                                 break;
                             default:
                                 break;
@@ -2338,8 +2411,9 @@ int main(int argc, char* argv[])
                             // not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                print_str("Enabling, disabling, or restoring default standby settings is not supported on "
-                                       "this device.\n");
+                                print_str(
+                                    "Enabling, disabling, or restoring default standby settings is not supported on "
+                                    "this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
@@ -2355,7 +2429,7 @@ int main(int argc, char* argv[])
             if (PUIS_FEATURE_INFO_FLAG)
             {
                 puisInfo info;
-                safe_memset(&info, sizeof(puisInfo), 0, sizeof(puisInfo));
+                M_INITIALIZE_STRUCTURE(&info, sizeof(puisInfo));
                 switch (get_PUIS_Info(&deviceList[deviceIter], &info))
                 {
                 case SUCCESS:
@@ -2457,7 +2531,7 @@ int main(int argc, char* argv[])
         if (SHOW_EPC_SETTINGS_FLAG)
         {
             epcSettings deviceEPCSettings;
-            safe_memset(&deviceEPCSettings, sizeof(epcSettings), 0, sizeof(epcSettings));
+            M_INITIALIZE_STRUCTURE(&deviceEPCSettings, sizeof(epcSettings));
             switch (get_EPC_Settings(&deviceList[deviceIter], &deviceEPCSettings))
             {
             case SUCCESS:
@@ -2483,7 +2557,7 @@ int main(int argc, char* argv[])
         if (SHOW_POWER_CONSUMPTION_FLAG)
         {
             powerConsumptionIdentifiers identifiers;
-            safe_memset(&identifiers, sizeof(powerConsumptionIdentifiers), 0, sizeof(powerConsumptionIdentifiers));
+            M_INITIALIZE_STRUCTURE(&identifiers, sizeof(powerConsumptionIdentifiers));
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
@@ -2937,18 +3011,30 @@ int main(int argc, char* argv[])
             DECLARE_ZERO_INIT_ARRAY(char, partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH);
             if (SAS_PARTIAL_FLAG && SAS_SLUMBER_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
-                                    "SAS Partial & Slumber");
+                if (0 != safe_strcpy(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                     "SAS Partial & Slumber"))
+                    M_UNLIKELY
+                    {
+                        perror("Error copying requested SAS phy power string for output. Likely truncation");
+                    }
             }
             else if (SAS_PARTIAL_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
-                                    "SAS Partial");
+                if (0 != safe_strcpy(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
+                                     "SAS Partial"))
+                    M_UNLIKELY
+                    {
+                        perror("Error copying requested SAS phy power string for output. Likely truncation");
+                    }
             }
             else if (SAS_SLUMBER_FLAG)
             {
-                snprintf_err_handle(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH,
-                                    "Slumber");
+                if (0 !=
+                    safe_strcpy(partialSlumberString, SEACHEST_POWERCONTROL_PARTIAL_SLUMBER_STRING_LENGTH, "Slumber"))
+                    M_UNLIKELY
+                    {
+                        perror("Error copying requested SAS phy power string for output. Likely truncation");
+                    }
             }
             switch (scsi_Set_Partial_Slumber(
                 &deviceList[deviceIter], SAS_PARTIAL_ENABLE_FLAG, SAS_SLUMBER_ENABLE_FLAG, SAS_PARTIAL_FLAG,
@@ -3008,8 +3094,9 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
-                                   "not supported.\n");
+                            print_str(
+                                "SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
+                                "not supported.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -3017,7 +3104,7 @@ int main(int argc, char* argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             print_str("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber "
-                                   "settings!\n");
+                                      "settings!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3049,7 +3136,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3073,7 +3161,11 @@ int main(int argc, char* argv[])
                             printf("\n\tCurrent Time: %s\n",
                                    get_Current_Time_String(C_CAST(const time_t*, &currentTime), timeFormat,
                                                            TIME_STRING_LENGTH));
-                            safe_memset(timeFormat, TIME_STRING_LENGTH, 0, TIME_STRING_LENGTH);
+                            if (0 != safe_memset(timeFormat, TIME_STRING_LENGTH, 0, TIME_STRING_LENGTH))
+                                M_UNLIKELY
+                                {
+                                    perror("Error clearing current time before estimating completion time");
+                                }
                             printf("\tEstimated completion Time : %s",
                                    get_Current_Time_String(C_CAST(const time_t*, &futureTime), timeFormat,
                                                            TIME_STRING_LENGTH));
@@ -3113,7 +3205,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3122,7 +3215,7 @@ int main(int argc, char* argv[])
                 if (is_Seagate_Power_Telemetry_Feature_Supported(&deviceList[deviceIter]))
                 {
                     seagatePwrTelemetry pwrTelData;
-                    safe_memset(&pwrTelData, sizeof(seagatePwrTelemetry), 0, sizeof(seagatePwrTelemetry));
+                    M_INITIALIZE_STRUCTURE(&pwrTelData, sizeof(seagatePwrTelemetry));
                     switch (get_Power_Telemetry_Data(&deviceList[deviceIter], &pwrTelData))
                     {
                     case SUCCESS:

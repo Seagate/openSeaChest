@@ -236,22 +236,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
@@ -510,7 +522,7 @@ int main(int argc, char* argv[])
                                             if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
                                             {
                                                 print_str("secure file structure could not be closed! This is a fatal "
-                                                       "error!\n");
+                                                          "error!\n");
                                             }
                                             free_Secure_File_Info(&fileinfo);
                                             exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -919,7 +931,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1353,7 +1365,7 @@ int main(int argc, char* argv[])
             }
             if (formats)
             {
-                safe_memset(formats, memSize, 0, memSize);
+                M_INITIALIZE_STRUCTURE(formats, memSize);
                 switch (get_Supported_Formats(&deviceList[deviceIter], formats))
                 {
                 case SUCCESS:
@@ -1390,7 +1402,7 @@ int main(int argc, char* argv[])
         if (SHOW_FORMAT_STATUS_LOG_FLAG)
         {
             formatStatus formatStatusInfo;
-            safe_memset(&formatStatusInfo, sizeof(formatStatus), 0, sizeof(formatStatus));
+            M_INITIALIZE_STRUCTURE(&formatStatusInfo, sizeof(formatStatus));
             switch (get_Format_Status(&deviceList[deviceIter], &formatStatusInfo))
             {
             case SUCCESS:
@@ -1430,8 +1442,7 @@ int main(int argc, char* argv[])
                     uint16_t currentDepop   = UINT16_C(0);
                     if (elementList)
                     {
-                        safe_memset(elementList, numberOfDescriptors * sizeof(physicalElement), 0,
-                                    numberOfDescriptors * sizeof(physicalElement));
+                        M_INITIALIZE_STRUCTURE(elementList, numberOfDescriptors * sizeof(physicalElement));
                         if (SUCCESS == get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors,
                                                                           &depopElementID, &maxDepop, &currentDepop,
                                                                           elementList))
@@ -1486,7 +1497,7 @@ int main(int argc, char* argv[])
             {
                 bool                    currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
-                safe_memset(&formatUnitParameters, sizeof(runFormatUnitParameters), 0, sizeof(runFormatUnitParameters));
+                M_INITIALIZE_STRUCTURE(&formatUnitParameters, sizeof(runFormatUnitParameters));
                 if (FORMAT_SECTOR_SIZE)
                 {
                     currentBlockSize = false;
@@ -1558,22 +1569,28 @@ int main(int argc, char* argv[])
                         }
                         if (FAST_FORMAT_FLAG > 0)
                         {
-                            print_str("NOTE: After changing the sector size the drive may need to perform additional\n");
-                            print_str("      background operations in order to ensure full functionality and reliability.\n");
+                            print_str(
+                                "NOTE: After changing the sector size the drive may need to perform additional\n");
+                            print_str(
+                                "      background operations in order to ensure full functionality and reliability.\n");
                             print_str("      This background activity may take a long time and will prevent the drive "
-                                   "from\n");
-                            print_str("      entering power saving modes like idle or standby until these operations have\n");
+                                      "from\n");
+                            print_str(
+                                "      entering power saving modes like idle or standby until these operations have\n");
                             print_str("      completed. These operations may take a very long time to complete.\n");
-                            print_str("      While EPC timers are suspended during this background operation, manual\n");
-                            print_str("      transitions to lower power states is supported. Manually moving to a lower "
-                                   "power\n");
-                            print_str("      state will pause all background activity until the drive has become activate "
-                                   "again\n");
+                            print_str(
+                                "      While EPC timers are suspended during this background operation, manual\n");
+                            print_str(
+                                "      transitions to lower power states is supported. Manually moving to a lower "
+                                "power\n");
+                            print_str(
+                                "      state will pause all background activity until the drive has become activate "
+                                "again\n");
                             print_str("      from a command such as a read or write. If forcing a transition\n");
                             print_str("      to idle_a, be aware that this power condition keeps the heads above the "
-                                   "medium\n");
+                                      "medium\n");
                             print_str("      and is considered a special case that the drive firmware will allow it to "
-                                   "continue\n");
+                                      "continue\n");
                             print_str("      these background operations. All EPC timers will be honored once the\n");
                             print_str("      background activity is completed.\n\n");
                         }
@@ -1589,8 +1606,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Access Denied while attempting Format Unit. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting Format Unit. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1619,15 +1637,18 @@ int main(int argc, char* argv[])
                         print_str("\t\tThere is an additional risk when performing a low-level fast format that may\n");
                         print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        print_str(
+                            "\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
                         print_str("\t\t         drive inoperable! Use this at your own risk!\n");
                         print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
                         print_str("\t\t         with multiple logical units or namespaces.\n");
                         print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         print_str("\t\t         before using this option. Interruptions can be caused by these\n");
                         print_str("\t\t         and may prevent completion of a sector size change.\n\n");
-                        print_str("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        print_str(
+                            "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                        print_str(
+                            "\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
                         print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
@@ -1670,13 +1691,15 @@ int main(int argc, char* argv[])
                             "      entering power saving modes like idle or standby until these operations have\n");
                         print_str("      completed. These operations may take a very long time to complete.\n");
                         print_str("      While EPC timers are suspended during this background operation, manual\n");
-                        print_str("      transitions to lower power states is supported. Manually moving to a lower power\n");
+                        print_str(
+                            "      transitions to lower power states is supported. Manually moving to a lower power\n");
                         print_str("      state will pause all background activity until the drive has become activate "
-                               "again\n");
+                                  "again\n");
                         print_str("      from a command such as a read or write. If forcing a transition\n");
-                        print_str("      to idle_a, be aware that this power condition keeps the heads above the medium\n");
+                        print_str(
+                            "      to idle_a, be aware that this power condition keeps the heads above the medium\n");
                         print_str("      and is considered a special case that the drive firmware will allow it to "
-                               "continue\n");
+                                  "continue\n");
                         print_str("      these background operations. All EPC timers will be honored once the\n");
                         print_str("      background activity is completed.\n\n");
                     }
@@ -1695,8 +1718,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Access Denied while attempting Set Sector Size. Please make sure security has unlocked "
-                               "the drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting Set Sector Size. Please make sure security has unlocked "
+                            "the drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1792,8 +1816,9 @@ int main(int argc, char* argv[])
                                     printf("Successfully started depopulation for physical element %" PRIu32
                                            " and modifying zones!\n",
                                            elementID);
-                                    print_str("The device may take a long time before it is ready to accept all commands "
-                                           "again.\n");
+                                    print_str(
+                                        "The device may take a long time before it is ready to accept all commands "
+                                        "again.\n");
                                     printf("Use \"--%s depop\" or \"--%s\" to check progress.\n",
                                            PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
                                 }
@@ -1801,8 +1826,9 @@ int main(int argc, char* argv[])
                                 {
                                     printf("Successfully started depopulation for physical element %" PRIu32 "!\n",
                                            elementID);
-                                    print_str("The device may take a long time before it is ready to accept all commands "
-                                           "again.\n");
+                                    print_str(
+                                        "The device may take a long time before it is ready to accept all commands "
+                                        "again.\n");
                                     printf("Use \"--%s depop\" or \"--%s\" to check progress.\n",
                                            PROGRESS_LONG_OPT_STRING, SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
                                 }
@@ -1824,7 +1850,7 @@ int main(int argc, char* argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             print_str("Access Denied while attempting to remove physical element. Please make sure "
-                                   "security has unlocked the drive and try again.\n");
+                                      "security has unlocked the drive and try again.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1853,10 +1879,11 @@ int main(int argc, char* argv[])
                     printf("e.g.: %s -d %s --%s element# --confirm %s\n\n", util_name, deviceHandleExample,
                            REMOVE_PHYSICAL_ELEMENT_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-                    print_str("\t\tThere is an additional risk when performing a remove physical element as it low-level "
-                           "formats\n");
+                    print_str(
+                        "\t\tThere is an additional risk when performing a remove physical element as it low-level "
+                        "formats\n");
                     print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is "
-                           "formatting.\n");
+                              "formatting.\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
@@ -1882,7 +1909,7 @@ int main(int argc, char* argv[])
                             {
                                 print_str("Successfully started repopulation.\n");
                                 print_str("The device may take a long time before it is ready to accept all commands "
-                                       "again.\n");
+                                          "again.\n");
                                 printf("Use \"--%s repop\" or \"--%s\" to check progress.\n", PROGRESS_LONG_OPT_STRING,
                                        SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
                             }
@@ -1902,8 +1929,9 @@ int main(int argc, char* argv[])
                     case DEVICE_ACCESS_DENIED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("Access Denied while attempting to repopulate physical elements. Please make sure "
-                                   "security has unlocked the drive and try again.\n");
+                            print_str(
+                                "Access Denied while attempting to repopulate physical elements. Please make sure "
+                                "security has unlocked the drive and try again.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1934,9 +1962,9 @@ int main(int argc, char* argv[])
                            REPOPULATE_ELEMENTS_LONG_OPT_STRING, LOW_LEVEL_FORMAT_ACCEPT_STRING);
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
                     print_str("\t\tThere is an additional risk when performing a repopulate elements as it low-level "
-                           "formats\n");
+                              "formats\n");
                     print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is "
-                           "formatting.\n");
+                              "formatting.\n");
                     set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                 }
             }
@@ -1951,7 +1979,7 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 runNVMFormatParameters nvmformatParameters;
-                safe_memset(&nvmformatParameters, sizeof(runNVMFormatParameters), 0, sizeof(runNVMFormatParameters));
+                M_INITIALIZE_STRUCTURE(&nvmformatParameters, sizeof(runNVMFormatParameters));
                 if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
                 {
                     nvmformatParameters.formatNumberProvided     = false;
@@ -2053,8 +2081,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Access Denied while attempting NVM Format. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting NVM Format. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2091,8 +2120,7 @@ int main(int argc, char* argv[])
                     ptrLbaStatusDescriptor, safe_malloc(numberOfDescriptors * sizeof(lbaStatusDescriptor)));
                 if (descriptorList != M_NULLPTR)
                 {
-                    safe_memset(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor), 0,
-                                numberOfDescriptors * sizeof(lbaStatusDescriptor));
+                    M_INITIALIZE_STRUCTURE(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor));
                     if (SUCCESS ==
                         get_LBA_Status_Descriptors(&deviceList[deviceIter], numberOfDescriptors, descriptorList))
                     {

@@ -334,16 +334,12 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING) == 0)
             {
-                int res = snprintf_err_handle(DOWNLOAD_FW_FILENAME_FLAG, FIRMWARE_FILE_NAME_MAX_LEN, "%s", optarg);
-                if (res > 0 && res <= FIRMWARE_FILE_NAME_MAX_LEN)
-                {
-                    DOWNLOAD_FW_FLAG = true;
-                }
-                else
+                if (0 != safe_strcpy(DOWNLOAD_FW_FILENAME_FLAG, FIRMWARE_FILE_NAME_MAX_LEN, optarg))
                 {
                     print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
+                DOWNLOAD_FW_FLAG = true;
             }
             else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING) == 0)
             {
@@ -571,17 +567,26 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, NEW_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 NEW_FW_MATCH_FLAG = true;
-                snprintf_err_handle(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(NEW_FW_STRING_FLAG, NEW_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -888,7 +893,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1111,7 +1116,7 @@ int main(int argc, char* argv[])
                 print_str("================================\n");
                 print_Data_Buffer(
                     M_REINTERPRET_CAST(uint8_t*, &deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl),
-                                  sizeof(nvmeIDCtrl), true);
+                    sizeof(nvmeIDCtrl), true);
                 print_str("\nNamespace Identify Information:\n");
                 print_str("================================\n");
                 print_Data_Buffer(M_REINTERPRET_CAST(uint8_t*, &deviceList[deviceIter].drive_info.IdentifyData.nvme.ns),
@@ -1265,7 +1270,7 @@ int main(int argc, char* argv[])
             ptrSupportedFormats formats = M_REINTERPRET_CAST(ptrSupportedFormats, safe_malloc(memSize));
             if (formats != M_NULLPTR)
             {
-                safe_memset(formats, memSize, 0, memSize);
+                M_INITIALIZE_STRUCTURE(formats, memSize);
                 switch (get_Supported_Formats(&deviceList[deviceIter], formats))
                 {
                 case SUCCESS:
@@ -1343,7 +1348,7 @@ int main(int argc, char* argv[])
                 ret = nvme_Get_Log_Size(&deviceList[deviceIter], GET_NVME_LOG_IDENTIFIER, &size);
                 if (ret == SUCCESS && size)
                 {
-                    safe_memset(&cmdOpts, sizeof(nvmeGetLogPageCmdOpts), 0, sizeof(nvmeGetLogPageCmdOpts));
+                    M_INITIALIZE_STRUCTURE(&cmdOpts, sizeof(nvmeGetLogPageCmdOpts));
                     if (NVME_LOG_ERROR_ID == GET_NVME_LOG_IDENTIFIER)
                     {
                         size = UINT64_C(32) * size; // Get first 32 entries.
@@ -1370,8 +1375,12 @@ int main(int argc, char* argv[])
                                 secureFileInfo* secureFile = M_NULLPTR;
 #define SEACHEST_NVME_LOG_NAME_LENGTH 16
                                 DECLARE_ZERO_INIT_ARRAY(char, logName, SEACHEST_NVME_LOG_NAME_LENGTH);
-                                snprintf_err_handle(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d",
-                                                    GET_NVME_LOG_IDENTIFIER);
+                                if (0 > snprintf_err_handle(logName, SEACHEST_NVME_LOG_NAME_LENGTH, "LOG_PAGE_%d",
+                                                            GET_NVME_LOG_IDENTIFIER))
+                                    M_UNLIKELY
+                                    {
+                                        perror("Error creating log name for NVMe log page. Filename truncation likely");
+                                    }
                                 if (SUCCESS == create_And_Open_Secure_Log_File_Dev_EZ(
                                                    &deviceList[deviceIter], &secureFile, NAMING_SERIAL_NUMBER_DATE_TIME,
                                                    M_NULLPTR, logName, "bin"))
@@ -1572,8 +1581,9 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("A failure occured while trying to get Commands Supported and Effects Information "
-                                   "Log\n");
+                            print_str(
+                                "A failure occured while trying to get Commands Supported and Effects Information "
+                                "Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1646,8 +1656,9 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("You must specify a Telemetry data set.\n\t1 - 4 are valid inputs for the data set on NVME "
-                           "drives.\n");
+                    print_str(
+                        "You must specify a Telemetry data set.\n\t1 - 4 are valid inputs for the data set on NVME "
+                        "drives.\n");
                 }
             }
         }
@@ -1737,7 +1748,7 @@ int main(int argc, char* argv[])
         if (SHOW_NVM_POWER_STATES)
         {
             nvmeSupportedPowerStates ps;
-            safe_memset(&ps, sizeof(nvmeSupportedPowerStates), 0, sizeof(nvmeSupportedPowerStates));
+            M_INITIALIZE_STRUCTURE(&ps, sizeof(nvmeSupportedPowerStates));
             switch (get_NVMe_Power_States(&deviceList[deviceIter], &ps))
             {
             case SUCCESS:
@@ -1848,7 +1859,7 @@ int main(int argc, char* argv[])
                     {
                         firmwareUpdateData dlOptions;
                         DECLARE_SEATIMER(commandTimer);
-                        safe_memset(&dlOptions, sizeof(firmwareUpdateData), 0, sizeof(firmwareUpdateData));
+                        M_INITIALIZE_STRUCTURE(&dlOptions, sizeof(firmwareUpdateData));
                         dlOptions.size    = sizeof(firmwareUpdateData);
                         dlOptions.version = FIRMWARE_UPDATE_DATA_VERSION;
                         dlOptions.dlMode  = C_CAST(eFirmwareUpdateMode, DOWNLOAD_FW_MODE);
@@ -1888,8 +1899,9 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                print_str("The Operating system has reported that a power cycle is required to complete "
-                                       "the firmware update\n");
+                                print_str(
+                                    "The Operating system has reported that a power cycle is required to complete "
+                                    "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
@@ -2010,7 +2022,7 @@ int main(int argc, char* argv[])
         if (ACTIVATE_DEFERRED_FW_FLAG || SWITCH_FW_FLAG)
         {
             supportedDLModes supportedFWDLModes;
-            safe_memset(&supportedFWDLModes, sizeof(supportedDLModes), 0, sizeof(supportedDLModes));
+            M_INITIALIZE_STRUCTURE(&supportedFWDLModes, sizeof(supportedDLModes));
             supportedFWDLModes.size    = sizeof(supportedDLModes);
             supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
@@ -2018,7 +2030,7 @@ int main(int argc, char* argv[])
             {
                 firmwareUpdateData dlOptions;
                 DECLARE_SEATIMER(commandTimer);
-                safe_memset(&dlOptions, sizeof(firmwareUpdateData), 0, sizeof(firmwareUpdateData));
+                M_INITIALIZE_STRUCTURE(&dlOptions, sizeof(firmwareUpdateData));
                 dlOptions.size                 = sizeof(firmwareUpdateData);
                 dlOptions.version              = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode               = FWDL_UPDATE_MODE_ACTIVATE;
@@ -2049,8 +2061,9 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            print_str("The Operating system has reported that a power cycle is required to complete the "
-                                   "firmware update\n");
+                            print_str(
+                                "The Operating system has reported that a power cycle is required to complete the "
+                                "firmware update\n");
                         }
                         else
                         {
@@ -2123,7 +2136,7 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 runNVMFormatParameters nvmformatParameters;
-                safe_memset(&nvmformatParameters, sizeof(runNVMFormatParameters), 0, sizeof(runNVMFormatParameters));
+                M_INITIALIZE_STRUCTURE(&nvmformatParameters, sizeof(runNVMFormatParameters));
                 if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
                 {
                     nvmformatParameters.formatNumberProvided     = false;

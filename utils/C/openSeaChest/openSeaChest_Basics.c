@@ -372,16 +372,12 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_LONG_OPT_STRING) == 0)
             {
-                int res = snprintf_err_handle(DOWNLOAD_FW_FILENAME_FLAG, FIRMWARE_FILE_NAME_MAX_LEN, "%s", optarg);
-                if (res > 0 && res <= FIRMWARE_FILE_NAME_MAX_LEN)
-                {
-                    DOWNLOAD_FW_FLAG = true;
-                }
-                else
+                if (0 != safe_strcpy(DOWNLOAD_FW_FILENAME_FLAG, FIRMWARE_FILE_NAME_MAX_LEN, optarg))
                 {
                     print_Error_In_Cmd_Line_Args(DOWNLOAD_FW_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
+                DOWNLOAD_FW_FLAG = true;
             }
             else if (strcmp(longopts[optionIndex].name, DOWNLOAD_FW_MODE_LONG_OPT_STRING) == 0)
             {
@@ -566,22 +562,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
@@ -925,7 +933,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1279,7 +1287,7 @@ int main(int argc, char* argv[])
         if (SHOW_CONCURRENT_RANGES)
         {
             concurrentRanges ranges;
-            safe_memset(&ranges, sizeof(concurrentRanges), 0, sizeof(concurrentRanges));
+            M_INITIALIZE_STRUCTURE(&ranges, sizeof(concurrentRanges));
             ranges.size    = sizeof(concurrentRanges);
             ranges.version = CONCURRENT_RANGES_VERSION;
             switch (get_Concurrent_Positioning_Ranges(&deviceList[deviceIter], &ranges))
@@ -1344,7 +1352,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
-                           "spinning down.\n");
+                              "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1400,7 +1408,7 @@ int main(int argc, char* argv[])
                 print_str("SMART Check\n");
             }
             smartTripInfo tripInfo;
-            safe_memset(&tripInfo, sizeof(smartTripInfo), 0, sizeof(smartTripInfo));
+            M_INITIALIZE_STRUCTURE(&tripInfo, sizeof(smartTripInfo));
             ret = run_SMART_Check(&deviceList[deviceIter], &tripInfo);
             if (FAILURE == ret)
             {
@@ -1586,7 +1594,7 @@ int main(int argc, char* argv[])
                                                              fwfile->fileSize, M_NULLPTR))
                     {
                         firmwareUpdateData dlOptions;
-                        safe_memset(&dlOptions, sizeof(firmwareUpdateData), 0, sizeof(firmwareUpdateData));
+                        M_INITIALIZE_STRUCTURE(&dlOptions, sizeof(firmwareUpdateData));
                         dlOptions.size                       = sizeof(firmwareUpdateData);
                         dlOptions.version                    = FIRMWARE_UPDATE_DATA_VERSION;
                         dlOptions.dlMode                     = C_CAST(eFirmwareUpdateMode, DOWNLOAD_FW_MODE);
@@ -1608,8 +1616,9 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                print_str("The Operating system has reported that a power cycle is required to complete "
-                                       "the firmware update\n");
+                                print_str(
+                                    "The Operating system has reported that a power cycle is required to complete "
+                                    "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
@@ -1710,14 +1719,14 @@ int main(int argc, char* argv[])
         if (ACTIVATE_DEFERRED_FW_FLAG)
         {
             supportedDLModes supportedFWDLModes;
-            safe_memset(&supportedFWDLModes, sizeof(supportedDLModes), 0, sizeof(supportedDLModes));
+            M_INITIALIZE_STRUCTURE(&supportedFWDLModes, sizeof(supportedDLModes));
             supportedFWDLModes.size    = sizeof(supportedDLModes);
             supportedFWDLModes.version = SUPPORTED_FWDL_MODES_VERSION;
             get_Supported_FWDL_Modes(&deviceList[deviceIter], &supportedFWDLModes);
             if (supportedFWDLModes.deferred || supportedFWDLModes.scsiInfoPossiblyIncomplete)
             {
                 firmwareUpdateData dlOptions;
-                safe_memset(&dlOptions, sizeof(firmwareUpdateData), 0, sizeof(firmwareUpdateData));
+                M_INITIALIZE_STRUCTURE(&dlOptions, sizeof(firmwareUpdateData));
                 dlOptions.size                 = sizeof(firmwareUpdateData);
                 dlOptions.version              = FIRMWARE_UPDATE_DATA_VERSION;
                 dlOptions.dlMode               = FWDL_UPDATE_MODE_ACTIVATE;
@@ -1742,8 +1751,9 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            print_str("The Operating system has reported that a power cycle is required to complete the "
-                                   "firmware update\n");
+                            print_str(
+                                "The Operating system has reported that a power cycle is required to complete the "
+                                "firmware update\n");
                         }
                         else
                         {

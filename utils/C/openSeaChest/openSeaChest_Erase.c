@@ -457,11 +457,19 @@ int main(int argc, char* argv[])
 #if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
-                snprintf_err_handle(TCG_SID_FLAG, TCG_SID_BUF_LEN, "%s", optarg);
+                if (0 != safe_strcpy(TCG_SID_FLAG, TCG_SID_BUF_LEN, optarg))
+                {
+                    print_Error_In_Cmd_Line_Args(TCG_SID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TCG_PSID_LONG_OPT_STRING) == 0)
             {
-                snprintf_err_handle(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
+                if (0 != safe_strcpy(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, optarg))
+                {
+                    print_Error_In_Cmd_Line_Args(TCG_PSID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
 #endif
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
@@ -671,13 +679,21 @@ int main(int argc, char* argv[])
                 if (strcmp(optarg, "empty") == 0)
                 {
                     // the modification option can change this to all F's if desired instead of zeros.
-                    safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0, ATA_SECURITY_MAX_PW_LENGTH);
+                    if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0, ATA_SECURITY_MAX_PW_LENGTH))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                     ATA_SECURITY_PASSWORD_BYTE_COUNT = ATA_SECURITY_MAX_PW_LENGTH;
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
                     ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, safe_strlen("SeaChest"));
-                    safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                    if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
                 else
                 {
@@ -688,10 +704,12 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    // printf("User entered \"%s\" for their password\n", optarg);
-                    safe_memcpy(ATA_SECURITY_PASSWORD, 32, optarg,
-                                safe_strlen(optarg)); // make sure we don't try copying over a null terminator because
-                                                      // we just need to store the 32bytes of characters provided.
+                    if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, optarg,
+                                         M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH)))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                     ATA_SECURITY_PASSWORD_BYTE_COUNT =
                         C_CAST(uint8_t, M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
@@ -795,22 +813,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, PATTERN_LONG_OPT_STRING) == 0)
             {
@@ -1184,33 +1214,60 @@ int main(int argc, char* argv[])
         {
             // change all to uppercase
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Upper_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
         {
             // change all to lowercase
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Lower_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
         {
             // swap case from upper to lower and lower to upper.
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Inverse_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         // check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = UINT8_C(0); iter < (ATA_SECURITY_MAX_PW_LENGTH - 1); iter += 2)
+            for (uint8_t iter = UINT8_C(0); (iter + 1) < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
             {
                 uint8_t temp                    = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -1225,11 +1282,21 @@ int main(int argc, char* argv[])
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
         {
             // memcpy and memset based on how many characters were provided by the caller.
-            safe_memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                         ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT, &ATA_SECURITY_PASSWORD[0],
-                         ATA_SECURITY_PASSWORD_BYTE_COUNT);
-            safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0,
-                        ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            if (0 != safe_memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                  ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT,
+                                  &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT))
+            {
+                perror("Failed to set ATA Security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
+            if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0,
+                                 ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+            {
+                perror("Failed to set ATA Security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
         }
         // now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
@@ -1241,34 +1308,55 @@ int main(int argc, char* argv[])
             // convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[0], 32, ' ',
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, ' ',
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
             else
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                            32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, ' ',
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                     32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, ' ',
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
         {
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[0], 32, UINT8_MAX,
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, UINT8_MAX,
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
             else
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                            32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, UINT8_MAX,
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                     32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, UINT8_MAX,
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
         }
 #if defined(MD5_PASSWORD_SUPPORTED)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.md5Hash)
         {
-            // TODO: call the md5 hash routine in mbedtls
+            // TODO: call the md5 hash routine or write one with available in public source code that is compatible with
+            // MPL 2.0
         }
 #endif
     }
@@ -1276,7 +1364,12 @@ int main(int argc, char* argv[])
     {
         // user did not set a password, so we need to set "SeaChest"
         ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, safe_strlen("SeaChest"));
-        safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT);
+        if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT))
+        {
+            perror("Failed to copy ATA security password");
+            exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory failure -
+                                                  // TJE
+        }
     }
 
     // print out errors for unknown arguments for remaining args that haven't been processed yet
@@ -1370,7 +1463,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1751,8 +1844,7 @@ int main(int argc, char* argv[])
         {
             uint32_t    overwriteTimeMinutes = UINT32_C(0);
             eraseMethod eraseMethodList[MAX_SUPPORTED_ERASE_METHODS];
-            safe_memset(&eraseMethodList, sizeof(eraseMethod) * MAX_SUPPORTED_ERASE_METHODS, 0,
-                        sizeof(eraseMethod) * MAX_SUPPORTED_ERASE_METHODS);
+            M_INITIALIZE_STRUCTURE(&eraseMethodList, sizeof(eraseMethod) * MAX_SUPPORTED_ERASE_METHODS);
 #ifdef DISABLE_TCG_SUPPORT
             // TODO: Check the return method.
             get_Supported_Erase_Methods(&deviceList[deviceIter], eraseMethodList, &overwriteTimeMinutes);
@@ -1937,8 +2029,9 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("\nAn error occured while trying to determine best possible erase. No erase will be "
-                                   "performed.\n");
+                            print_str(
+                                "\nAn error occured while trying to determine best possible erase. No erase will be "
+                                "performed.\n");
                         }
                         break;
                     }
@@ -2144,11 +2237,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
-                        print_str("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
+                            "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2215,10 +2312,12 @@ int main(int argc, char* argv[])
                         print_str("Revert Successful!\n");
                         if (!didEraseHappen)
                         {
-                            print_str("\tNOTE: Because the lockingSP was not activated, the user data may not have been "
-                                   "erased.\n");
-                            print_str("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
-                                   "completely erased.\n\n");
+                            print_str(
+                                "\tNOTE: Because the lockingSP was not activated, the user data may not have been "
+                                "erased.\n");
+                            print_str(
+                                "\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
+                                "completely erased.\n\n");
                         }
                         if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
                         {
@@ -2252,8 +2351,10 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("Revert Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
-                        print_str("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
+                        print_str(
+                            "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
                         print_str(
                             "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
@@ -2346,8 +2447,9 @@ int main(int argc, char* argv[])
             case DEVICE_ACCESS_DENIED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
-                           "and try again.\n");
+                    print_str(
+                        "Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
+                        "and try again.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2398,8 +2500,9 @@ int main(int argc, char* argv[])
             case DEVICE_ACCESS_DENIED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
-                           "and try again.\n");
+                    print_str(
+                        "Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
+                        "and try again.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2416,7 +2519,7 @@ int main(int argc, char* argv[])
         if (SANITIZE_INFO_FLAG)
         {
             sanitizeFeaturesSupported sanitizeOptions;
-            safe_memset(&sanitizeOptions, sizeof(sanitizeFeaturesSupported), 0, sizeof(sanitizeFeaturesSupported));
+            M_INITIALIZE_STRUCTURE(&sanitizeOptions, sizeof(sanitizeFeaturesSupported));
             if (VERBOSITY_QUIET < toolVerbosity)
             {
                 print_str("\nSanitize Info\n");
@@ -2435,11 +2538,12 @@ int main(int argc, char* argv[])
                         if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
                             print_str("\t\t\tWrite after crypto erase may be required due to PI formatting! Reads may "
-                                   "return an error until written!\n");
+                                      "return an error until written!\n");
                         }
                         else
                         {
-                            print_str("\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
+                            print_str(
+                                "\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
                         }
                     }
                     if (sanitizeOptions.blockErase)
@@ -2451,11 +2555,12 @@ int main(int argc, char* argv[])
                         if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
                             print_str("\t\t\tWrite after block erase may be required due to PI formatting! Reads may "
-                                   "return an error until written!\n");
+                                      "return an error until written!\n");
                         }
                         else
                         {
-                            print_str("\t\t\tWrite after block erase required! Reads will return an error until written!\n");
+                            print_str(
+                                "\t\t\tWrite after block erase required! Reads will return an error until written!\n");
                         }
                     }
                     if (sanitizeOptions.overwrite)
@@ -2480,11 +2585,11 @@ int main(int argc, char* argv[])
                             break;
                         case NO_DEALLOC_RESPONSE_WARNING:
                             print_str("\t\t\tSanitize command will be accepted but warn about deallocation when no "
-                                   "deallocate is specified.\n");
+                                      "deallocate is specified.\n");
                             break;
                         case NO_DEALLOC_RESPONSE_ERROR:
                             print_str("\t\t\tSanitize command will be aborted with an error when no deallocate is "
-                                   "specified.\n");
+                                      "specified.\n");
                             break;
                         }
                     }
@@ -2527,7 +2632,7 @@ int main(int argc, char* argv[])
             {
                 bool                     sanitizeCommandRun = false;
                 sanitizeOperationOptions sanitizeOp;
-                safe_memset(&sanitizeOp, sizeof(sanitizeOperationOptions), 0, sizeof(sanitizeOperationOptions));
+                M_INITIALIZE_STRUCTURE(&sanitizeOp, sizeof(sanitizeOperationOptions));
                 sanitizeOp.version                                     = SANITIZE_OPERATION_OPTIONS_VERSION;
                 sanitizeOp.size                                        = sizeof(sanitizeOperationOptions);
                 sanitizeOp.pollForProgress                             = POLL_FLAG;
@@ -2574,7 +2679,7 @@ int main(int argc, char* argv[])
                 // get the support information before starting sanitize to add warnings about write after block erase or
                 // write after crypto erase.
                 writeAfterErase writeReq;
-                safe_memset(&writeReq, sizeof(writeAfterErase), 0, sizeof(writeAfterErase));
+                M_INITIALIZE_STRUCTURE(&writeReq, sizeof(writeAfterErase));
                 is_Write_After_Erase_Required(&deviceList[deviceIter], &writeReq);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
@@ -2594,8 +2699,10 @@ int main(int argc, char* argv[])
                         if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
-                            print_str("          PI bytes may be invalid and reading them results in logical block guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                            print_str(
+                                "          PI bytes may be invalid and reading them results in logical block guard\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2612,8 +2719,9 @@ int main(int argc, char* argv[])
                         {
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
                             print_str("          PI bytes may be scrambled and reading them results in logical block "
-                                   "guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                                      "guard\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2728,7 +2836,7 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("Access Denied while attempting Sanitize. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                                  "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2764,7 +2872,7 @@ int main(int argc, char* argv[])
             {
                 bool                    currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
-                safe_memset(&formatUnitParameters, sizeof(runFormatUnitParameters), 0, sizeof(runFormatUnitParameters));
+                M_INITIALIZE_STRUCTURE(&formatUnitParameters, sizeof(runFormatUnitParameters));
                 if (FORMAT_SECTOR_SIZE)
                 {
                     currentBlockSize = false;
@@ -2835,8 +2943,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Access Denied while attempting Format Unit. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting Format Unit. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2865,15 +2974,18 @@ int main(int argc, char* argv[])
                         print_str("\t\tThere is an additional risk when performing a low-level fast format that may\n");
                         print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        print_str(
+                            "\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
                         print_str("\t\t         drive inoperable! Use this at your own risk!\n");
                         print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
                         print_str("\t\t         with multiple logical units or namespaces.\n");
                         print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         print_str("\t\t         before using this option. Interruptions can be caused by these\n");
                         print_str("\t\t         and may prevent completion of a sector size change.\n");
-                        print_str("\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        print_str(
+                            "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
+                        print_str(
+                            "\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
                         print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
@@ -2898,7 +3010,7 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 runNVMFormatParameters nvmformatParameters;
-                safe_memset(&nvmformatParameters, sizeof(runNVMFormatParameters), 0, sizeof(runNVMFormatParameters));
+                M_INITIALIZE_STRUCTURE(&nvmformatParameters, sizeof(runNVMFormatParameters));
                 if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
                 {
                     nvmformatParameters.formatNumberProvided     = false;
@@ -3004,8 +3116,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Access Denied while attempting NVM Format. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting NVM Format. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -3040,11 +3153,14 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 ataSecurityPassword ataPassword;
-                safe_memset(&ataPassword, sizeof(ataSecurityPassword), 0, sizeof(ataSecurityPassword));
+                M_INITIALIZE_STRUCTURE(&ataPassword, sizeof(ataSecurityPassword));
                 ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
-                safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
-                            ATA_SECURITY_PASSWORD_BYTE_COUNT); // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be
-                                                               // > 32. Should be caught above.
+                if (0 != safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
+                                     ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Error copying ATA security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
                 explicit_zeroes(ATA_SECURITY_PASSWORD, 32);
                 ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
                 if (ZONE_NO_RESET == goTrue)
@@ -3161,8 +3277,9 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("Write same is not supported on this device, or the range is larger than the device "
-                                   "supports.\n");
+                            print_str(
+                                "Write same is not supported on this device, or the range is larger than the device "
+                                "supports.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -3625,9 +3742,12 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(
-                    seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                if (0 > snprintf_err_handle(
+                            seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                            TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure"))
+                {
+                    perror("Error formatting exit code string for zero validation failure");
+                }
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!

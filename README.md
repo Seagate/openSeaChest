@@ -9,60 +9,64 @@
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
 [![CI for meson build](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml)
-[![FreeBSD build status](https://api.cirrus-ci.com/github/Seagate/openSeaChest.svg)](https://cirrus-ci.com/github/Seagate/openSeaChest)
-[![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
+[![Reproducible Builds](https://img.shields.io/badge/reproducible_builds-compatible-blue)](https://reproducible-builds.org/)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10600/badge)](https://www.bestpractices.dev/projects/10600)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Seagate/openSeaChest/badge)](https://scorecard.dev/viewer/?uri=github.com/Seagate/openSeaChest)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![Dependabot Status](https://img.shields.io/badge/dependabot-enabled-success)](https://github.com/Seagate/openSeaChest/security/dependabot)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Seagate/openSeaChest/graphs/commit-activity)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Seagate/openSeaChest)](https://github.com/Seagate/openSeaChest/commits/develop)
 
 Welcome to the `openSeaChest` open source project!
 
-openSeaChest is a collection of comprehensive, easy-to-use command line
-diagnostic tools and programming libraries for storage devices that help you
-quickly determine the health and status of your storage product.  The collection
-includes several tests that show device information, properties and settings.
-It includes several tests which may modify the storage product such as power
-management features or firmware download.  It includes various commands to
-examine the physical media on your storage device.  Close to 200 commands and
-sub-commands are available in the various openSeaChest utilities.  These are described in more detail below.
+openSeaChest is your storage device expert - a collection of **18 task-focused utilities** covering **200+ commands** so you don't need to be a low-level command expert. These comprehensive, easy-to-use command line tools and programming libraries help you quickly determine the health and status of your storage devices, configure settings, update firmware, securely erase data, and much more. Whether you're checking drive health, running diagnostics, or performing advanced operations, openSeaChest provides the capabilities you need across SATA, SAS, NVMe, and USB interfaces.
 
-Here is an overview presentation we gave at the *Storage Networking Industry Association - Storage Developer Conference 2018* that describes the design architecture for the **_opensea API_** and **_openSeaChest_** storage resource management utilities:
+## 🚀 Get Started
 
-[![Video: SDC 2018 - What's better than sg3_utils, hdparm, sdparm?](https://img.youtube.com/vi/LMt8Ztlj5oQ/hqdefault.jpg)][video]
+**New to openSeaChest or command-line tools?**
 
-(Note: The openSeaChest team has the utmost respect for the highly regarded [sg3_utils](http://sg.danny.cz/sg/sg3_utils.html), [hdparm](https://sourceforge.net/projects/hdparm/), [sdparm](http://sg.danny.cz/sg/sdparm.html) and [nvme-cli](https://github.com/linux-nvme/nvme-cli) open source projects.  Since this is all pretty low-level stuff, we chose the presentation title *"What's better than sg3_utils, hdparm, sdparm?"* only to grab the attention of a few extra people attending the [SNIA SDC 2018 conference](https://www.snia.org/events/storage-developer/presentations18).)
+📚 **[Visit Our Wiki](https://github.com/Seagate/openSeaChest/wiki)** - Step-by-step guides, tutorials, and comprehensive documentation
 
-[video]: https://www.youtube.com/watch?v=LMt8Ztlj5oQ
+🏥 **[Check Your Drive Health](https://github.com/Seagate/openSeaChest/wiki/Drive-Health-and-SMART)** - Learn how to diagnose drive issues and monitor SMART data
+
+💾 **[Download Latest Release](https://github.com/Seagate/openSeaChest/releases)** - Pre-compiled binaries for Windows, Linux, and BSD systems
+
+🎯 **[Introduction to Command Line Tools](https://github.com/Seagate/openSeaChest/wiki/Introduction-To-Command-Line-Tools)** - Perfect for beginners
+
+## Why Choose openSeaChest?
+
+openSeaChest provides a **task-focused, cross-platform approach** to storage device management. Instead of requiring deep knowledge of low-level ATA, SCSI, or NVMe command sets, openSeaChest handles the complexity for you with utilities organized by what you want to accomplish.
+
+**Key advantages:**
+- **Cross-platform**: Same commands work on Windows, Linux, FreeBSD, OpenBSD, NetBSD, Solaris, and more
+- **Unified interface**: One set of tools for ATA/SATA, SCSI/SAS, and NVMe devices
+- **Task-focused**: Choose utilities by goal (check health, erase data, update firmware) rather than by command
+- **Extensive USB support**: Compatibility testing and workarounds for USB-attached devices
+- **Comprehensive**: Diagnostics, configuration, firmware updates, security, erasure, and advanced features
+
+For a detailed comparison with [smartctl](https://www.smartmontools.org/), [sg3_utils](https://sg.danny.cz/sg/sg3_utils.html), [hdparm](https://sourceforge.net/projects/hdparm/), [sdparm](https://sg.danny.cz/sg/sdparm.html), [nvme-cli](https://github.com/linux-nvme/nvme-cli), and other tools, see our [wiki comparison page](https://github.com/Seagate/openSeaChest/wiki#-why-choose-openseachest).
+
+**Note:** We have the utmost respect for these excellent, proven tools used by professionals worldwide. Each has specific strengths, and openSeaChest complements them with a unified, task-focused approach across platforms and device types.
 
 ### About openSeaChest Command Line Diagnostics
 
 Seagate offers both graphical user interface (GUI) and command line interface
-(CLI) diagnostic tools for our storage devices.  SeaTools for end users is the
-most popular GUI tools  These tools support 15 languages.
+(CLI) diagnostic tools for our storage devices. [SeaTools](https://www.seagate.com/support/downloads/seatools/) is our popular GUI tool for end users, supporting 15 languages.
 
-openSeaChest diagnostics are command line utilities which are available for
-expert users.  These command line tools assume the user is knowledgeable about
-running software from the operating system command prompt.  CLI tools are in
-the English language only and use "command line arguments" to define the
-various tasks and specific devices.  openSeaChest diagnostics are available for
-both Linux and Windows environments.
+openSeaChest provides command line utilities for users who prefer or require CLI tools.
+These tools use "command line arguments" to define tasks and specify devices. While designed
+to be accessible to newcomers (see our [beginner-friendly wiki guides](https://github.com/Seagate/openSeaChest/wiki/Introduction-To-Command-Line-Tools)),
+they also provide advanced capabilities for expert users. CLI tools are in English and available
+for Windows, Linux, FreeBSD, and other platforms.
 
 Linux versions of openSeaChest tools are available as stand alone 32 or 64-bit
 executables you can copy to your own system.  Windows OS versions of
 openSeaChest diagnostics are also available.
 
-Technical Support for openSeaChest drive utilities is not available.  If you
-have the time to send us some feedback about this software, especially if you
-notice something we should fix or improve, we would greatly appreciate hearing
-from you.  To report your comments and suggestions, please use the issue
-reporting feature available in this git repository.  Additionally, you can
-contact us through this email address seaboard @ seagate.com.  Please let us
-know the name and version of the tool you are using.
+**Community Support:** Traditional technical support is not available for openSeaChest. However, we greatly appreciate feedback! Please use the [Issues](https://github.com/Seagate/openSeaChest/issues) tab to report bugs, request features, or ask questions. You can also reach us at opensource@seagate.com. Please include the tool name and version (use `--version`) when reporting issues.
 
-openSeaChest drive utilities support SATA, SAS, NVMe and USB interface devices.  In some cases openSeaChest has successfully recognized PATA and SCSI legacy devices, although the software is not expected to do so.
-
-For a description of all of our tools please see [our Wiki](https://github.com/Seagate/openSeaChest/wiki/Introduction-To-Command-Line-Tools).
-This pages also includes some instructions for those who are new to command line tools to help get you started!
+**Device Compatibility:** openSeaChest supports SATA, SAS, NVMe, and USB interface devices across multiple operating systems. In some cases, it has successfully recognized legacy PATA and SCSI devices, though this is not the primary focus.
 
 ### Important Notes
 

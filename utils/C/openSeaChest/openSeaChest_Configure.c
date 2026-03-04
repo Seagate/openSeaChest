@@ -39,8 +39,8 @@
 
 #include "cdl.h"
 
-#if defined (FEATURE_JSONOUTPUT_SUPPORT)
-#include "cdl_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
 #endif
 
 ////////////////////////
@@ -928,7 +928,7 @@ int main(int argc, char* argv[])
                     if (filenameptr && safe_strlen(filenameptr) > 1)
                     {
                         filenameptr += 1; // go past the =
-                        if (snprintf_err_handle(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, "%s", filenameptr) <= 0)
+                        if (0 != safe_strcpy(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, filenameptr))
                         {
                             print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -961,7 +961,11 @@ int main(int argc, char* argv[])
                             {
                             case 0: // page-subpage
                             {
-                                snprintf_err_handle(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
+                                if (0 != safe_strcpy(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, token))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
                                 // parse later outside this loop. If we tokenize again in here, we'll break the way the
                                 // parsing works... :(
                             }
@@ -1448,20 +1452,20 @@ int main(int argc, char* argv[])
                 if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
                     optarg = argv[optind++];
-                if (strcmp(optarg, "raw") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
-                }
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
-                }
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
 #endif
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -1492,22 +1496,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -1807,8 +1823,8 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP ||
-          (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO ||
+          SET_TIMESTAMP || (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
           || CONFIG_CDL_SETTINGS_FLAG
 #endif
@@ -1831,7 +1847,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -2228,7 +2244,7 @@ int main(int argc, char* argv[])
         if (ATA_DCO_IDENTIFY)
         {
             dcoData dco;
-            safe_memset(&dco, sizeof(dcoData), 0, sizeof(dcoData));
+            M_INITIALIZE_STRUCTURE(&dco, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
@@ -2326,7 +2342,7 @@ int main(int argc, char* argv[])
         {
             dcoData dco;
             bool    scsiAtaInSync = false;
-            safe_memset(&dco, sizeof(dcoData), 0, sizeof(dcoData));
+            M_INITIALIZE_STRUCTURE(&dco, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
@@ -2559,7 +2575,8 @@ int main(int argc, char* argv[])
                     {
                         print_str("DCO is Frozen. Cannot set DCO features.\n");
                         print_str("Device must be power cycled to clear freeze-lock.\n");
-                        print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                        print_str(
+                            "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                         print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -3123,7 +3140,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Restoring SCT error recovery read command timer to default is not supported on this device\n");
+                    print_str(
+                        "Restoring SCT error recovery read command timer to default is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -3151,7 +3169,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Restoring SCT error recovery write command timer to default is not supported on this "
-                           "device\n");
+                              "device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -3782,7 +3800,7 @@ int main(int argc, char* argv[])
             print_str("\nPlease switch use of PUIS options to openSeaChest_PowerControl.\n");
             print_str("These options will be removed from openSeaChest_Configure in a future release.\n");
             puisInfo info;
-            safe_memset(&info, sizeof(puisInfo), 0, sizeof(puisInfo));
+            M_INITIALIZE_STRUCTURE(&info, sizeof(puisInfo));
             eReturnValues puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
             if (PUIS_FEATURE_SPINUP_FLAG)
             {
@@ -4049,7 +4067,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Mode page not supported or resetting mode page to defaults not supported on this device.\n");
+                    print_str(
+                        "Mode page not supported or resetting mode page to defaults not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4082,7 +4101,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Mode page not supported or restoring mode page to saved values not supported on this "
-                           "device.\n");
+                              "device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4273,16 +4292,18 @@ int main(int argc, char* argv[])
                                                 print_str("Successfully set SCSI mode page!\n");
                                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                                 {
-                                                    print_str("NOTE: This command may have affected more than 1 logical "
-                                                           "unit\n");
+                                                    print_str(
+                                                        "NOTE: This command may have affected more than 1 logical "
+                                                        "unit\n");
                                                 }
                                             }
                                             break;
                                         case NOT_SUPPORTED:
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                print_str("Unable to change the requested values in the mode page. These "
-                                                       "may not be changable or are an invalid combination.\n");
+                                                print_str(
+                                                    "Unable to change the requested values in the mode page. These "
+                                                    "may not be changable or are an invalid combination.\n");
                                             }
                                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                             break;
@@ -4299,8 +4320,9 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            print_str("An error occurred while trying to parse the file. Please check the "
-                                                   "file format and make sure no invalid characters are provided.\n");
+                                            print_str(
+                                                "An error occurred while trying to parse the file. Please check the "
+                                                "file format and make sure no invalid characters are provided.\n");
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     }
@@ -4310,7 +4332,7 @@ int main(int argc, char* argv[])
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         print_str("An error occurred while trying to parse the file. Please check the "
-                                               "file format.\n");
+                                                  "file format.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -4406,8 +4428,11 @@ int main(int argc, char* argv[])
                             {
                                 // Before going too far, clear the block descriptor to zeroes to make sure we are
                                 // clearly communicating that no changes are requested.
-                                safe_memset(&rawmodePageBuffer[modeHeaderLen], rawModePageSize - modeHeaderLen, 0,
-                                            blockDescriptorLength);
+                                if (0 != safe_memset(&rawmodePageBuffer[modeHeaderLen], rawModePageSize - modeHeaderLen,
+                                                     0, blockDescriptorLength))
+                                {
+                                    perror("Error setting block descriptor to zeroes");
+                                }
                             }
                             // now we have the data, we can begin modifying the field requested.
                             if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
@@ -4430,7 +4455,7 @@ int main(int argc, char* argv[])
                                     }
                                     // check how many full bytes worth of bits we'll be setting.
                                     uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet * BITSPERBYTE);
+                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet* BITSPERBYTE);
                                     lowUnalignedBits = remainingBits;
                                     // now we know how we need to set things, so lets start at the end (lsb) and work up
                                     // from there. as we set the necessary bits, we will shift the original value to the
@@ -4525,8 +4550,9 @@ int main(int argc, char* argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    print_str("Unable to change the requested values in the mode page. These may not be "
-                                           "changeable or are an invalid combination.\n");
+                                    print_str(
+                                        "Unable to change the requested values in the mode page. These may not be "
+                                        "changeable or are an invalid combination.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
@@ -4572,7 +4598,7 @@ int main(int argc, char* argv[])
         if (WRV_INFO)
         {
             wrvInfo info;
-            safe_memset(&info, sizeof(wrvInfo), 0, sizeof(wrvInfo));
+            M_INITIALIZE_STRUCTURE(&info, sizeof(wrvInfo));
             switch (get_Write_Read_Verify_Info(&deviceList[deviceIter], &info))
             {
             case SUCCESS:

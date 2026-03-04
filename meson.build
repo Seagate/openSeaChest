@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true', 'default_library=static'])
 
 c = meson.get_compiler('c')
 
@@ -410,10 +410,10 @@ if target_machine.system() != 'windows'
     endif
 endif
 
-opensea_common = subproject('opensea-common')
+opensea_common = subproject('opensea-common', default_options: 'default_library=static')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
-opensea_transport = subproject('opensea-transport')
+opensea_transport = subproject('opensea-transport', default_options: 'default_library=static')
 opensea_transport_dep = opensea_transport.get_variable('opensea_transport_dep')
 
 csmisupport = opensea_transport.get_variable('csmisupport')
@@ -421,7 +421,7 @@ if csmisupport.enabled()
     add_project_arguments('-DENABLE_CSMI', language: 'c')
 endif
 
-opensea_operations = subproject('opensea-operations')
+opensea_operations = subproject('opensea-operations', default_options: 'default_library=static')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
 jsonc_dep = disabler()
@@ -432,7 +432,7 @@ if get_option('json_outputformat')
     add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
 
     # Pass BUILD_TIMESTAMP to opensea-jsonformat for reproducible builds
-    jsonformat_options = []
+    jsonformat_options = ['default_library=static']
     if source_epoch != ''
         jsonformat_options += 'build_timestamp=' + formatted_date
     endif
