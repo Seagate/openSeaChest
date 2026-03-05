@@ -17,6 +17,13 @@
 # Define comma variable for use in subst/patsubst (Make doesn't allow literal commas in function calls)
 comma := ,
 
+# Only perform security hardening flag checking if we're not cleaning
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    # Skipping security checks during clean targets
+else
+$(info Testing security hardening flags...)
+endif
+
 #===============================================================================
 # Stack Protection
 #===============================================================================
@@ -48,7 +55,11 @@ endif
 
 # x86_64: Control-flow protection
 ifeq ($(ARCH),x86_64)
-    ARCH_HARDENING := $(call cc_supports,-fcf-protection=full)
+    ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+        ARCH_HARDENING :=
+    else
+        ARCH_HARDENING := $(call cc_supports,-fcf-protection=full)
+    endif
     ifneq ($(ARCH_HARDENING),)
         HARDENING_FLAGS += -fcf-protection=full
     endif
@@ -56,7 +67,11 @@ endif
 
 # ARM64/AArch64: Branch protection
 ifeq ($(ARCH),aarch64)
-    ARCH_HARDENING := $(call cc_supports,-mbranch-protection=standard)
+    ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+        ARCH_HARDENING :=
+    else
+        ARCH_HARDENING := $(call cc_supports,-mbranch-protection=standard)
+    endif
     ifneq ($(ARCH_HARDENING),)
         HARDENING_FLAGS += -mbranch-protection=standard
     endif
@@ -148,7 +163,11 @@ HARDENING_FLAGS += -ffunction-sections -fdata-sections
 
 # Test for -fPIC support (needed for static libraries on some platforms like BSD)
 # This prevents relocation errors when linking static libraries into executables
-PIC_SUPPORT := $(call cc_supports,-fPIC)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    PIC_SUPPORT :=
+else
+    PIC_SUPPORT := $(call cc_supports,-fPIC)
+endif
 ifneq ($(PIC_SUPPORT),)
     # Add -fPIC globally for static library compatibility
     HARDENING_FLAGS += -fPIC
@@ -157,9 +176,14 @@ endif
 # PIE (Position Independent Executable) for ASLR
 # Only apply for executables, not libraries (libraries are PIC by default)
 # Test both compiler flag (-fPIE) and linker flag (-pie) support
-PIE_CFLAGS_SUPPORT := $(call cc_supports,-fPIE)
-PIE_LDFLAGS_SUPPORT := $(shell echo 'int main(void) { return 0; }' | \
-                        $(CC) -fPIE -pie -x c - -o /dev/null 2>/dev/null && echo yes)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    PIE_CFLAGS_SUPPORT :=
+    PIE_LDFLAGS_SUPPORT :=
+else
+    PIE_CFLAGS_SUPPORT := $(call cc_supports,-fPIE)
+    PIE_LDFLAGS_SUPPORT := $(shell echo 'int main(void) { return 0; }' | \
+                            $(CC) -fPIE -pie -x c - -o /dev/null 2>/dev/null && echo yes)
+endif
 
 ifneq ($(PIE_CFLAGS_SUPPORT),)
     PIE_CFLAGS := -fPIE

@@ -22,8 +22,11 @@
 # Test if compiler supports a flag (mirrors Meson's get_supported_arguments)
 # Returns "yes" if supported, empty if not
 # Usage: $(call cc_supports,-Wflag-name)
-cc_supports = $(shell echo 'int main(void) { return 0; }' | \
-               $(CC) $(1) -Werror -x c - -o /dev/null 2>/dev/null && echo yes)
+# Note: Outputs "[compiler] Checking: flag" to stderr so user sees progress
+cc_supports = $(shell \
+    echo "[$(CC)] Checking: $(1)" >&2; \
+    echo 'int main(void) { return 0; }' | \
+    $(CC) $(1) -Werror -x c - -o /dev/null 2>/dev/null && echo yes)
 
 # Cache file for tested flags
 COMPILER_FLAGS_CACHE := $(BUILD_DIR)/.compiler-flags-cache
@@ -119,8 +122,19 @@ else
     NEWER_WARNING_CANDIDATES := $(NEWER_WARNING_CANDIDATES_COMMON)
 endif
 
+# Only perform compiler flag checking if we're not cleaning
+# Check MAKECMDGOALS to avoid testing during clean, distclean, mostlyclean, etc.
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    # Skipping compiler checks during clean targets
+else
+# Progress message before testing
+$(info Testing compiler warning flag support (this may take a moment)...)
+
 # Test each flag and collect supported ones
 NEWER_WARNINGS := $(foreach flag,$(NEWER_WARNING_CANDIDATES),$(if $(call cc_supports,$(flag)),$(flag)))
+
+$(info Compiler feature detection complete)
+endif
 
 #===============================================================================
 # Conversion Warnings (test for support, some require newer compilers)
@@ -133,8 +147,14 @@ CONVERSION_WARNING_FLAGS := \
     -Wint-to-pointer-cast
 
 # Test for -Wenum-conversion (GCC 10+, Clang 3.2+)
+# Only perform conversion flag checking if we're not cleaning
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    # Skipping conversion checks during clean targets
+else
+$(info Testing conversion warning flags...)
 ifeq ($(call cc_supports,-Wenum-conversion),yes)
     CONVERSION_WARNING_FLAGS += -Wenum-conversion
+endif
 endif
 
 # GCC 10+ specific: -Wsign-conversion (very noisy, use while debugging)
@@ -152,7 +172,11 @@ endif
 COMMON_DEFINES := -D_GLIBCXX_ASSERTIONS
 
 # Strict flex arrays (GCC 13+, Clang 16+)
-STRICT_FLEX_ARRAYS := $(call cc_supports,-fstrict-flex-arrays=3)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    STRICT_FLEX_ARRAYS :=
+else
+    STRICT_FLEX_ARRAYS := $(call cc_supports,-fstrict-flex-arrays=3)
+endif
 ifneq ($(STRICT_FLEX_ARRAYS),)
     COMMON_FLAGS += -fstrict-flex-arrays=3
 endif
@@ -164,13 +188,21 @@ COMMON_FLAGS += -fno-delete-null-pointer-checks
 COMMON_FLAGS += -fno-strict-overflow -fno-strict-aliasing
 
 # Zero-initialize automatic variables
-ZERO_INIT_AUTO_VAR := $(call cc_supports,-ftrivial-auto-var-init=zero)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    ZERO_INIT_AUTO_VAR :=
+else
+    ZERO_INIT_AUTO_VAR := $(call cc_supports,-ftrivial-auto-var-init=zero)
+endif
 ifneq ($(ZERO_INIT_AUTO_VAR),)
     COMMON_FLAGS += -ftrivial-auto-var-init=zero
 endif
 
 # Zero-initialize padding bits (GCC 14+, Clang 18+)
-ZERO_INIT_PADDING := $(call cc_supports,-fzero-init-padding-bits=all)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    ZERO_INIT_PADDING :=
+else
+    ZERO_INIT_PADDING := $(call cc_supports,-fzero-init-padding-bits=all)
+endif
 ifneq ($(ZERO_INIT_PADDING),)
     COMMON_FLAGS += -fzero-init-padding-bits=all
 endif
@@ -179,7 +211,11 @@ endif
 COMMON_FLAGS += -fvisibility=hidden
 
 # Disable C23 extensions warning (we check availability before use)
-NO_C23_EXT := $(call cc_supports,-Wno-c23-extensions)
+ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+    NO_C23_EXT :=
+else
+    NO_C23_EXT := $(call cc_supports,-Wno-c23-extensions)
+endif
 ifneq ($(NO_C23_EXT),)
     COMMON_FLAGS += -Wno-c23-extensions
 endif
@@ -216,14 +252,36 @@ endif
 DEBUG_FLAGS := $(BUILD_DEFINES)
 
 # Link-time optimization for release and minsize builds
+# Try -flto=auto first (parallelizes LTRANS across available cores, GCC 10+ / Clang 10+)
+# Fallback to -flto if -flto=auto not supported (older compilers)
 # Disabled on BSD systems due to ar/ranlib plugin issues
 ifeq ($(filter $(BUILD_TYPE),release minsize),$(BUILD_TYPE))
     ifneq ($(filter $(PLATFORM),freebsd openbsd netbsd dragonflybsd),$(PLATFORM))
-        LTO := $(call cc_supports,-flto)
-        ifneq ($(LTO),)
-            OPT_FLAGS += -flto
+        ifneq ($(filter clean distclean mostlyclean,$(MAKECMDGOALS)),)
+            LTO_FLAG :=
+        else
+            # First try -flto=auto (parallel LTO)
+            LTO_FLAG := $(call cc_supports,-flto=auto)
+            ifeq ($(LTO_FLAG),)
+                # Fallback to -flto if -flto=auto not supported
+                LTO_FLAG := $(call cc_supports,-flto)
+                # Convert 'yes' to '-flto'
+                ifeq ($(LTO_FLAG),yes)
+                    LTO_FLAG := -flto
+                else
+                    LTO_FLAG :=
+                endif
+            else
+                # Convert 'yes' to '-flto=auto'
+                ifeq ($(LTO_FLAG),yes)
+                    LTO_FLAG := -flto=auto
+                endif
+            endif
+        endif
+        ifneq ($(LTO_FLAG),)
+            OPT_FLAGS += $(LTO_FLAG)
             # Need to pass LTO flag to linker too
-            LDFLAGS += -flto
+            LDFLAGS += $(LTO_FLAG)
         endif
     endif
 endif

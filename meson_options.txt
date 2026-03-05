@@ -20,10 +20,9 @@ option('tools', type : 'array', choices : [
 ], description : 'Select which openSeaChest tools to build. (All by default)')
 
 option('tcg', type : 'feature', value : 'disabled')
-
 option('libc_musl', type : 'boolean', value : false, description : 'Build openSeaChest with musl libc instead of the system default libc (e.g., glibc on Linux). This updates the --license output when linking against MUSL.')
 
-option('json_outputformat', type : 'boolean', value : false, description : 'Enable JSON output format support in openSeaChest tools (Disabled by default).')
+option('json_outputformat', type : 'boolean', value : true, description : 'Enable JSON output format for openSeaChest. Not all outputs are supported yet, but this is a start for the most popular options to output JSON formatted data to the screen.')
 
 option('atasecsetpass', type : 'feature', value : 'disabled', description : 'Enable or Disable ATA Security Set Password support in openSeaChest_Security tool (Disabled by default). WARNING: Enabling this option may cause system boot issues or make the drive inaccessible if not handled properly.')
 

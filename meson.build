@@ -40,6 +40,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wduplicated-cond',
         '-Wjump-misses-init',
         '-Wstringop-overflow',
+        '-Wstringop-overread',
         '-Wlogical-op',
         '-Wshift-overflow',
         '-Wshift-overflow=1',
@@ -104,6 +105,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wcalloc-transposed-args',
         '-Werror=alloca',  # Do not allow use of the alloca function
         '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
+        '-Wfortify-source' # needed for diagnose_as_builtin attributes to work.
     ]
 
     if get_option('cc-suggest-attribute')
@@ -270,12 +272,38 @@ endif
 
 source_epoch = ''
 
+posixshell = find_program('sh', required: false)
+bashshell = find_program('bash', required: false)
 # 1. Check for SOURCE_DATE_EPOCH environment variable using shell
-env_cmd = run_command('sh', '-c', 'echo $SOURCE_DATE_EPOCH', check: false)
-if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
-    source_epoch = env_cmd.stdout().strip()
+if posixshell.found()
+    env_cmd = run_command(posixshell, '-c', 'echo $SOURCE_DATE_EPOCH', check: false)
+    if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+        source_epoch = env_cmd.stdout().strip()
+    endif
+elif bashshell.found()
+    env_cmd = run_command(bashshell, '-c', 'echo $SOURCE_DATE_EPOCH', check: false)
+    if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+        source_epoch = env_cmd.stdout().strip()
+    endif
+else
+    # Probably in Windows, so check for powershell and try to get the environment variable from there
+    powershell = find_program('pwsh', 'powershell', required: false)
+    if powershell.found()
+        env_cmd = run_command(powershell, '-NoProfile', '-NonInteractive', '-Command', '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")', check: false)
+        if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+            source_epoch = env_cmd.stdout().strip()
+        endif
+    else
+        cmdexe = find_program('cmd.exe', required: false)
+        if cmdexe.found()
+            # cmd.exe is the last resort
+            env_cmd = run_command(cmdexe, '/c', 'echo %SOURCE_DATE_EPOCH%', check: false)
+            if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != '' and env_cmd.stdout().strip() != '%SOURCE_DATE_EPOCH%'
+                source_epoch = env_cmd.stdout().strip()
+            endif
+        endif
+    endif
 endif
-
 # 2. If Env Var is empty, try to fetch from Git
 if source_epoch == ''
     git = find_program('git', required: false)

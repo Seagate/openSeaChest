@@ -833,7 +833,7 @@ int main(int argc, char* argv[])
         // check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = UINT8_C(0); (iter + 1) < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
+            for (uint8_t iter = UINT8_C(0); (iter + UINT8_C(1)) < ATA_SECURITY_MAX_PW_LENGTH; iter += UINT8_C(2))
             {
                 uint8_t temp                    = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];

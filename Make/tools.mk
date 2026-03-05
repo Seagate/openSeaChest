@@ -53,10 +53,6 @@ endif
 # Tool executables with platform extension
 TOOL_EXES := $(addsuffix $(EXE_EXT),$(addprefix $(BIN_DIR)/,$(TOOLS)))
 
-# Support FAT and other 2-second resolution filesystems
-# This prevents unnecessary rebuilds on old NFS or FAT filesystems
-.LOW_RESOLUTION_TIME: $(TOOL_EXES)
-
 #===============================================================================
 # Tool-Specific Source Files
 #===============================================================================

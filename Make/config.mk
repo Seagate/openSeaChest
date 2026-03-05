@@ -446,15 +446,15 @@ define print_warning
 endef
 
 define print_error
-    @printf "$(COLOR_RED)ERROR:$(COLOR_RESET) %s\n" "$(1)"
+    @printf "$(COLOR_RED)ERROR:$(COLOR_RESET) %s\n" $(1)
 endef
 
 define print_success
-    @printf "$(COLOR_GREEN)SUCCESS:$(COLOR_RESET) %s\n" "$(1)"
+	@printf "$(COLOR_GREEN)SUCCESS:$(COLOR_RESET) %s\n" $(1)
 endef
 
 define print_status
-    @printf "$(COLOR_STATUS)STATUS:$(COLOR_RESET) %s\n" "$(1)"
+	@printf "$(COLOR_STATUS)STATUS:$(COLOR_RESET) %s\n" $(1)
 endef
 
 #===============================================================================

@@ -460,8 +460,8 @@ When cross-compiling, explicitly set compiler and platform:
       # Maximum optimization (may increase size)
       make CFLAGS="-O3 -march=native"
 
-      # Link-time optimization (LTO)
-      make CFLAGS="-flto" LDFLAGS="-flto"
+      # Link-time optimization (LTO) with auto-parallelization
+      make CFLAGS="-flto=auto" LDFLAGS="-flto=auto"
 
 
 ## Documentation
