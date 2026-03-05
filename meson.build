@@ -40,6 +40,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wduplicated-cond',
         '-Wjump-misses-init',
         '-Wstringop-overflow',
+        '-Wstringop-overread',
         '-Wlogical-op',
         '-Wshift-overflow',
         '-Wshift-overflow=1',
