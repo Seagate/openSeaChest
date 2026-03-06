@@ -3,13 +3,12 @@
 
 ## Cross platform storage device utilities to manage, configure, and read health information for SATA, SAS, NVMe, and USB attached HDDs and SSDs.
 
-### Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+### Copyright (c) 2014-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/c-cpp.yml)
 [![CI for meson build](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/meson.yml)
-[![VMActions CI for meson build](https://github.com/Seagate/openSeaChest/actions/workflows/vmactions.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/vmactions.yml)
 [![FreeBSD build status](https://api.cirrus-ci.com/github/Seagate/openSeaChest.svg)](https://cirrus-ci.com/github/Seagate/openSeaChest)
 [![License: Mozilla Public License 2.0](https://img.shields.io/badge/License-MPL--2.0-blue.svg?longCache=true)](https://opensource.org/licenses/MPL-2.0)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10600/badge)](https://www.bestpractices.dev/projects/10600)
@@ -183,6 +182,7 @@ Please create an issue to request support for these other platforms when you nee
 | Windows    | Yes        | Windows vista and higher are supported |
 | Linux      | Yes        | libATA blocks ATA security commands be default. Can add kernel parameter to disable this block. Only SG_IO IOCTL support implemented for version 3 today. HDIO support is not available. Should work on any 2.6 and later kernel. Earlier kernels may work too, but has not been tested. |
 | FreeBSD    | Yes        | No known limitations at this time |
+| DragonFlyBSD | Yes      | More or less same capabilities as FreeBSD. Notable difference is that DragonflyBSD uses a SAT translator for ATA devices rather than CAM ATA support. This may or may not limit capabilities. |
 | UEFI Shell | Yes, but not currently maintained | While source code support is largely maintained for UEFI, it has not been updated or built due to many significant limitations on shipping systems. Some do not include the ATA driver that can respond to passthrough requests, only a block driver is available to allow booting the system. We are happy to revive this and find a way to add CI for this upon request. |
 | Solaris    | Yes        | This column is for the Oracle release of Solaris. USCSI ioctl support is implemented for passthrough support. No known limitations at this time. |
 | Illumos    | Yes        | This column is for Illumos based distributions/openSolaris. Uses same USCSI ioctl as Solaris. No known limitations at this time. |
@@ -190,6 +190,7 @@ Please create an issue to request support for these other platforms when you nee
 | ESXI       | Yes        | Uses SG_IO v3 like Linux through compatibility layer. Requires complicated build system with special GCC build/VM from VMWare and some other development packges installed to compile. |
 | NetBSD     | Yes | ATA Passthrough limited to 28bit commands only due to kernel IOCTL limitations. |
 | OpenBSD    | Yes | ATA Passthrough limited to 28bit commands only due to kernel IOCTL limitations. |
+| HP-UX      | Partially  | Code has been implemented to support HP-UX's SCSI passthrough but it is untested. |
 
 ##### NVMe Compatibility
 
@@ -201,6 +202,7 @@ Please create an issue to request support for these other platforms when you nee
 | Windows openFabrics compatible driver | Yes | Supported, but may be limited to what commands are allowed by the driver (at least in latest openSource code). Some vendor's NVMe drivers reuse the IOCTL for passthrough from this driver and may be supported. |
 | Linux             | Yes        | Using built-in kernel driver and IOCTLs |
 | FreeBSD           | Yes        |       |
+| DragonflyBSD      | Maybe      | No NVMe in CAM at time of writing. Unknown if IOCTL is available. It will automatically enable during build time if it matches FreeBSD's NVMe IOCTL that was first available prior to CAM NVMe support. |
 | UEFI Shell        | Yes, but not currently maintained | While source code support is largely maintained for UEFI, it has not been updated or built due to many significant limitations on shipping systems. Some systems do not include an NVMe driver that can respond to passthrough requests, only a block driver is available to allow booting the system.  We are happy to revive this and find a way to add CI for this upon request. |
 | Solaris           | No, but possible | This column is for the Oracle release of Solaris. Possible to support NVMe through UNVME ioctl. |
 | Illumos           | No, but possible | Been a while since last looked at, but appeared limited in what commands were available. |
@@ -208,6 +210,7 @@ Please create an issue to request support for these other platforms when you nee
 | ESXI              | Yes        | Requires complicated build system with special GCC build/VM from VMWare and some other development packges installed to compile. |
 | NetBSD            | No, but possible | |
 | OpenBSD           | No, but possible | |
+| HP-UX             | No         | Could not find any documentation about NVMe support in HP-UX |
 
 ### Building
 

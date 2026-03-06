@@ -36,6 +36,9 @@ TCGLFLAGS ?= \
 	../../subprojects/opensea-transport/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-transport.a \
 	../../subprojects/opensea-common/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-common.a \
 	../../subprojects/wingetopt/lib/libwingetopt.a
+LIBJSONFORMATLFLAGS ?= \
+	../../subprojects/opensea-jsonformat/Make/gcc/$(LIB_FILE_OUTPUT_DIR)/libopensea-jsonformat.a \
+	../../subprojects/json-c/build/libjson-c.a
 INC_DIR ?= \
 	-I../../subprojects/opensea-common/include \
 	-I../../subprojects/opensea-transport/include \
@@ -54,9 +57,9 @@ COMPILER_VERSION := $(shell $(CC) --version)
 ifneq (,$(findstring clang,$(COMPILER_VERSION)))
 	#setup clang specific warnings/flags (centos 7's old version supports -Wno-unknown-warning-option so enabling all of them)
 	CFLAGS += -Wno-unknown-warning-option -Wcast-align=strict -Wvla -Wfloat-equal -Wnull-dereference -Wunused-const-variable \
-	-Wduplicated-cond -Wjump-misses-init -Wstringop-overflow -Wlogical-op -Wshift-overflow=2 -Wdouble-promotion -Wformat-security \
+	-Wduplicated-cond -Wjump-misses-init -Wstringop-overflow -Wlogical-op -Wshift-overflow=2 -Wdouble-promotion -Wformat -Wformat-security \
 	-Wold-style-definition -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes
-else 
+else
 	ifneq (,$(findstring GCC,$(COMPILER_VERSION)))
 		#setup gcc specific warnings/flags
 		GCC_VERSION_STRING = $(shell $(CC) -dumpversion)
@@ -66,7 +69,7 @@ else
 		GCC_SUBMINOR = $(word 3,$(GCC_VER))
 		ifeq ($(GCC_MINOR),)
 			GCC_MINOR = 0
-		endif 
+		endif
 		ifeq ($(GCC_SUBMINOR),)
 			GCC_SUBMINOR = 0
 		endif
@@ -74,7 +77,7 @@ else
 		ifeq ($(shell test $(GCC_MAJOR) -gt 7; echo $$?),0)
 			ifeq ($(shell test $(GCC_MINOR) -gt 4; echo $$?),0)
 				CFLAGS += -Wcast-align=strict
-			else 
+			else
 				CFLAGS += -Wcast-align
 			endif
 		else
@@ -84,7 +87,7 @@ else
 		ifeq ($(shell test $(GCC_MAJOR) -gt 6; echo $$?),0)
 			ifeq ($(shell test $(GCC_MINOR) -gt 4; echo $$?),0)
 				CFLAGS += -Wshadow=compatible-local -Wstringop-overflow
-			else 
+			else
 				CFLAGS +=
 			endif
 		else
@@ -94,7 +97,7 @@ else
 		ifeq ($(shell test $(GCC_MAJOR) -gt 5; echo $$?),0)
 			ifeq ($(shell test $(GCC_MINOR) -gt 4; echo $$?),0)
 				CFLAGS += -Wnull-dereference -Wunused-const-variable -Wduplicated-cond -Wshift-overflow=2
-			else 
+			else
 				CFLAGS +=
 			endif
 		else
@@ -110,15 +113,15 @@ else
 			#as of 5.x.x, gnu11 is default
 			CFLAGS += -std=gnu99
 		endif
-		
-		CFLAGS += -Wvla -Wfloat-equal -Wjump-misses-init -Wlogical-op -Wdouble-promotion -Wformat-security \
+
+		CFLAGS += -Wvla -Wfloat-equal -Wjump-misses-init -Wlogical-op -Wdouble-promotion -Wformat -Wformat-security \
 			-Wold-style-definition -Wstrict-prototypes -Wmissing-declarations -Wmissing-prototypes
 	endif
 endif
 
 ifeq ($(UNAME),Linux)
-	LFLAGS += -lm -lrt -Wl,--gc-sections 
-	TCGLFLAGS += -lm -lrt -Wl,--gc-sections 
+	LFLAGS += -lm -lrt -Wl,--gc-sections
+	TCGLFLAGS += -lm -lrt -Wl,--gc-sections
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
@@ -128,8 +131,8 @@ ifeq ($(UNAME),SunOS)
 	STRIPOPTS=
 endif
 ifeq ($(UNAME),FreeBSD)
-	LFLAGS += -lm -lcam -Wl,--gc-sections 
-	TCGLFLAGS += -lm -lcam -Wl,--gc-sections 
+	LFLAGS += -lm -lcam -Wl,--gc-sections
+	TCGLFLAGS += -lm -lcam -Wl,--gc-sections
 	STRIPOPTS= -s
 	CFLAGS += -ffunction-sections -fdata-sections
 endif
@@ -154,59 +157,59 @@ EULA_SRC = ../../src/EULA.c
 UTIL_OPTS_SRC = ../../src/openseachest_util_options.c
 
 NVMEOUTFILE = openSeaChest_NVMe
-NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+NVMESOURCES = $(UTIL_SRC_DIR)/openSeaChest_NVMe.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 NVMEOBJS = $(NVMESOURCES:.c=.o)
 
 ERASEOUTFILE = openSeaChest_Erase
-ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+ERASESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Erase.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 ERASEOBJS = $(ERASESOURCES:.c=.o)
 
 SMARTOUTFILE = openSeaChest_SMART
-SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+SMARTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_SMART.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 SMARTOBJS = $(SMARTSOURCES:.c=.o)
 
 POWERCONTROLOUTFILE = openSeaChest_PowerControl
-POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+POWERCONTROLSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PowerControl.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 POWERCONTROLOBJS = $(POWERCONTROLSOURCES:.c=.o)
 
 GENERICTESTSOUTFILE = openSeaChest_GenericTests
-GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+GENERICTESTSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_GenericTests.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 GENERICTESTSOBJS = $(GENERICTESTSSOURCES:.c=.o)
 
 BASICSOUTFILE = openSeaChest_Basics
-BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+BASICSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Basics.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 BASICSOBJS = $(BASICSSOURCES:.c=.o)
 
 SECURITYOUTFILE = openSeaChest_Security
-SECURITYSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Security.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+SECURITYSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Security.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 SECURITYOBJS = $(SECURITYSOURCES:.c=.o)
 
 CONFIGUREOUTFILE = openSeaChest_Configure
-CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+CONFIGURESOURCES = $(UTIL_SRC_DIR)/openSeaChest_Configure.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 CONFIGUREOBJS = $(CONFIGURESOURCES:.c=.o)
 
 INFOOUTFILE = openSeaChest_Info
-INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+INFOSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Info.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 INFOOBJS = $(INFOSOURCES:.c=.o)
 
 ZBDOUTFILE = openSeaChest_ZBD
-ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+ZBDSOURCES = $(UTIL_SRC_DIR)/openSeaChest_ZBD.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 ZBDOBJS = $(ZBDSOURCES:.c=.o)
 
 FORMATOUTFILE = openSeaChest_Format
-FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+FORMATSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Format.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 FORMATOBJS = $(FORMATSOURCES:.c=.o)
 
 LOGSOUTFILE = openSeaChest_Logs
-LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+LOGSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Logs.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 LOGSOBJS = $(LOGSSOURCES:.c=.o)
 
 PASSTHROUGHTESTOUTFILE = openSeaChest_PassthroughTest
-PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+PASSTHROUGHTESTSOURCES = $(UTIL_SRC_DIR)/openSeaChest_PassthroughTest.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 PASSTHROUGHTESTOBJS = $(PASSTHROUGHTESTSOURCES:.c=.o)
 
 RESERVATIONSOUTFILE = openSeaChest_Reservations
-RESERVATIONSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Reservations.c $(EULA_SRC) $(UTIL_OPTS_SRC) 
+RESERVATIONSSOURCES = $(UTIL_SRC_DIR)/openSeaChest_Reservations.c $(EULA_SRC) $(UTIL_OPTS_SRC)
 RESERVATIONSOBJS = $(RESERVATIONSSOURCES:.c=.o)
 
 FIRMWAREOUTFILE = openSeaChest_Firmware
@@ -214,7 +217,7 @@ FIRMWARESOURCES = \
 	$(UTIL_SRC_DIR)/openSeaChest_Firmware.c \
 	$(EULA_SRC) \
 	$(UTIL_OPTS_SRC) \
-	
+
 FIRMWAREOBJS = $(FIRMWARESOURCES:.c=.o)
 
 USING_MUSL=0
@@ -302,6 +305,9 @@ export CFLAGS
 export CXXFLAGS
 export PROJECT_DEFINES
 
+json-c:
+	../buildjsonc.sh build $(CC)
+
 #wingetopt has a GNUMakefile that should be automatically found.
 #it has CMake and meson support too, which are preferred
 wingetopt:
@@ -311,6 +317,9 @@ opensea-libs:
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-common/Make/gcc
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-transport/Make/gcc
 	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-operations/Make/gcc
+
+seajsonformat:
+	$(MAKE) $(MAKEFLAG) -C ../../subprojects/opensea-jsonformat/Make/gcc
 
 $(SMARTOUTFILE): $(SMARTOBJS)
 	$(CC) $(SMARTOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SMARTOUTFILE)
@@ -332,7 +341,7 @@ $(BASICSOUTFILE): $(BASICSOBJS)
 	$(CC) $(BASICSOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 #	$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(BASICSOUTFILE)
 
-$(SECURITYOUTFILE): $(SECURITYOBJS) 
+$(SECURITYOUTFILE): $(SECURITYOBJS)
     ifneq (,$(findstring DISABLE_TCG_SUPPORT,$(PROJECT_DEFINES)))
 		$(CC) $(SECURITYOBJS) $(LFLAGS) -o $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
 #		$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)

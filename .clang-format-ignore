@@ -1,0 +1,14 @@
+# This is a file for meson's clang-format target to specify which files to ignore formatting.
+
+# Notably the only places to ignore are files within "external" folders in the subprojects.
+
+subprojects/opensea-common/src/external/**/*
+subprojects/opensea-common/include/external/**/*
+
+subprojects/opensea-transport/src/external/**/*
+subprojects/opensea-transport/include/external/**/*
+
+subprojects/opensea-operations/src/external/**/*
+subprojects/opensea-operations/include/external/**/*
+
+subprojects/json-c/**/*

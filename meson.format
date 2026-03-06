@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MPL-2.0
+# see https://mesonbuild.com/Commands.html#format
+max_line_length = 120
+indent_by = '    '
+space_array = false
+kwargs_force_multiline = false
+wide_colon = false
+no_single_comma_function = false
+end_of_line = 'native'
+indent_before_comments = '  '
+simplify_string_literals = true
+insert_final_newline = true
+tab_width = 4
+sort_files = true
+group_arg_value = false
+# Note: Rules should match between .editorconfig and meson.format
+use_editor_config = true

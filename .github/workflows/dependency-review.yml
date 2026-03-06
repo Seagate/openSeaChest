@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout Repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          warn-on-openssf-scorecard-level: 3

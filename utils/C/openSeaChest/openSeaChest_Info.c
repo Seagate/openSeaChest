@@ -35,11 +35,17 @@
 #endif
 #include "partition_info.h"
 #include "sata_phy.h"
+
+#include "cdl.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
+#endif
+
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Info";
-const char* buildVersion = "2.9.1";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -89,8 +95,10 @@ int main(int argc, char* argv[])
     ENABLE_LEGACY_PASSTHROUGH_VAR
     // scan output flags
     SCAN_FLAGS_UTIL_VARS
+    OUTPUTPATH_VAR
     // tool specific
     DEVICE_STATISTICS_VAR
+    SHOW_CDL_SETTINGS_VAR
     SMART_ATTRIBUTES_VARS
     SCSI_DEFECTS_VARS
 #if defined(ENABLE_CSMI)
@@ -116,7 +124,7 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-        
+
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
@@ -136,8 +144,10 @@ int main(int argc, char* argv[])
         FORCE_DRIVE_TYPE_LONG_OPTS,
         ENABLE_LEGACY_PASSTHROUGH_LONG_OPT,
         LOWLEVEL_INFO_LONG_OPT,
+        OUTPUTPATH_LONG_OPT,
         // tool specific options go here
         DEVICE_STATISTICS_LONG_OPT,
+        SHOW_CDL_SETTINGS_LONG_OPT,
         SMART_ATTRIBUTES_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
         REINITIALIZE_SATA_PHY_EVENTS_LONG_OPT,
@@ -161,7 +171,10 @@ int main(int argc, char* argv[])
     //       This is not necessary on most modern systems other than UEFI.
     //       This is not used in linux so that we don't depend on libbsd
     //       Update the above #define check if we port to another OS that needs this to be done.
-    setprogname(util_name);
+    if (getprogname() == M_NULLPTR)
+    {
+        setprogname(util_name);
+    }
 #endif
 
     ////////////////////////
@@ -171,7 +184,7 @@ int main(int argc, char* argv[])
     {
         openseachest_utility_Info(util_name, buildVersion);
         utility_Usage(true);
-        printf("\n");
+        print_str("\n");
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
     // get options we know we need
@@ -225,7 +238,7 @@ int main(int argc, char* argv[])
                     printf(
                         "\n Error in option --%s. You must specify showing primary (p) or grown (g) defects or both\n",
                         SCSI_DEFECTS_LONG_OPT_STRING);
-                    printf("Use -h option to view command line help\n");
+                    print_str("Use -h option to view command line help\n");
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -289,6 +302,37 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
+                {
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
+#endif
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
+            {
+                OUTPUTPATH_PARSE
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
+                {
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -320,19 +364,19 @@ int main(int argc, char* argv[])
             case DEVICE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a device handle\n");
+                    print_str("You must specify a device handle\n");
                 }
                 return UTIL_EXIT_INVALID_DEVICE_HANDLE;
             case VERBOSE_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a verbosity level. 0 - 4 are the valid levels\n");
+                    print_str("You must specify a verbosity level. 0 - 4 are the valid levels\n");
                 }
                 break;
             case SCAN_FLAGS_SHORT_OPT:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify which scan options flags you want to use.\n");
+                    print_str("You must specify which scan options flags you want to use.\n");
                 }
                 break;
             default:
@@ -343,7 +387,7 @@ int main(int argc, char* argv[])
                 utility_Usage(true);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(exitCode);
             }
@@ -356,7 +400,7 @@ int main(int argc, char* argv[])
                 free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("\n");
+                    print_str("\n");
                 }
                 exit(255);
             }
@@ -391,7 +435,7 @@ int main(int argc, char* argv[])
                    argv[optind - 1], HELP_LONG_OPT_STRING);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
         case 'h': // help
@@ -400,7 +444,7 @@ int main(int argc, char* argv[])
             utility_Usage(false);
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\n");
+                print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
         default:
@@ -408,7 +452,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    atexit(print_Final_newline);
+    if (0 != atexit(atexit_Print_Final_newline))
+    {
+        perror("Registering final newline print");
+    }
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -422,7 +469,7 @@ int main(int argc, char* argv[])
             }
             printf("%s ", argv[commandLineIter]);
         }
-        printf("\n");
+        print_str("\n");
     }
 
     if ((VERBOSITY_QUIET < toolVerbosity) && !NO_BANNER_FLAG)
@@ -547,7 +594,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("Unable to get number of devices\n");
+                print_str("Unable to get number of devices\n");
             }
             if (!is_Running_Elevated())
             {
@@ -566,7 +613,7 @@ int main(int argc, char* argv[])
             printf("You must specify one or more target devices with the --%s option to run this command.\n",
                    DEVICE_LONG_OPT_STRING);
             utility_Usage(true);
-            printf("Use -h option for detailed description\n\n");
+            print_str("Use -h option for detailed description\n\n");
         }
         exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
     }
@@ -581,7 +628,7 @@ int main(int argc, char* argv[])
                                 // Windows ATA passthrough and FreeBSD ATA passthrough)
     )
     {
-        printf("\nError: Only one force flag can be used at a time.\n");
+        print_str("\nError: Only one force flag can be used at a time.\n");
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
     }
@@ -594,7 +641,7 @@ int main(int argc, char* argv[])
     if (!(DEVICE_INFO_FLAG || TEST_UNIT_READY_FLAG ||
           LOWLEVEL_INFO_FLAG
           // check for other tool specific options here
-          || DEVICE_STATISTICS_FLAG || SMART_ATTRIBUTES_FLAG || SCSI_DEFECTS_FLAG
+          || DEVICE_STATISTICS_FLAG || SHOW_CDL_SETTINGS_FLAG || SMART_ATTRIBUTES_FLAG || SCSI_DEFECTS_FLAG
 #if defined(ENABLE_CSMI)
           || CSMI_INFO_FLAG
 #endif
@@ -612,7 +659,7 @@ int main(int argc, char* argv[])
     {
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("Unable to allocate memory\n");
+            print_str("Unable to allocate memory\n");
         }
         free_Handle_List(&HANDLE_LIST, DEVICE_LIST_COUNT);
         exit(UTIL_EXIT_OPERATION_FAILURE);
@@ -664,21 +711,21 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices enumerated correctly\n");
+                    print_str("WARN: Not all devices enumerated correctly\n");
                 }
             }
             else if (ret == PERMISSION_DENIED)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("WARN: Not all devices were opened. Some failed for lack of permissions\n");
+                    print_str("WARN: Not all devices were opened. Some failed for lack of permissions\n");
                 }
             }
             else
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Unable to get device list\n");
+                    print_str("Unable to get device list\n");
                 }
                 if (!is_Running_Elevated())
                 {
@@ -704,7 +751,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -734,8 +781,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -849,7 +895,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing SCSI Drive\n");
+                print_str("\tForcing SCSI Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = SCSI_DRIVE;
         }
@@ -858,7 +904,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing ATA Drive\n");
+                print_str("\tForcing ATA Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = ATA_DRIVE;
         }
@@ -867,7 +913,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tForcing NVME Drive\n");
+                print_str("\tForcing NVME Drive\n");
             }
             deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
         }
@@ -876,7 +922,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in PIO Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in PIO Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaSupported                  = false;
             deviceList[deviceIter].drive_info.ata_Options.dmaMode                       = ATA_DMA_MODE_NO_DMA;
@@ -890,7 +936,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in DMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in DMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_DMA;
         }
@@ -899,7 +945,7 @@ int main(int argc, char* argv[])
         {
             if (VERBOSITY_QUIET < toolVerbosity)
             {
-                printf("\tAttempting to force ATA Drive commands in UDMA Mode\n");
+                print_str("\tAttempting to force ATA Drive commands in UDMA Mode\n");
             }
             deviceList[deviceIter].drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
         }
@@ -925,7 +971,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to get device information\n");
+                    print_str("ERROR: failed to get device information\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -948,7 +994,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("ERROR: failed to read partition information from the device\n");
+                    print_str("ERROR: failed to read partition information from the device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -977,14 +1023,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing SMART attributes is not supported on this device\n");
+                    print_str("Showing SMART attributes is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get SMART attributes\n");
+                    print_str("A failure occured while trying to get SMART attributes\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1014,14 +1060,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Statistics not supported on this device\n");
+                    print_str("Device Statistics not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to retrieve Device Statistics from this device\n");
+                    print_str("Failed to retrieve Device Statistics from this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1035,22 +1081,64 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully reinitiailized Device Statistics\n");
-                    printf("NOTE: Only statistics marked with the read then initialize supported bit\n");
-                    printf("were reinitialized.\n");
+                    print_str("Successfully reinitiailized Device Statistics\n");
+                    print_str("NOTE: Only statistics marked with the read then initialize supported bit\n");
+                    print_str("were reinitialized.\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Device Statistics not supported on this device\n");
+                    print_str("Device Statistics not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to retrieve Device Statistics from this device\n");
+                    print_str("Failed to retrieve Device Statistics from this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+
+        if (SHOW_CDL_SETTINGS_FLAG)
+        {
+            tCDLSettings cdlSettings;
+            memset(&cdlSettings, 0, sizeof(tCDLSettings));
+
+            switch (get_CDL_Settings(&deviceList[deviceIter], &cdlSettings))
+            {
+            case SUCCESS:
+                if (SHOW_CDL_SETTINGS_MODE_FLAG == CDL_SETTINGS_OUTPUT_RAW)
+                    print_CDL_Settings(&deviceList[deviceIter], &cdlSettings);
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                else
+                {
+                    ret = create_JSON_File_For_CDL_Settings(&deviceList[deviceIter], &cdlSettings, OUTPUTPATH_FLAG);
+                    if (ret != SUCCESS)
+                    {
+                        if (VERBOSITY_QUIET < toolVerbosity)
+                        {
+                            print_str("A failure occured while trying to create JSON file for CDL Settings\n");
+                        }
+                        exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    }
+                }
+#endif
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Showing CDL Settings is not supported on this device\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("A failure occured while trying to get CDL Settings\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1071,7 +1159,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1079,7 +1167,7 @@ int main(int argc, char* argv[])
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to retrieve SCSI defect list from this device\n");
+                    print_str("Failed to retrieve SCSI defect list from this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1100,14 +1188,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Concurrent positioning ranges are not supported on this device.\n");
+                    print_str("Concurrent positioning ranges are not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to read the concurrent positioning ranges.\n");
+                    print_str("Failed to read the concurrent positioning ranges.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1126,14 +1214,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Phy event counters are not supported on this device.\n");
+                    print_str("Phy event counters are not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to read the Phy event counters.\n");
+                    print_str("Failed to read the Phy event counters.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1147,20 +1235,20 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully reinitialized SATA Phy event counter log\n");
+                    print_str("Successfully reinitialized SATA Phy event counter log\n");
                 }
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Phy event counters are not supported on this device.\n");
+                    print_str("Phy event counters are not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to reinitialize the Phy event counters.\n");
+                    print_str("Failed to reinitialize the Phy event counters.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1209,12 +1297,12 @@ int main(int argc, char* argv[])
 void utility_Usage(bool shortUsage)
 {
     // everything needs a help option right?
-    printf("Usage\n");
-    printf("=====\n");
+    print_str("Usage\n");
+    print_str("=====\n");
     printf("\t %s [-d %s] {arguments} {options}\n\n", util_name, deviceHandleName);
 
-    printf("\nExamples\n");
-    printf("========\n");
+    print_str("\nExamples\n");
+    print_str("========\n");
     // example usage
     printf("\t%s --%s\n", util_name, SCAN_LONG_OPT_STRING);
     printf("\t%s -d %s -%c\n", util_name, deviceHandleExample, DEVICE_INFO_SHORT_OPT);
@@ -1227,13 +1315,13 @@ void utility_Usage(bool shortUsage)
            SCSI_DEFECTS_DESCRIPTOR_MODE_LONG_OPT_STRING);
 
     // return codes
-    printf("\nReturn codes\n");
-    printf("============\n");
+    print_str("\nReturn codes\n");
+    print_str("============\n");
     print_SeaChest_Util_Exit_Codes(0, M_NULLPTR, util_name);
 
     // utility options - alphabetized
-    printf("\nUtility Options\n");
-    printf("===============\n");
+    print_str("\nUtility Options\n");
+    print_str("===============\n");
 #if defined(ENABLE_CSMI)
     print_CSMI_Force_Flags_Help(shortUsage);
     print_CSMI_Verbose_Help(shortUsage);
@@ -1256,15 +1344,15 @@ void utility_Usage(bool shortUsage)
     print_Version_Help(shortUsage, util_name);
 
     // the test options
-    printf("\nUtility Arguments\n");
-    printf("=================\n");
+    print_str("\nUtility Arguments\n");
+    print_str("=================\n");
     // Common (across utilities) - alphabetized
     print_Device_Help(shortUsage, deviceHandleExample);
     print_Scan_Flags_Help(shortUsage);
     print_Device_Information_Help(shortUsage);
     print_Low_Level_Info_Help(shortUsage);
     print_Scan_Help(shortUsage, deviceHandleExample);
-    print_Agressive_Scan_Help(shortUsage);
+    print_Aggressive_Scan_Help(shortUsage);
     print_SAT_Info_Help(shortUsage);
     print_Test_Unit_Ready_Help(shortUsage);
     // utility tests/operations go here
@@ -1273,16 +1361,18 @@ void utility_Usage(bool shortUsage)
     print_CSMI_Info_Help(shortUsage);
 #endif
     print_Device_Statistics_Help(shortUsage);
+    print_Show_CDL_Settings_Help(shortUsage);
     print_Show_Concurrent_Position_Ranges_Help(shortUsage);
     print_Partition_Info_Help(shortUsage);
     // SATA Only Options
-    printf("\n\tSATA Only:\n\t=========\n");
+    print_str("\n\tSATA Only:\n\t=========\n");
     print_Reinitialize_SATA_Phy_Events_Help(shortUsage);
     print_Reinitialize_Device_Statistics_Help(shortUsage);
     print_Show_Phy_Event_Counters_Help(shortUsage);
     print_SMART_Attributes_Help(shortUsage);
     // SAS Only Options
-    printf("\n\tSAS Only:\n\t=========\n");
+    print_str("\n\tSAS Only:\n\t=========\n");
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 }
+
