@@ -205,7 +205,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     print_str("\n");
-#if defined (BUILD_TIMESTAMP)
+#if defined(BUILD_TIMESTAMP)
     // Use the date passed from the Makefile/Meson (Reproducible)
     printf(" Build Date: %s\n", BUILD_TIMESTAMP);
 #else
@@ -249,7 +249,7 @@ void utility_Full_Version_Info(const char* utilityName,
     printf("\topensea-transport Version: %" PRId32 ".%" PRId32 ".%" PRId32 "\n", seaCPublicMajorVersion,
            seaCPublicMinorVersion, seaCPublicPatchVersion);
     printf("\topensea-operations Version: %s\n", openseaOperationVersion);
-#if defined (BUILD_TIMESTAMP)
+#if defined(BUILD_TIMESTAMP)
     // Use the date passed from the Makefile/Meson (Reproducible)
     printf("\tBuild Date: %s\n", BUILD_TIMESTAMP);
 #else
@@ -3455,7 +3455,7 @@ int parse_Device_Handle_Argument(char*     optarg,
 #if defined(_WIN32)
 #    define WINDOWS_MAX_HANDLE_STRING_LENGTH 50
             DECLARE_ZERO_INIT_ARRAY(char, windowsHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH);
-            char* deviceHandle = &windowsHandle[0];
+            char*       deviceHandle = &windowsHandle[0];
             const char* physicalDeviceNumber; /*making this a string in case the handle is two or more digits long*/
             /*make sure the user gave us "PD" for the device handle...*/
             if (strncasecmp(optarg, "PD", 2) == 0)
@@ -3679,8 +3679,10 @@ void print_Remove_Physical_Element_And_Modify_Zones_Help(bool shortHelp)
         printf("\t\tUse the --%s option to see the status\n", SHOW_PHYSICAL_ELEMENT_STATUS_LONG_OPT_STRING);
         print_str("\t\tof the depopulation operation.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_RED, CONSOLE_COLOR_DEFAULT);
-        print_str("\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
-        print_str("\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
+        print_str(
+            "\t\tThere is an additional risk when performing a remove physical element as it low-level formats\n");
+        print_str(
+            "\t\tthe drive and may make the drive inoperable if it is reset at any time while it is formatting.\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
         print_str("\t\tWARNING: Removing a physical element affect all LUNs/namespaces for devices\n");
         print_str("\t\t         with multiple logical units or namespaces.\n\n");
@@ -4133,7 +4135,7 @@ void print_ATA_Security_Password_Modifications_Help(bool shortHelp)
     print_str("md5 | ");
 #endif
     print_str("byteswapped | zeropad | spacepad | fpad | leftAlign | rightAlign | uppercase | lowercase | invertcase] "
-           "(SATA Only)\n");
+              "(SATA Only)\n");
     if (!shortHelp)
     {
         print_str("\t\tUse this option to have the utility make modifications to\n");
@@ -4400,8 +4402,9 @@ void print_Set_SCSI_MP_Help(bool shortHelp)
         print_str("\t\tThere are two argument formats to this option:\n");
         print_str("\t\t1. The first format expects a mode page (in hex), optionally a subpage code (in hex),\n");
         print_str("\t\t   the byte offset that the field starts at (in decimal), the highest bit the field starts\n");
-        print_str("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
-               "decimal)\n");
+        print_str(
+            "\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
+            "decimal)\n");
         print_str("\t\t   A maximum of 64bits can be set at a time with this option.\n");
         print_str(
             "\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
@@ -5374,7 +5377,8 @@ void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
         print_str("\t\tArguments:\n");
         print_str("\t\t  512 - the data transfer is a number of 512B blocks (most commands)\n");
         print_str("\t\t  logical - data transfer is a number of logical block sizes transfers (read commands)\n");
-        print_str("\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
+        print_str(
+            "\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
         print_str("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
         printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
     }

@@ -1610,11 +1610,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
-                        print_str("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
+                            "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1679,10 +1683,12 @@ int main(int argc, char* argv[])
                         print_str("Revert Successful!\n");
                         if (!didEraseHappen)
                         {
-                            print_str("\tNOTE: Because the lockingSP was not activated, the user data may not have been "
-                                   "erased.\n");
-                            print_str("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
-                                   "completely erased.\n\n");
+                            print_str(
+                                "\tNOTE: Because the lockingSP was not activated, the user data may not have been "
+                                "erased.\n");
+                            print_str(
+                                "\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
+                                "completely erased.\n\n");
                         }
                     }
                     break;
@@ -1697,8 +1703,10 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("Revert Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
-                        print_str("\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
+                        print_str(
+                            "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
                         print_str(
                             "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");

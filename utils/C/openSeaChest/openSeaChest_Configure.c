@@ -39,8 +39,8 @@
 
 #include "cdl.h"
 
-#if defined (FEATURE_JSONOUTPUT_SUPPORT)
-#include "cdl_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
 #endif
 
 ////////////////////////
@@ -1448,20 +1448,20 @@ int main(int argc, char* argv[])
                 if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
                     optarg = argv[optind++];
-                if (strcmp(optarg, "raw") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
-                }
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
-                }
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
 #endif
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -1807,8 +1807,8 @@ int main(int argc, char* argv[])
           SCT_ERROR_RECOVERY_CONTROL_WRITE_SET_DEFAULT || SCT_ERROR_RECOVERY_CONTROL_READ_SET_DEFAULT ||
           FREE_FALL_FLAG || FREE_FALL_INFO || SCSI_MP_RESET_OP || SCSI_MP_RESTORE_OP || SCSI_MP_SAVE_OP ||
           SCSI_SHOW_MP_OP || SCSI_RESET_LP_OP || SCSI_SET_MP_OP || ATA_DCO_DISABLE_FEATURES || ATA_DCO_SETMAXMODE ||
-          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO || SET_TIMESTAMP ||
-          (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG
+          ATA_DCO_SETMAXLBA || ATA_DCO_IDENTIFY || ATA_DCO_FREEZE || ATA_DCO_RESTORE || WRV_FLAG || WRV_INFO ||
+          SET_TIMESTAMP || (CDL_FEATURE_IDENTIFIER != CDL_FEATURE_UNKNOWN) || SHOW_CDL_SETTINGS_FLAG
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
           || CONFIG_CDL_SETTINGS_FLAG
 #endif
@@ -2559,7 +2559,8 @@ int main(int argc, char* argv[])
                     {
                         print_str("DCO is Frozen. Cannot set DCO features.\n");
                         print_str("Device must be power cycled to clear freeze-lock.\n");
-                        print_str("Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
+                        print_str(
+                            "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                         print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -3123,7 +3124,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Restoring SCT error recovery read command timer to default is not supported on this device\n");
+                    print_str(
+                        "Restoring SCT error recovery read command timer to default is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -3151,7 +3153,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Restoring SCT error recovery write command timer to default is not supported on this "
-                           "device\n");
+                              "device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4049,7 +4051,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Mode page not supported or resetting mode page to defaults not supported on this device.\n");
+                    print_str(
+                        "Mode page not supported or resetting mode page to defaults not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4082,7 +4085,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Mode page not supported or restoring mode page to saved values not supported on this "
-                           "device.\n");
+                              "device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4273,16 +4276,18 @@ int main(int argc, char* argv[])
                                                 print_str("Successfully set SCSI mode page!\n");
                                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                                 {
-                                                    print_str("NOTE: This command may have affected more than 1 logical "
-                                                           "unit\n");
+                                                    print_str(
+                                                        "NOTE: This command may have affected more than 1 logical "
+                                                        "unit\n");
                                                 }
                                             }
                                             break;
                                         case NOT_SUPPORTED:
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                print_str("Unable to change the requested values in the mode page. These "
-                                                       "may not be changable or are an invalid combination.\n");
+                                                print_str(
+                                                    "Unable to change the requested values in the mode page. These "
+                                                    "may not be changable or are an invalid combination.\n");
                                             }
                                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                             break;
@@ -4299,8 +4304,9 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            print_str("An error occurred while trying to parse the file. Please check the "
-                                                   "file format and make sure no invalid characters are provided.\n");
+                                            print_str(
+                                                "An error occurred while trying to parse the file. Please check the "
+                                                "file format and make sure no invalid characters are provided.\n");
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     }
@@ -4310,7 +4316,7 @@ int main(int argc, char* argv[])
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
                                         print_str("An error occurred while trying to parse the file. Please check the "
-                                               "file format.\n");
+                                                  "file format.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -4430,7 +4436,7 @@ int main(int argc, char* argv[])
                                     }
                                     // check how many full bytes worth of bits we'll be setting.
                                     uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet * BITSPERBYTE);
+                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet* BITSPERBYTE);
                                     lowUnalignedBits = remainingBits;
                                     // now we know how we need to set things, so lets start at the end (lsb) and work up
                                     // from there. as we set the necessary bits, we will shift the original value to the
@@ -4525,8 +4531,9 @@ int main(int argc, char* argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    print_str("Unable to change the requested values in the mode page. These may not be "
-                                           "changeable or are an invalid combination.\n");
+                                    print_str(
+                                        "Unable to change the requested values in the mode page. These may not be "
+                                        "changeable or are an invalid combination.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;

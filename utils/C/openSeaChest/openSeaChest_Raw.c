@@ -1332,8 +1332,9 @@ int main(int argc, char* argv[])
                                 // not a critical failure, just display a warning that the data won't be saved
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    print_str("WARNING: An output file was not specified, so the returned data will not "
-                                           "be saved.\n");
+                                    print_str(
+                                        "WARNING: An output file was not specified, so the returned data will not "
+                                        "be saved.\n");
                                 }
                             }
                             // no "else" needed
@@ -1491,7 +1492,7 @@ int main(int argc, char* argv[])
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
                                                 print_str("ERROR: Failed to read file for datalen specified to send to "
-                                                       "drive!\n");
+                                                          "drive!\n");
                                             }
                                             inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                             break;
@@ -1665,7 +1666,7 @@ int main(int argc, char* argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 print_str("An unknown internal error occured and cannot be recovered. Sense data not "
-                                       "available.\n");
+                                          "available.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -1878,7 +1879,7 @@ int main(int argc, char* argv[])
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
                                 print_str("WARNING: An output file was not specified, so the returned data will not be "
-                                       "saved.\n");
+                                          "saved.\n");
                             }
                         }
                         // no "else" needed
@@ -2169,7 +2170,7 @@ int main(int argc, char* argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             print_str("An unknown internal error occurred and cannot be recovered. Sense data not "
-                                   "available.\n");
+                                      "available.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;

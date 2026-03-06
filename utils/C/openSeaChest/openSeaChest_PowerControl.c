@@ -1649,7 +1649,7 @@ int main(int argc, char* argv[])
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
-                           "spinning down.\n");
+                              "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1682,7 +1682,8 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
+                        print_str(
+                            "\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
                         print_str("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                         {
@@ -2338,8 +2339,9 @@ int main(int argc, char* argv[])
                             // not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                print_str("Enabling, disabling, or restoring default standby settings is not supported on "
-                                       "this device.\n");
+                                print_str(
+                                    "Enabling, disabling, or restoring default standby settings is not supported on "
+                                    "this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
@@ -3008,8 +3010,9 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            print_str("SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
-                                   "not supported.\n");
+                            print_str(
+                                "SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
+                                "not supported.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -3017,7 +3020,7 @@ int main(int argc, char* argv[])
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
                             print_str("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber "
-                                   "settings!\n");
+                                      "settings!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3049,7 +3052,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3113,7 +3117,8 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
+                    print_str(
+                        "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }

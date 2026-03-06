@@ -936,7 +936,7 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("This device does not support the ability to report persistent reservation "
-                               "capabilities.\n");
+                                  "capabilities.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
