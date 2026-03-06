@@ -19,7 +19,7 @@ jobs:
     container: ${{ matrix.config.image }}
     timeout-minutes: 120
     permissions:
-      contents: read
+      contents: write
       packages: read
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
