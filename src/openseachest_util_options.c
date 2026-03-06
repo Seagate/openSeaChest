@@ -201,7 +201,7 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
     print_str("==========================================================================================\n");
     printf(" %s - openSeaChest drive utilities", utilityName);
     print_str(" - NVMe Enabled");
-    print_str("\n Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
+    print_str("\n Copyright (c) 2014-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved\n");
     printf(" %s Version: %s ", utilityName, buildVersion);
     print_Architecture(architecture);
     print_str("\n");
