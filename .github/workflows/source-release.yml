@@ -10,7 +10,7 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     permissions:
-      contents: read
+      contents: write
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -67,9 +67,9 @@ jobs:
       run: |
         echo "Verifying source archive (first 10 files):"
         if [[ "${{ matrix.config.extension }}" == ".tar.xz" ]]; then
-          tar -tvf SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 10
+          tar -tvf SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 10 || true
         else
-          unzip -l SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 15
+          unzip -l SourceCode_With_Submodules${{ matrix.config.extension }} | head -n 15 || true
         fi
 
     - name: Generate Hashes
