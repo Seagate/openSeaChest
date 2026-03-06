@@ -51,6 +51,7 @@ jobs:
         egress-policy: audit
 
     - uses: actions/checkout@v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
         submodules: recursive
 

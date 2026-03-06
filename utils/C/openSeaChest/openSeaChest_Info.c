@@ -37,15 +37,15 @@
 #include "sata_phy.h"
 
 #include "cdl.h"
-#if defined (FEATURE_JSONOUTPUT_SUPPORT)
-#include "cdl_json.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "cdl_json.h"
 #endif
 
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Info";
-const char* buildVersion = "2.9.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -307,20 +307,20 @@ int main(int argc, char* argv[])
                 if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
                     optarg = argv[optind++];
-                if (strcmp(optarg, "raw") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
-                }
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
-                else if (strcmp(optarg, "json") == 0)
-                {
-                    SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
-                }
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
 #endif
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
             }
@@ -1159,7 +1159,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    print_str("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                    print_str(
+                        "Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -1374,3 +1375,4 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 }
+

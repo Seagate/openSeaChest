@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Firmware";
-const char* buildVersion = "4.3.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestFirmwareExitCodesEnum
 {
@@ -1092,7 +1092,7 @@ int main(int argc, char* argv[])
                   deviceList[deviceIter].drive_info.passThroughHacks.passthroughType == NVME_PASSTHROUGH_ASMEDIA))
             {
                 print_str("\nERROR: Forcing specific commit actions or disabling resets is not possible in Windows on "
-                       "this device.\n");
+                          "this device.\n");
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 continue;
             }
@@ -1166,8 +1166,9 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                print_str("The Operating system has reported that a power cycle is required to complete "
-                                       "the firmware update\n");
+                                print_str(
+                                    "The Operating system has reported that a power cycle is required to complete "
+                                    "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
@@ -1340,8 +1341,9 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            print_str("The Operating system has reported that a power cycle is required to complete the "
-                                   "firmware update\n");
+                            print_str(
+                                "The Operating system has reported that a power cycle is required to complete the "
+                                "firmware update\n");
                         }
                         else
                         {
@@ -1591,3 +1593,4 @@ void utility_Usage(bool shortUsage)
     print_FWDL_Segment_Size_Help(shortUsage);
     print_Firmware_Switch_Help(shortUsage);
 }
+

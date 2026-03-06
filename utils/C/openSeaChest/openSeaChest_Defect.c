@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Defect";
-const char* buildVersion = "1.1.0";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1418,8 +1418,9 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("A self test is currently in progress. Please wait for it to finish before starting DST "
-                               "and Clean\n");
+                        print_str(
+                            "A self test is currently in progress. Please wait for it to finish before starting DST "
+                            "and Clean\n");
                     }
                     break;
                 case ABORTED:
@@ -1539,7 +1540,7 @@ int main(int argc, char* argv[])
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
                     print_str("The range specified is invalid. Please enter a range that does not exceed the MaxLBA of "
-                           "the device from the specified starting LBA.\n");
+                              "the device from the specified starting LBA.\n");
                 }
             }
         }
@@ -1550,8 +1551,9 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (toolVerbosity > VERBOSITY_QUIET)
                 {
-                    print_str("You must used the --createUncorrectable option with an LBA to provide a starting point for "
-                           "the range provided.\n");
+                    print_str(
+                        "You must used the --createUncorrectable option with an LBA to provide a starting point for "
+                        "the range provided.\n");
                 }
             }
         }
@@ -1881,3 +1883,4 @@ void utility_Usage(bool shortUsage)
     print_Random_Uncorrectable_Help(shortUsage);
     print_Uncorrectable_Range_Help(shortUsage);
 }
+

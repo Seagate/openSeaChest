@@ -1,71 +1,25 @@
 ============================
 Version History - openSeaChest_PassthroughTest
 ============================
-v0.0.1  07-Nov-2019  1_20_6 libraries.
-v0.1.0  26-Nov-2019  1_20_8 libraries
-v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
-                     (sudo, run as administrator) before trying to talk to
-                     devices, new exit code 9 if privileges are missing;
-                     printing the USB VID/PID in the device info; fix to sg
-                     helper to support large systems; many changes in support
-                     of dual actuators (example: warning that EPC settings
-                     affect multiple LUNs); overhaul to USB device detection
-                     and support, incorporating a new USB hacks and workarounds
-                     approach which uses a lookup table listing various USB
-                     bridge VIDs/PIDs and their specific issues; separate
-                     Seagate SAS SN and PCBA SN.
-v0.2.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
-                     command.
-v1.3.3  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
-                     Stopped reading /etc/passwd file to show username in banner.
-                     Banner will now show either "admin"/"root" or "current user".
-                     Improved parsing of linux distro/release information from
-                     /etc/os-release file.
-                     Fixed a bug in byte swap string used to get ATA MN, SN, FW.
-                     Fixed a bug in getting/reporting power on hours as years, 
-                     days, hours, etc where days was being truncated.
-                     Fixed error reading NVMe features in Windows for drive info.
-                     Fixed SAS Date of manufacture in drive info.
-                     Added detection of HPA security feature.
-                     Added more SMART attributes definitions for Seagate HDDs & SSDs,
-                     and more definitions for Maxtor HDDs.
-                     Improved temperature detection from older HDDs with only
-                     SMART attribute 194 reporting current temperature.
-                     Added separate warning for SMART attributes below threshold that
-                     are not considered prefail/warranty attributes (aka failures).
-                     Fixed output of Seagate Airflow temperature SMART attribute.
-                     Added showing new capacity after changing Max LBA.
-                     Fixed possible segmentation fault when reading /etc/mtab in Linux.
-                     Workaround for some SAS drives on some HBAs reporting incorrect
-                     response to SAT A1h CDB.
-                     Fixed a bug in FreeBSD causing non-data ATA commands to report
-                     all zeroes instead of expected output in RTFRs.
-v1.4.1  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
-                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
-v1.5.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passing aggressive scan flag -S.
-                     Refactor reading SCSI capacity code which may reduce total commands issued.
-                     Refactored looking up supported SCSI commands with Report Supported operations codes and
-                     legacy CmdDT bit in Inquiry which reduces total commands issued.
-                     Source code level support for OpenBSD, NetBSD, and DragonflyBSD now available.
-                     More source code hardening implemented with new bounds checking functions from
-                     opensea-common library (behave similar to Annex K in C11).
-                     Fixed a bug in reading device information (-i) on USB devices causing the information to be
-                     incomplete.
-                     Fixed big endian system support for all devices, but especially for NVMe.
-                     Fixed looking up SD to SG device handles in Linux.
-                     Added new exit codes for Device Not Found when opening the handle and Device Busy when
-                     attempting to open a handle.
-                     Enhanced file security API to display recommended actions to modify directories to be 
-                     compatible with security requirements when reading or writing a file.
-                     Fixed a crash when reading/writing files located at / in unix-like systems.
-                     Fixed exit code when -d all or --modelMatch are used but all devices are skipped so that 
-                     the exit code is not set to 0 (success) when all the devices were skipped.
-                     Fixed parsing some CLI options to allow empty units like previous versions.
-v1.5.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
-                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
-                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
-                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
-                     Added some more legacy USB devices to list of known devices to support these better when they are used.
+v26.03.0  06-Mar-2026  Utilities now use calendar versioning (CalVer) synchronized with
+                       library releases and unified package versioning. This aligns the
+                       utility version with the released package containing all tools,
+                       simplifying version tracking and release coordination for both
+                       developers and users.
+                       Fixed possible bug opening drive handle in Linux when scanning for
+                       drive connection information. Fixed issue with NVMe set features
+                       command in Windows that could affect some feature configuration
+                       operations (most users will not be impacted). Improved USB device
+                       compatibility, particularly with older USB adapter chipsets. Fixed
+                       CISS RAID scanning and device handling. Fixed potential crash when
+                       displaying ATA SMART error logs with unclassifiable error codes.
+                       Fixed possible memory reading issue in certain diagnostic output
+                       where string parsing could read beyond the intended string
+                       boundary, though remaining within allocated memory bounds.
+                       Added JSON output support for device information and diagnostics
+                       reporting. Improved automatic UDS pull method selection to minimize
+                       the need for manual --udsMode option when retrieving UDS data.
+                       Improved SCSI defect list reporting accuracy.
 v1.5.2  06-Oct-2025  Fixed mismatch of GNU/clang access attribute description and how the code was actually written in many
                      parts of the low-level library code. Also added const to many objects to make intention more clear and
                      reduce the chance of accidental modification to memory intended to be used in a read-only way. No known
@@ -85,3 +39,69 @@ v1.5.2  06-Oct-2025  Fixed mismatch of GNU/clang access attribute description an
                      Refactor SCSI device read/write logic on how commands are selected and issued (10B vs 16B)
                      Removed automatic ATA passthrough reads/writes due to other side affects this created on some devices.
                      Fixed a crash on NVMe devices in Windows when using the openfabrics NVMe driver.
+
+v1.5.1  07-Jul-2025  Fixed a bug with scan not showing any output in specific circumstances where number of successfully
+                     enumerated devices is equivalent to the number of unsuccessfully enumerated devices.
+                     Fixed a check for reading correct mode page which may cause changing some SAS features to fail.
+                     Disabled extra CSMI related device scan in Windows that can cause a hang on some chipsets.
+                     Added some more legacy USB devices to list of known devices to support these better when they are used.
+v1.5.0  28-May-2025  Added support for low-level SCSI rescan in Linux when passing aggressive scan flag -S.
+                     Refactor reading SCSI capacity code which may reduce total commands issued.
+                     Refactored looking up supported SCSI commands with Report Supported operations codes and
+                     legacy CmdDT bit in Inquiry which reduces total commands issued.
+                     Source code level support for OpenBSD, NetBSD, and DragonflyBSD now available.
+                     More source code hardening implemented with new bounds checking functions from
+                     opensea-common library (behave similar to Annex K in C11).
+                     Fixed a bug in reading device information (-i) on USB devices causing the information to be
+                     incomplete.
+                     Fixed big endian system support for all devices, but especially for NVMe.
+                     Fixed looking up SD to SG device handles in Linux.
+                     Added new exit codes for Device Not Found when opening the handle and Device Busy when
+                     attempting to open a handle.
+                     Enhanced file security API to display recommended actions to modify directories to be
+                     compatible with security requirements when reading or writing a file.
+                     Fixed a crash when reading/writing files located at / in unix-like systems.
+                     Fixed exit code when -d all or --modelMatch are used but all devices are skipped so that
+                     the exit code is not set to 0 (success) when all the devices were skipped.
+                     Fixed parsing some CLI options to allow empty units like previous versions.
+v1.4.1  28-Aug-2024  Pull in security updates and low-level bug fixes from opensea-libs.
+                     CISS RAID device support for Linux (CCISS, HPSA, and SmartPQI drivers)
+v1.3.3  01-Dec-2023  Updated to newer opensea-libs to pull in low-level fixes.
+                     Stopped reading /etc/passwd file to show username in banner.
+                     Banner will now show either "admin"/"root" or "current user".
+                     Improved parsing of linux distro/release information from
+                     /etc/os-release file.
+                     Fixed a bug in byte swap string used to get ATA MN, SN, FW.
+                     Fixed a bug in getting/reporting power on hours as years,
+                     days, hours, etc where days was being truncated.
+                     Fixed error reading NVMe features in Windows for drive info.
+                     Fixed SAS Date of manufacture in drive info.
+                     Added detection of HPA security feature.
+                     Added more SMART attributes definitions for Seagate HDDs & SSDs,
+                     and more definitions for Maxtor HDDs.
+                     Improved temperature detection from older HDDs with only
+                     SMART attribute 194 reporting current temperature.
+                     Added separate warning for SMART attributes below threshold that
+                     are not considered prefail/warranty attributes (aka failures).
+                     Fixed output of Seagate Airflow temperature SMART attribute.
+                     Added showing new capacity after changing Max LBA.
+                     Fixed possible segmentation fault when reading /etc/mtab in Linux.
+                     Workaround for some SAS drives on some HBAs reporting incorrect
+                     response to SAT A1h CDB.
+                     Fixed a bug in FreeBSD causing non-data ATA commands to report
+                     all zeroes instead of expected output in RTFRs.
+v0.2.1  13-Apr-2020  1_21_30 libraries, fix memory allocation during the scan
+                     command.
+v0.2.0  04-Feb-2020  1_21_30 libraries add in check for Elevated Privileges
+                     (sudo, run as administrator) before trying to talk to
+                     devices, new exit code 9 if privileges are missing;
+                     printing the USB VID/PID in the device info; fix to sg
+                     helper to support large systems; many changes in support
+                     of dual actuators (example: warning that EPC settings
+                     affect multiple LUNs); overhaul to USB device detection
+                     and support, incorporating a new USB hacks and workarounds
+                     approach which uses a lookup table listing various USB
+                     bridge VIDs/PIDs and their specific issues; separate
+                     Seagate SAS SN and PCBA SN.
+v0.1.0  26-Nov-2019  1_20_8 libraries
+v0.0.1  07-Nov-2019  1_20_6 libraries.

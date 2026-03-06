@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_PassthroughTest";
-const char* buildVersion = "1.5.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -82,19 +82,13 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs);
 #define RUN_PASSTHROUGH_TEST_FLAG            passthroughTest
 #define RUN_PASSTHROUGH_TEST_VAR             int RUN_PASSTHROUGH_TEST_FLAG = 0;
 #define RUN_PASSTHROUGH_TEST_LONG_OPT_STRING "runPTTest"
-#define RUN_PASSTHROUGH_TEST_LONG_OPT                                                                                  \
-    {                                                                                                                  \
-        RUN_PASSTHROUGH_TEST_LONG_OPT_STRING, no_argument, &RUN_PASSTHROUGH_TEST_FLAG, 1                               \
-    }
+#define RUN_PASSTHROUGH_TEST_LONG_OPT        {RUN_PASSTHROUGH_TEST_LONG_OPT_STRING, no_argument, &RUN_PASSTHROUGH_TEST_FLAG, 1}
 
 // hint that the drive is ATA or NVMe
 #define PT_DRIVE_HINT                 passthroughDriveTypeHint
 #define PT_DRIVE_HINT_VAR             int PT_DRIVE_HINT = -1;
 #define PT_DRIVE_HINT_LONG_OPT_STRING "ptDriveHint"
-#define PT_DRIVE_HINT_LONG_OPT                                                                                         \
-    {                                                                                                                  \
-        PT_DRIVE_HINT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                                 \
-    }
+#define PT_DRIVE_HINT_LONG_OPT        {PT_DRIVE_HINT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
 static void print_Drive_Type_Hint_Help(bool shortHelp)
 {
@@ -112,10 +106,7 @@ static void print_Drive_Type_Hint_Help(bool shortHelp)
 #define PT_PTTYPE_HINT                 passthroughTypeHint
 #define PT_PTTYPE_HINT_VAR             int PT_PTTYPE_HINT = -1;
 #define PT_PTTYPE_HINT_LONG_OPT_STRING "ptTypeHint"
-#define PT_PTTYPE_HINT_LONG_OPT                                                                                        \
-    {                                                                                                                  \
-        PT_PTTYPE_HINT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                                \
-    }
+#define PT_PTTYPE_HINT_LONG_OPT        {PT_PTTYPE_HINT_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
 static void print_Passthrough_Type_Hint_Help(bool shortHelp)
 {
@@ -139,10 +130,7 @@ static void print_Passthrough_Type_Hint_Help(bool shortHelp)
 #define DISABLE_PT_TESTING                 disablePassthroughTesting
 #define DISABLE_PT_TESTING_VAR             int DISABLE_PT_TESTING = 0;
 #define DISABLE_PT_TESTING_LONG_OPT_STRING "disablePassthroughTesting"
-#define DISABLE_PT_TESTING_LONG_OPT                                                                                    \
-    {                                                                                                                  \
-        DISABLE_PT_TESTING_LONG_OPT_STRING, no_argument, &DISABLE_PT_TESTING, 1                                        \
-    }
+#define DISABLE_PT_TESTING_LONG_OPT        {DISABLE_PT_TESTING_LONG_OPT_STRING, no_argument, &DISABLE_PT_TESTING, 1}
 
 static void print_Disable_PT_Testing_Help(bool shortHelp)
 {
@@ -158,9 +146,7 @@ static void print_Disable_PT_Testing_Help(bool shortHelp)
 #define ENABLE_LEGACY_ATA_PT_TESTING_VAR             int ENABLE_LEGACY_ATA_PT_TESTING = 0;
 #define ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING "enableLegacyATAPTTest"
 #define ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT                                                                          \
-    {                                                                                                                  \
-        ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING, no_argument, &ENABLE_LEGACY_ATA_PT_TESTING, 1                    \
-    }
+    {ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING, no_argument, &ENABLE_LEGACY_ATA_PT_TESTING, 1}
 
 static void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
 {
@@ -190,10 +176,7 @@ static void print_Enable_Legacy_ATA_PT_Testing_Help(bool shortHelp)
     int TEST_RETURN_RESPONSE_NO_TDIR = 0;
 // Add more here if we run into other commands that hang some devices
 #define ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING "enableHangCmdsTest"
-#define ENABLE_HANG_COMMANDS_TEST_LONG_OPT                                                                             \
-    {                                                                                                                  \
-        ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0                                     \
-    }
+#define ENABLE_HANG_COMMANDS_TEST_LONG_OPT        {ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
 static void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
 {
@@ -203,17 +186,19 @@ static void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
         print_str("\t\tThere are some commands that are known to cause some translators\n");
         print_str("\t\tto hang when they are received. This option covers some known commands for some devices\n");
         print_str("\t\tThis must be enabled manually for a more complete test, but if it hangs the device could cause "
-               "problems.\n");
-        print_str("\t\tEach of these tests has a specific hack/quirk related to it, so if the device hangs, then it must "
-               "be added\n");
+                  "problems.\n");
+        print_str(
+            "\t\tEach of these tests has a specific hack/quirk related to it, so if the device hangs, then it must "
+            "be added\n");
         printf(
             "\t\tto the list for higher compatibility. Not all hangs will be able to be detected by the software!\n");
         print_str("\t\tPut this option on the command line multiple times to add different combinations of tests.\n");
         print_str("\t\t    all - run all known commands that may cause hangs\n");
         print_str("\t\t    zlr - do SCSI read commands with zero transfer length\n");
         print_str("\t\t    sctgpl - try reading the SCT status log with a GPL read log ext command\n");
-        print_str("\t\t    rrTdir - in the SAT return response information protocol, run it without setting the tdir bit "
-               "as the spec allows\n");
+        print_str(
+            "\t\t    rrTdir - in the SAT return response information protocol, run it without setting the tdir bit "
+            "as the spec allows\n");
         print_str("\n");
     }
 }
@@ -222,10 +207,7 @@ static void print_Enable_Hang_Commands_Test_Help(bool shortHelp)
 #define FORCE_RETEST                 forceDeviceRetest
 #define FORCE_RETEST_VAR             int FORCE_RETEST = 0;
 #define FORCE_RETEST_LONG_OPT_STRING "forceRetest"
-#define FORCE_RETEST_LONG_OPT                                                                                          \
-    {                                                                                                                  \
-        FORCE_RETEST_LONG_OPT_STRING, no_argument, &FORCE_RETEST, 1                                                    \
-    }
+#define FORCE_RETEST_LONG_OPT        {FORCE_RETEST_LONG_OPT_STRING, no_argument, &FORCE_RETEST, 1}
 
 static void print_Force_Retest_Help(bool shortHelp)
 {
@@ -1262,7 +1244,7 @@ static eReturnValues return_Response_Extend_Bit_Test(tDevice* device)
                 {
                     print_str("WARNING: This device is only able to return partial return task file registers.\n");
                     print_str("         This means only 28bit commands will get full results. 48bit commands will be "
-                           "partial\n");
+                              "partial\n");
                     set_Console_Colors(true, HACK_COLOR);
                     print_str("HACK FOUND: PARTRTFR\n");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
@@ -1281,7 +1263,7 @@ static eReturnValues return_Response_Extend_Bit_Test(tDevice* device)
                     device->drive_info.passThroughHacks.ataPTHacks.partialRTFRs =
                         false; // Turn this off in case it was set earlier by another test.
                     print_str("Received warning the RTFRs are incomplete. Will retry ignoring the extend bit to see if "
-                           "this helps.\n");
+                              "this helps.\n");
                     ret = return_Response_Extend_Bit_Test(device);
                     if (ret != SUCCESS)
                     {
@@ -1293,7 +1275,7 @@ static eReturnValues return_Response_Extend_Bit_Test(tDevice* device)
                 {
                     print_str("WARNING: This device is only able to return partial return task file registers.\n");
                     print_str("         This means only 28bit commands will get full results. 48bit commands will be "
-                           "partial\n");
+                              "partial\n");
                     set_Console_Colors(true, HACK_COLOR);
                     print_str("HACK FOUND: PARTRTFR\n");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
@@ -1533,7 +1515,7 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
                         {
                             safe_free_aligned_core(C_CAST(void**, &log));
                             print_str("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not "
-                                   "compliant with multisector PIO commands\n");
+                                      "compliant with multisector PIO commands\n");
                             if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode &&
                                 M_Byte0(device->drive_info.IdentifyData.ata.Word047) > 0)
                             {
@@ -1641,7 +1623,7 @@ static void multi_Sector_PIO_Test(tDevice* device, bool smartSupported, bool sma
                             safe_free_aligned_core(C_CAST(void**, &log));
                             set_Console_Colors(true, WARNING_COLOR);
                             print_str("WARNING: Failed to read multi-sector log with PIO commands. Likely a chip not "
-                                   "compliant with multisector PIO commands\n");
+                                      "compliant with multisector PIO commands\n");
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             if (!device->drive_info.passThroughHacks.ataPTHacks.multiSectorPIOWithMultipleMode &&
                                 M_Byte1(device->drive_info.IdentifyData.ata.Word047) == 0x80 &&
@@ -1744,7 +1726,7 @@ static void sat_DMA_UDMA_Protocol_Test(tDevice*           device,
             {
                 set_Console_Colors(true, NOTE_COLOR);
                 print_str("NOTE: Device only supports UDMA mode for passthrough. This is the default for the tool, but "
-                       "may be an issue for some other tools.\n");
+                          "may be an issue for some other tools.\n");
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.ata_Options.dmaMode = ATA_DMA_MODE_UDMA;
             }
@@ -1831,8 +1813,9 @@ static void check_Condition_Bit_Test(tDevice* device, bool smartSupported, bool 
         }
         if (!testedGPL && !testedSMART)
         {
-            print_str("WARNING: Neither GPL or SMART were available to test. Please retest with a drive that supports at "
-                   "least\n");
+            print_str(
+                "WARNING: Neither GPL or SMART were available to test. Please retest with a drive that supports at "
+                "least\n");
             print_str("         One of these features\n");
             device->drive_info.passThroughHacks.ataPTHacks.alwaysCheckConditionAvailable = false;
         }
@@ -2597,9 +2580,9 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             {
                                 set_Console_Colors(true, WARNING_COLOR);
                                 print_str("WARNING: T10 Vendor ID based designator is missing vendor specific "
-                                       "identifier!!!\n");
+                                          "identifier!!!\n");
                                 print_str("Recommended method from SPC is to concatenate Product ID and Product Serial "
-                                       "number\n");
+                                          "number\n");
                                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             }
                         }
@@ -2892,7 +2875,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             // This should be an error since we can only parse this if the interface is set.
                             set_Console_Colors(true, ERROR_COLOR);
                             print_str("ERROR: Protocol identifier valid bit is not set! Cannot parse this without this "
-                                   "bit!\n");
+                                      "bit!\n");
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                         else
@@ -3015,7 +2998,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
                         print_str("WARNING: Extended DST time in minutes was reported as zero! This means SCSI DST "
-                               "translation is not available!\n");
+                                  "translation is not available!\n");
                         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                     }
                     else
@@ -3604,7 +3587,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     if (pageToRead[4] & BIT0)
                     {
                         print_str("\tWrite same command does not allow number of logical blocks to be zero (write full "
-                               "LBA space the same)\n");
+                                  "LBA space the same)\n");
                     }
                     print_str("\tMaximum Atomic Transfer Length: ");
                     if (M_BytesTo4ByteValue(pageToRead[44], pageToRead[45], pageToRead[46], pageToRead[47]) > 0)
@@ -4303,7 +4286,7 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                     else
                     {
                         print_str("\tThis device reports SPC compliance which is prior to vesrion descriptors being "
-                               "added.\n");
+                                  "added.\n");
                     }
                 }
             }
@@ -4656,7 +4639,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         {
             set_Console_Colors(true, WARNING_COLOR);
             print_str("WARNING: This device does not seem to support any standard mode pages. Skipping all mode page "
-                   "checks\n");
+                      "checks\n");
             print_str("       This should only happen on SCSI (1) and earlier (SASI) devices!\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             return NOT_SUPPORTED;
@@ -4668,10 +4651,12 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
             device->drive_info.passThroughHacks.scsiHacks.noModePages = true;
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
             set_Console_Colors(true, ERROR_COLOR);
-            print_str("ERROR: This device doesn't support ANY mode sense commands. Mode sense commands can convey device "
-                   "support and change\n");
-            print_str("       device settings/capabilties. This can be especially important for disabling write caching "
-                   "for backups.\n");
+            print_str(
+                "ERROR: This device doesn't support ANY mode sense commands. Mode sense commands can convey device "
+                "support and change\n");
+            print_str(
+                "       device settings/capabilties. This can be especially important for disabling write caching "
+                "for backups.\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         return sixTest;
@@ -5230,8 +5215,9 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         device->drive_info.passThroughHacks.scsiHacks.noModePages = true;
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         set_Console_Colors(true, WARNING_COLOR);
-        print_str("WARNING: This device does not seem to support any standard mode pages. Multiple pages were attempted, "
-               "but none were read successfully.\n");
+        print_str(
+            "WARNING: This device does not seem to support any standard mode pages. Multiple pages were attempted, "
+            "but none were read successfully.\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         return NOT_SUPPORTED;
     }
@@ -5269,8 +5255,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                 print_str("HACK FOUND: NLPS\n");
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 device->drive_info.passThroughHacks.scsiHacks.noLogSubPages = true;
-                print_str("This device does NOT report log page subpages properly! Do not attempt to read ANY subpages as "
-                       "it only checks the page code!\n");
+                print_str(
+                    "This device does NOT report log page subpages properly! Do not attempt to read ANY subpages as "
+                    "it only checks the page code!\n");
             }
             else
             {
@@ -5298,8 +5285,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                         else
                         {
                             set_Console_Colors(true, WARNING_COLOR);
-                            print_str("WARNING: Length of subpages does not appear to make sense. It should be AT LEAST "
-                                   "twice as long as without reporting subpages.\n");
+                            print_str(
+                                "WARNING: Length of subpages does not appear to make sense. It should be AT LEAST "
+                                "twice as long as without reporting subpages.\n");
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                             // printf("         One more level analysis is allowed before this is considered a buggy
                             // device that reports incorrectly when asking for subpages.\n");
@@ -6156,22 +6144,23 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                                 break;
                             case 0x04:
                                 print_str("A background scan operation was halted due to a vendor specific pattern of "
-                                       "errors\n");
+                                          "errors\n");
                                 break;
                             case 0x05:
                                 print_str("A background scan operation was halted due to the medium being formatted "
-                                       "without the Primary List\n");
+                                          "without the Primary List\n");
                                 break;
                             case 0x06:
                                 print_str("A background scan operation was halted due to a vendor specific cause\n");
                                 break;
                             case 0x07:
-                                print_str("A background scan operation was halted due to the temperature being out of the "
-                                       "allowed range\n");
+                                print_str(
+                                    "A background scan operation was halted due to the temperature being out of the "
+                                    "allowed range\n");
                                 break;
                             case 0x08:
                                 print_str("Background medium scan operations are enabled and no background medium scan "
-                                       "operation is active\n");
+                                          "operation is active\n");
                                 break;
                             case 0x09:
                                 printf("A background scan operation was halted due to the S_L_Full bit being set to "
@@ -6179,8 +6168,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                                        "being full\n");
                                 break;
                             case 0x0A:
-                                print_str("A background pre-scan operation was halted due ot the Background Pre-scan Time "
-                                       "Limit timer expiring\n");
+                                print_str(
+                                    "A background pre-scan operation was halted due ot the Background Pre-scan Time "
+                                    "Limit timer expiring\n");
                                 break;
                             default:
                                 printf("Reserved value: %02" PRIX8 "h\n", pageToRead[offset + 9]);
@@ -6214,12 +6204,13 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                                     print_str("The device server performed automatic read reassignment for the LBA\n");
                                     break;
                                 case 0x4:
-                                    print_str("The device server's attempt to perform automatic read reassignment failed. "
-                                           "The LBA may or may not now have an uncorrectable error\n");
+                                    print_str(
+                                        "The device server's attempt to perform automatic read reassignment failed. "
+                                        "The LBA may or may not now have an uncorrectable error\n");
                                     break;
                                 case 0x5:
                                     print_str("The error was corrected by the device server rewriting the LBA without "
-                                           "performing a reassign operation\n");
+                                              "performing a reassign operation\n");
                                     break;
                                 case 0x6:
                                     printf("An application client caused automatic write reassignment for the LBA with "
@@ -6624,8 +6615,9 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                             if (scsiDevInfo->logData.informationalExceptionsData.mostRecentTemperatureReading ==
                                 UINT8_MAX)
                             {
-                                print_str("\t\tMost Recent Temperature Reading: Invalid reading due to sensor failure or "
-                                       "other condition\n");
+                                print_str(
+                                    "\t\tMost Recent Temperature Reading: Invalid reading due to sensor failure or "
+                                    "other condition\n");
                             }
                             else
                             {
@@ -6809,8 +6801,9 @@ static eReturnValues scsi_Read_Check(tDevice*         device,
     else if (!zeroLengthTransfers)
     {
         set_Console_Colors(true, NOTE_COLOR);
-        print_str("NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibility "
-               "testing!\n");
+        print_str(
+            "NOTE: Skipping testing for zero length transfers. This test should be done for highest compatibility "
+            "testing!\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
 
@@ -6922,8 +6915,9 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
             else
             {
                 set_Console_Colors(true, WARNING_COLOR);
-                print_str("WARNING: Device reported in a way that suggests that security protocol commands work, but no "
-                       "security protocol commands were successful\n");
+                print_str(
+                    "WARNING: Device reported in a way that suggests that security protocol commands work, but no "
+                    "security protocol commands were successful\n");
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
                 print_str("Likely HACK FOUND: SECPROTI512\n");
@@ -6935,8 +6929,9 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
         else if (does_Sense_Data_Show_Invalid_OP(device))
         {
             set_Console_Colors(true, WARNING_COLOR);
-            print_str("WARNING: Security protocol in failed. Access to device security subsystems may be inaccessible or "
-                   "limited!\n");
+            print_str(
+                "WARNING: Security protocol in failed. Access to device security subsystems may be inaccessible or "
+                "limited!\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
@@ -6954,15 +6949,16 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
         if (does_Sense_Data_Show_Invalid_OP(device))
         {
             set_Console_Colors(true, WARNING_COLOR);
-            print_str("WARNING: Reporting supported operation codes failed! This command does not appear to be known by "
-                   "the device.\n");
+            print_str(
+                "WARNING: Reporting supported operation codes failed! This command does not appear to be known by "
+                "the device.\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
         else if (does_Sense_Data_Show_Invalid_Field_In_CDB(device))
         {
             set_Console_Colors(true, WARNING_COLOR);
             print_str("WARNING: Reporting all supported operation codes is not supported! Will attempt requesting a "
-                   "single operation code.\n");
+                      "single operation code.\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
@@ -6980,8 +6976,9 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
         else
         {
             set_Console_Colors(true, WARNING_COLOR);
-            print_str("WARNING: Reporting support for single requested operation codes failed! Unable to request command "
-                   "support from the device!\n");
+            print_str(
+                "WARNING: Reporting support for single requested operation codes failed! Unable to request command "
+                "support from the device!\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
     }
@@ -7161,7 +7158,7 @@ static eReturnValues sct_GPL_Test(tDevice* device, bool smartSupported, bool gpl
         print_str("This test tries reading the SCT status log with SMART and GPL commands.\n");
         print_str("This is done to test if one of these causes a SATL to hang as has been seen in the past.\n");
         print_str("If this test hangs the device, it will need to be unplugged and the tool rerun without the sctgpl "
-               "test.\n");
+                  "test.\n");
         printf("If the device hangs, the additional hack \"SCTSM\" must be used with this device for full "
                "functionality.\n");
 
@@ -7274,7 +7271,7 @@ static void setup_ATA_ID_Info(ptrPassthroughTestParams inputs,
             sectorSizeExponent = le16_to_host(ident_word[106]) & 0x000F;
             inputs->device->drive_info.bridge_info.childDevicePhyBlockSize =
                 C_CAST(uint32_t,
-                       inputs->device->drive_info.bridge_info.childDeviceBlockSize * power_Of_Two(sectorSizeExponent));
+                       inputs->device->drive_info.bridge_info.childDeviceBlockSize* power_Of_Two(sectorSizeExponent));
         }
     }
     else
@@ -7947,7 +7944,7 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 {
                     set_Console_Colors(true, WARNING_COLOR);
                     print_str("It seems like the RPM was reported without byteswapping it first! Fix this in the "
-                           "translator firmware!\n");
+                              "translator firmware!\n");
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
@@ -8758,7 +8755,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         {
             set_Console_Colors(true, NOTE_COLOR);
             print_str("NOTE: Attempting passthrough CDBs for SAT or a vendor unique methods has been disabled and is "
-                   "being skipped.\n");
+                      "being skipped.\n");
             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         }
 
@@ -9208,11 +9205,11 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                        "\tThe maximum transfer length is less than was reported by the block limits VPD page!\n",
                        recommendationCounter);
                 print_str("\tThis page should report the maximum transfer length supported by the SCSI device or SCSI "
-                       "translator\n");
+                          "translator\n");
                 printf(
                     "\tThis should be a true maximum. If this seems low, retest on another OS to ensure it is not a\n");
                 print_str("\tlimitation on a specific OS. For example, it is fairly common to be limited to 64k in "
-                       "Windows.\n");
+                          "Windows.\n");
                 ++recommendationCounter;
             }
         }
@@ -9234,7 +9231,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                         "\tThis device has no way to passthrough DMA mode commands. This should be fixed as DMA mode\n",
                         recommendationCounter);
                     print_str("\tprovides better performance, and on some devices is necessary to get some data due to "
-                           "PIO issues.\n");
+                              "PIO issues.\n");
                     print_str("\tDMA passthrough should be available on the device.\n");
                     ++recommendationCounter;
                 }
@@ -9245,18 +9242,22 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     "%" PRIu8
                     "\tThis device has a problem issuing PIO commands. The workaround is to set the multiple mode,\n",
                     recommendationCounter);
-                print_str("\tbut this issue should be resolved by the driver/translator. This is likely a problem where "
-                       "it is assumed\n");
+                print_str(
+                    "\tbut this issue should be resolved by the driver/translator. This is likely a problem where "
+                    "it is assumed\n");
                 print_str("\tthat all PIO transfers will be single sectors, which is an incorrect assumption, and the "
-                       "device does not\n");
+                          "device does not\n");
                 printf(
                     "\tproperly handle the interrupts/PIO setup FISs between each sector of data being transferred.\n");
-                print_str("\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read "
-                       "logs or update firmware.\n");
-                print_str("\tMulti-sector PIO transfers should be supported without this workaround, which may still be "
-                       "restrictive\n");
-                print_str("\tfor some cases. Multiple mode has been removed from newer ATA specifications, so this needs "
-                       "supported without\n");
+                print_str(
+                    "\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read "
+                    "logs or update firmware.\n");
+                print_str(
+                    "\tMulti-sector PIO transfers should be supported without this workaround, which may still be "
+                    "restrictive\n");
+                print_str(
+                    "\tfor some cases. Multiple mode has been removed from newer ATA specifications, so this needs "
+                    "supported without\n");
                 print_str("\tthis workaround.\n");
                 ++recommendationCounter;
             }
@@ -9267,12 +9268,14 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
                     "\tThis device can only issue single sector PIO commands. This is an issue as many logs are read\n",
                     recommendationCounter);
                 print_str("\tusing SMART read log or Read Log Ext for multiple 512B pages at a time. These will not be "
-                       "accessible on this\n");
-                print_str("\tdevice. It is also an issue as device firmware may not be upgradeable since that is also a "
-                       "multiple sector transfer\n");
+                          "accessible on this\n");
+                print_str(
+                    "\tdevice. It is also an issue as device firmware may not be upgradeable since that is also a "
+                    "multiple sector transfer\n");
                 print_str("\tthat is nearly always PIO mode as the DMA mode command in not often supported.\n");
-                print_str("\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read "
-                       "logs or update firmware.\n");
+                print_str(
+                    "\tMulti-sector PIO transfers need to be supported for more compatibility with tools that read "
+                    "logs or update firmware.\n");
                 ++recommendationCounter;
             }
             if (inputs->device->drive_info.passThroughHacks.ataPTHacks.ata28BitOnly &&
@@ -9394,3 +9397,4 @@ void utility_Usage(bool shortUsage)
     // print_str("=========================\n");
     // utility data destructive tests/operations go here
 }
+

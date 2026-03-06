@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_GenericTests";
-const char* buildVersion = "2.4.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1783,3 +1783,4 @@ void utility_Usage(bool shortUsage)
     print_Repair_At_End_Help(shortUsage);
     print_Repair_On_Fly_Help(shortUsage);
 }
+
