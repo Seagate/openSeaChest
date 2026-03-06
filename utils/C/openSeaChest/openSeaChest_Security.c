@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Security";
-const char* buildVersion = "3.5.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestSecurityExitCodesEnum
 {
@@ -2063,3 +2063,4 @@ void utility_Usage(bool shortUsage)
     print_ATA_Security_Erase_Help(
         shortUsage, "SeaChest"); // old implementation used the utility name as the password, switching to SeaChest
 }
+

@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Info";
-const char* buildVersion = "2.9.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1375,3 +1375,4 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 }
+

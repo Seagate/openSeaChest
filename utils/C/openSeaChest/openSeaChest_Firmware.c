@@ -45,7 +45,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Firmware";
-const char* buildVersion = "4.3.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestFirmwareExitCodesEnum
 {
@@ -1593,3 +1593,4 @@ void utility_Usage(bool shortUsage)
     print_FWDL_Segment_Size_Help(shortUsage);
     print_Firmware_Switch_Help(shortUsage);
 }
+

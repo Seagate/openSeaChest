@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Defect";
-const char* buildVersion = "1.1.0";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1883,3 +1883,4 @@ void utility_Usage(bool shortUsage)
     print_Random_Uncorrectable_Help(shortUsage);
     print_Uncorrectable_Range_Help(shortUsage);
 }
+

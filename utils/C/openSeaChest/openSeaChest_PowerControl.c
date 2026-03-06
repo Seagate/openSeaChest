@@ -35,7 +35,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_PowerControl";
-const char* buildVersion = "3.7.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -3318,3 +3318,4 @@ void utility_Usage(bool shortUsage)
     print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }
+

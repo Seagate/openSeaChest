@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_ZBD";
-const char* buildVersion = "2.4.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1271,3 +1271,4 @@ void utility_Usage(bool shortUsage)
     print_Reset_Write_Pointer_Zone_Help(shortUsage);
     print_Zone_ID_Help(shortUsage);
 }
+

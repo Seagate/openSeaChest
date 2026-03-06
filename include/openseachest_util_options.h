@@ -38,6 +38,12 @@ extern "C"
 #include "opensea_operation_version.h"
 #include "secure_file.h"
 
+    //
+    // Build version - shared across all openSeaChest utilities
+    // Change this single value to update version for all tools
+    //
+#define UTIL_BUILD_VERSION "26.03.0"
+
     // this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack
     // corruption at runtime This type should only be used where a boolean is desired when using the getopt parser
     // (which expects an int), otherwise bool will do just fine

@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.5";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -3786,3 +3786,4 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
+

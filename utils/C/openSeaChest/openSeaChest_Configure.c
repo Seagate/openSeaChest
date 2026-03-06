@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Configure";
-const char* buildVersion = "2.9.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -5008,3 +5008,4 @@ void utility_Usage(bool shortUsage)
     // utility data destructive tests/operations go here
     print_Provision_Help(shortUsage);
 }
+

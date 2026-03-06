@@ -44,7 +44,7 @@
 ////////////////////////
 const char* util_name = "openSeaChest_Basics";
 
-const char* buildVersion = "3.7.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -2570,3 +2570,4 @@ void utility_Usage(bool shortUsage)
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
 }
+

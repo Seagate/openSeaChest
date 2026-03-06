@@ -29,7 +29,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Raw";
-const char* buildVersion = "1.0.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -2457,3 +2457,4 @@ void utility_Usage(bool shortUsage)
     print_Raw_CDB_Help(shortUsage);
     print_Raw_CDB_Length_Help(shortUsage);
 }
+

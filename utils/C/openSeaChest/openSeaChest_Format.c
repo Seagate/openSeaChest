@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Format";
-const char* buildVersion = "3.5.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -2382,3 +2382,4 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
+

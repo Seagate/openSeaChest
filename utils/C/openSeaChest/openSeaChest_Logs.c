@@ -38,7 +38,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Logs";
-const char* buildVersion = "2.6.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1647,3 +1647,4 @@ void utility_Usage(bool shortUsage)
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);
     print_Pull_Generic_Logs_Subpage_Help(shortUsage);
 }
+

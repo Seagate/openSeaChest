@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+project('openSeaChest', 'c', version: 'v26.03.0', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
 
 c = meson.get_compiler('c')
 
