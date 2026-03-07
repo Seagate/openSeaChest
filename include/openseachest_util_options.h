@@ -1082,11 +1082,13 @@ extern "C"
 #define SET_POWER_CONSUMPTION_VALUE              powerConsumptionIdentifierValue
 #define SET_POWER_CONSUMPTION_WATTS_VALUE        powerConsumptionWatts
 #define SET_POWER_CONSUMPTION_DEFAULT_FLAG       setDefaultPowerConsumption
+#define SET_POWER_CONSUMPTION_DISABLED_FLAG      setDisabledPowerConsumption
 #define SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE powerConsumptionActiveLevel
 #define SET_POWER_CONSUMPTION_VARS                                                                                     \
     bool    SET_POWER_CONSUMPTION_FLAG               = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_VALUE              = UINT8_C(0);                                                     \
     bool    SET_POWER_CONSUMPTION_DEFAULT_FLAG       = false;                                                          \
+    bool    SET_POWER_CONSUMPTION_DISABLED_FLAG      = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = UINT8_C(0);                                                     \
     double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;
 #define SET_POWER_CONSUMPTION_LONG_OPT_STRING "setPowerConsumption"
