@@ -1647,7 +1647,7 @@ void print_Trim_Unmap_Range_Help(bool shortHelp)
 
 void print_Show_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s\t(SAS Only)\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+    printf("\t--%s\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
         print_str("\t\tThis option will show the power consumption\n");
@@ -1660,7 +1660,7 @@ void print_Show_Power_Consumption_Help(bool shortHelp)
 
 void print_Set_Power_Consumption_Help(bool shortHelp)
 {
-    printf("\t--%s [default | highest | intermediate | lowest | watt value]\t(SAS Only) \n",
+    printf("\t--%s [default | highest | intermediate | lowest | disabled | watt value]\n",
            SET_POWER_CONSUMPTION_LONG_OPT_STRING);
     if (!shortHelp)
     {
@@ -1671,6 +1671,7 @@ void print_Set_Power_Consumption_Help(bool shortHelp)
         print_str("\t\t-highest - sets the active level to \"highest\"\n");
         print_str("\t\t-intermediate - sets the active level to \"intermediate\"\n");
         print_str("\t\t-lowest - sets the active level to \"lowest\"\n");
+        print_str("\t\t-disabled - sets power consumption control to disabled (SATA Only)\n");
         print_str("\t\t-watt value - sets the device to a nearest watt value\n");
         print_str("\t\tless than or equal to the value entered.\n");
         print_str("\t\tPower consumption watt values are listed with the\n");
