@@ -470,47 +470,57 @@ if get_option('json_outputformat')
         jsonformat_options += 'build_timestamp=' + formatted_date
     endif
 
-    # Try to find system json-c library first
-    jsonc_dep = dependency('json-c', required: false)
-    if jsonc_dep.found()
-        message('Using system json-c library (via pkg-config)')
-    else
-        # Fallback: Try to find library directly without pkg-config
-        message('pkg-config not available, checking for library and headers')
-        jsonc_lib = c.find_library('json-c', required: false)
-        
-        # Check if headers are present (search standard system paths)
-        has_json_headers = c.has_header('json-c/json_object.h', required: false)
-        
-        if jsonc_lib.found() and has_json_headers
-            message('Using system json-c library (library and headers found)')
-            # Create a dependency from the found library with include paths
-            jsonc_dep = declare_dependency(
-                dependencies: jsonc_lib,
-                compile_args: ['-I/usr/include/json-c', '-I/usr/local/include/json-c']
-            )
-        else
-            message('System json-c library or headers not found, building from subproject')
-            # Build json-c from subproject
-            jsonc = subproject(
-                'json-c',
-                default_options: [
-                    'default_library=static',
-                    'build_apps=false',
-                    'disable_extra_libs=true',
-                    'disable_json_pointer=false',
-                    'disable_json_patch=false',
-                ],
-            )
-            jsonc_dep = jsonc.get_variable('jsonc_dep')
-            # Note: json-c subproject already calls meson.override_dependency() itself
-            # so we don't need to override again here
-        endif
-    endif
-
     opensea_jsonformat = subproject('opensea-jsonformat',
         default_options: jsonformat_options
     )
+
+    # Determine whether to use system json-c or subproject
+    use_system_json = get_option('use_system_json')
+    
+    if use_system_json
+        message('use_system_json=true: Attempting to detect system json-c library')
+        
+        # Step 1: Try pkg-config
+        jsonc_dep = dependency('json-c', required: false)
+        if jsonc_dep.found()
+            message('Found system json-c via pkg-config')
+        else
+            # Step 2: Try find_library + has_header
+            message('pkg-config not available, trying find_library')
+            jsonc_lib = c.find_library('json-c', required: false)
+            has_json_headers = c.has_header('json-c/json_object.h', required: false)
+            
+            if jsonc_lib.found() and has_json_headers
+                message('Found system json-c library and headers')
+                jsonc_dep = declare_dependency(
+                    dependencies: jsonc_lib,
+                    compile_args: ['-I/usr/include/json-c', '-I/usr/local/include/json-c']
+                )
+            else
+                message('System json-c not fully available, falling back to subproject')
+                jsonc_dep = disabler()
+            endif
+        endif
+    else
+        message('use_system_json=false: Using bundled json-c subproject')
+        jsonc_dep = disabler()
+    endif
+    
+    # Step 3: If system json-c not found/used, build from subproject
+    if not jsonc_dep.found()
+        message('Building json-c from subproject')
+        jsonc = subproject(
+            'json-c',
+            default_options: [
+                'default_library=static',
+                'build_apps=false',
+                'disable_extra_libs=true',
+                'disable_json_pointer=false',
+                'disable_json_patch=false',
+            ],
+        )
+        jsonc_dep = jsonc.get_variable('jsonc_dep')
+    endif
     opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 endif
 

@@ -24,6 +24,7 @@ option('tcg', type : 'feature', value : 'disabled')
 option('libc_musl', type : 'boolean', value : false)
 #openSeaChest_Security can set the password, however this is not enabled by default
 option('json_outputformat', type : 'boolean', value : true, description : 'Enable JSON output format for openSeaChest. Not all outputs are supported yet, but this is a start for the most popular options to output JSON formatted data to the screen.')
+option('use_system_json', type : 'boolean', value : false, description : 'Try to use system-installed json-c library instead of bundled subproject. Will attempt pkg-config, then find_library, then fallback to subproject if both fail.')
 #because enabling it may make the system unable to boot, the drive may not show up
 #in the OS if it DOES boot or if the drive it hotplugged in, or it may not be possible
 #for the user to enter the password they have set because the system, BIOS, or HBA has
