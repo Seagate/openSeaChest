@@ -461,25 +461,16 @@ jsonc_dep = disabler()
 opensea_jsonformat_dep = disabler()
 
 if get_option('json_outputformat')
-
+    message('json_outputformat=true: Build opensea_jsonformat')
     add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
 
-    # Pass BUILD_TIMESTAMP to opensea-jsonformat for reproducible builds
-    jsonformat_options = []
-    if source_epoch != ''
-        jsonformat_options += 'build_timestamp=' + formatted_date
-    endif
-
-    opensea_jsonformat = subproject('opensea-jsonformat',
-        default_options: jsonformat_options
-    )
-
+    # Set up json-c BEFORE opensea-jsonformat subproject so it's available when needed
     # Determine whether to use system json-c or subproject
     use_system_json = get_option('use_system_json')
-    
+
     if use_system_json
         message('use_system_json=true: Attempting to detect system json-c library')
-        
+
         # Step 1: Try pkg-config
         jsonc_dep = dependency('json-c', required: false)
         if jsonc_dep.found()
@@ -489,7 +480,7 @@ if get_option('json_outputformat')
             message('pkg-config not available, trying find_library')
             jsonc_lib = c.find_library('json-c', required: false)
             has_json_headers = c.has_header('json-c/json_object.h', required: false)
-            
+
             if jsonc_lib.found() and has_json_headers
                 message('Found system json-c library and headers')
                 jsonc_dep = declare_dependency(
@@ -505,7 +496,7 @@ if get_option('json_outputformat')
         message('use_system_json=false: Using bundled json-c subproject')
         jsonc_dep = disabler()
     endif
-    
+
     # Step 3: If system json-c not found/used, build from subproject
     if not jsonc_dep.found()
         message('Building json-c from subproject')
@@ -521,6 +512,17 @@ if get_option('json_outputformat')
         )
         jsonc_dep = jsonc.get_variable('jsonc_dep')
     endif
+
+    # Now that json-c is set up, build opensea-jsonformat subproject
+    # Pass BUILD_TIMESTAMP to opensea-jsonformat for reproducible builds
+    jsonformat_options = []
+    if source_epoch != ''
+        jsonformat_options += 'build_timestamp=' + formatted_date
+    endif
+
+    opensea_jsonformat = subproject('opensea-jsonformat',
+        default_options: jsonformat_options
+    )
     opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 endif
 
