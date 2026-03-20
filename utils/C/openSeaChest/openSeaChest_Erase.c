@@ -55,7 +55,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Erase";
-const char* buildVersion = "4.7.4";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestEraseExitCodesEnum
 {
@@ -840,7 +840,8 @@ int main(int argc, char* argv[])
                                            fileinfo->filename);
                                     if (SEC_FILE_SUCCESS != secure_Close_File(fileinfo))
                                     {
-                                        print_str("secure file structure could not be closed! This is a fatal error!\n");
+                                        print_str(
+                                            "secure file structure could not be closed! This is a fatal error!\n");
                                     }
                                     free_Secure_File_Info(&fileinfo);
                                     exit(UTIL_EXIT_CANNOT_OPEN_FILE);
@@ -860,7 +861,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        print_str("Unable to read the file with the mode page data. Cannot set the mode page.\n");
+                                        print_str("Unable to read the file with the mode page data. Cannot set the "
+                                                  "mode page.\n");
                                     }
                                     exitCode = UTIL_EXIT_CANNOT_OPEN_FILE;
                                 }
@@ -1459,7 +1461,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1489,8 +1491,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1556,15 +1557,20 @@ int main(int argc, char* argv[])
         print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
         print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
-        print_str("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
-        // count down timer must go here
-        for (int8_t counter = INT8_C(30); counter >= 0; --counter)
+
+        // if the user has provided the confirmation flag, skip the countdown
+        if (!LOW_LEVEL_FORMAT_FLAG)
         {
-            printf("\r%2d", counter);
-            flush_stdout();
-            delay_Seconds(UINT32_C(1));
+            print_str("If you wish to cancel this operation, press CTRL-C now to exit the software.\n");
+            // count down timer must go here
+            for (int8_t counter = INT8_C(30); counter >= 0; --counter)
+            {
+                printf("\r%2d", counter);
+                flush_stdout();
+                delay_Seconds(UINT32_C(1));
+            }
+            print_str("\n");
         }
-        print_str("\n");
     }
 
     uint32_t skippedDevices = UINT32_C(0);
@@ -1931,8 +1937,9 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("\nAn error occured while trying to determine best possible erase. No erase will be "
-                                   "performed.\n");
+                            print_str(
+                                "\nAn error occured while trying to determine best possible erase. No erase will be "
+                                "performed.\n");
                         }
                         break;
                     }
@@ -2008,12 +2015,15 @@ int main(int argc, char* argv[])
                     print_str("Try power cycling the drive/system and try again or try a different system\n");
                     print_str("or method of attaching the drive to run this command.\n");
                     print_str("When a feature is \"frozen\" the drive must be power cycled to clear this condition.\n");
-                    print_str("Some systems will issue the freeze commands on boot which is why changing which system\n");
+                    print_str(
+                        "Some systems will issue the freeze commands on boot which is why changing which system\n");
                     print_str("is used or how the drive is attached to the system can get around this issue.\n");
-                    print_str("If the device supports the HPA security extension feature, then changes to HPA may be\n");
+                    print_str(
+                        "If the device supports the HPA security extension feature, then changes to HPA may be\n");
                     print_str("blocked by the password set by this feature. You must either unlock the HPA security\n");
                     print_str("feature, or power cycle the drive to remove the password and lock.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2037,7 +2047,8 @@ int main(int argc, char* argv[])
                     print_str("attached to the system (move from USB to SATA or from SAS HBA to\n");
                     print_str("the motherboard) and try again.\n");
                     print_str("If this does not work, try another system.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2052,7 +2063,8 @@ int main(int argc, char* argv[])
                     print_str("command may have been blocked, or some other unknown reason caused the failure.\n");
                     print_str("Try power cycling the drive/system and try again or try a different system\n");
                     print_str("or method of attaching the drive to run this command.\n");
-                    print_str("If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
+                    print_str(
+                        "If you think that the device is already at maxLBA or want to proceed to erase anyways,\n");
                     printf("remove the --%s option from the command line and try again.\n",
                            ERASE_RESTORE_MAX_PREP_LONG_OPT_STRING);
                     print_str("Erase will not be started while this is failing.\n\n");
@@ -2133,12 +2145,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
-                        printf(
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2205,10 +2220,12 @@ int main(int argc, char* argv[])
                         print_str("Revert Successful!\n");
                         if (!didEraseHappen)
                         {
-                            printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been "
-                                   "erased.\n");
-                            printf("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
-                                   "completely erased.\n\n");
+                            print_str(
+                                "\tNOTE: Because the lockingSP was not activated, the user data may not have been "
+                                "erased.\n");
+                            print_str(
+                                "\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
+                                "completely erased.\n\n");
                         }
                         if (writeReq.cryptoErase > WAEREQ_READ_COMPLETES_GOOD_STATUS)
                         {
@@ -2242,13 +2259,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("Revert Failure!\n");
-                        printf(
+                        print_str(
                             "\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
-                        printf(
+                        print_str(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -2336,8 +2355,9 @@ int main(int argc, char* argv[])
             case DEVICE_ACCESS_DENIED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
-                           "and try again.\n");
+                    print_str(
+                        "Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
+                        "and try again.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2388,8 +2408,9 @@ int main(int argc, char* argv[])
             case DEVICE_ACCESS_DENIED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
-                           "and try again.\n");
+                    print_str(
+                        "Access Denied while attempting Sanitize. Please make sure security has unlocked the drive "
+                        "and try again.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -2424,12 +2445,12 @@ int main(int argc, char* argv[])
                     {
                         if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
-                            printf("\t\t\tWrite after crypto erase may be required due to PI formatting! Reads may "
-                                   "return an error until written!\n");
+                            print_str("\t\t\tWrite after crypto erase may be required due to PI formatting! Reads may "
+                                      "return an error until written!\n");
                         }
                         else
                         {
-                            printf(
+                            print_str(
                                 "\t\t\tWrite after crypto erase required! Reads will return an error until written!\n");
                         }
                     }
@@ -2441,12 +2462,12 @@ int main(int argc, char* argv[])
                     {
                         if (sanitizeOptions.writeAfterCryptoErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
-                            printf("\t\t\tWrite after block erase may be required due to PI formatting! Reads may "
-                                   "return an error until written!\n");
+                            print_str("\t\t\tWrite after block erase may be required due to PI formatting! Reads may "
+                                      "return an error until written!\n");
                         }
                         else
                         {
-                            printf(
+                            print_str(
                                 "\t\t\tWrite after block erase required! Reads will return an error until written!\n");
                         }
                     }
@@ -2471,12 +2492,12 @@ int main(int argc, char* argv[])
                         case NO_DEALLOC_RESPONSE_INV:
                             break;
                         case NO_DEALLOC_RESPONSE_WARNING:
-                            printf("\t\t\tSanitize command will be accepted but warn about deallocation when no "
-                                   "deallocate is specified.\n");
+                            print_str("\t\t\tSanitize command will be accepted but warn about deallocation when no "
+                                      "deallocate is specified.\n");
                             break;
                         case NO_DEALLOC_RESPONSE_ERROR:
-                            printf("\t\t\tSanitize command will be aborted with an error when no deallocate is "
-                                   "specified.\n");
+                            print_str("\t\t\tSanitize command will be aborted with an error when no deallocate is "
+                                      "specified.\n");
                             break;
                         }
                     }
@@ -2586,9 +2607,10 @@ int main(int argc, char* argv[])
                         if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
-                            printf(
+                            print_str(
                                 "          PI bytes may be invalid and reading them results in logical block guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2604,9 +2626,10 @@ int main(int argc, char* argv[])
                         if (writeReq.blockErase == WAEREQ_PI_FORMATTED_MAY_REQUIRE_OVERWRITE)
                         {
                             print_str("ADVISORY: This device may require a write to all LBAs after a crypto erase!\n");
-                            printf("          PI bytes may be scrambled and reading them results in logical block "
-                                   "guard\n");
-                            print_str("          check failures until a logical block has been written with new data.\n");
+                            print_str("          PI bytes may be scrambled and reading them results in logical block "
+                                      "guard\n");
+                            print_str(
+                                "          check failures until a logical block has been written with new data.\n");
                             print_str("          Attempting to read any LBA will result in a failure until it\n");
                             print_str("          has been written with new data!\n\n");
                         }
@@ -2720,8 +2743,8 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Access Denied while attempting Sanitize. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str("Access Denied while attempting Sanitize. Please make sure security has unlocked the "
+                                  "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2762,7 +2785,7 @@ int main(int argc, char* argv[])
                 {
                     currentBlockSize = false;
                 }
-                formatUnitParameters.formatType = C_CAST(eFormatType, FAST_FORMAT_FLAG);
+                formatUnitParameters.formatType           = C_CAST(eFormatType, FAST_FORMAT_FLAG);
                 formatUnitParameters.currentBlockSize     = currentBlockSize;
                 formatUnitParameters.newBlockSize         = FORMAT_SECTOR_SIZE;
                 formatUnitParameters.gList                = M_NULLPTR;
@@ -2828,8 +2851,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Access Denied while attempting Format Unit. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting Format Unit. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -2858,16 +2882,18 @@ int main(int argc, char* argv[])
                         print_str("\t\tThere is an additional risk when performing a low-level fast format that may\n");
                         print_str("\t\tmake the drive inoperable if it is reset at any time while it is formatting.\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_BRIGHT_YELLOW, CONSOLE_COLOR_DEFAULT);
-                        print_str("\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
+                        print_str(
+                            "\t\tWARNING: Any interruption to the device while it is formatting may render the\n");
                         print_str("\t\t         drive inoperable! Use this at your own risk!\n");
                         print_str("\t\tWARNING: Set sector size may affect all LUNs/namespaces for devices\n");
                         print_str("\t\t         with multiple logical units or namespaces.\n");
                         print_str("\t\tWARNING: Disable any out-of-band management systems/services/daemons\n");
                         print_str("\t\t         before using this option. Interruptions can be caused by these\n");
                         print_str("\t\t         and may prevent completion of a sector size change.\n");
-                        printf(
+                        print_str(
                             "\t\tWARNING: It is recommended that this operation is done from a bootable environment\n");
-                        print_str("\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
+                        print_str(
+                            "\t\t         (Live USB) to reduce the risk of OS background activities running and\n");
                         print_str("\t\t         triggering a device reset while reformating the drive.\n\n");
                         set_Console_Foreground_Background_Colors(CONSOLE_COLOR_DEFAULT, CONSOLE_COLOR_DEFAULT);
                     }
@@ -2998,8 +3024,9 @@ int main(int argc, char* argv[])
                 case DEVICE_ACCESS_DENIED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("Access Denied while attempting NVM Format. Please make sure security has unlocked the "
-                               "drive and try again.\n");
+                        print_str(
+                            "Access Denied while attempting NVM Format. Please make sure security has unlocked the "
+                            "drive and try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -3155,8 +3182,9 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Write same is not supported on this device, or the range is larger than the device "
-                                   "supports.\n");
+                            print_str(
+                                "Write same is not supported on this device, or the range is larger than the device "
+                                "supports.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
@@ -3619,8 +3647,9 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_ERASE_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                         TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                snprintf_err_handle(
+                    seachestEraseExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!
@@ -3757,3 +3786,4 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
+

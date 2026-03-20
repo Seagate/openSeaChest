@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_SMART";
-const char* buildVersion = "2.6.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -533,7 +533,8 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("You must add a a test type to run for the idd option. Valid tests are short or long\n");
+                        print_str(
+                            "You must add a a test type to run for the idd option. Valid tests are short or long\n");
                     }
                 }
                 break;
@@ -879,7 +880,8 @@ int main(int argc, char* argv[])
         flags |= FORCE_ATA_UDMA_SAT_MODE;
     }
 
-    if (((SHORT_DST_FLAG || LONG_DST_FLAG || CONVEYANCE_DST_FLAG) && CAPTIVE_FOREGROUND_FLAG) || RUN_IDD_FLAG || DST_AND_CLEAN_FLAG)
+    if (((SHORT_DST_FLAG || LONG_DST_FLAG || CONVEYANCE_DST_FLAG) && CAPTIVE_FOREGROUND_FLAG) || RUN_IDD_FLAG ||
+        DST_AND_CLEAN_FLAG)
     {
         flags |= HANDLE_RECOMMEND_EXCLUSIVE_ACCESS;
     }
@@ -940,7 +942,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -970,8 +972,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1167,12 +1168,11 @@ int main(int argc, char* argv[])
             }
         }
 
-
         if (SHOW_FARM_FLAG)
         {
             farmLogData farmdata;
             safe_memset(&farmdata, sizeof(farmLogData), 0, sizeof(farmLogData));
-            switch(read_FARM_Data(&deviceList[deviceIter], &farmdata))
+            switch (read_FARM_Data(&deviceList[deviceIter], &farmdata))
             {
             case SUCCESS:
                 print_FARM_Data(&farmdata);
@@ -1224,7 +1224,8 @@ int main(int argc, char* argv[])
                 free_Defect_List(&defects);
                 break;
             case NOT_SUPPORTED:
-                print_str("Reading Defects not supported on this device or unsupported defect list format was given.\n");
+                print_str(
+                    "Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
@@ -1507,8 +1508,8 @@ int main(int argc, char* argv[])
             case ABORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("SMART offline data collection was aborted by the host or some other operation on the "
-                           "drive.\n");
+                    print_str("SMART offline data collection was aborted by the host or some other operation on the "
+                              "drive.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_ABORTED;
                 break;
@@ -1837,14 +1838,17 @@ int main(int argc, char* argv[])
                             print_str(" - has been started.\n");
                             printf("use --progress idd -d %s to monitor IDD progress\n", deviceHandleExample);
                             printf("use --abortIDD -d %s to stop IDD\n", deviceHandleExample);
-                            printf("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
-                                   "possible.\n");
-                            printf("      In this time, the drive is performing a unique test which prevents it from "
-                                   "responding\n");
-                            printf("      to other requests. Attempting to get progress or abort during this time will "
-                                   "fail and\n");
-                            printf("      may cause the IDD to stop running in some cases. The software may also hang "
-                                   "until the\n");
+                            print_str("NOTE: Checking progress or aborting IDD within the first 120 seconds is not "
+                                      "possible.\n");
+                            print_str(
+                                "      In this time, the drive is performing a unique test which prevents it from "
+                                "responding\n");
+                            print_str(
+                                "      to other requests. Attempting to get progress or abort during this time will "
+                                "fail and\n");
+                            print_str(
+                                "      may cause the IDD to stop running in some cases. The software may also hang "
+                                "until the\n");
                             print_str("      drive is able to respond to commands again.\n\n");
                         }
                     }
@@ -1934,8 +1938,9 @@ int main(int argc, char* argv[])
                 case IN_PROGRESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A self test is currently in progress. Please wait for it to finish before starting DST "
-                               "and Clean\n");
+                        print_str(
+                            "A self test is currently in progress. Please wait for it to finish before starting DST "
+                            "and Clean\n");
                     }
                     break;
                 case ABORTED:
@@ -2396,3 +2401,4 @@ void utility_Usage(bool shortUsage)
     print_str("=========================\n");
     print_DST_And_Clean_Help(shortUsage);
 }
+

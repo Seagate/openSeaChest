@@ -23,8 +23,13 @@ jobs:
       contents: read
       security-events: write
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v6.0.1
+        uses: actions/checkout@v6.0.2
 
       - name: flawfinder_scan
         uses: david-a-wheeler/flawfinder@c57197cd6061453f10a496f30a732bc1905918d1

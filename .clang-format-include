@@ -1,0 +1,15 @@
+# This is a file for meson's clang-format target to specify which files to format.
+# Since openseachest and all opensea-*libs modules use the same format, reformat them as well
+
+subprojects/opensea-common/src/**/*
+subprojects/opensea-common/include/**/*
+
+subprojects/opensea-transport/src/**/*
+subprojects/opensea-transport/include/**/*
+
+subprojects/opensea-operations/src/**/*
+subprojects/opensea-operations/include/**/*
+
+utils/C/openSeaChest/*
+include/*
+src/*

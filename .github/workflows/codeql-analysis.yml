@@ -15,10 +15,18 @@ on:
   schedule:
     - cron: '0 12 * * 6'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
     strategy:
       fail-fast: false
       matrix:
@@ -48,24 +56,34 @@ jobs:
           name: "Ubuntu GCC",
           os: ubuntu-latest,
           cc: "gcc",
-          cxx: "g++"
+          cxx: "g++",
+          arch: "",
+          meson_opts: ""
         }
         - {
           name: "Ubuntu Clang",
           os: ubuntu-latest,
           cc: "clang",
-          cxx: "clang++"
+          cxx: "clang++",
+          arch: "",
+          meson_opts: ""
           }
 
     steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
+      with:
+        egress-policy: audit
+
     - name: Checkout repository
-      uses: actions/checkout@v6.0.1
+      uses: actions/checkout@v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
         # We must fetch at least the immediate parents so that if this is
         # a pull request then we can checkout the head.
         fetch-depth: 2
         submodules: recursive
-    
+
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
       uses: ilammy/msvc-dev-cmd@v1
@@ -83,7 +101,7 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file. 
+        # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
@@ -99,13 +117,39 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - name: Configuring and compiling with meson
+    - name: Setup pip cache
+      uses: actions/cache@v5.0.0
+      with:
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-meson-
+          ${{ runner.os }}-pip-
+
+    - name: Install Meson and Ninja and Build (Github runners - MSVC)
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      shell: pwsh
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        $prefix = Join-Path $env:GITHUB_WORKSPACE 'install'
+        meson setup build --prefix "$prefix" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
+      if: "!startsWith(matrix.config.name, 'Windows MSVC')"
+      shell: bash
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        pip install meson ninja
+        meson setup build --prefix "$GITHUB_WORKSPACE/install" -Dmandir=man -Dbindir=bin ${{ matrix.config.meson_opts }} --buildtype=release
+        meson install -C build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

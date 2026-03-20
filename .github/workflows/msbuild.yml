@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 name: MSBuild
 
-on: 
+on:
   push:
     branches:
       - master
@@ -12,6 +12,10 @@ on:
   pull_request:
     branches:
       - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -25,24 +29,35 @@ env:
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
     strategy:
       matrix:
         platform: [ x64, x86 ]
         language: ['cpp']
 
     steps:
-    - uses: actions/checkout@v6.0.1
+    - name: Harden Runner
+      uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
+      with:
+        egress-policy: audit
+
+    - uses: actions/checkout@v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
         submodules: recursive
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v2.0.0
 
     - name: Restore NuGet packages
+      shell: pwsh
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build
+      shell: pwsh
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference

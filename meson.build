@@ -1,8 +1,26 @@
 # SPDX-License-Identifier: MPL-2.0
-project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+# Copyright (c) 2021-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+project('openSeaChest', 'c', version: 'v26.03.0', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
 
 c = meson.get_compiler('c')
 
+machine = target_machine.system()
+architecture = target_machine.cpu()
+if architecture == ''
+    architecture = target_machine.cpu_family()
+endif
+# Add debug flag if debug option is enabled
+if get_option('debug')
+    add_project_arguments('-D_DEBUG', language: 'c')
+endif
+# Add libc musl flag if enabled
+if get_option('libc_musl')
+    add_project_arguments('-DUSING_MUSL_LIBC=1', language: 'c')
+endif
+# Add JSON format support flag if enabled
+if get_option('json_outputformat')
+  add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+endif
 warning_flags = []
 linker_flags = []  #additional linker flags to add per-compiler for hardening.
 
@@ -28,7 +46,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wshift-overflow=1',
         '-Wshift-overflow=2',
         '-Wdouble-promotion',
-        '-Wformat-security',
+        '-Werror=format-security',
         '-Wold-style-definition',
         '-Wstrict-prototypes',
         '-Wmissing-declarations',
@@ -48,6 +66,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-fno-strict-overflow',
         '-fno-strict-aliasing',
         '-ftrivial-auto-var-init=zero',
+        '-fzero-init-padding-bits=all',
         '-Wtrampolines',  #GCC only at this time
         '-Werror=implicit',
         '-Werror=incompatible-pointer-types',
@@ -75,8 +94,35 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wreturn-type',
         '-Wpointer-bool-conversion',
         '-fvisibility=hidden',  #to work similarly to Window's DLL import/export
+        '-Wmismatched-dealloc',
+        '-Wfree-nonheap-object',
+        '-Wnullability',  # Warnings for nullability annotations
+        '-Wnullability-completeness',  # Warn if nullability annotations are incomplete
+        '-Wnullability-completeness-on-arrays',  # Warn if nullability annotations are incomplete
+        # '-Wnullable-to-nonnull-conversion', # Basically warns so you have to cast to the correct nullability type. Not needed today -TJE
+        #'-Wswitch-enum',
+        '-Walloc-zero',
+        '-Walloc-size',
+        '-Wcalloc-transposed-args',
+        '-Werror=alloca',  # Do not allow use of the alloca function
+        '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
+        '-Wfortify-source' # needed for diagnose_as_builtin attributes to work.
     ]
 
+    if get_option('cc-suggest-attribute')
+        warning_flags += [
+            '-Wsuggest-attribute=pure',
+            '-Wsuggest-attribute=const',
+            '-Wsuggest-attribute=noreturn',
+            '-Wsuggest-attribute=returns_nonnull',
+            '-Wmissing-noreturn',
+            '-Wsuggest-attribute=malloc',
+            '-Wsuggest-attribute=format',
+            '-Wmissing-format-attribute',
+            '-Wsuggest-attribute=cold',
+            '-fipa-pure-const',
+        ]
+    endif
     if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
         #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
         warning_flags += '-Wsign-conversion'
@@ -225,6 +271,102 @@ elif c.get_id().contains('xlc')
     warning_flags = []
 endif
 
+# =============================================================================
+# REPRODUCIBLE BUILD SUPPORT
+# =============================================================================
+
+source_epoch = ''
+
+posixshell = find_program('sh', required: false)
+bashshell = find_program('bash', required: false)
+# 1. Check for SOURCE_DATE_EPOCH environment variable using shell
+if posixshell.found()
+    env_cmd = run_command(posixshell, '-c', 'echo $SOURCE_DATE_EPOCH', check: false)
+    if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+        source_epoch = env_cmd.stdout().strip()
+    endif
+elif bashshell.found()
+    env_cmd = run_command(bashshell, '-c', 'echo $SOURCE_DATE_EPOCH', check: false)
+    if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+        source_epoch = env_cmd.stdout().strip()
+    endif
+else
+    # Probably in Windows, so check for powershell and try to get the environment variable from there
+    powershell = find_program('pwsh', 'powershell', required: false)
+    if powershell.found()
+        env_cmd = run_command(powershell, '-NoProfile', '-NonInteractive', '-Command', '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")', check: false)
+        if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
+            source_epoch = env_cmd.stdout().strip()
+        endif
+    else
+        cmdexe = find_program('cmd.exe', required: false)
+        if cmdexe.found()
+            # cmd.exe is the last resort
+            env_cmd = run_command(cmdexe, '/c', 'echo %SOURCE_DATE_EPOCH%', check: false)
+            if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != '' and env_cmd.stdout().strip() != '%SOURCE_DATE_EPOCH%'
+                source_epoch = env_cmd.stdout().strip()
+            endif
+        endif
+    endif
+endif
+# 2. If Env Var is empty, try to fetch from Git
+if source_epoch == ''
+    git = find_program('git', required: false)
+    if git.found()
+        # Get the last commit timestamp (Unix Epoch format)
+        git_cmd = run_command(git, 'log', '-1', '--pretty=%ct', check: false)
+        if git_cmd.returncode() == 0
+            source_epoch = git_cmd.stdout().strip()
+        endif
+    endif
+endif
+
+# 3. If we found a timestamp, format it and pass to C compiler
+if source_epoch != ''
+    # Format: "%b %d %Y" -> "Nov 17 2025"
+    # Note: __DATE__ uses space padding for days < 10 (e.g. "Nov  7 2025").
+
+    # Try Python first (most reliable, handles formatting consistently)
+    python = find_program('python3', 'python', required: false)
+    if python.found()
+        py_script = 'import datetime; ' + \
+                    'ts = int(' + source_epoch + '); ' + \
+                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + \
+                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
+
+        date_cmd = run_command(python, '-c', py_script, check: false)
+        if date_cmd.returncode() == 0
+            formatted_date = date_cmd.stdout().strip()
+            message('Reproducible Build: Setting BUILD_TIMESTAMP to "' + formatted_date + '" (via Python)')
+            add_project_arguments('-DBUILD_TIMESTAMP="' + formatted_date + '"', language: 'c')
+        endif
+    endif
+
+    # Fallback to date command if Python failed or not found
+    if not python.found() or date_cmd.returncode() != 0
+        message('Reproducible Build: Python not available, trying date command')
+
+        # Try GNU date first (Linux, MUSL)
+        date_cmd = run_command('sh', '-c', 'date -u -d @' + source_epoch + ' "+%b %_d %Y" 2>/dev/null', check: false)
+
+        if date_cmd.returncode() != 0
+            # Try BSD date (FreeBSD, macOS, OpenBSD, NetBSD, DragonFlyBSD)
+            date_cmd = run_command('sh', '-c', 'date -u -r ' + source_epoch + ' "+%b %_d %Y" 2>/dev/null', check: false)
+        endif
+
+        if date_cmd.returncode() == 0
+            formatted_date = date_cmd.stdout().strip()
+            message('Reproducible Build: Setting BUILD_TIMESTAMP to "' + formatted_date + '" (via date command)')
+            add_project_arguments('-DBUILD_TIMESTAMP="' + formatted_date + '"', language: 'c')
+        else
+            message('Reproducible Build: Failed to format timestamp. Using compiler default (__DATE__).')
+        endif
+    endif
+else
+    message('Reproducible Build: No SOURCE_DATE_EPOCH or Git found. Using compiler default (__DATE__).')
+endif
+# =============================================================================
+
 add_project_arguments(c.get_supported_arguments(warning_flags), language: 'c')
 add_project_link_arguments(c.get_supported_link_arguments(linker_flags), language: 'c')
 
@@ -272,14 +414,6 @@ if get_option('atasecsetpass').enabled()
     add_project_arguments('-DENABLE_ATA_SET_PASSWORD', language: 'c')
 endif
 
-if get_option('debug')
-    add_project_arguments('-D_DEBUG', language: 'c')
-endif
-
-if get_option('libc_musl')
-    add_project_arguments('-DUSING_MUSL_LIBC=1', language: 'c')
-endif
-
 exec_prefix = 'openSeaChest_'
 common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
@@ -323,20 +457,36 @@ endif
 opensea_operations = subproject('opensea-operations')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
-jsonc = subproject(
-    'json-c',
-    default_options: [
-        'default_library=static',
-        'build_apps=false',
-        'disable_extra_libs=true',
-        'disable_json_pointer=false',
-        'disable_json_patch=false',
-    ],
-)
-jsonc_dep = jsonc.get_variable('jsonc_dep')
+jsonc_dep = disabler()
+opensea_jsonformat_dep = disabler()
 
-opensea_jsonformat = subproject('opensea-jsonformat')
-opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
+if get_option('json_outputformat')
+
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+
+    # Pass BUILD_TIMESTAMP to opensea-jsonformat for reproducible builds
+    jsonformat_options = []
+    if source_epoch != ''
+        jsonformat_options += 'build_timestamp=' + formatted_date
+    endif
+
+    opensea_jsonformat = subproject('opensea-jsonformat',
+        default_options: jsonformat_options
+    )
+    opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
+
+    jsonc = subproject(
+        'json-c',
+        default_options: [
+            'default_library=static',
+            'build_apps=false',
+            'disable_extra_libs=true',
+            'disable_json_pointer=false',
+            'disable_json_patch=false',
+        ],
+    )
+    jsonc_dep = jsonc.get_variable('jsonc_dep')
+endif
 
 incdir = include_directories('include')
 
@@ -347,18 +497,23 @@ exe_src_map = {
 }
 
 foreach p : get_option('tools')
+    exe_deps = [
+        opensea_common_dep,
+        opensea_transport_dep,
+        opensea_operations_dep,
+        os_deps,
+    ]
+
+    # Only add JSON dependencies if the feature is enabled
+    if get_option('json_outputformat')
+        exe_deps += [jsonc_dep, opensea_jsonformat_dep]
+    endif
+
     executable(
         'openSeaChest_' + p,
         common_sources,
         'utils/C/openSeaChest/openSeaChest_' + exe_src_map.get(p, p) + '.c',
-        dependencies: [
-            jsonc_dep,
-            opensea_common_dep,
-            opensea_transport_dep,
-            opensea_operations_dep,
-            opensea_jsonformat_dep,
-            os_deps,
-        ],
+        dependencies: exe_deps,
         include_directories: incdir,
         install: true,
     )

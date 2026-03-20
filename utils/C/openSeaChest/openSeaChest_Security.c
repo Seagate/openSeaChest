@@ -47,7 +47,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Security";
-const char* buildVersion = "3.5.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestSecurityExitCodesEnum
 {
@@ -301,7 +301,7 @@ int main(int argc, char* argv[])
             {
                 snprintf_err_handle(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
             }
-#endif //#if !defined(DISABLE_TCG_SUPPORT)
+#endif // #if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING) == 0)
             {
                 if (strcmp(optarg, "byteswap") == 0)
@@ -468,7 +468,8 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING) == 0)
             {
-                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &ATA_SECURITY_MASTER_PW_ID))
+                if (!get_And_Validate_Integer_Input_Uint16(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &ATA_SECURITY_MASTER_PW_ID))
                 {
                     print_Error_In_Cmd_Line_Args(ATA_SECURITY_MASTER_PW_ID_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -832,7 +833,7 @@ int main(int argc, char* argv[])
         // check if byteswapping what was entered
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.byteSwapped)
         {
-            for (uint8_t iter = UINT8_C(0); (iter + 1) < ATA_SECURITY_MAX_PW_LENGTH; iter += 2)
+            for (uint8_t iter = UINT8_C(0); (iter + UINT8_C(1)) < ATA_SECURITY_MAX_PW_LENGTH; iter += UINT8_C(2))
             {
                 uint8_t temp                    = ATA_SECURITY_PASSWORD[iter + 1];
                 ATA_SECURITY_PASSWORD[iter + 1] = ATA_SECURITY_PASSWORD[iter];
@@ -1089,7 +1090,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1120,8 +1121,7 @@ int main(int argc, char* argv[])
 #    endif
                 (ret != SUCCESS))
 #else
-            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) ||
-                (ret != SUCCESS))
+            if ((deviceList[handleIter].os_info.fd == INVALID_HANDLE_VALUE) || (ret != SUCCESS))
 #endif
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -1610,12 +1610,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("RevertSP Failure!\n");
-                        print_str("\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
-                        printf(
+                        print_str(
+                            "\tThis may fail for a few reasons. Please double check the PSID that was provided.\n");
+                        print_str(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1680,10 +1683,12 @@ int main(int argc, char* argv[])
                         print_str("Revert Successful!\n");
                         if (!didEraseHappen)
                         {
-                            printf("\tNOTE: Because the lockingSP was not activated, the user data may not have been "
-                                   "erased.\n");
-                            printf("\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
-                                   "completely erased.\n\n");
+                            print_str(
+                                "\tNOTE: Because the lockingSP was not activated, the user data may not have been "
+                                "erased.\n");
+                            print_str(
+                                "\t      Run a cryptographic erase, such as Sanitize cryptoerase to ensure data was "
+                                "completely erased.\n\n");
                         }
                     }
                     break;
@@ -1698,13 +1703,15 @@ int main(int argc, char* argv[])
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
                         print_str("Revert Failure!\n");
-                        printf(
+                        print_str(
                             "\tThis may fail for a few reasons. Please double check the PSID/SID that was provided.\n");
-                        printf(
+                        print_str(
                             "\tOn Seagate drives, PSIDs are 32 digits long, all uppercase, and uses zeros and ones\n");
                         print_str("\tbut do NOT use O's and I's.\n");
-                        print_str("\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
-                        print_str("\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
+                        print_str(
+                            "\tAdditionally, it is possible to exhaust the number of attempts the device allows.\n");
+                        print_str(
+                            "\tSeagate drives have this set to 5 attempts. Once this is exhausted, a full power\n");
                         print_str("\tcycle of the device is required before you can try again.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
@@ -1723,7 +1730,7 @@ int main(int argc, char* argv[])
                 }
             }
         }
-#endif //#if !defined(DISABLE_TCG_SUPPORT)
+#endif // #if !defined(DISABLE_TCG_SUPPORT)
 
         if (ATA_SECURITY_UNLOCK_OP)
         {
@@ -1963,8 +1970,9 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                         TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                snprintf_err_handle(
+                    seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!
@@ -2055,3 +2063,4 @@ void utility_Usage(bool shortUsage)
     print_ATA_Security_Erase_Help(
         shortUsage, "SeaChest"); // old implementation used the utility name as the password, switching to SeaChest
 }
+

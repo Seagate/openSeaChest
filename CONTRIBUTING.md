@@ -98,7 +98,7 @@ Here's the best way to submit your code:
 
   1. Fork the repository
   2. Make your changes (follow commit message format and code style below). Update version numbers for the tool(s) modified.
-  Use [SemVer](https://semver.org/). For library changes, patch versions are automatically updated by CI, only changes to Major or Minor versioning is required.
+  Use [CalVer](https://calver.org/) (Calendar Versioning) for openSeaChest utilities, synchronized with release packages. For library changes, use [SemVer](https://semver.org/).
   3. Submit a pull request. If it is associated with an issue, add a comment in the issue referencing the pull request.
   4. A Seagate developer will review it. Please make any additional changes that are suggested.
   5. Pull request is accepted! Celebrate!

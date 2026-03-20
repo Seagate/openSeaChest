@@ -44,7 +44,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Configure";
-const char* buildVersion = "2.9.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
         SHOW_CDL_SETTINGS_LONG_OPT,
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
         CONFIG_CDL_SETTINGS_LONG_OPT,
+#endif
         SKIP_VALIDATION_LONG_OPT,
 #endif
         LONG_OPT_TERMINATOR
@@ -1420,6 +1421,68 @@ int main(int argc, char* argv[])
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
+            else if (strcmp(longopts[optionIndex].name, CDL_FEATURE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp("enable", optarg) == 0)
+                {
+                    CDL_FEATURE_IDENTIFIER = CDL_FEATURE_ENABLE;
+                }
+                else if (strcmp("disable", optarg) == 0)
+                {
+                    CDL_FEATURE_IDENTIFIER = CDL_FEATURE_DISABLE;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CDL_FEATURE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SHOW_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
+                {
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_RAW;
+                    }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+                    else if (strcmp(optarg, "json") == 0)
+                    {
+                        SHOW_CDL_SETTINGS_MODE_FLAG = CDL_SETTINGS_OUTPUT_JSON;
+                    }
+#endif
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SHOW_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            else if (strcmp(longopts[optionIndex].name, CONFIG_CDL_SETTINGS_LONG_OPT_STRING) == 0)
+            {
+                int res = snprintf(CONFIG_CDL_JSONFILENAME_FLAG, CONFIG_CDL_JSONFILENAME_MAX_LEN, "%s", optarg);
+                if (res > 0 && res <= CONFIG_CDL_JSONFILENAME_MAX_LEN)
+                {
+                    CONFIG_CDL_SETTINGS_FLAG = true;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(CONFIG_CDL_SETTINGS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+#endif
+            else if (strcmp(longopts[optionIndex].name, PATH_LONG_OPT_STRING) == 0)
+            {
+                OUTPUTPATH_PARSE
+                if (!os_Directory_Exists(OUTPUTPATH_FLAG))
+                {
+                    printf("Err: --outputPath %s does not exist\n", OUTPUTPATH_FLAG);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
@@ -1909,7 +1972,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -2551,7 +2614,7 @@ int main(int argc, char* argv[])
                     {
                         print_str("DCO is Frozen. Cannot set DCO features.\n");
                         print_str("Device must be power cycled to clear freeze-lock.\n");
-                        printf(
+                        print_str(
                             "Some BIOS's will send the freeze-lock command on boot. Moving the drive to a different\n");
                         print_str("system/HBA may be necessary in order to avoid the freeze-lock from occuring.\n");
                     }
@@ -3116,7 +3179,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Restoring SCT error recovery read command timer to default is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -3144,8 +3207,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Restoring SCT error recovery write command timer to default is not supported on this "
-                           "device\n");
+                    print_str("Restoring SCT error recovery write command timer to default is not supported on this "
+                              "device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4043,7 +4106,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Mode page not supported or resetting mode page to defaults not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -4076,8 +4139,8 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Mode page not supported or restoring mode page to saved values not supported on this "
-                           "device.\n");
+                    print_str("Mode page not supported or restoring mode page to saved values not supported on this "
+                              "device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
@@ -4268,16 +4331,18 @@ int main(int argc, char* argv[])
                                                 print_str("Successfully set SCSI mode page!\n");
                                                 if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                                                 {
-                                                    printf("NOTE: This command may have affected more than 1 logical "
-                                                           "unit\n");
+                                                    print_str(
+                                                        "NOTE: This command may have affected more than 1 logical "
+                                                        "unit\n");
                                                 }
                                             }
                                             break;
                                         case NOT_SUPPORTED:
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("Unable to change the requested values in the mode page. These "
-                                                       "may not be changable or are an invalid combination.\n");
+                                                print_str(
+                                                    "Unable to change the requested values in the mode page. These "
+                                                    "may not be changable or are an invalid combination.\n");
                                             }
                                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                             break;
@@ -4294,8 +4359,9 @@ int main(int argc, char* argv[])
                                     {
                                         if (VERBOSITY_QUIET < toolVerbosity)
                                         {
-                                            printf("An error occurred while trying to parse the file. Please check the "
-                                                   "file format and make sure no invalid characters are provided.\n");
+                                            print_str(
+                                                "An error occurred while trying to parse the file. Please check the "
+                                                "file format and make sure no invalid characters are provided.\n");
                                         }
                                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                     }
@@ -4304,8 +4370,8 @@ int main(int argc, char* argv[])
                                 {
                                     if (VERBOSITY_QUIET < toolVerbosity)
                                     {
-                                        printf("An error occurred while trying to parse the file. Please check the "
-                                               "file format.\n");
+                                        print_str("An error occurred while trying to parse the file. Please check the "
+                                                  "file format.\n");
                                     }
                                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                                 }
@@ -4425,7 +4491,7 @@ int main(int argc, char* argv[])
                                     }
                                     // check how many full bytes worth of bits we'll be setting.
                                     uint8_t fullBytesToSet = remainingBits / BITSPERBYTE;
-                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet * BITSPERBYTE);
+                                    remainingBits -= C_CAST(uint8_t, fullBytesToSet* BITSPERBYTE);
                                     lowUnalignedBits = remainingBits;
                                     // now we know how we need to set things, so lets start at the end (lsb) and work up
                                     // from there. as we set the necessary bits, we will shift the original value to the
@@ -4520,8 +4586,9 @@ int main(int argc, char* argv[])
                             case NOT_SUPPORTED:
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("Unable to change the requested values in the mode page. These may not be "
-                                           "changeable or are an invalid combination.\n");
+                                    print_str(
+                                        "Unable to change the requested values in the mode page. These may not be "
+                                        "changeable or are an invalid combination.\n");
                                 }
                                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                                 break;
@@ -4657,11 +4724,11 @@ int main(int argc, char* argv[])
                 {
                     if (CDL_FEATURE_IDENTIFIER == CDL_FEATURE_ENABLE)
                     {
-                        printf("Successfully Enabled CDL Feature Set.\n");
+                        print_str("Successfully Enabled CDL Feature Set.\n");
                     }
                     else
                     {
-                        printf("Successfully Disabled CDL Feature Set.\n");
+                        print_str("Successfully Disabled CDL Feature Set.\n");
                     }
                 }
                 break;
@@ -4669,15 +4736,15 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("CDL Feature is not supported by this device.\n");
+                    print_str("CDL Feature is not supported by this device.\n");
                 }
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Failed to send CDL command to drive.\n");
-                    printf("CDL Feature set might not be supported.\n");
-                    printf("Or CDL Feature might already be in the desired state.\n");
+                    print_str("Failed to send CDL command to drive.\n");
+                    print_str("CDL Feature set might not be supported.\n");
+                    print_str("Or CDL Feature might already be in the desired state.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -4702,7 +4769,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to create JSON file for CDL Settings\n");
+                            print_str("A failure occured while trying to create JSON file for CDL Settings\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -4712,14 +4779,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing CDL Settings is not supported on this device\n");
+                    print_str("Showing CDL Settings is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get CDL Settings\n");
+                    print_str("A failure occured while trying to get CDL Settings\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -4744,11 +4811,11 @@ int main(int argc, char* argv[])
                     case SUCCESS:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Configured CDL Settings successfully.\n");
+                            print_str("Configured CDL Settings successfully.\n");
                         }
 
                         // get new current settings and print on console
-                        printf("New CDL Settings are : \n");
+                        print_str("New CDL Settings are : \n");
                         tCDLSettings newCDLSettings;
                         memset(&newCDLSettings, 0, sizeof(tCDLSettings));
                         if (get_CDL_Settings(&deviceList[deviceIter], &newCDLSettings) == SUCCESS)
@@ -4757,20 +4824,20 @@ int main(int argc, char* argv[])
                         }
                         else
                         {
-                            printf("A failure occured while trying to get CDL Settings\n");
+                            print_str("A failure occured while trying to get CDL Settings\n");
                         }
                         break;
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Configuring CDL Settings is not supported on this device\n");
+                            print_str("Configuring CDL Settings is not supported on this device\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to config CDL Settings\n");
+                            print_str("A failure occured while trying to config CDL Settings\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -4780,7 +4847,7 @@ int main(int argc, char* argv[])
                 {
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("A failure occured while parsing CDL Config File.\n");
+                        print_str("A failure occured while parsing CDL Config File.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
@@ -4789,7 +4856,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Configuring CDL Settings is not supported on this device\n");
+                    print_str("Configuring CDL Settings is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -4797,7 +4864,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to config CDL Settings\n");
+                    print_str("A failure occured while trying to config CDL Settings\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
             }
@@ -4996,3 +5063,4 @@ void utility_Usage(bool shortUsage)
     // utility data destructive tests/operations go here
     print_Provision_Help(shortUsage);
 }
+
