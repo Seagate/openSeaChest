@@ -467,39 +467,45 @@ if get_option('json_outputformat')
     # Set up json-c BEFORE opensea-jsonformat subproject so it's available when needed
     # Determine whether to use system json-c or subproject
     use_system_json = get_option('use_system_json')
+    jsonc_dep = disabler()  # Initialize as not found
 
     if use_system_json
-        message('use_system_json=true: Attempting to detect system json-c library')
+        message('use_system_json=true: Requiring system json-c library')
 
-        # Step 1: Try pkg-config
+        # Step 1: Try pkg-config (preferred method)
         jsonc_dep = dependency('json-c', required: false)
         if jsonc_dep.found()
             message('Found system json-c via pkg-config')
         else
+            message('pkg-config not available for json-c, trying find_library + header check')
             # Step 2: Try find_library + has_header
-            message('pkg-config not available, trying find_library')
             jsonc_lib = c.find_library('json-c', required: false)
-            has_json_headers = c.has_header('json-c/json_object.h', required: false)
-
-            if jsonc_lib.found() and has_json_headers
-                message('Found system json-c library and headers')
-                jsonc_dep = declare_dependency(
-                    dependencies: jsonc_lib,
-                    compile_args: ['-I/usr/include/json-c', '-I/usr/local/include/json-c']
-                )
+            
+            if jsonc_lib.found()
+                message('Found json-c library, checking for headers...')
+                # Check common header locations explicitly
+                has_json_headers = c.has_header('json-c/json_object.h', required: false) or \
+                                   c.has_header('json_object.h', required: false)
+                
+                if has_json_headers
+                    message('Found system json-c library and headers')
+                    jsonc_dep = declare_dependency(
+                        dependencies: jsonc_lib,
+                        compile_args: ['-I/usr/include', '-I/usr/local/include']
+                    )
+                else
+                    error('json-c library found but headers not found!\n' +
+                          'Please install json-c development headers\n' +
+                          'OR use -Duse_system_json=false to build json-c from bundled subproject')
+                endif
             else
-                message('System json-c not fully available, falling back to subproject')
-                jsonc_dep = disabler()
+                error('json-c library not found!\n' +
+                      'Please install json-c development package\n' +
+                      'OR use -Duse_system_json=false to build json-c from bundled subproject')
             endif
         endif
     else
-        message('use_system_json=false: Using bundled json-c subproject')
-        jsonc_dep = disabler()
-    endif
-
-    # Step 3: If system json-c not found/used, build from subproject
-    if not jsonc_dep.found()
-        message('Building json-c from subproject')
+        message('use_system_json=false: Building json-c from subproject')
         jsonc = subproject(
             'json-c',
             default_options: [
