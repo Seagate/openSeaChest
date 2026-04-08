@@ -93,7 +93,7 @@ jobs:
 
     - name: Publish Source Archive to Release
       if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      uses: softprops/action-gh-release@v2.5.0
+      uses: softprops/action-gh-release@v2.6.1
       with:
         files: SourceCode_With_Submodules${{ matrix.config.extension }}
 
