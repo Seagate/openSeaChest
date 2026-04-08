@@ -324,6 +324,10 @@ int main(int argc, char* argv[])
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 3;
                 }
+                else if (strcmp(optarg, "disabled") == 0)
+                {
+                    SET_POWER_CONSUMPTION_DISABLED_FLAG = true;
+                }
                 else
                 {
                     if (!get_And_Validate_Double_Input(optarg, M_NULLPTR, ALLOW_UNIT_NONE,
@@ -2511,7 +2515,8 @@ int main(int argc, char* argv[])
         if (SET_POWER_CONSUMPTION_FLAG)
         {
             eReturnValues pcRet = SUCCESS;
-            if (SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
+            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLED_FLAG &&
+                SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(
                     &deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
@@ -2519,7 +2524,8 @@ int main(int argc, char* argv[])
             if (pcRet == SUCCESS)
             {
                 switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
-                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG, false))
+                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG,
+                                              SET_POWER_CONSUMPTION_DISABLED_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -3296,6 +3302,8 @@ void utility_Usage(bool shortUsage)
     print_Standby_Y_Help(shortUsage);
     print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
+    print_Set_Power_Consumption_Help(shortUsage);
+    print_Show_Power_Consumption_Help(shortUsage);
 
     // SATA Only Options
     print_str("\n\tSATA Only:\n\t=========\n");
@@ -3311,8 +3319,6 @@ void utility_Usage(bool shortUsage)
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
     print_SAS_Phy_Slumber_Help(shortUsage);
-    print_Set_Power_Consumption_Help(shortUsage);
-    print_Show_Power_Consumption_Help(shortUsage);
     // NVMe Only
     print_str("\n\tNVMe Only:\n\t=========\n");
     print_Show_NVM_Power_States_Help(shortUsage);
