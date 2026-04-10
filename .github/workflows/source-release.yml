@@ -112,10 +112,16 @@ jobs:
         path: SourceCode_With_Submodules${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
-      with:
-        files: SourceCode_With_Submodules${{ matrix.config.extension }}
+      shell: bash
+      env:
+        ARCHIVE_FILE: SourceCode_With_Submodules${{ matrix.config.extension }}
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: ${{ github.ref_name }}
+      run: |
+        if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes '' || true
+        fi
+        gh release upload "$RELEASE_TAG" "$ARCHIVE_FILE" --clobber
 
   # Generate the slsa provenance
   provenance:
