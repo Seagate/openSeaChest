@@ -863,7 +863,7 @@ jobs:
         esac
 
         # Set version and arch
-        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
+        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9]+(\.[0-9]+)*(-[a-zA-Z0-9.]+)?$ ]]; then
           version=$(echo ${{ github.ref_name }} | tr -d 'v')
         else
           version=$(printf "%s-dev" $(date +'%y.%m.%d'))
