@@ -593,7 +593,7 @@ jobs:
     - name: Restore LLVM from cache
       if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm_release.outputs.relid != ''
       id: llvm-cache
-      uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
         path: C:/Program Files/LLVM
         key: llvm-llvm-project-relid-${{ steps.llvm_release.outputs.relid }}
