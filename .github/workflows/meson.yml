@@ -736,7 +736,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
-      uses: vmactions/omnios-vm@68da93c6d9812b29fc90c5b5141b093f84a590fb # v1.2.7
+      uses: vmactions/omnios-vm@cfa22c687939a88f4938c03c5413062dd3642eac # v1.2.8
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
