@@ -1,6 +1,28 @@
 ===============
 Version History - openSeaChest_Info
 ===============
+v26.03.1  04-Apr-2026  Fix out or bounds read when reading Linux OS information in --version.
+                       Fix possible out of bounds issue reading SCSI defect list for extremely
+                       large defect lists. Unconfirmed if this access occurs in v26.03.0 due to
+                       significant API changes that were made, however all versions prior to v26.03.0
+                       are affected.
+                       Fix for our of bounds write when issuing trim/unmap/deallocate to NVMe devices.
+                       Added additional checks to ensure populating supported formats stays in bounds for
+                       NVMe devices. This does not affect v26.03.0 however earlier versions could go out of
+                       bounds if a malicious response from an NVMe device were received.
+                       Added option to disable SATA power consumption feature.
+                       Fixed location of SATA power consumption help text to move out of SAS only section.
+                       Fixed possible bugs trimming whitespace on model numbers, serial numbers, firmware
+                       revisions and other drive reported strings that are space padded. No known real world
+                       impacts, mostly just edge cases found during testing various inputs and outputs to these
+                       functions.
+                       Fixed input handling to various options. When units are provided, hexadecimal input is not
+                       allowed. Hex can be passed to many options but it is treated as a raw input, not something
+                       to be adjusted based on the unit. Ex: milliamps may be expected, but providing amps would
+                       multiply the input by 1000 to convert it to milliamps for internal code.
+                       Fixed incorrect bounds passed when generating JSON data for FARM and drive info. This
+                       does not appear to go out of bounds due to what is written here, however this could
+                       potentially go out of bounds if the data were too long. No known real world impact.
 v26.03.0  06-Mar-2026  Utilities now use calendar versioning (CalVer) synchronized with
                        library releases and unified package versioning. This aligns the
                        utility version with the released package containing all tools,

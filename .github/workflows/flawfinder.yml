@@ -5,6 +5,8 @@
 
 name: flawfinder
 
+permissions: {}
+
 on:
   push:
     branches: [ "develop", "master", "release/*" ]
@@ -14,14 +16,17 @@ on:
   schedule:
     - cron: '39 23 * * 1'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   flawfinder:
     name: Flawfinder
     runs-on: ubuntu-latest
     permissions:
-      actions: read
+      actions: read # Allow the workflow to inspect action metadata during analysis.
       contents: read
-      security-events: write
+      security-events: write # Upload flawfinder SARIF results to code scanning.
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
@@ -29,7 +34,9 @@ jobs:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: flawfinder_scan
         uses: david-a-wheeler/flawfinder@c57197cd6061453f10a496f30a732bc1905918d1
@@ -38,6 +45,6 @@ jobs:
           output: 'flawfinder_results.sarif'
 
       - name: Upload analysis results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
         with:
           sarif_file: ${{github.workspace}}/flawfinder_results.sarif
