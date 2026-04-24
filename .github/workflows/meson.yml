@@ -544,7 +544,8 @@ jobs:
 
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
-      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      # uses: ilammy/msvc-dev-cmd@v1 # Deprecated in favor of TheMrMilchmann/setup-msvc-dev which is updated for node25
+      uses: TheMrMilchmann/setup-msvc-dev@79dac248aac9d0059f86eae9d8b5bfab4e95e97c # v4.0.0
       with:
         arch: ${{ matrix.config.arch }}
 
@@ -912,7 +913,7 @@ jobs:
         esac
 
         # Set version and arch
-        if [[ "$REF_FULL" =~ ^refs/tags/v[0-9\.]+$ ]]; then
+        if [[ "$REF_FULL" =~ ^refs/tags/v[0-9]+(\.[0-9]+)*(-[a-zA-Z0-9.]+)?$ ]]; then
           version=$(echo "$REF_NAME" | tr -d 'v')
         else
           version=$(printf "%s-dev" $(date +'%y.%m.%d'))
@@ -1035,23 +1036,45 @@ jobs:
           build/*.deb
           build/*.rpm
 
-    - name: Publish release
-      if: ${{ (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')) && matrix.config.publish_release }}
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        RELEASE_TAG: ${{ github.ref_name }}
-        ARCHIVE_FILE: ${{ format('./build/{0}{1}', steps.release_vars.outputs.destdir, matrix.config.release_extension) }}
-      run: |
-        set -euo pipefail
+  # Publish all artifacts to release (runs outside containers)
+  publish_release:
+    name: Publish release artifacts
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always() && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci'))
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 1
 
-        if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "" || gh release view "$RELEASE_TAG" >/dev/null 2>&1
-        fi
+      - name: Download all artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
 
-        shopt -s nullglob
-        release_files=("$ARCHIVE_FILE" build/*.deb build/*.rpm)
-        gh release upload "$RELEASE_TAG" "${release_files[@]}" --clobber
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Create release if it doesn't exist
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "" || gh release view "$RELEASE_TAG" >/dev/null 2>&1
+          fi
+
+          # Collect all artifacts and upload
+          shopt -s nullglob
+          release_files=(*/*)
+
+          if [[ ${#release_files[@]} -gt 0 ]]; then
+            gh release upload "$RELEASE_TAG" "${release_files[@]}" --clobber
+          else
+            echo "Warning: No release files found to upload"
+          fi
 
   # This step takes all the generated hashes from all build targets and combines them so slsa provenance step can run
   combine_hashes:
@@ -1078,7 +1101,9 @@ jobs:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
+    # See https://github.com/slsa-framework/slsa-github-generator/blob/main/README.md#referencing-slsa-builders-and-generators
+    # This documents why you CANNOT use the full SHA hash here
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"
       upload-assets: true # Optional: Upload to a new release
