@@ -2595,7 +2595,6 @@ void utility_Usage(bool shortUsage)
     print_Device_Statistics_Help(shortUsage);
     print_Error_Limit_Help(shortUsage);
     print_IDD_Help(shortUsage);
-    print_Output_Mode_Help(shortUsage);
     print_Long_DST_Help(shortUsage, commandWindowType);
     print_Short_DST_Help(shortUsage);
     print_Show_DST_Log_Help(shortUsage);

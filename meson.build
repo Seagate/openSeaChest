@@ -443,18 +443,6 @@ if target_machine.system() != 'windows'
     endif
 endif
 
-jsonc = subproject(
-    'json-c',
-    default_options: [
-        'default_library=static',
-        'build_apps=false',
-        'disable_extra_libs=true',
-        'disable_json_pointer=false',
-        'disable_json_patch=false',
-    ],
-)
-jsonc_dep = jsonc.get_variable('jsonc_dep')
-
 opensea_common = subproject('opensea-common')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
@@ -542,8 +530,8 @@ if get_option('json_outputformat')
         default_options: jsonformat_options
     )
     opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
+endif
 
-# define include directories
 incdir = include_directories('include')
 
 exe_src_map = {

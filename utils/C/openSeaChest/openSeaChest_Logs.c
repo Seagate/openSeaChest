@@ -522,6 +522,7 @@ int main(int argc, char* argv[])
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
     if (JSON_OUTPUT_FLAG)
     {
+        NO_BANNER_FLAG         = true;
         ECHO_COMMAND_LINE_FLAG = false;
         SHOW_BANNER_FLAG       = false;
     }
