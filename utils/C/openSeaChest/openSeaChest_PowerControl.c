@@ -31,10 +31,14 @@
 #include "power_control.h"
 #include "seagate_operations.h"                  //for power telemetry
 #include "vendor/seagate/seagate_common_types.h" //power telemetry type
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_PowerControl";
+const char* util_name = "openSeaChest_PowerControl";
 #define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
@@ -121,6 +125,9 @@ int main(int argc, char* argv[])
 #endif
     LOWLEVEL_INFO_VAR
     VOLATILE_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -133,7 +140,6 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-
         SCAN_LONG_OPT,
         NO_BANNER_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
@@ -187,6 +193,9 @@ int main(int argc, char* argv[])
         REQUEST_POWER_TELEMETRY_MEASUREMENT_OPTIONS,
         PUIS_FEATURE_LONG_OPT,
         VOLATILE_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
@@ -312,6 +321,10 @@ int main(int argc, char* argv[])
                 {
                     SET_POWER_CONSUMPTION_DEFAULT_FLAG = true;
                 }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SET_POWER_CONSUMPTION_DISABLE_FLAG = true;
+                }
                 else if (strcmp(optarg, "highest") == 0)
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 1;
@@ -323,10 +336,6 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "lowest") == 0)
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 3;
-                }
-                else if (strcmp(optarg, "disabled") == 0)
-                {
-                    SET_POWER_CONSUMPTION_DISABLED_FLAG = true;
                 }
                 else
                 {
@@ -1071,6 +1080,15 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    if (JSON_OUTPUT_FLAG)
+    {
+        NO_BANNER_FLAG         = true;
+        ECHO_COMMAND_LINE_FLAG = false;
+        SHOW_BANNER_FLAG       = false;
+    }
+#endif
+
     if (ECHO_COMMAND_LINE_FLAG)
     {
         int commandLineIter =
@@ -1176,7 +1194,21 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+#endif
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1431,16 +1463,22 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        eVerbosityLevels tempVerbosity = toolVerbosity;
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = VERBOSITY_QUIET;
+        }
+        else
+#endif
+        {
+            deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        }
+
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
-                deviceList[deviceIter].drive_info.product_identification);
-                }*/
                 ++skippedDevices;
                 continue;
             }
@@ -1572,6 +1610,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
+            {
+                toolVerbosity = tempVerbosity;
+            }
+#endif
             continue;
         }
 
@@ -1583,16 +1627,47 @@ int main(int argc, char* argv[])
                    print_drive_type(&deviceList[deviceIter]));
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = tempVerbosity;
+        }
+#endif
+
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -2515,7 +2590,7 @@ int main(int argc, char* argv[])
         if (SET_POWER_CONSUMPTION_FLAG)
         {
             eReturnValues pcRet = SUCCESS;
-            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLED_FLAG &&
+            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLE_FLAG &&
                 SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(
@@ -2525,15 +2600,22 @@ int main(int argc, char* argv[])
             {
                 switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
                                               SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG,
-                                              SET_POWER_CONSUMPTION_DISABLED_FLAG))
+                                              SET_POWER_CONSUMPTION_DISABLE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Successfully set power consumption value for device!\n");
-                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
                         {
-                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("Successfully disabled Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("Successfully set power consumption value for device!\n");
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                     }
                     break;
@@ -2547,17 +2629,32 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("An Error occurred while trying to read power consumption information.\n");
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
+                        {
+                            print_str("An Error occurred while trying to disable Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("An Error occurred while trying to read power consumption information.\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
             }
-            else
+            else if(pcRet == BAD_PARAMETER)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("An invalid or unsupported value was entered for power consumption level.\n");
+                }
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Power Consumption feature not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3295,15 +3392,15 @@ void utility_Usage(bool shortUsage)
     print_Request_Power_Measurement_Mode_Help(shortUsage);
     print_Request_Power_Measurement_Help(shortUsage);
     print_Seagate_Power_Balance_Help(shortUsage);
+    print_Set_Power_Consumption_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Show_Power_Consumption_Help(shortUsage);
     print_Show_Power_Telemetry_Help(shortUsage);
     print_Spindown_Help(shortUsage);
     print_Legacy_Standby_Help(shortUsage);
     print_Standby_Y_Help(shortUsage);
     print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
-    print_Set_Power_Consumption_Help(shortUsage);
-    print_Show_Power_Consumption_Help(shortUsage);
 
     // SATA Only Options
     print_str("\n\tSATA Only:\n\t=========\n");
@@ -3324,4 +3421,3 @@ void utility_Usage(bool shortUsage)
     print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }
-

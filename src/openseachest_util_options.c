@@ -1009,6 +1009,11 @@ void print_SMART_Attributes_Help(bool shortHelp)
         print_str("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         print_str("\t\t             attribute's data. Full raw data interpretation only\n");
         print_str("\t\t             available on select devices.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        print_str("\t\t  json - a full breakdown of all parts of each individual\n");
+        print_str("\t\t         attribute's data in json format. Full raw data interpretation only\n");
+        print_str("\t\t         available on select devices.\n");
+#endif
         print_str("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }
@@ -1667,15 +1672,17 @@ void print_Set_Power_Consumption_Help(bool shortHelp)
         print_str("\t\tThis option will set the power consumption rate of\n");
         print_str("\t\tthe device to the value input.\n");
         print_str("\t\tOptions:\n");
-        print_str("\t\t-default - sets the device back to default settings\n");
-        print_str("\t\t-highest - sets the active level to \"highest\"\n");
-        print_str("\t\t-intermediate - sets the active level to \"intermediate\"\n");
-        print_str("\t\t-lowest - sets the active level to \"lowest\"\n");
-        print_str("\t\t-disabled - sets power consumption control to disabled (SATA Only)\n");
-        print_str("\t\t-watt value - sets the device to a nearest watt value\n");
-        print_str("\t\tless than or equal to the value entered.\n");
-        print_str("\t\tPower consumption watt values are listed with the\n");
-        printf("\t\t--%s command line option.\n\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        print_str("\t\t  default - sets the device back to default settings\n");
+        print_str("\t\t  highest - sets the active level to \"highest\"\n");
+        print_str("\t\t  intermediate - sets the active level to \"intermediate\"\n");
+        print_str("\t\t  lowest - sets the active level to \"lowest\"\n");
+        print_str("\t\t  disabled - sets power consumption control to disabled (SATA Only)\n");
+        print_str("\t\t  watt value - sets the device to a nearest watt value\n");
+        print_str("\t\t               less than or equal to the value entered.\n");
+        print_str("\t\t               Power consumption watt values are listed with the\n");
+        printf("\t\t               --%s command line option.\n", SHOW_POWER_CONSUMPTION_LONG_OPT_STRING);
+        print_str("\t\tWARNING: When setting power consumption to high, intermediate, or low,\n");
+        print_str("\t\t         a device may only implement a subset of these options.\n\n");
     }
 }
 

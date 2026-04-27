@@ -39,6 +39,11 @@
 #include "set_max_lba.h"
 #include "smart.h"
 #include "trim_unmap.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#    include "smart_attribute_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
@@ -134,6 +139,9 @@ int main(int argc, char* argv[])
     FWDL_IGNORE_FINAL_SEGMENT_STATUS_VAR
     SHOW_CONCURRENT_RANGES_VAR
     LOWLEVEL_INFO_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -204,10 +212,12 @@ int main(int argc, char* argv[])
 #endif
         FWDL_IGNORE_FINAL_SEGMENT_STATUS_LONG_OPT,
         SHOW_CONCURRENT_RANGES_LONG_OPT,
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        JSON_OUTPUT_LONG_OPT,
+#endif
         LONG_OPT_TERMINATOR
     };
     // clang-format on
-
     eVerbosityLevels toolVerbosity = VERBOSITY_DEFAULT;
 
 #if defined(UEFI_C_SOURCE)
@@ -548,19 +558,26 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, SMART_ATTRIBUTES_LONG_OPT_STRING) == 0)
             {
-                SMART_ATTRIBUTES_FLAG = true;
-                if (strcmp(optarg, "raw") == 0)
+                if (optarg == M_NULLPTR && optind < argc && argv[optind][0] != '-')
                 {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
-                }
-                else if (strcmp(optarg, "analyzed") == 0)
-                {
-                    SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
-                }
-                else
-                {
-                    print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
-                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    optarg = argv[optind++];
+                    if (strcmp(optarg, "raw") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_RAW;
+                    }
+                    else if (strcmp(optarg, "analyzed") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_ANALYZED;
+                    }
+                    else if (strcmp(optarg, "hybrid") == 0)
+                    {
+                        SMART_ATTRIBUTES_MODE_FLAG = SMART_ATTR_OUTPUT_HYBRID;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(SMART_ATTRIBUTES_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
             }
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
@@ -715,6 +732,15 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    if (JSON_OUTPUT_FLAG)
+    {
+        NO_BANNER_FLAG         = true;
+        ECHO_COMMAND_LINE_FLAG = false;
+        SHOW_BANNER_FLAG       = false;
+    }
+#endif
+
     if (ECHO_COMMAND_LINE_FLAG)
     {
         int commandLineIter =
@@ -820,7 +846,21 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+#endif
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -1072,16 +1112,22 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        eVerbosityLevels tempVerbosity = toolVerbosity;
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = VERBOSITY_QUIET;
+        }
+        else
+#endif
+        {
+            deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        }
+
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
-                deviceList[deviceIter].drive_info.product_identification);
-                }*/
                 ++skippedDevices;
                 continue;
             }
@@ -1213,6 +1259,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
+            {
+                toolVerbosity = tempVerbosity;
+            }
+#endif
             continue;
         }
 
@@ -1224,16 +1276,47 @@ int main(int argc, char* argv[])
                    print_drive_type(&deviceList[deviceIter]));
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = tempVerbosity;
+        }
+#endif
+
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1445,29 +1528,62 @@ int main(int argc, char* argv[])
 
         if (SMART_ATTRIBUTES_FLAG)
         {
-            switch (
-                print_SMART_Attributes(&deviceList[deviceIter], C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-            case SUCCESS:
-                // nothing to print here since if it was successful, the attributes will be printed to the screen
-                break;
-            case NOT_SUPPORTED:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                switch (create_JSON_Output_For_SMART_Attributes(&deviceList[deviceIter], util_name, buildVersion,
+                                                                &jsonFormatOutput))
                 {
-                    print_str("Showing SMART attributes is not supported on this device\n");
+                case SUCCESS:
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                    break;
+
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("A failure occured while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                break;
-            default:
-                if (VERBOSITY_QUIET < toolVerbosity)
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                switch (print_SMART_Attributes(&deviceList[deviceIter],
+                                               C_CAST(eSMARTAttrOutMode, SMART_ATTRIBUTES_MODE_FLAG)))
                 {
-                    print_str("A failure occurred while trying to get SMART attributes\n");
+                case SUCCESS:
+                    // nothing to print here since if it was successful, the attributes will be printed to the screen
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Showing SMART attributes is not supported on this device\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("A failure occurred while trying to get SMART attributes\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                break;
             }
         }
-
         if (ABORT_DST_FLAG)
         {
             eReturnValues abortResult = UNKNOWN;
@@ -2570,4 +2686,3 @@ void utility_Usage(bool shortUsage)
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
 }
-
