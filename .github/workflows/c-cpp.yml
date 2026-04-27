@@ -76,14 +76,16 @@ jobs:
         echo "C:\msys64\mingw64\bin" >> $GITHUB_PATH
 
     - name: Make buildjsonc.sh executable
-      run: chmod +x Make/buildjsonc.sh
+      run: |
+        chmod +x Make/buildjsonc.sh
+        chmod +x subprojects/opensea-jsonformat/Make/buildjsonc.sh
 
     - name: make
       working-directory: ${{ matrix.config.builddir }}
       env:
         MAKEFILE_NAME: ${{ matrix.config.makefile }}
       run: |
-        make release -f "$MAKEFILE_NAME"
+        make release JSONOUTPUTSUPPORT=1 -f "$MAKEFILE_NAME"
 
     - name: Packing release
       env:

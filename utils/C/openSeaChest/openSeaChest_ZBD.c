@@ -29,10 +29,14 @@
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "zoned_operations.h"
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    include "drive_information_json.h"
+#    include "scan_json.h"
+#endif
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_ZBD";
+const char* util_name = "openSeaChest_ZBD";
 #define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
@@ -94,6 +98,9 @@ int main(int argc, char* argv[])
     CSMI_VERBOSE_VAR
 #endif
     LOWLEVEL_INFO_VAR
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    JSON_OUTPUT_VAR
+#endif
 
     int args        = 0;
     int argIndex    = 0;
@@ -106,7 +113,6 @@ int main(int argc, char* argv[])
         HELP_LONG_OPT,
         DEVICE_INFO_LONG_OPT,
         SAT_INFO_LONG_OPT,
-
         SCAN_LONG_OPT,
         AGRESSIVE_SCAN_LONG_OPT,
         SCAN_FLAGS_LONG_OPT,
@@ -137,6 +143,9 @@ int main(int argc, char* argv[])
 #if defined(ENABLE_CSMI)
         CSMI_VERBOSE_LONG_OPT,
         CSMI_FORCE_LONG_OPTS,
+#endif
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        JSON_OUTPUT_LONG_OPT,
 #endif
         LONG_OPT_TERMINATOR
     };
@@ -380,6 +389,15 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+    if (JSON_OUTPUT_FLAG)
+    {
+        NO_BANNER_FLAG         = true;
+        ECHO_COMMAND_LINE_FLAG = false;
+        SHOW_BANNER_FLAG       = false;
+    }
+#endif
+
     if (ECHO_COMMAND_LINE_FLAG)
     {
         int commandLineIter =
@@ -485,7 +503,21 @@ int main(int argc, char* argv[])
         {
             scanControl |= SCAN_SEAGATE_ONLY;
         }
-        scan_And_Print_Devs(scanControl, toolVerbosity);
+
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            char* jsonFormatOutput = M_NULLPTR;
+            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
+            // write the data on console
+            printf("%s\n\n", jsonFormatOutput);
+            safe_free(&jsonFormatOutput);
+        }
+        else
+#endif
+        {
+            scan_And_Print_Devs(scanControl, toolVerbosity);
+        }
     }
     // Add to this if list anything that is suppose to be independent.
     // e.g. you can't say enumerate & then pull logs in the same command line.
@@ -731,16 +763,22 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        eVerbosityLevels tempVerbosity = toolVerbosity;
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = VERBOSITY_QUIET;
+        }
+        else
+#endif
+        {
+            deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        }
+
         if (ONLY_SEAGATE_FLAG)
         {
             if (is_Seagate_Family(&deviceList[deviceIter]) == NON_SEAGATE)
             {
-                /*if (VERBOSITY_QUIET < toolVerbosity)
-                {
-                    printf("%s - This drive (%s) is not a Seagate drive.\n", deviceList[deviceIter].os_info.name,
-                deviceList[deviceIter].drive_info.product_identification);
-                }*/
                 ++skippedDevices;
                 continue;
             }
@@ -872,6 +910,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
+            {
+                toolVerbosity = tempVerbosity;
+            }
+#endif
             continue;
         }
 
@@ -883,16 +927,47 @@ int main(int argc, char* argv[])
                    print_drive_type(&deviceList[deviceIter]));
         }
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        if (JSON_OUTPUT_FLAG)
+        {
+            toolVerbosity = tempVerbosity;
+        }
+#endif
+
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
         {
-            if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+            if (JSON_OUTPUT_FLAG)
             {
-                if (VERBOSITY_QUIET < toolVerbosity)
+                char* jsonFormatOutput = M_NULLPTR;
+                if (SUCCESS != create_JSON_Output_For_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG,
+                                                                        util_name, buildVersion, &jsonFormatOutput))
                 {
-                    print_str("ERROR: failed to get device information\n");
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 }
-                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                else
+                {
+                    // write the data on console
+                    printf("%s\n\n", jsonFormatOutput);
+                }
+                safe_free(&jsonFormatOutput);
+            }
+            else
+#endif
+            {
+                if (SUCCESS != print_Drive_Information(&deviceList[deviceIter], SAT_INFO_FLAG))
+                {
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("ERROR: failed to get device information\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                }
             }
         }
 
@@ -1271,4 +1346,3 @@ void utility_Usage(bool shortUsage)
     print_Reset_Write_Pointer_Zone_Help(shortUsage);
     print_Zone_ID_Help(shortUsage);
 }
-

@@ -86,9 +86,8 @@ extern "C"
     typedef enum eOutputModeEnum
     {
         UTIL_OUTPUT_MODE_HUMAN = 0,
-        UTIL_OUTPUT_MODE_RAW,  // print it to screen
-        UTIL_OUTPUT_MODE_BIN,  // create a binary file.
-        UTIL_OUTPUT_MODE_JSON, // create a JSON file
+        UTIL_OUTPUT_MODE_RAW, // print it to screen
+        UTIL_OUTPUT_MODE_BIN, // create a binary file.
     } eOutputMode;
 
     // standard utility options
@@ -290,6 +289,13 @@ extern "C"
 #define PROGRESS_LONG_OPT_STRING          "progress"
 #define PROGRESS_LONG_OPT                 {PROGRESS_LONG_OPT_STRING, required_argument, M_NULLPTR, PROGRESS_SHORT_OPT}
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    define JSON_OUTPUT_FLAG            jsonOutput
+#    define JSON_OUTPUT_VAR             getOptBool JSON_OUTPUT_FLAG = goFalse;
+#    define JSON_OUTPUT_LONG_OPT_STRING "json"
+#    define JSON_OUTPUT_LONG_OPT        {JSON_OUTPUT_LONG_OPT_STRING, no_argument, &JSON_OUTPUT_FLAG, goTrue}
+#endif
+
 #define DATA_ERASE_ACCEPT_STRING          "this-will-erase-data"
 #define POSSIBLE_DATA_ERASE_ACCEPT_STRING "this-may-erase-data"
 #define LOW_LEVEL_FORMAT_ACCEPT_STRING    "this-will-erase-data-and-may-render-the-drive-inoperable"
@@ -359,10 +365,10 @@ extern "C"
 #define SMART_ATTRIBUTES_FLAG      showSMARTAttributes
 #define SMART_ATTRIBUTES_MODE_FLAG showSMARTAttributesMode
 #define SMART_ATTRIBUTES_VARS                                                                                          \
-    bool SMART_ATTRIBUTES_FLAG      = false;                                                                           \
-    int  SMART_ATTRIBUTES_MODE_FLAG = 0;
+    getOptBool SMART_ATTRIBUTES_FLAG      = goFalse;                                                                   \
+    int        SMART_ATTRIBUTES_MODE_FLAG = 2; // set default value to hybrid type output
 #define SMART_ATTRIBUTES_LONG_OPT_STRING "smartAttributes"
-#define SMART_ATTRIBUTES_LONG_OPT        {SMART_ATTRIBUTES_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define SMART_ATTRIBUTES_LONG_OPT        {SMART_ATTRIBUTES_LONG_OPT_STRING, optional_argument, &SMART_ATTRIBUTES_FLAG, goTrue}
 
 #define SHOW_FARM_FLAG                   showFARMData
 #define SHOW_FARM_VAR                    getOptBool SHOW_FARM_FLAG = goFalse;
@@ -1588,6 +1594,7 @@ extern "C"
 #define SHOW_CDL_SETTINGS_LONG_OPT_STRING "showCDLSettings"
 #define SHOW_CDL_SETTINGS_LONG_OPT                                                                                     \
     {SHOW_CDL_SETTINGS_LONG_OPT_STRING, optional_argument, &SHOW_CDL_SETTINGS_FLAG, goTrue}
+
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
 #    define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
 #    define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
@@ -1598,11 +1605,13 @@ extern "C"
         char* CONFIG_CDL_JSONFILENAME_FLAG = &configJsonFileName[0];
 #    define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
 #    define CONFIG_CDL_SETTINGS_LONG_OPT        {CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+
+#    define SKIP_VALIDATION_FLAG                skipValidation
+#    define SKIP_VALIDATION_VAR                 getOptBool SKIP_VALIDATION_FLAG = goFalse;
+#    define SKIP_VALIDATION_LONG_OPT_STRING     "skipValidation"
+#    define SKIP_VALIDATION_LONG_OPT            {SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue}
 #endif
-#define SKIP_VALIDATION_FLAG            skipValidation
-#define SKIP_VALIDATION_VAR             getOptBool SKIP_VALIDATION_FLAG = goFalse;
-#define SKIP_VALIDATION_LONG_OPT_STRING "skipValidation"
-#define SKIP_VALIDATION_LONG_OPT        {SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue}
+
 // SMR Options
 #define ZONE_ID_FLAG     zoneID
 #define ZONE_ID_ALL_FLAG allZones

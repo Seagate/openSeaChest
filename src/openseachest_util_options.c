@@ -1009,6 +1009,11 @@ void print_SMART_Attributes_Help(bool shortHelp)
         print_str("\t\t  analyzed - a full breakdown of all parts of each individual\n");
         print_str("\t\t             attribute's data. Full raw data interpretation only\n");
         print_str("\t\t             available on select devices.\n");
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        print_str("\t\t  json - a full breakdown of all parts of each individual\n");
+        print_str("\t\t         attribute's data in json format. Full raw data interpretation only\n");
+        print_str("\t\t         available on select devices.\n");
+#endif
         print_str("\t\tNOTE: Migration to device statistics is recommended.\n\n");
     }
 }
