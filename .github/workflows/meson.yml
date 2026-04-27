@@ -1045,13 +1045,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-
       - name: Download all artifacts
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          path: artifacts
 
       - name: Publish release
         shell: bash
@@ -1066,9 +1063,8 @@ jobs:
             gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "" || gh release view "$RELEASE_TAG" >/dev/null 2>&1
           fi
 
-          # Collect all artifacts and upload
-          shopt -s nullglob
-          release_files=(*/*)
+          # Collect release files: find only regular files to avoid uploading directories
+          mapfile -d '' release_files < <(find artifacts -maxdepth 2 -type f -print0)
 
           if [[ ${#release_files[@]} -gt 0 ]]; then
             gh release upload "$RELEASE_TAG" "${release_files[@]}" --clobber
@@ -1096,7 +1092,7 @@ jobs:
 
   # Generate the slsa provenance
   provenance:
-    needs: [combine_hashes]
+    needs: [combine_hashes, publish_release]
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
