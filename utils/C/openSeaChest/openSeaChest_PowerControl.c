@@ -39,7 +39,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_PowerControl";
-const char* buildVersion = "3.7.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -332,6 +332,10 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "lowest") == 0)
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 3;
+                }
+                else if (strcmp(optarg, "disabled") == 0)
+                {
+                    SET_POWER_CONSUMPTION_DISABLED_FLAG = true;
                 }
                 else
                 {
@@ -1397,7 +1401,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1719,8 +1723,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
-                           "spinning down.\n");
+                    print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
+                              "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1753,7 +1757,7 @@ int main(int argc, char* argv[])
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf(
+                        print_str(
                             "\nPower Mode Transition Successful.\nPlease give device a few seconds to transition.\n");
                         print_str("\nHint:Use --checkPowerMode option to check the new Power Mode.\n\n");
                         if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
@@ -2410,8 +2414,9 @@ int main(int argc, char* argv[])
                             // not supported
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("Enabling, disabling, or restoring default standby settings is not supported on "
-                                       "this device.\n");
+                                print_str(
+                                    "Enabling, disabling, or restoring default standby settings is not supported on "
+                                    "this device.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         }
@@ -2559,7 +2564,7 @@ int main(int argc, char* argv[])
             switch (get_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers))
             {
             case SUCCESS:
-                print_Power_Consumption_Identifiers(&identifiers);
+                print_Power_Consumption_Identifiers(&deviceList[deviceIter], &identifiers);
                 break;
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
@@ -2581,7 +2586,8 @@ int main(int argc, char* argv[])
         if (SET_POWER_CONSUMPTION_FLAG)
         {
             eReturnValues pcRet = SUCCESS;
-            if (SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
+            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLED_FLAG &&
+                SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(
                     &deviceList[deviceIter], SET_POWER_CONSUMPTION_WATTS_VALUE, &SET_POWER_CONSUMPTION_VALUE);
@@ -2589,7 +2595,8 @@ int main(int argc, char* argv[])
             if (pcRet == SUCCESS)
             {
                 switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
-                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG))
+                                              SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG,
+                                              SET_POWER_CONSUMPTION_DISABLED_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
@@ -3080,16 +3087,17 @@ int main(int argc, char* argv[])
                     case NOT_SUPPORTED:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
-                                   "not supported.\n");
+                            print_str(
+                                "SAS Enhanced phy control is not supported on this device. Partial and Slumber are "
+                                "not supported.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                         break;
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber "
-                                   "settings!\n");
+                            print_str("Failed to read the SAS Enhanced phy control mode page for Partial/Slumber "
+                                      "settings!\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -3121,7 +3129,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -3186,7 +3194,7 @@ int main(int argc, char* argv[])
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Power Telemetry is a feture unique to Seagate drives and is not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -3365,6 +3373,8 @@ void utility_Usage(bool shortUsage)
     print_Standby_Y_Help(shortUsage);
     print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
+    print_Set_Power_Consumption_Help(shortUsage);
+    print_Show_Power_Consumption_Help(shortUsage);
 
     // SATA Only Options
     print_str("\n\tSATA Only:\n\t=========\n");
@@ -3380,10 +3390,9 @@ void utility_Usage(bool shortUsage)
     print_SAS_Phy_Help(shortUsage);
     print_SAS_Phy_Partial_Help(shortUsage);
     print_SAS_Phy_Slumber_Help(shortUsage);
-    print_Set_Power_Consumption_Help(shortUsage);
-    print_Show_Power_Consumption_Help(shortUsage);
     // NVMe Only
     print_str("\n\tNVMe Only:\n\t=========\n");
     print_Show_NVM_Power_States_Help(shortUsage);
     print_Transition_Power_State_Help(shortUsage);
 }
+

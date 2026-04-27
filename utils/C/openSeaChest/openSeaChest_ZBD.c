@@ -37,7 +37,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_ZBD";
-const char* buildVersion = "2.4.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -701,7 +701,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1342,3 +1342,4 @@ void utility_Usage(bool shortUsage)
     print_Reset_Write_Pointer_Zone_Help(shortUsage);
     print_Zone_ID_Help(shortUsage);
 }
+

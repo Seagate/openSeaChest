@@ -33,7 +33,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Raw";
-const char* buildVersion = "1.0.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1139,7 +1139,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1445,8 +1445,9 @@ int main(int argc, char* argv[])
                                 // not a critical failure, just display a warning that the data won't be saved
                                 if (VERBOSITY_QUIET < toolVerbosity)
                                 {
-                                    printf("WARNING: An output file was not specified, so the returned data will not "
-                                           "be saved.\n");
+                                    print_str(
+                                        "WARNING: An output file was not specified, so the returned data will not "
+                                        "be saved.\n");
                                 }
                             }
                             // no "else" needed
@@ -1603,8 +1604,8 @@ int main(int argc, char* argv[])
                                         {
                                             if (VERBOSITY_QUIET < toolVerbosity)
                                             {
-                                                printf("ERROR: Failed to read file for datalen specified to send to "
-                                                       "drive!\n");
+                                                print_str("ERROR: Failed to read file for datalen specified to send to "
+                                                          "drive!\n");
                                             }
                                             inputfilexit = UTIL_EXIT_OPERATION_FAILURE;
                                             break;
@@ -1777,8 +1778,8 @@ int main(int argc, char* argv[])
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("An unknown internal error occured and cannot be recovered. Sense data not "
-                                       "available.\n");
+                                print_str("An unknown internal error occured and cannot be recovered. Sense data not "
+                                          "available.\n");
                             }
                             exitCode = UTIL_EXIT_OPERATION_FAILURE;
                             break;
@@ -1990,8 +1991,8 @@ int main(int argc, char* argv[])
                             // not a critical failure, just display a warning that the data won't be saved
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
-                                printf("WARNING: An output file was not specified, so the returned data will not be "
-                                       "saved.\n");
+                                print_str("WARNING: An output file was not specified, so the returned data will not be "
+                                          "saved.\n");
                             }
                         }
                         // no "else" needed
@@ -2281,8 +2282,8 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("An unknown internal error occurred and cannot be recovered. Sense data not "
-                                   "available.\n");
+                            print_str("An unknown internal error occurred and cannot be recovered. Sense data not "
+                                      "available.\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -2569,3 +2570,4 @@ void utility_Usage(bool shortUsage)
     print_Raw_CDB_Help(shortUsage);
     print_Raw_CDB_Length_Help(shortUsage);
 }
+

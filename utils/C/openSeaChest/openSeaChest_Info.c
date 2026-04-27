@@ -48,7 +48,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Info";
-const char* buildVersion = "2.9.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -101,9 +101,9 @@ int main(int argc, char* argv[])
     OUTPUTPATH_VAR
     // tool specific
     DEVICE_STATISTICS_VAR
+    SHOW_CDL_SETTINGS_VAR
     SMART_ATTRIBUTES_VARS
     SCSI_DEFECTS_VARS
-    SHOW_CDL_SETTINGS_VAR
 #if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -789,7 +789,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1264,7 +1264,7 @@ int main(int argc, char* argv[])
                     {
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to create JSON file for CDL Settings\n");
+                            print_str("A failure occured while trying to create JSON file for CDL Settings\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     }
@@ -1274,14 +1274,14 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Showing CDL Settings is not supported on this device\n");
+                    print_str("Showing CDL Settings is not supported on this device\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                 break;
             default:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("A failure occured while trying to get CDL Settings\n");
+                    print_str("A failure occured while trying to get CDL Settings\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
                 break;
@@ -1336,7 +1336,7 @@ int main(int argc, char* argv[])
             case NOT_SUPPORTED:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "Reading Defects not supported on this device or unsupported defect list format was given.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1553,3 +1553,4 @@ void utility_Usage(bool shortUsage)
     print_SCSI_Defects_Format_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 }
+

@@ -44,7 +44,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_NVMe";
-const char* buildVersion = "3.0.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -986,7 +986,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1168,11 +1168,12 @@ int main(int argc, char* argv[])
             {
                 print_str("Controller Identify Information:\n");
                 print_str("================================\n");
-                print_Data_Buffer((uint8_t*)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl,
-                                  sizeof(nvmeIDCtrl), true);
+                print_Data_Buffer(
+                    M_REINTERPRET_CAST(uint8_t*, &deviceList[deviceIter].drive_info.IdentifyData.nvme.ctrl),
+                    sizeof(nvmeIDCtrl), true);
                 print_str("\nNamespace Identify Information:\n");
                 print_str("================================\n");
-                print_Data_Buffer((uint8_t*)&deviceList[deviceIter].drive_info.IdentifyData.nvme.ns,
+                print_Data_Buffer(M_REINTERPRET_CAST(uint8_t*, &deviceList[deviceIter].drive_info.IdentifyData.nvme.ns),
                                   sizeof(nvmeIDNameSpaces), true);
             }
             else if (OUTPUT_MODE_IDENTIFIER == UTIL_OUTPUT_MODE_BIN)
@@ -1630,8 +1631,9 @@ int main(int argc, char* argv[])
                     default:
                         if (VERBOSITY_QUIET < toolVerbosity)
                         {
-                            printf("A failure occured while trying to get Commands Supported and Effects Information "
-                                   "Log\n");
+                            print_str(
+                                "A failure occured while trying to get Commands Supported and Effects Information "
+                                "Log\n");
                         }
                         exitCode = UTIL_EXIT_OPERATION_FAILURE;
                         break;
@@ -1704,8 +1706,9 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("You must specify a Telemetry data set.\n\t1 - 4 are valid inputs for the data set on NVME "
-                           "drives.\n");
+                    print_str(
+                        "You must specify a Telemetry data set.\n\t1 - 4 are valid inputs for the data set on NVME "
+                        "drives.\n");
                 }
             }
         }
@@ -1946,8 +1949,9 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                printf("The Operating system has reported that a power cycle is required to complete "
-                                       "the firmware update\n");
+                                print_str(
+                                    "The Operating system has reported that a power cycle is required to complete "
+                                    "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
@@ -2107,8 +2111,9 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            printf("The Operating system has reported that a power cycle is required to complete the "
-                                   "firmware update\n");
+                            print_str(
+                                "The Operating system has reported that a power cycle is required to complete the "
+                                "firmware update\n");
                         }
                         else
                         {
@@ -2493,3 +2498,4 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
+

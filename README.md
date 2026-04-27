@@ -3,7 +3,7 @@
 
 ## Cross platform storage device utilities to manage, configure, and read health information for SATA, SAS, NVMe, and USB attached HDDs and SSDs.
 
-### Copyright (c) 2014-2025 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
+### Copyright (c) 2014-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
 
 [![MSBuild](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/msbuild.yml)
 [![CodeQL](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/Seagate/openSeaChest/actions/workflows/codeql-analysis.yml)

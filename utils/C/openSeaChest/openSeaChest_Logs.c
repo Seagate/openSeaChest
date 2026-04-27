@@ -41,7 +41,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Logs";
-const char* buildVersion = "2.6.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -830,7 +830,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1316,7 +1316,7 @@ int main(int argc, char* argv[])
                 exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf(
+                    print_str(
                         "You must specify a Telemetry data set.\n\t1 - 3 are valid inputs for the data set on SATA\n");
                     print_str("\tOn SAS and NVMe, 1 - 4 are valid inputs for the data set.\n");
                 }
@@ -1715,3 +1715,4 @@ void utility_Usage(bool shortUsage)
     print_Pull_Informational_Exceptions_Log_Help(shortUsage);
     print_Pull_Generic_Logs_Subpage_Help(shortUsage);
 }
+

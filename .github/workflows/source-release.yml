@@ -1,14 +1,21 @@
 # SPDX-License-Identifier: MPL-2.0
 name: Create Complete Source Archive
 
+permissions: {}
+
 on:
   push:
     tags: [ v* ]
-    
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   archive:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      contents: write # Create or update the release for tag builds.
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -28,30 +35,66 @@ jobs:
       hash-SourceCode_With_Submodules-Windows: ${{ steps.hash.outputs.hash-SourceCode_With_Submodules-Windows }}
       hash-SourceCode_With_Submodules-Linux: ${{ steps.hash.outputs.hash-SourceCode_With_Submodules-Linux }}
 
-    steps:  
-    - uses: actions/checkout@v6.0.1
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.14.1
       with:
+        egress-policy: audit
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        persist-credentials: false
         submodules: recursive
 
     - name: Escape backslash in branch name
       shell: bash
-      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
-
-    - name: Setting release name
       env:
-        ARCHIVENAME: ${{ format('openSeaChest-{0}', env.BRANCH_NAME) }}
-      run: |
-        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
+        REF_NAME: ${{ github.ref_name }}
+      run: echo "BRANCH_NAME=$(echo "$REF_NAME" | tr / -)" >> $GITHUB_ENV
+
+    - name: Set release name
+      id: archive_vars
       shell: bash
+      run: |
+        ARCHIVENAME="openSeaChest-${BRANCH_NAME}"
+        echo "ARCHIVENAME=${ARCHIVENAME}" >> $GITHUB_ENV
+        echo "archivename=${ARCHIVENAME}" >> $GITHUB_OUTPUT
 
     - name: Create Source Archive
+      shell: bash
+      env:
+        ARCHIVE_PREFIX: ${{ steps.archive_vars.outputs.archivename }}
+        ARCHIVE_EXT: ${{ matrix.config.extension }}
       run: |
+        # Set reproducible timestamp from git commit
+        export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+        echo "Creating source archive with SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH}"
+        echo "Timestamp: $(date -u -d @${SOURCE_DATE_EPOCH} 2>/dev/null || date -u -r ${SOURCE_DATE_EPOCH} 2>/dev/null)"
+
         pip install git-archive-all
-        git-archive-all --prefix=${{ env.ARCHIVENAME }} SourceCode_With_Submodules${{ matrix.config.extension }}
+        archive_file="SourceCode_With_Submodules${ARCHIVE_EXT}"
+        git-archive-all --prefix="${ARCHIVE_PREFIX}/" "$archive_file"
+
+    - name: Verify Source Archive Timestamps
+      shell: bash
+      env:
+        ARCHIVE_EXT: ${{ matrix.config.extension }}
+      run: |
+        echo "Verifying source archive (first 10 files):"
+        archive_file="SourceCode_With_Submodules${ARCHIVE_EXT}"
+        if [[ "$ARCHIVE_EXT" == ".tar.xz" ]]; then
+          tar -tvf "$archive_file" | head -n 10 || true
+        else
+          unzip -l "$archive_file" | head -n 15 || true
+        fi
 
     - name: Generate Hashes
       shell: bash
       id: hash
+      env:
+        ARCHIVE_FILE: SourceCode_With_Submodules${{ matrix.config.extension }}
+        HASH_OUTPUT_KEY: hash-SourceCode_With_Submodules-${{ matrix.config.name }}
       run: |
           # sha256sum generates sha256 hash for all artifacts.
           # base64 -w0 encodes to base64 and outputs on a single line.
@@ -59,35 +102,46 @@ jobs:
           # NOTE: Using suggested method to generate sha across OS's from slsa documentation
           # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md#provenance-for-artifacts-built-across-multiple-operating-systems
           set -euo pipefail
-          (sha256sum -t ${{ format('SourceCode_With_Submodules{0}',  matrix.config.extension) }} || shasum -a 256 ${{ format('SourceCode_With_Submodules{0}',  matrix.config.extension) }}) > checksum
-          echo "hash-SourceCode_With_Submodules-${{ matrix.config.name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+          (sha256sum -t "$ARCHIVE_FILE" || shasum -a 256 "$ARCHIVE_FILE") > checksum
+          echo "${HASH_OUTPUT_KEY}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Upload Source Archive as Artifact
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: SourceCode_With_Submodules-${{ matrix.config.name }}
         path: SourceCode_With_Submodules${{ matrix.config.extension }}
 
     - name: Publish Source Archive to Release
-      if: ${{ startsWith(github.ref, 'refs/tags/v') }}
-      uses: softprops/action-gh-release@v2
-      with:
-        files: SourceCode_With_Submodules${{ matrix.config.extension }}
-  
+      shell: bash
+      env:
+        ARCHIVE_FILE: SourceCode_With_Submodules${{ matrix.config.extension }}
+        GH_TOKEN: ${{ github.token }}
+        RELEASE_TAG: ${{ github.ref_name }}
+      run: |
+        if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+          gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes '' || true
+        fi
+        gh release upload "$RELEASE_TAG" "$ARCHIVE_FILE" --clobber
+
   # Generate the slsa provenance
   provenance:
+    name: Generate source provenance
     needs: [archive]
     strategy:
-      fail-fast: false #don't cancel other jobs if one is failing
+      fail-fast: false # don't cancel other jobs if one is failing
       matrix:
-        package_name: [ "SourceCode_With_Submodules-Windows",
-                        "SourceCode_With_Submodules-Linux" ]
+        include:
+          - package_name: "SourceCode_With_Submodules-Windows"
+            base64_subjects: ${{ needs.archive.outputs['hash-SourceCode_With_Submodules-Windows'] }}
+          - package_name: "SourceCode_With_Submodules-Linux"
+            base64_subjects: ${{ needs.archive.outputs['hash-SourceCode_With_Submodules-Linux'] }}
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
+    # See https://github.com/slsa-framework/slsa-github-generator/blob/main/README.md#referencing-slsa-builders-and-generators
+    # This documents why you CANNOT use the full SHA hash here
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
-      base64-subjects: "${{ needs.archive.outputs[format('hash-{0}', matrix.package_name)] }}"
-      # Upload provenance to a new release
-      upload-assets: true
+      base64-subjects: "${{ matrix.base64_subjects }}"
+      upload-assets: ${{ startsWith(github.ref, 'refs/tags/') }}

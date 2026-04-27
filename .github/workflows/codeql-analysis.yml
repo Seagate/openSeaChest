@@ -6,6 +6,8 @@
 # or to provide custom queries or build logic.
 name: "CodeQL"
 
+permissions: {}
+
 on:
   push:
     branches: [develop, master]
@@ -15,10 +17,18 @@ on:
   schedule:
     - cron: '0 12 * * 6'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze
     runs-on: ${{ matrix.config.os }}
+    permissions:
+      security-events: write # Upload CodeQL SARIF results to code scanning.
+      contents: read
+      actions: read # Allow CodeQL to inspect workflow and action metadata.
     strategy:
       fail-fast: false
       matrix:
@@ -48,27 +58,38 @@ jobs:
           name: "Ubuntu GCC",
           os: ubuntu-latest,
           cc: "gcc",
-          cxx: "g++"
+          cxx: "g++",
+          arch: "",
+          meson_opts: ""
         }
         - {
           name: "Ubuntu Clang",
           os: ubuntu-latest,
           cc: "clang",
-          cxx: "clang++"
+          cxx: "clang++",
+          arch: "",
+          meson_opts: ""
           }
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6.0.1
+    - name: Harden Runner
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.14.1
       with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        persist-credentials: false
         # We must fetch at least the immediate parents so that if this is
         # a pull request then we can checkout the head.
         fetch-depth: 2
         submodules: recursive
-    
+
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
       with:
         arch: ${{ matrix.config.arch }}
 
@@ -79,11 +100,11 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
+      uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
       with:
         languages: ${{ matrix.language }}
         # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file. 
+        # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
@@ -99,13 +120,52 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - name: Configuring and compiling with meson
+    - name: Setup pip cache
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: |
+          ~/.cache/pip
+          ~\AppData\Local\pip\Cache
+        key: ${{ runner.os }}-pip-meson-${{ hashFiles('**/meson.build') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-meson-
+          ${{ runner.os }}-pip-
+
+    - name: Install Meson and Ninja and Build (Github runners - MSVC)
+      if: startsWith(matrix.config.name, 'Windows MSVC')
+      shell: pwsh
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        $prefix = Join-Path $env:GITHUB_WORKSPACE 'install'
+        $mesonArgs = @('setup', 'build', '--prefix', $prefix, '-Dmandir=man', '-Dbindir=bin')
+        if ($env:MESON_OPTS) {
+          $mesonArgs += ($env:MESON_OPTS -split ' ')
+        }
+        $mesonArgs += '--buildtype=release'
+        meson @mesonArgs
+        meson install -C build
+
+    - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
+      if: "!startsWith(matrix.config.name, 'Windows MSVC')"
+      shell: bash
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
+      run: |
+        pip install meson ninja
+        meson_args=(setup build --prefix "$GITHUB_WORKSPACE/install" -Dmandir=man -Dbindir=bin)
+        if [[ -n "$MESON_OPTS" ]]; then
+          read -r -a extra_meson_args <<< "$MESON_OPTS"
+          meson_args+=("${extra_meson_args[@]}")
+        fi
+        meson_args+=(--buildtype=release)
+        meson "${meson_args[@]}"
+        meson install -C build
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4
+      uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1

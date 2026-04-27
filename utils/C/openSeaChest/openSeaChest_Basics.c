@@ -19,6 +19,7 @@
 #include "common_types.h"
 #include "io_utils.h"
 #include "memory_safety.h"
+#include "precision_timer.h"
 #include "secure_file.h"
 #include "sleep.h"
 #include "string_utils.h"
@@ -48,7 +49,7 @@
 ////////////////////////
 const char* util_name = "openSeaChest_Basics";
 
-const char* buildVersion = "3.7.3";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -1050,7 +1051,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1421,8 +1422,8 @@ int main(int argc, char* argv[])
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
-                    printf("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
-                           "spinning down.\n");
+                    print_str("Successfully sent command to spin down device. Please wait 15 seconds for it to finish "
+                              "spinning down.\n");
                     if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
                     {
                         print_str("NOTE: This command may have affected more than 1 logical unit\n");
@@ -1719,8 +1720,9 @@ int main(int argc, char* argv[])
                             }
                             if (ret == POWER_CYCLE_REQUIRED)
                             {
-                                printf("The Operating system has reported that a power cycle is required to complete "
-                                       "the firmware update\n");
+                                print_str(
+                                    "The Operating system has reported that a power cycle is required to complete "
+                                    "the firmware update\n");
                             }
                             if (DOWNLOAD_FW_MODE == FWDL_UPDATE_MODE_DEFERRED)
                             {
@@ -1853,8 +1855,9 @@ int main(int argc, char* argv[])
                         print_str("Firmware activation successful\n");
                         if (ret == POWER_CYCLE_REQUIRED)
                         {
-                            printf("The Operating system has reported that a power cycle is required to complete the "
-                                   "firmware update\n");
+                            print_str(
+                                "The Operating system has reported that a power cycle is required to complete the "
+                                "firmware update\n");
                         }
                         else
                         {
@@ -2679,3 +2682,4 @@ void utility_Usage(bool shortUsage)
     print_Trim_Unmap_Help(shortUsage);
     print_Trim_Unmap_Range_Help(shortUsage);
 }
+

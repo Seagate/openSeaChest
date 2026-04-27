@@ -36,7 +36,7 @@
 //  Global Variables  //
 ////////////////////////
 const char* util_name    = "openSeaChest_Reservations";
-const char* buildVersion = "0.4.2";
+#define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
 //  functions to declare  //
@@ -711,7 +711,7 @@ int main(int argc, char* argv[])
 #if defined(UEFI_C_SOURCE)
             deviceList[handleIter].os_info.fd = M_NULLPTR;
 #elif !defined(_WIN32)
-            deviceList[handleIter].os_info.fd     = -1;
+            deviceList[handleIter].os_info.fd = -1;
 #    if defined(VMK_CROSS_COMP)
             deviceList[handleIter].os_info.nvmeFd = M_NULLPTR;
 #    endif
@@ -1007,8 +1007,8 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf("This device does not support the ability to report persistent reservation "
-                               "capabilities.\n");
+                        print_str("This device does not support the ability to report persistent reservation "
+                                  "capabilities.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
@@ -1632,3 +1632,4 @@ void utility_Usage(bool shortUsage)
     // print_str("=========================\n");
     // utility data destructive tests/operations go here
 }
+

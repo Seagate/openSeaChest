@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 name: MSBuild
 
-on: 
+permissions: {}
+
+on:
   push:
     branches:
       - master
@@ -12,6 +14,10 @@ on:
   pull_request:
     branches:
       - develop
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   # Path to the solution file relative to the root of the project.
@@ -24,26 +30,45 @@ env:
 
 jobs:
   build:
+    name: MSBuild ${{ matrix.platform }}
     runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
     strategy:
       matrix:
         platform: [ x64, x86 ]
         language: ['cpp']
 
     steps:
-    - uses: actions/checkout@v6.0.1
+    - name: Harden Runner
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.14.1
       with:
+        egress-policy: audit
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        persist-credentials: false
         submodules: recursive
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
 
     - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+      shell: pwsh
+      working-directory: ${{ github.workspace }}
+      env:
+        SOLUTION_FILE_PATH: ${{ env.SOLUTION_FILE_PATH }}
+      run: nuget restore $env:SOLUTION_FILE_PATH
 
     - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
+      shell: pwsh
+      working-directory: ${{ github.workspace }}
+      env:
+        BUILD_CONFIGURATION: ${{ env.BUILD_CONFIGURATION }}
+        SOLUTION_FILE_PATH: ${{ env.SOLUTION_FILE_PATH }}
+        BUILD_PLATFORM: ${{ matrix.platform }}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}} /p:Platform=${{matrix.platform}}
+      run: msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION $env:SOLUTION_FILE_PATH /p:Platform=$env:BUILD_PLATFORM

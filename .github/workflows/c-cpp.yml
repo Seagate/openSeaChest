@@ -1,16 +1,25 @@
 # SPDX-License-Identifier: MPL-2.0
 name: C/C++ CI
 
+permissions: {}
+
 on:
   push:
     branches: [ develop, master, release/*, feature/*, hotfix/* ]
   pull_request:
     branches: [ develop ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: read
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -38,18 +47,28 @@ jobs:
         shell: bash
 
     steps:
-    - uses: actions/checkout@v6.0.1
+    - name: Harden Runner
+      uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.14.1
       with:
+        egress-policy: audit
+
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        persist-credentials: false
         submodules: recursive
 
     - name: Escape backslash in branch name
       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
-    - name: Setting release name
+    - name: Set release name
+      id: release_vars
       env:
-        DESTDIR: ${{ format('openSeaChest-{0}-{1}', env.BRANCH_NAME, matrix.config.release_name) }}
+        RELEASE_NAME: ${{ matrix.config.release_name }}
       run: |
+        DESTDIR="openSeaChest-${BRANCH_NAME}-${RELEASE_NAME}"
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
+        echo "destdir=${DESTDIR}" >> $GITHUB_OUTPUT
 
     - name: Add Mingw-w64 to path
       if: startsWith(matrix.config.name, 'Windows GCC')
@@ -63,22 +82,30 @@ jobs:
 
     - name: make
       working-directory: ${{ matrix.config.builddir }}
+      env:
+        MAKEFILE_NAME: ${{ matrix.config.makefile }}
       run: |
-        make release JSONOUTPUTSUPPORT=1 -f ${{ matrix.config.makefile }}
+        make release JSONOUTPUTSUPPORT=1 -f "$MAKEFILE_NAME"
 
     - name: Packing release
       env:
+        DESTDIR: ${{ steps.release_vars.outputs.destdir }}
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+        RELEASE_BUILD_DIR: ${{ matrix.config.builddir }}
       run: |
         mkdir build
         cd build
-        ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" ../${{ matrix.config.builddir }}/openseachest_exes
+        if [[ "$ARCHIVE_EXT" == ".zip" ]]; then
+          7z a -tzip -mmt "${DESTDIR}${ARCHIVE_EXT}" "../${RELEASE_BUILD_DIR}/openseachest_exes"
+        else
+          tar cvfJ "${DESTDIR}${ARCHIVE_EXT}" "../${RELEASE_BUILD_DIR}/openseachest_exes"
+        fi
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
-        name: ${{ format('{0}', env.DESTDIR) }}
-        path: ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+        name: ${{ steps.release_vars.outputs.destdir }}
+        path: ${{ format('./build/{0}{1}', steps.release_vars.outputs.destdir, matrix.config.release_extension) }}
 
     # - name: Publish release
     #   if: ${{ startsWith(github.ref, 'refs/tags/v') && matrix.config.publish_release }}
