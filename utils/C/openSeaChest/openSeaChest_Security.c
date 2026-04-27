@@ -48,7 +48,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_Security";
+const char* util_name = "openSeaChest_Security";
 #define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestSecurityExitCodesEnum
@@ -688,14 +688,14 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
-    #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     if (JSON_OUTPUT_FLAG)
     {
-        NO_BANNER_FLAG = true;
+        NO_BANNER_FLAG         = true;
         ECHO_COMMAND_LINE_FLAG = false;
-        SHOW_BANNER_FLAG = false;
+        SHOW_BANNER_FLAG       = false;
     }
-    #endif
+#endif
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -1183,13 +1183,13 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         eVerbosityLevels tempVerbosity = toolVerbosity;
         if (JSON_OUTPUT_FLAG)
         {
             toolVerbosity = VERBOSITY_QUIET;
         }
-        #endif
+#endif
 
         if (ONLY_SEAGATE_FLAG)
         {
@@ -1326,12 +1326,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
-            #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
             if (JSON_OUTPUT_FLAG)
             {
                 toolVerbosity = tempVerbosity;
             }
-            #endif
+#endif
             continue;
         }
 
@@ -1343,12 +1343,12 @@ int main(int argc, char* argv[])
                    print_drive_type(&deviceList[deviceIter]));
         }
 
-        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             toolVerbosity = tempVerbosity;
         }
-        #endif
+#endif
 
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
@@ -2132,4 +2132,3 @@ void utility_Usage(bool shortUsage)
     print_ATA_Security_Erase_Help(
         shortUsage, "SeaChest"); // old implementation used the utility name as the password, switching to SeaChest
 }
-
