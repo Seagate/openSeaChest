@@ -321,6 +321,10 @@ int main(int argc, char* argv[])
                 {
                     SET_POWER_CONSUMPTION_DEFAULT_FLAG = true;
                 }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SET_POWER_CONSUMPTION_DISABLE_FLAG = true;
+                }
                 else if (strcmp(optarg, "highest") == 0)
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 1;
@@ -332,10 +336,6 @@ int main(int argc, char* argv[])
                 else if (strcmp(optarg, "lowest") == 0)
                 {
                     SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = 3;
-                }
-                else if (strcmp(optarg, "disabled") == 0)
-                {
-                    SET_POWER_CONSUMPTION_DISABLED_FLAG = true;
                 }
                 else
                 {
@@ -2590,7 +2590,7 @@ int main(int argc, char* argv[])
         if (SET_POWER_CONSUMPTION_FLAG)
         {
             eReturnValues pcRet = SUCCESS;
-            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLED_FLAG &&
+            if (!SET_POWER_CONSUMPTION_DEFAULT_FLAG && !SET_POWER_CONSUMPTION_DISABLE_FLAG &&
                 SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE == PC_ACTIVE_LEVEL_IDENTIFIER)
             {
                 pcRet = map_Watt_Value_To_Power_Consumption_Identifier(
@@ -2600,15 +2600,22 @@ int main(int argc, char* argv[])
             {
                 switch (set_Power_Consumption(&deviceList[deviceIter], SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE,
                                               SET_POWER_CONSUMPTION_VALUE, SET_POWER_CONSUMPTION_DEFAULT_FLAG,
-                                              SET_POWER_CONSUMPTION_DISABLED_FLAG))
+                                              SET_POWER_CONSUMPTION_DISABLE_FLAG))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("Successfully set power consumption value for device!\n");
-                        if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
                         {
-                            print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            print_str("Successfully disabled Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("Successfully set power consumption value for device!\n");
+                            if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                            {
+                                print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                            }
                         }
                     }
                     break;
@@ -2622,17 +2629,32 @@ int main(int argc, char* argv[])
                 default:
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        print_str("An Error occurred while trying to read power consumption information.\n");
+                        if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
+                        {
+                            print_str("An Error occurred while trying to disable Power Consumption feature for device.\n");
+                        }
+                        else
+                        {
+                            print_str("An Error occurred while trying to read power consumption information.\n");
+                        }
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
                 }
             }
-            else
+            else if(pcRet == BAD_PARAMETER)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {
                     print_str("An invalid or unsupported value was entered for power consumption level.\n");
+                }
+                exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+            }
+            else
+            {
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Power Consumption feature not supported on this device.\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
             }
@@ -3370,15 +3392,15 @@ void utility_Usage(bool shortUsage)
     print_Request_Power_Measurement_Mode_Help(shortUsage);
     print_Request_Power_Measurement_Help(shortUsage);
     print_Seagate_Power_Balance_Help(shortUsage);
+    print_Set_Power_Consumption_Help(shortUsage);
     print_Show_EPC_Settings_Help(shortUsage);
+    print_Show_Power_Consumption_Help(shortUsage);
     print_Show_Power_Telemetry_Help(shortUsage);
     print_Spindown_Help(shortUsage);
     print_Legacy_Standby_Help(shortUsage);
     print_Standby_Y_Help(shortUsage);
     print_Standby_Z_Help(shortUsage);
     print_Transition_Power_Help(shortUsage);
-    print_Set_Power_Consumption_Help(shortUsage);
-    print_Show_Power_Consumption_Help(shortUsage);
 
     // SATA Only Options
     print_str("\n\tSATA Only:\n\t=========\n");

@@ -337,8 +337,6 @@ export CFLAGS
 export CXXFLAGS
 export PROJECT_DEFINES
 
-#wingetopt has a GNUMakefile that should be automatically found.
-#it has CMake and meson support too, which are preferred
 json-c:
 	../buildjsonc.sh build $(CC)
 
@@ -381,7 +379,7 @@ $(SECURITYOUTFILE): $(SECURITYOBJS)
 #		$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
     else
 		$(CC) $(SECURITYOBJS) $(LIBJSONFORMATLFLAGS) $(TCGLFLAGS) -o $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
-#	    $(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
+#		$(STRIP) $(STRIPOPTS) $(FILE_OUTPUT_DIR)/$(SECURITYOUTFILE)
     endif
 
 $(CONFIGUREOUTFILE): $(CONFIGUREOBJS)

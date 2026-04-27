@@ -794,15 +794,15 @@ extern "C"
 #define SET_POWER_CONSUMPTION_VALUE              powerConsumptionIdentifierValue
 #define SET_POWER_CONSUMPTION_WATTS_VALUE        powerConsumptionWatts
 #define SET_POWER_CONSUMPTION_DEFAULT_FLAG       setDefaultPowerConsumption
-#define SET_POWER_CONSUMPTION_DISABLED_FLAG      setDisabledPowerConsumption
+#define SET_POWER_CONSUMPTION_DISABLE_FLAG       disablePowerConsumption
 #define SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE powerConsumptionActiveLevel
 #define SET_POWER_CONSUMPTION_VARS                                                                                     \
     bool    SET_POWER_CONSUMPTION_FLAG               = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_VALUE              = UINT8_C(0);                                                     \
     bool    SET_POWER_CONSUMPTION_DEFAULT_FLAG       = false;                                                          \
-    bool    SET_POWER_CONSUMPTION_DISABLED_FLAG      = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = UINT8_C(0);                                                     \
-    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;
+    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;                                                            \
+    bool    SET_POWER_CONSUMPTION_DISABLE_FLAG       = false;
 #define SET_POWER_CONSUMPTION_LONG_OPT_STRING "setPowerConsumption"
 #define SET_POWER_CONSUMPTION_LONG_OPT        {SET_POWER_CONSUMPTION_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
@@ -1582,10 +1582,13 @@ extern "C"
 #define DEVICE_STATISTICS_LONG_OPT_STRING "deviceStatistics"
 #define DEVICE_STATISTICS_LONG_OPT        {DEVICE_STATISTICS_LONG_OPT_STRING, no_argument, &DEVICE_STATISTICS_FLAG, goTrue}
 
+// Set CDL Feature enable/disable
 #define CDL_FEATURE_IDENTIFIER            cdlFeature
 #define CDL_FEATURE_VAR                   eCDLFeatureSet CDL_FEATURE_IDENTIFIER = CDL_FEATURE_UNKNOWN;
 #define CDL_FEATURE_LONG_OPT_STRING       "CDLfeature"
 #define CDL_FEATURE_LONG_OPT              {CDL_FEATURE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+
+// CDL settings (display - raw/json)
 #define SHOW_CDL_SETTINGS_FLAG            showCDLSettings
 #define SHOW_CDL_SETTINGS_MODE_FLAG       showCDLSettingsMode
 #define SHOW_CDL_SETTINGS_VAR                                                                                          \
@@ -1596,6 +1599,7 @@ extern "C"
     {SHOW_CDL_SETTINGS_LONG_OPT_STRING, optional_argument, &SHOW_CDL_SETTINGS_FLAG, goTrue}
 
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+// CDL settings (config)
 #    define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
 #    define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
 #    define CONFIG_CDL_JSONFILENAME_FLAG    configCDLJsonFile
@@ -1606,6 +1610,7 @@ extern "C"
 #    define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
 #    define CONFIG_CDL_SETTINGS_LONG_OPT        {CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
+// Skip Validation
 #    define SKIP_VALIDATION_FLAG                skipValidation
 #    define SKIP_VALIDATION_VAR                 getOptBool SKIP_VALIDATION_FLAG = goFalse;
 #    define SKIP_VALIDATION_LONG_OPT_STRING     "skipValidation"
