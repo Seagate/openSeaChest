@@ -1469,7 +1469,11 @@ int main(int argc, char* argv[])
         {
             toolVerbosity = VERBOSITY_QUIET;
         }
+        else
 #endif
+        {
+            deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        }
 
         if (ONLY_SEAGATE_FLAG)
         {

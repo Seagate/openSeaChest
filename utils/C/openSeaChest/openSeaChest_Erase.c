@@ -58,7 +58,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_Erase";
+const char* util_name = "openSeaChest_Erase";
 #define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestEraseExitCodesEnum
@@ -1067,14 +1067,14 @@ int main(int argc, char* argv[])
         perror("Registering final newline print");
     }
 
-    #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
     if (JSON_OUTPUT_FLAG)
     {
-        NO_BANNER_FLAG = true;
+        NO_BANNER_FLAG         = true;
         ECHO_COMMAND_LINE_FLAG = false;
-        SHOW_BANNER_FLAG = false;
+        SHOW_BANNER_FLAG       = false;
     }
-    #endif
+#endif
 
     if (ECHO_COMMAND_LINE_FLAG)
     {
@@ -1608,14 +1608,18 @@ int main(int argc, char* argv[])
     uint32_t skippedDevices = UINT32_C(0);
     for (uint32_t deviceIter = UINT32_C(0); deviceIter < DEVICE_LIST_COUNT; ++deviceIter)
     {
-        bool eraseCompleted                    = false;
-        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+        bool eraseCompleted = false;
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         eVerbosityLevels tempVerbosity = toolVerbosity;
         if (JSON_OUTPUT_FLAG)
         {
             toolVerbosity = VERBOSITY_QUIET;
         }
-        #endif
+        else
+#endif
+        {
+            deviceList[deviceIter].deviceVerbosity = toolVerbosity;
+        }
 
         if (ONLY_SEAGATE_FLAG)
         {
@@ -1752,12 +1756,12 @@ int main(int argc, char* argv[])
         if (deviceList[deviceIter].drive_info.interface_type == UNKNOWN_INTERFACE)
         {
             ++skippedDevices;
-            #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
             if (JSON_OUTPUT_FLAG)
             {
                 toolVerbosity = tempVerbosity;
             }
-            #endif
+#endif
             continue;
         }
 
@@ -1769,12 +1773,12 @@ int main(int argc, char* argv[])
                    print_drive_type(&deviceList[deviceIter]));
         }
 
-        #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
         if (JSON_OUTPUT_FLAG)
         {
             toolVerbosity = tempVerbosity;
         }
-        #endif
+#endif
 
         // now start looking at what operations are going to be performed and kick them off
         if (DEVICE_INFO_FLAG)
@@ -2251,9 +2255,9 @@ int main(int argc, char* argv[])
             }
             if (DATA_ERASE_FLAG)
             {
-                writeAfterErase writeReq;
-                eRevertAuthority authority = REVERT_AUTHORITY_MSID;
-                char* passwordToUse = M_NULLPTR;
+                writeAfterErase  writeReq;
+                eRevertAuthority authority     = REVERT_AUTHORITY_MSID;
+                char*            passwordToUse = M_NULLPTR;
                 safe_memset(&writeReq, sizeof(writeAfterErase), 0, sizeof(writeAfterErase));
                 if (safe_strlen(TCG_PSID_FLAG) || safe_strlen(TCG_SID_FLAG))
                 {
@@ -2268,12 +2272,12 @@ int main(int argc, char* argv[])
                     }
                     else if (safe_strlen(TCG_PSID_FLAG) == 32)
                     {
-                        authority = REVERT_AUTHORITY_PSID;
+                        authority     = REVERT_AUTHORITY_PSID;
                         passwordToUse = TCG_PSID_FLAG;
                     }
                     else if (safe_strlen(TCG_SID_FLAG) > 0)
                     {
-                        authority = REVERT_AUTHORITY_SID;
+                        authority     = REVERT_AUTHORITY_SID;
                         passwordToUse = TCG_SID_FLAG;
                     }
                     else
@@ -3857,4 +3861,3 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
-
