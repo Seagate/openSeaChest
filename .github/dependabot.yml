@@ -13,3 +13,5 @@ updates:
     directory: "/.github/workflows"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7

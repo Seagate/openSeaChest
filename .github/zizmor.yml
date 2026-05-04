@@ -1,0 +1,4 @@
+rules:
+  dependabot-cooldown:
+    ignore:
+      - dependabot.yml:4

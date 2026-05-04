@@ -1,28 +1,34 @@
 # SPDX-License-Identifier: MPL-2.0
 name: Dependency Review
 
+permissions: {}
+
 on:
   pull_request:
     branches: [ develop ]
 
-permissions:
-  contents: read
-  pull-requests: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   dependency-review:
+    name: Dependency review
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.14.1
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.14.1
         with:
           egress-policy: audit
 
       - name: Checkout Repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: high
           warn-on-openssf-scorecard-level: 3

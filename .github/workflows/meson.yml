@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MPL-2.0
 name: CI for meson build
 
+permissions: {}
+
 on:
   push:
     branches: [ develop, master, release/*, feature/*, hotfix/* ]
@@ -19,8 +21,7 @@ jobs:
     container: ${{ matrix.config.image }}
     timeout-minutes: 120
     permissions:
-      contents: write
-      packages: read
+      contents: write # Create and update tagged release assets from build jobs.
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -521,14 +522,15 @@ jobs:
     #   with:
     #     egress-policy: audit
 
-    - uses: actions/checkout@v6.0.2
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
+        persist-credentials: false
         submodules: recursive
 
     - name: Setup MSYS2
       if: matrix.config.msys2_msystem != ''
-      uses: msys2/setup-msys2@v2
+      uses: msys2/setup-msys2@cafece8e6baf9247cf9b1bf95097b0b983cc558d # v2.31.0
       with:
         msystem: ${{ matrix.config.msys2_msystem }}
         update: true
@@ -542,14 +544,18 @@ jobs:
 
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
-      uses: ilammy/msvc-dev-cmd@v1
+      # uses: ilammy/msvc-dev-cmd@v1 # Deprecated in favor of TheMrMilchmann/setup-msvc-dev which is updated for node25
+      uses: TheMrMilchmann/setup-msvc-dev@79dac248aac9d0059f86eae9d8b5bfab4e95e97c # v4.0.0
       with:
         arch: ${{ matrix.config.arch }}
 
     - name: Get latest LLVM version
+      id: llvm_release
       if: startsWith(matrix.config.name, 'Windows Clang')
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
+        $headers = @{ Authorization = "Bearer $env:GH_TOKEN" }
         $latestRelease = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases/latest'
         $releaseData = $latestRelease.Content | ConvertFrom-Json
         $assets = $releaseData.assets | Where-Object { $_.name -like "*win64.exe" }
@@ -558,6 +564,8 @@ jobs:
           $downloadUrl = $assets.browser_download_url
           echo "LLVM_RELID=$($releaseData.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "relid=$($releaseData.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "download_url=$downloadUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
         } else {
           Write-Host "No current Windows build available for the latest release. Searching for previous releases..."
           $releases = Invoke-WebRequest -Headers $headers 'https://api.github.com/repos/llvm/llvm-project/releases'
@@ -569,6 +577,8 @@ jobs:
               $downloadUrl = $assets.browser_download_url
               echo "LLVM_RELID=$($release.id)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
               echo "LLVM_DOWNLOAD_URL=$downloadUrl" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+              echo "relid=$($release.id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+              echo "download_url=$downloadUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
               $found = $true
               break
             }
@@ -581,35 +591,45 @@ jobs:
         }
 
     - name: Restore LLVM from cache
-      if: startsWith(matrix.config.name, 'Windows Clang')
+      if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm_release.outputs.relid != ''
       id: llvm-cache
-      uses: actions/cache@v5
+      uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
       with:
         path: C:/Program Files/LLVM
-        key: 'llvm-llvm-project-relid-${{ env.LLVM_RELID }}'
+        key: llvm-llvm-project-relid-${{ steps.llvm_release.outputs.relid }}
 
     - name: Downloading latest clang for Windows
-      if: ${{ steps.llvm-cache.outputs.cache-hit != 'true' && startsWith(matrix.config.name, 'Windows Clang') }}
+      if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm-cache.outputs.cache-hit != 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        $headers = @{ Authorization = 'Bearer ${{ secrets.GITHUB_TOKEN }}' }
-        Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" ((Invoke-WebRequest -Headers $headers "https://api.github.com/repos/llvm/llvm-project/releases/$($env:LLVM_RELID)").Content | ConvertFrom-Json | Select-Object -ExpandProperty assets | Where -Property name -Like "*win64.exe" | Select-Object -First 1).browser_download_url
+        $headers = @{ Authorization = "Bearer $env:GH_TOKEN" }
+        Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" $env:LLVM_DOWNLOAD_URL
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
 
     - name: Escape backslash in branch name
       shell: bash
-      run: echo "BRANCH_NAME=$(echo ${{ github.ref_name }} | tr / -)" >> $GITHUB_ENV
+      env:
+        REF_NAME: ${{ github.ref_name }}
+      run: echo "BRANCH_NAME=$(echo "$REF_NAME" | tr / -)" >> $GITHUB_ENV
 
     - name: Set release name
+      id: release_vars
+      env:
+        RELEASE_NAME: ${{ matrix.config.release_name }}
       run: |
-        DESTDIR="openSeaChest-${BRANCH_NAME}-${{ matrix.config.release_name }}"
+        DESTDIR="openSeaChest-${BRANCH_NAME}-${RELEASE_NAME}"
         echo "DESTDIR=${DESTDIR}" >> $GITHUB_ENV
+        echo "destdir=${DESTDIR}" >> $GITHUB_OUTPUT
       shell: bash
 
     - name: Set SOURCE_DATE_EPOCH for Reproducible Builds
       shell: bash
+      env:
+        MATRIX_IMAGE: ${{ matrix.config.image }}
       run: |
         # Fix git ownership in containers
-        if [[ -n "${{ matrix.config.image }}" ]]; then
+        if [[ -n "$MATRIX_IMAGE" ]]; then
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
         fi
 
@@ -623,6 +643,7 @@ jobs:
       shell: bash
       env:
         DESTDIR: ${{ env.DESTDIR }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
       run: |
         # Install GNU tar for reproducible archives (BusyBox tar lacks --sort option)
         if command -v apk &> /dev/null; then
@@ -639,7 +660,13 @@ jobs:
           zypper install -y tar
         fi
 
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson_args=(setup build -Dprefix=/ -Dmandir=/man -Dbindir=/)
+        if [[ -n "$MESON_OPTS" ]]; then
+          read -r -a extra_meson_args <<< "$MESON_OPTS"
+          meson_args+=("${extra_meson_args[@]}")
+        fi
+        meson_args+=(--buildtype=release)
+        meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (MSYS2)
@@ -648,8 +675,15 @@ jobs:
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
       run: |
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson_args=(setup build -Dprefix=/ -Dmandir=/man -Dbindir=/)
+        if [[ -n "$MESON_OPTS" ]]; then
+          read -r -a extra_meson_args <<< "$MESON_OPTS"
+          meson_args+=("${extra_meson_args[@]}")
+        fi
+        meson_args+=(--buildtype=release)
+        meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
 
@@ -672,9 +706,15 @@ jobs:
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        $mesonArgs = @('setup', 'build', '-Dprefix=/', '-Dmandir=/man', '-Dbindir=/')
+        if ($env:MESON_OPTS) {
+          $mesonArgs += ($env:MESON_OPTS -split ' ')
+        }
+        $mesonArgs += '--buildtype=release'
+        meson @mesonArgs
         meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
@@ -683,14 +723,21 @@ jobs:
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
+        MESON_OPTS: ${{ matrix.config.meson_opts }}
       run: |
         pip install meson ninja
-        meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+        meson_args=(setup build -Dprefix=/ -Dmandir=/man -Dbindir=/)
+        if [[ -n "$MESON_OPTS" ]]; then
+          read -r -a extra_meson_args <<< "$MESON_OPTS"
+          meson_args+=("${extra_meson_args[@]}")
+        fi
+        meson_args+=(--buildtype=release)
+        meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
-      uses: vmactions/omnios-vm@v1
+      uses: vmactions/omnios-vm@68da93c6d9812b29fc90c5b5141b093f84a590fb # v1.2.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -711,7 +758,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
-      uses: vmactions/openindiana-vm@v1
+      uses: vmactions/openindiana-vm@0544593284f5c837f637097e278df86bf5bbab1e # v1.0.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -732,7 +779,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
-      uses: vmactions/solaris-vm@v1
+      uses: vmactions/solaris-vm@0a231b94365d1911cf62097ef342f6b30d95598f # v1.3.2
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -752,7 +799,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions FreeBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions FreeBSD')
-      uses: vmactions/freebsd-vm@v1
+      uses: vmactions/freebsd-vm@7ca82f79fe3078fecded6d3a2bff094995447bbd # v1.4.4
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -772,7 +819,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions DragonFlyBSD')
-      uses: vmactions/dragonflybsd-vm@v1
+      uses: vmactions/dragonflybsd-vm@323497fa680c1856dd1ba5c4fd89182a9194f649 # v1.2.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -791,7 +838,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
-      uses: vmactions/openbsd-vm@v1
+      uses: vmactions/openbsd-vm@9004791062e748d95cc87e499e77485f91888ce1 # v1.3.8
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -812,7 +859,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions NetBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions NetBSD')
-      uses: vmactions/netbsd-vm@v1
+      uses: vmactions/netbsd-vm@ca7ff0556959998c82761c34ea0c3c99fa084c48 # v1.3.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -835,21 +882,25 @@ jobs:
 
     - name: Install Go for nfpm
       if: ${{ matrix.config.create_package }}
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
       with:
         go-version: 'stable'
         cache: false
 
     - name: Create packages
       if: ${{ matrix.config.create_package }}
-      working-directory: ${{ format('build/{0}', env.DESTDIR) }}
+      working-directory: ${{ format('build/{0}', steps.release_vars.outputs.destdir) }}
       shell: bash
+      env:
+        CROSS_COMPILER_ARCH: ${{ matrix.config.cross_compiler_arch }}
+        REF_NAME: ${{ github.ref_name }}
+        REF_FULL: ${{ github.ref }}
       run: |
         # Install nfpm
         go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
 
         # Map cross_compiler_arch to Debian/RPM package arch
-        case "${{ matrix.config.cross_compiler_arch }}" in
+        case "$CROSS_COMPILER_ARCH" in
           x86_64) package_arch="amd64" ;;
           i686) package_arch="i386" ;;
           aarch64) package_arch="arm64" ;;
@@ -862,8 +913,8 @@ jobs:
         esac
 
         # Set version and arch
-        if [[ ${{ github.ref }} =~ ^refs/tags/v[0-9\.]+$ ]]; then
-          version=$(echo ${{ github.ref_name }} | tr -d 'v')
+        if [[ "$REF_FULL" =~ ^refs/tags/v[0-9]+(\.[0-9]+)*(-[a-zA-Z0-9.]+)?$ ]]; then
+          version=$(echo "$REF_NAME" | tr -d 'v')
         else
           version=$(printf "%s-dev" $(date +'%y.%m.%d'))
         fi
@@ -876,8 +927,10 @@ jobs:
     - name: Set ownership of executables to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       shell: bash
+      env:
+        MATRIX_IMAGE: ${{ matrix.config.image }}
       run: |
-        if [[ -z "${{ matrix.config.image }}" ]]; then
+        if [[ -z "$MATRIX_IMAGE" ]]; then
           sudo chown -R root:root build
         else
           chown -R root:root build
@@ -893,11 +946,14 @@ jobs:
 
     - name: Packing release
       env:
+        ARCHIVE_COMMAND: ${{ matrix.config.archive_command }}
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
+        TARGET_OS: ${{ matrix.config.os }}
+        MATRIX_IMAGE: ${{ matrix.config.image }}
       run: |
         cd build
         ls -la
-        if [[ "${{ matrix.config.os }}" != "windows-latest" ]]; then
+        if [[ "$TARGET_OS" != "windows-latest" ]]; then
           # Create reproducible tar archive
           echo "Creating reproducible tar.xz archive with SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
 
@@ -914,7 +970,7 @@ jobs:
 
           echo "Using ${TAR_TYPE} for archive creation"
 
-          if [[ -z "${{ matrix.config.image }}" ]]; then
+          if [[ -z "$MATRIX_IMAGE" ]]; then
             # GitHub-hosted runner: use sudo for tar command
             sudo bash -c "${TAR_CMD} $DESTDIR | xz -c > \"${DESTDIR}${ARCHIVE_EXT}\""
             sudo chown $(id -u):$(id -g) "${DESTDIR}${ARCHIVE_EXT}"
@@ -924,7 +980,8 @@ jobs:
           fi
         else
           # Windows: 7zip (not fully reproducible, will address with strip-nondeterminism later)
-          ${{ matrix.config.archive_command }} "${DESTDIR}${ARCHIVE_EXT}" $DESTDIR
+          read -r -a archive_command_args <<< "$ARCHIVE_COMMAND"
+          "${archive_command_args[@]}" "${DESTDIR}${ARCHIVE_EXT}" "$DESTDIR"
         fi
       shell: bash
 
@@ -943,8 +1000,10 @@ jobs:
     - name: Set ownership of tar archive to root:root
       if: ${{ matrix.config.os != 'windows-latest' }}
       shell: bash
+      env:
+        MATRIX_IMAGE: ${{ matrix.config.image }}
       run: |
-        if [[ -z "${{ matrix.config.image }}" ]]; then
+        if [[ -z "$MATRIX_IMAGE" ]]; then
           sudo chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
         else
           chown root:root build/"${DESTDIR}${ARCHIVE_EXT}"
@@ -955,6 +1014,9 @@ jobs:
       if: ${{ matrix.config.publish_release }}
       shell: bash
       id: hash
+      env:
+        ARCHIVE_FILE: ${{ format('./build/{0}{1}', steps.release_vars.outputs.destdir, matrix.config.release_extension) }}
+        HASH_OUTPUT_KEY: hash-${{ matrix.config.release_name }}
       run: |
           # sha256sum generates sha256 hash for all artifacts.
           # base64 -w0 encodes to base64 and outputs on a single line.
@@ -962,31 +1024,60 @@ jobs:
           # NOTE: Using suggested method to generate sha across OS's from slsa documentation
           # https://github.com/slsa-framework/slsa-github-generator/blob/main/internal/builders/generic/README.md#provenance-for-artifacts-built-across-multiple-operating-systems
           set -euo pipefail
-          (sha256sum -t ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }} || shasum -a 256 ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}) > checksum
-          echo "hash-${{ matrix.config.release_name }}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
+          (sha256sum -t "$ARCHIVE_FILE" || shasum -a 256 "$ARCHIVE_FILE") > checksum
+          echo "${HASH_OUTPUT_KEY}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
-      uses: actions/upload-artifact@v7.0.0
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}
         path: |
-          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
+          ${{ format('./build/{0}{1}', steps.release_vars.outputs.destdir, matrix.config.release_extension) }}
           build/*.deb
           build/*.rpm
 
-    - name: Publish release
-      if: ${{ (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')) && matrix.config.publish_release }}
-      uses: softprops/action-gh-release@v2.5.0
-      with:
-        files: |
-          ${{ format('./build/{0}{1}', env.DESTDIR, matrix.config.release_extension) }}
-          build/*.deb
-          build/*.rpm
+  # Publish all artifacts to release (runs outside containers)
+  publish_release:
+    name: Publish release artifacts
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: always() && (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci'))
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          path: artifacts
+
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          # Create release if it doesn't exist
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "" || gh release view "$RELEASE_TAG" >/dev/null 2>&1
+          fi
+
+          # Collect release files: find only regular files to avoid uploading directories
+          mapfile -d '' release_files < <(find artifacts -maxdepth 2 -type f -print0)
+
+          if [[ ${#release_files[@]} -gt 0 ]]; then
+            gh release upload "$RELEASE_TAG" "${release_files[@]}" --clobber
+          else
+            echo "Warning: No release files found to upload"
+          fi
 
   # This step takes all the generated hashes from all build targets and combines them so slsa provenance step can run
   combine_hashes:
+    name: Combine provenance hashes
     runs-on: ubuntu-latest
     needs: [build]
+    permissions: {}
     outputs:
       hashes: ${{ steps.hashes.outputs.hashes }}
     env:
@@ -1001,11 +1092,13 @@ jobs:
 
   # Generate the slsa provenance
   provenance:
-    needs: [combine_hashes]
+    needs: [combine_hashes, publish_release]
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
+    # See https://github.com/slsa-framework/slsa-github-generator/blob/main/README.md#referencing-slsa-builders-and-generators
+    # This documents why you CANNOT use the full SHA hash here
     uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
     with:
       base64-subjects: "${{ needs.combine_hashes.outputs.hashes }}"

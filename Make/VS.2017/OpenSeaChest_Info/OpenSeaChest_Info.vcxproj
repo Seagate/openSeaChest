@@ -333,7 +333,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -352,7 +352,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -371,8 +371,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -380,8 +380,8 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;getopt.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2017\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Debug|Win32'">
@@ -390,7 +390,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
@@ -410,7 +410,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
@@ -430,8 +430,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -440,8 +440,8 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;getopt.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2017\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -450,7 +450,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -469,7 +469,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
@@ -491,7 +491,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -514,7 +514,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -537,8 +537,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
     </ClCompile>
@@ -548,8 +548,8 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;getopt.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2017\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static-Release|Win32'">
@@ -560,7 +560,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
@@ -584,7 +584,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
@@ -608,8 +608,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -620,8 +620,8 @@
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;getopt.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2017\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2017\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2017\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2017\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2017\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -632,7 +632,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
@@ -655,7 +655,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <CompileAs>CompileAsC</CompileAs>
-      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204</DisableSpecificWarnings>

@@ -42,7 +42,7 @@ extern "C"
     // Build version - shared across all openSeaChest utilities
     // Change this single value to update version for all tools
     //
-#define UTIL_BUILD_VERSION "26.03.0"
+#define UTIL_BUILD_VERSION "26.03.1"
 
     // this is being defined for using bools with getopt since using a bool (1 byte typically) will cause stack
     // corruption at runtime This type should only be used where a boolean is desired when using the getopt parser
@@ -86,9 +86,8 @@ extern "C"
     typedef enum eOutputModeEnum
     {
         UTIL_OUTPUT_MODE_HUMAN = 0,
-        UTIL_OUTPUT_MODE_RAW,  // print it to screen
-        UTIL_OUTPUT_MODE_BIN,  // create a binary file.
-        UTIL_OUTPUT_MODE_JSON, // create a JSON file
+        UTIL_OUTPUT_MODE_RAW, // print it to screen
+        UTIL_OUTPUT_MODE_BIN, // create a binary file.
     } eOutputMode;
 
     // standard utility options
@@ -290,6 +289,13 @@ extern "C"
 #define PROGRESS_LONG_OPT_STRING          "progress"
 #define PROGRESS_LONG_OPT                 {PROGRESS_LONG_OPT_STRING, required_argument, M_NULLPTR, PROGRESS_SHORT_OPT}
 
+#if defined(FEATURE_JSONOUTPUT_SUPPORT)
+#    define JSON_OUTPUT_FLAG            jsonOutput
+#    define JSON_OUTPUT_VAR             getOptBool JSON_OUTPUT_FLAG = goFalse;
+#    define JSON_OUTPUT_LONG_OPT_STRING "json"
+#    define JSON_OUTPUT_LONG_OPT        {JSON_OUTPUT_LONG_OPT_STRING, no_argument, &JSON_OUTPUT_FLAG, goTrue}
+#endif
+
 #define DATA_ERASE_ACCEPT_STRING          "this-will-erase-data"
 #define POSSIBLE_DATA_ERASE_ACCEPT_STRING "this-may-erase-data"
 #define LOW_LEVEL_FORMAT_ACCEPT_STRING    "this-will-erase-data-and-may-render-the-drive-inoperable"
@@ -359,10 +365,10 @@ extern "C"
 #define SMART_ATTRIBUTES_FLAG      showSMARTAttributes
 #define SMART_ATTRIBUTES_MODE_FLAG showSMARTAttributesMode
 #define SMART_ATTRIBUTES_VARS                                                                                          \
-    bool SMART_ATTRIBUTES_FLAG      = false;                                                                           \
-    int  SMART_ATTRIBUTES_MODE_FLAG = 0;
+    getOptBool SMART_ATTRIBUTES_FLAG      = goFalse;                                                                   \
+    int        SMART_ATTRIBUTES_MODE_FLAG = 2; // set default value to hybrid type output
 #define SMART_ATTRIBUTES_LONG_OPT_STRING "smartAttributes"
-#define SMART_ATTRIBUTES_LONG_OPT        {SMART_ATTRIBUTES_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define SMART_ATTRIBUTES_LONG_OPT        {SMART_ATTRIBUTES_LONG_OPT_STRING, optional_argument, &SMART_ATTRIBUTES_FLAG, goTrue}
 
 #define SHOW_FARM_FLAG                   showFARMData
 #define SHOW_FARM_VAR                    getOptBool SHOW_FARM_FLAG = goFalse;
@@ -788,13 +794,15 @@ extern "C"
 #define SET_POWER_CONSUMPTION_VALUE              powerConsumptionIdentifierValue
 #define SET_POWER_CONSUMPTION_WATTS_VALUE        powerConsumptionWatts
 #define SET_POWER_CONSUMPTION_DEFAULT_FLAG       setDefaultPowerConsumption
+#define SET_POWER_CONSUMPTION_DISABLE_FLAG       disablePowerConsumption
 #define SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE powerConsumptionActiveLevel
 #define SET_POWER_CONSUMPTION_VARS                                                                                     \
     bool    SET_POWER_CONSUMPTION_FLAG               = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_VALUE              = UINT8_C(0);                                                     \
     bool    SET_POWER_CONSUMPTION_DEFAULT_FLAG       = false;                                                          \
     uint8_t SET_POWER_CONSUMPTION_ACTIVE_LEVEL_VALUE = UINT8_C(0);                                                     \
-    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;
+    double  SET_POWER_CONSUMPTION_WATTS_VALUE        = 0.0;                                                            \
+    bool    SET_POWER_CONSUMPTION_DISABLE_FLAG       = false;
 #define SET_POWER_CONSUMPTION_LONG_OPT_STRING "setPowerConsumption"
 #define SET_POWER_CONSUMPTION_LONG_OPT        {SET_POWER_CONSUMPTION_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
@@ -1574,10 +1582,13 @@ extern "C"
 #define DEVICE_STATISTICS_LONG_OPT_STRING "deviceStatistics"
 #define DEVICE_STATISTICS_LONG_OPT        {DEVICE_STATISTICS_LONG_OPT_STRING, no_argument, &DEVICE_STATISTICS_FLAG, goTrue}
 
+// Set CDL Feature enable/disable
 #define CDL_FEATURE_IDENTIFIER            cdlFeature
 #define CDL_FEATURE_VAR                   eCDLFeatureSet CDL_FEATURE_IDENTIFIER = CDL_FEATURE_UNKNOWN;
 #define CDL_FEATURE_LONG_OPT_STRING       "CDLfeature"
 #define CDL_FEATURE_LONG_OPT              {CDL_FEATURE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+
+// CDL settings (display - raw/json)
 #define SHOW_CDL_SETTINGS_FLAG            showCDLSettings
 #define SHOW_CDL_SETTINGS_MODE_FLAG       showCDLSettingsMode
 #define SHOW_CDL_SETTINGS_VAR                                                                                          \
@@ -1586,7 +1597,9 @@ extern "C"
 #define SHOW_CDL_SETTINGS_LONG_OPT_STRING "showCDLSettings"
 #define SHOW_CDL_SETTINGS_LONG_OPT                                                                                     \
     {SHOW_CDL_SETTINGS_LONG_OPT_STRING, optional_argument, &SHOW_CDL_SETTINGS_FLAG, goTrue}
+
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
+// CDL settings (config)
 #    define CONFIG_CDL_JSONFILENAME_MAX_LEN 4096
 #    define CONFIG_CDL_SETTINGS_FLAG        configCDLSettings
 #    define CONFIG_CDL_JSONFILENAME_FLAG    configCDLJsonFile
@@ -1596,11 +1609,14 @@ extern "C"
         char* CONFIG_CDL_JSONFILENAME_FLAG = &configJsonFileName[0];
 #    define CONFIG_CDL_SETTINGS_LONG_OPT_STRING "configCDLSettings"
 #    define CONFIG_CDL_SETTINGS_LONG_OPT        {CONFIG_CDL_SETTINGS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+
+// Skip Validation
+#    define SKIP_VALIDATION_FLAG                skipValidation
+#    define SKIP_VALIDATION_VAR                 getOptBool SKIP_VALIDATION_FLAG = goFalse;
+#    define SKIP_VALIDATION_LONG_OPT_STRING     "skipValidation"
+#    define SKIP_VALIDATION_LONG_OPT            {SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue}
 #endif
-#define SKIP_VALIDATION_FLAG            skipValidation
-#define SKIP_VALIDATION_VAR             getOptBool SKIP_VALIDATION_FLAG = goFalse;
-#define SKIP_VALIDATION_LONG_OPT_STRING "skipValidation"
-#define SKIP_VALIDATION_LONG_OPT        {SKIP_VALIDATION_LONG_OPT_STRING, no_argument, &SKIP_VALIDATION_FLAG, goTrue}
+
 // SMR Options
 #define ZONE_ID_FLAG     zoneID
 #define ZONE_ID_ALL_FLAG allZones
