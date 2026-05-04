@@ -640,7 +640,7 @@ jobs:
         fi
 
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-        meson install -C build
+        meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (MSYS2)
       if: matrix.config.msys2_msystem != ''
@@ -650,7 +650,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-        meson install -C build
+        meson install -C build --skip-subprojects
 
 
     # Disabled since this caused strange behavior with openBSD VMActions. Can investigate fixes in the future.
@@ -675,7 +675,7 @@ jobs:
       run: |
         pip install meson ninja
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-        meson install -C build
+        meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (Github runners - non-MSVC)
       if: matrix.config.image == '' && matrix.config.vm_actions == false && matrix.config.msys2_msystem == '' && !startsWith(matrix.config.name, 'Windows MSVC')
@@ -686,7 +686,7 @@ jobs:
       run: |
         pip install meson ninja
         meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-        meson install -C build
+        meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
@@ -707,7 +707,7 @@ jobs:
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
@@ -728,7 +728,7 @@ jobs:
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
@@ -748,7 +748,7 @@ jobs:
           pkg install --accept developer/build/meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions FreeBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions FreeBSD')
@@ -768,7 +768,7 @@ jobs:
           pkg install -y meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions DragonFlyBSD')
@@ -787,7 +787,7 @@ jobs:
           pkg install -y meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
@@ -808,7 +808,7 @@ jobs:
           pkg_add meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions NetBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions NetBSD')
@@ -829,7 +829,7 @@ jobs:
           /usr/sbin/pkg_add meson
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
-          meson install -C build
+          meson install -C build --skip-subprojects
 
 
 
