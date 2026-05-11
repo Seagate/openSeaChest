@@ -911,8 +911,8 @@ jobs:
           i686) package_arch="i386" ;;
           aarch64) package_arch="arm64" ;;
           armv7l) package_arch="armhf" ;;
-          armv6) package_arch="armhf" ;;
-          armv5l) package_arch="armel" ;;
+          armv6) package_arch="armv6l" ;;
+          armv5l) package_arch="armv5l" ;;
           powerpc64) package_arch="ppc64" ;;
           powerpc64le) package_arch="ppc64el" ;;
           *) package_arch="amd64" ;;  # fallback
