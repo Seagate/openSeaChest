@@ -6,11 +6,11 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-     - dependency-name: "opensea-common"
-     - dependency-name: "opensea-transport"
-     - dependency-name: "opensea-operations"
+     - dependency-name: "subprojects/opensea-common"
+     - dependency-name: "subprojects/opensea-transport"
+     - dependency-name: "subprojects/opensea-operations"
   - package-ecosystem: "github-actions"
-    directory: "/.github/workflows"
+    directory: "/"
     schedule:
       interval: "weekly"
     cooldown:
