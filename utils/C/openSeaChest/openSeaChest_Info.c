@@ -351,22 +351,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -703,7 +715,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1155,7 +1167,7 @@ int main(int argc, char* argv[])
         if (DEVICE_STATISTICS_FLAG)
         {
             deviceStatistics deviceStats;
-            safe_memset(&deviceStats, sizeof(deviceStatistics), 0, sizeof(deviceStatistics));
+            M_INITIALIZE_STRUCTURE(&deviceStats, sizeof(deviceStatistics));
             switch (get_DeviceStatistics(&deviceList[deviceIter], &deviceStats))
             {
             case SUCCESS:
@@ -1163,7 +1175,7 @@ int main(int argc, char* argv[])
                 // if supported then print Seagate Device Statistics also
                 bool                    seagateDeviceStatisticsAvailable = false;
                 seagateDeviceStatistics seagateDeviceStats;
-                safe_memset(&seagateDeviceStats, sizeof(seagateDeviceStatistics), 0, sizeof(seagateDeviceStatistics));
+                M_INITIALIZE_STRUCTURE(&seagateDeviceStats, sizeof(seagateDeviceStatistics));
                 if (is_Seagate_DeviceStatistics_Supported(&deviceList[deviceIter]))
                 {
                     if (SUCCESS == get_Seagate_DeviceStatistics(&deviceList[deviceIter], &seagateDeviceStats))
@@ -1358,7 +1370,7 @@ int main(int argc, char* argv[])
         if (SHOW_CONCURRENT_RANGES)
         {
             concurrentRanges ranges;
-            safe_memset(&ranges, sizeof(concurrentRanges), 0, sizeof(concurrentRanges));
+            M_INITIALIZE_STRUCTURE(&ranges, sizeof(concurrentRanges));
             ranges.size    = sizeof(concurrentRanges);
             ranges.version = CONCURRENT_RANGES_VERSION;
             switch (get_Concurrent_Positioning_Ranges(&deviceList[deviceIter], &ranges))
@@ -1386,7 +1398,7 @@ int main(int argc, char* argv[])
         if (SHOW_PHY_EVENT_COUNTERS)
         {
             sataPhyEventCounters events;
-            safe_memset(&events, sizeof(sataPhyEventCounters), 0, sizeof(sataPhyEventCounters));
+            M_INITIALIZE_STRUCTURE(&events, sizeof(sataPhyEventCounters));
             switch (get_SATA_Phy_Event_Counters(&deviceList[deviceIter], &events))
             {
             case SUCCESS:

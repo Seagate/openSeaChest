@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2021-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
-project('openSeaChest', 'c', version: 'v26.03.1', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+project('openSeaChest', 'c', version: 'develop', license: 'MPL-2.0', meson_version: '>=0.56.0', default_options: ['warning_level=2', 'b_pie=true', 'default_library=static'])
 
 c = meson.get_compiler('c')
 
-machine = target_machine.system()
 architecture = target_machine.cpu()
 if architecture == ''
     architecture = target_machine.cpu_family()
@@ -249,8 +248,11 @@ elif c.get_id().contains('msvc')
         warning_flags += '/QIntel-jcc-erratum'
     endif
 
+    # If this MSVC version supports /std:c17, force C17 mode. MSVC defaults to a
+    # pre-C99 dialect without this flag, which means _Generic and other C11/C17
+    # features are unavailable even though the compiler supports them.
     if c.has_argument('/std:c17')
-        c_std = 'c17'
+        warning_flags += '/std:c17'
     endif
 
     linker_flags += [
@@ -329,10 +331,10 @@ if source_epoch != ''
     # Try Python first (most reliable, handles formatting consistently)
     python = find_program('python3', 'python', required: false)
     if python.found()
-        py_script = 'import datetime; ' + \
-                    'ts = int(' + source_epoch + '); ' + \
-                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + \
-                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
+        py_script = ('import datetime; ' +
+                    'ts = int(' + source_epoch + '); ' +
+                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' +
+                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));')
 
         date_cmd = run_command(python, '-c', py_script, check: false)
         if date_cmd.returncode() == 0
@@ -385,16 +387,10 @@ if (c.get_id() == 'gcc' or c.get_id() == 'clang') and target_machine.system() !=
         if c.version().version_compare('<5.0')
             #4.7.4+ has C11 support, but c89 is the default standard so we need to change it.
             if c.has_argument('-std=gnu11')
-                c_std = 'gnu11'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu11', language: 'c')
-                endif
+                add_project_arguments('-std=gnu11', language: 'c')
             elif c.has_argument('-std=gnu99')
-                #Add this argument to the list since C99 is a minimum required C compiler standard
-                c_std = 'gnu99'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu99', language: 'c')
-                endif
+                #  Add this argument to the list since C99 is a minimum required C compiler standard
+                add_project_arguments('-std=gnu99', language: 'c')
             else
                 error('C99/GNU99 standard is required but was not able to be set!')
             endif
@@ -414,7 +410,6 @@ if get_option('atasecsetpass').enabled()
     add_project_arguments('-DENABLE_ATA_SET_PASSWORD', language: 'c')
 endif
 
-exec_prefix = 'openSeaChest_'
 common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
 os_deps = []
@@ -443,10 +438,10 @@ if target_machine.system() != 'windows'
     endif
 endif
 
-opensea_common = subproject('opensea-common')
+opensea_common = subproject('opensea-common', default_options: 'default_library=static')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
-opensea_transport = subproject('opensea-transport')
+opensea_transport = subproject('opensea-transport', default_options: 'default_library=static')
 opensea_transport_dep = opensea_transport.get_variable('opensea_transport_dep')
 
 csmisupport = opensea_transport.get_variable('csmisupport')
@@ -454,7 +449,7 @@ if csmisupport.enabled()
     add_project_arguments('-DENABLE_CSMI', language: 'c')
 endif
 
-opensea_operations = subproject('opensea-operations')
+opensea_operations = subproject('opensea-operations', default_options: 'default_library=static')
 opensea_operations_dep = opensea_operations.get_variable('opensea_operations_dep')
 
 jsonc_dep = disabler()
@@ -480,13 +475,13 @@ if get_option('json_outputformat')
             message('pkg-config not available for json-c, trying find_library + header check')
             # Step 2: Try find_library + has_header
             jsonc_lib = c.find_library('json-c', required: false)
-            
+
             if jsonc_lib.found()
                 message('Found json-c library, checking for headers...')
                 # Check common header locations explicitly
                 has_json_headers = c.has_header('json-c/json_object.h', required: false) or \
                                    c.has_header('json_object.h', required: false)
-                
+
                 if has_json_headers
                     message('Found system json-c library and headers')
                     jsonc_dep = declare_dependency(

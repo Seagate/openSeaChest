@@ -706,22 +706,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -1061,7 +1073,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1462,7 +1474,7 @@ int main(int argc, char* argv[])
                                 {
                                     // get the blocksize from read capacity first
                                     readCapacityData readCapData;
-                                    safe_memset(&readCapData, sizeof(readCapacityData), 0, sizeof(readCapacityData));
+                                    M_INITIALIZE_STRUCTURE(&readCapData, sizeof(readCapacityData));
                                     if (SUCCESS == scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                     {
                                         deviceList[deviceIter].drive_info.deviceBlockSize =
@@ -1509,8 +1521,7 @@ int main(int argc, char* argv[])
                                     {
                                         // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
-                                                    sizeof(readCapacityData));
+                                        M_INITIALIZE_STRUCTURE(&readCapData, sizeof(readCapacityData));
                                         if (SUCCESS ==
                                             scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
@@ -1527,8 +1538,7 @@ int main(int argc, char* argv[])
                                     {
                                         // get the blocksize from read capacity first
                                         readCapacityData readCapData;
-                                        safe_memset(&readCapData, sizeof(readCapacityData), 0,
-                                                    sizeof(readCapacityData));
+                                        M_INITIALIZE_STRUCTURE(&readCapData, sizeof(readCapacityData));
                                         if (SUCCESS ==
                                             scsi_Read_Capacity_Cmd_Helper(&deviceList[deviceIter], &readCapData))
                                         {
@@ -1888,7 +1898,7 @@ int main(int argc, char* argv[])
                  RAW_TFR_BYTE_BLOCK != -1)
         {
             ataPassthroughCommand passthroughCommand;
-            safe_memset(&passthroughCommand, sizeof(ataPassthroughCommand), 0, sizeof(ataPassthroughCommand));
+            M_INITIALIZE_STRUCTURE(&passthroughCommand, sizeof(ataPassthroughCommand));
             passthroughCommand.tfr.CommandStatus = RAW_TFR_COMMAND;
             passthroughCommand.tfr.ErrorFeature  = RAW_TFR_FEATURE;
             passthroughCommand.tfr.Feature48     = RAW_TFR_FEATURE_EXT;

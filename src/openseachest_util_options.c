@@ -177,7 +177,10 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
         userName = M_REINTERPRET_CAST(char*, safe_calloc(UNKNOWN_USER_NAME_MAX_LENGTH, sizeof(char)));
         if (userName)
         {
-            snprintf_err_handle(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username");
+            if (snprintf_err_handle(userName, UNKNOWN_USER_NAME_MAX_LENGTH, "Unable to retrieve current username") < 0)
+            {
+                userdup = errno;
+            }
         }
         else
         {
@@ -214,7 +217,9 @@ void openseachest_utility_Info(const char* utilityName, const char* buildVersion
 #endif
     if (get_current_timestamp() == false)
     {
-        snprintf_err_handle(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time");
+        M_IGNORE_SAFE_INT_CALL(
+            snprintf_err_handle(CURRENT_TIME_STRING, CURRENT_TIME_STRING_LENGTH, "Unable to get local time"),
+            "\"Unknown Time\" string is always less than buffer size being written to");
     }
     printf(" Today: %s", CURRENT_TIME_STRING);
     if (userdup == 0)
@@ -238,8 +243,8 @@ void utility_Full_Version_Info(const char* utilityName,
     OSVersionNumber osversionnumber;
     eCompiler       compilerUsed = OPENSEA_COMPILER_UNKNOWN;
     compilerVersion compilerVersionInfo;
-    safe_memset(&osversionnumber, sizeof(OSVersionNumber), 0, sizeof(OSVersionNumber));
-    safe_memset(&compilerVersionInfo, sizeof(compilerVersion), 0, sizeof(compilerVersion));
+    M_INITIALIZE_STRUCTURE(&osversionnumber, sizeof(OSVersionNumber));
+    M_INITIALIZE_STRUCTURE(&compilerVersionInfo, sizeof(compilerVersion));
     get_Compiler_Info(&compilerUsed, &compilerVersionInfo);
     get_Operating_System_Version_And_Name(&osversionnumber, &osName[0]);
 
@@ -3469,18 +3474,30 @@ int parse_Device_Handle_Argument(char*     optarg,
             if (strncasecmp(optarg, "PD", 2) == 0)
             {
                 physicalDeviceNumber = strpbrk(optarg, "0123456789");
-                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s",
-                                    physicalDeviceNumber);
+                if (snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "\\\\.\\PhysicalDrive%s",
+                                        physicalDeviceNumber) < 0)
+                {
+                    printf("Error: Failed to parse physical drive number from %s\n", optarg);
+                    exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+                }
             }
 #    if defined(ENABLE_CSMI)
             else if (strncmp(optarg, "csmi", 4) == 0)
             {
-                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+                if (safe_strcpy(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, optarg) != 0)
+                {
+                    printf("Error: Failed to parse CSMI handle from %s\n", optarg);
+                    exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+                }
             }
 #    endif
             else if (strncmp(optarg, "\\\\.\\", 4) == 0)
             {
-                snprintf_err_handle(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, "%s", optarg);
+                if (safe_strcpy(deviceHandle, WINDOWS_MAX_HANDLE_STRING_LENGTH, optarg) != 0)
+                {
+                    printf("Error: Failed to parse handle from %s\n", optarg);
+                    exit(UTIL_EXIT_INVALID_DEVICE_HANDLE);
+                }
             }
             /*If we want to add another format for accepting a handle, then add an else-if here*/
             else /*we have an invalid handle*/
@@ -3502,7 +3519,7 @@ int parse_Device_Handle_Argument(char*     optarg,
                 if (!*handleList)
                 {
                     perror("error allocating memory for handle list\n");
-                    return 255;
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
                 }
             }
             else
@@ -3513,7 +3530,7 @@ int parse_Device_Handle_Argument(char*     optarg,
                 if (temp == M_NULLPTR)
                 {
                     perror("error reallocating memory for handle list\n");
-                    return 255;
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
                 }
                 *handleList = temp;
             }
@@ -3528,7 +3545,11 @@ int parse_Device_Handle_Argument(char*     optarg,
                 return 255;
             }
             /*copy the handle into memory*/
-            snprintf_err_handle((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, "%s", deviceHandle);
+            if (safe_strcpy((*handleList)[(*deviceCount) - 1], handleListNewHandleLength, deviceHandle) != 0)
+            {
+                printf("Error: Failed to copy device handle %s into list\n", deviceHandle);
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
         }
     }
     return 0;
@@ -4410,16 +4431,16 @@ void print_Set_SCSI_MP_Help(bool shortHelp)
         print_str("\t\tThere are two argument formats to this option:\n");
         print_str("\t\t1. The first format expects a mode page (in hex), optionally a subpage code (in hex),\n");
         print_str("\t\t   the byte offset that the field starts at (in decimal), the highest bit the field starts\n");
-        print_str(
-            "\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set (hex or "
-            "decimal)\n");
+        print_str("\t\t   at (0-7), the width of the field in as a number of bits (decimal), and the value to set "
+                  "(hex or "
+                  "decimal)\n");
         print_str("\t\t   A maximum of 64bits can be set at a time with this option.\n");
         print_str(
             "\t\t2. The second format is a text file that contains all bytes of the mode page in hex. Each byte\n");
         print_str("\t\t   must be separated by a space, new line, or underscore. It is recommended that this file\n");
-        printf(
-            "\t\t   is created by copy-pasting the output of the --%s option's default classic view, then modifying\n",
-            SCSI_SHOW_MP_LONG_OPT_STRING);
+        printf("\t\t   is created by copy-pasting the output of the --%s option's default classic view, then "
+               "modifying\n",
+               SCSI_SHOW_MP_LONG_OPT_STRING);
         print_str("\t\t   after that.");
         print_str("\t\tExample use of the arguments:\n");
         print_str("\t\t1. Setting WCE to zero on caching MP from a file:\n");
@@ -5385,10 +5406,11 @@ void print_Raw_TFR_Byte_Block_Help(bool shortHelp)
         print_str("\t\tArguments:\n");
         print_str("\t\t  512 - the data transfer is a number of 512B blocks (most commands)\n");
         print_str("\t\t  logical - data transfer is a number of logical block sizes transfers (read commands)\n");
-        print_str(
-            "\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is used)\n");
+        print_str("\t\t  bytes - the data transfer is a specific number of bytes (some legacy commands or tpsiu is "
+                  "used)\n");
         print_str("\t\t  nodata - no data transfer. Used on non-data protocol commands\n");
-        printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use 512\n\n");
+        printf("\t\tNOTE: All read/write commands should use \"logical\", all other data transfers should use "
+               "512\n\n");
     }
 }
 

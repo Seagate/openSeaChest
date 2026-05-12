@@ -302,11 +302,19 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(longopts[optionIndex].name, TCG_SID_LONG_OPT_STRING) == 0)
             {
-                snprintf_err_handle(TCG_SID_FLAG, TCG_SID_BUF_LEN, "%s", optarg);
+                if (0 != safe_strcpy(TCG_SID_FLAG, TCG_SID_BUF_LEN, optarg))
+                {
+                    print_Error_In_Cmd_Line_Args(TCG_SID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, TCG_PSID_LONG_OPT_STRING) == 0)
             {
-                snprintf_err_handle(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, "%s", optarg);
+                if (0 != safe_strcpy(TCG_PSID_FLAG, TCG_PSID_BUF_LEN, optarg))
+                {
+                    print_Error_In_Cmd_Line_Args(TCG_PSID_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
             }
 #endif // #if !defined(DISABLE_TCG_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, ATA_SECURITY_PASSWORD_MODIFICATIONS_LONG_OPT_STRING) == 0)
@@ -411,13 +419,21 @@ int main(int argc, char* argv[])
                 if (strcmp(optarg, "empty") == 0)
                 {
                     // the modification option can change this to all F's if desired instead of zeros.
-                    safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0, ATA_SECURITY_MAX_PW_LENGTH);
+                    if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0, ATA_SECURITY_MAX_PW_LENGTH))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                     ATA_SECURITY_PASSWORD_BYTE_COUNT = ATA_SECURITY_MAX_PW_LENGTH;
                 }
                 else if (strcmp(optarg, "SeaChest") == 0)
                 {
                     ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, safe_strlen("SeaChest"));
-                    safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                    if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                 }
                 else
                 {
@@ -428,12 +444,12 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(ATA_SECURITY_PASSWORD_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
-                    // printf("User entered \"%s\" for their password\n", optarg);
-                    safe_memcpy(ATA_SECURITY_PASSWORD, 32, optarg,
-                                M_Min(safe_strlen(optarg),
-                                      ATA_SECURITY_MAX_PW_LENGTH)); // make sure we don't try copying over a null
-                                                                    // terminator because we just need to store the
-                                                                    // 32bytes of characters provided.
+                    if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, optarg,
+                                         M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH)))
+                    {
+                        perror("Failure to set user provided ATA Security password during getopt loop.");
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
                     ATA_SECURITY_PASSWORD_BYTE_COUNT =
                         C_CAST(uint8_t, M_Min(safe_strlen(optarg), ATA_SECURITY_MAX_PW_LENGTH));
                 }
@@ -524,22 +540,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
@@ -837,27 +865,54 @@ int main(int argc, char* argv[])
         {
             // change all to uppercase
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Upper_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.forceLowercase)
         {
             // change all to lowercase
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Lower_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.invertCase)
         {
             // swap case from upper to lower and lower to upper.
             DECLARE_ZERO_INIT_ARRAY(char, thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1);
-            safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(thePassword, ATA_SECURITY_MAX_PW_LENGTH + 1, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             convert_String_To_Inverse_Case(thePassword);
-            safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH);
+            if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, thePassword, ATA_SECURITY_MAX_PW_LENGTH))
+            {
+                perror("Failed to set ATA security password with modifications");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+            }
             explicit_zeroes(thePassword, ATA_SECURITY_MAX_PW_LENGTH);
         }
         // check if byteswapping what was entered
@@ -878,11 +933,21 @@ int main(int argc, char* argv[])
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
         {
             // memcpy and memset based on how many characters were provided by the caller.
-            safe_memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                         ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT, &ATA_SECURITY_PASSWORD[0],
-                         ATA_SECURITY_PASSWORD_BYTE_COUNT);
-            safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0,
-                        ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+            if (0 != safe_memmove(&ATA_SECURITY_PASSWORD[ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                  ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT,
+                                  &ATA_SECURITY_PASSWORD[0], ATA_SECURITY_PASSWORD_BYTE_COUNT))
+            {
+                perror("Failed to set ATA Security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
+            if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, 0,
+                                 ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+            {
+                perror("Failed to set ATA Security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
         }
         // now check if we had padding to add. NOTE: if right aligned, padding mshould be added IN FRONT (left side)
         if (ATA_SECURITY_PASSWORD_MODIFICATIONS.zeroPadded)
@@ -894,28 +959,48 @@ int main(int argc, char* argv[])
             // convert zero padding to spaces. Need to set different bytes based on whether left or right aligned!
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[0], 32, ' ',
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, ' ',
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
             else
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                            32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, ' ',
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                     32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, ' ',
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
         }
         else if (ATA_SECURITY_PASSWORD_MODIFICATIONS.fpadded)
         {
             if (ATA_SECURITY_PASSWORD_MODIFICATIONS.rightAligned)
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[0], 32, UINT8_MAX,
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[0], 32, UINT8_MAX,
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
             else
             {
-                safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
-                            32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, UINT8_MAX,
-                            ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT);
+                if (0 != safe_memset(&ATA_SECURITY_PASSWORD[ATA_SECURITY_PASSWORD_BYTE_COUNT],
+                                     32 - ATA_SECURITY_PASSWORD_BYTE_COUNT, UINT8_MAX,
+                                     ATA_SECURITY_MAX_PW_LENGTH - ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to set ATA Security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
             }
         }
 #if defined(MD5_PASSWORD_SUPPORTED)
@@ -930,7 +1015,12 @@ int main(int argc, char* argv[])
     {
         // user did not set a password, so we need to set "SeaChest"
         ATA_SECURITY_PASSWORD_BYTE_COUNT = C_CAST(uint8_t, safe_strlen("SeaChest"));
-        safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT);
+        if (0 != safe_memcpy(ATA_SECURITY_PASSWORD, 32, "SeaChest", ATA_SECURITY_PASSWORD_BYTE_COUNT))
+        {
+            perror("Failed to copy ATA security password");
+            exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory failure -
+                                                  // TJE
+        }
     }
 
     // print out errors for unknown arguments for remaining args that haven't been processed yet
@@ -1029,7 +1119,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1400,7 +1490,7 @@ int main(int argc, char* argv[])
         {
             bool              satSecSupported = false;
             ataSecurityStatus ataSecurityInfo;
-            safe_memset(&ataSecurityInfo, sizeof(ataSecurityStatus), 0, sizeof(ataSecurityStatus));
+            M_INITIALIZE_STRUCTURE(&ataSecurityInfo, sizeof(ataSecurityStatus));
             if (ATA_SECURITY_FORCE_SAT_VALID)
             {
                 satSecSupported = ATA_SECURITY_FORCE_SAT;
@@ -1808,11 +1898,16 @@ int main(int argc, char* argv[])
         if (ATA_SECURITY_UNLOCK_OP)
         {
             ataSecurityPassword ataPassword;
-            safe_memset(&ataPassword, sizeof(ataSecurityPassword), 0, sizeof(ataSecurityPassword));
+            M_INITIALIZE_STRUCTURE(&ataPassword, sizeof(ataSecurityPassword));
             ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
-            safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
-                        ATA_SECURITY_PASSWORD_BYTE_COUNT); // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32.
-                                                           // Should be caught above.
+            if (0 != safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_PASSWORD_BYTE_COUNT)) // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever
+                                                                    // be > 32. Should be caught above.
+            {
+                perror("Failed to copy ATA security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
             ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
             switch (run_Unlock_ATA_Security(&deviceList[deviceIter], ataPassword, ATA_SECURITY_FORCE_SAT_VALID,
                                             ATA_SECURITY_FORCE_SAT))
@@ -1835,11 +1930,16 @@ int main(int argc, char* argv[])
         if (ATA_SECURITY_DISABLE_OP)
         {
             ataSecurityPassword ataPassword;
-            safe_memset(&ataPassword, sizeof(ataSecurityPassword), 0, sizeof(ataSecurityPassword));
+            M_INITIALIZE_STRUCTURE(&ataPassword, sizeof(ataSecurityPassword));
             ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
-            safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
-                        ATA_SECURITY_PASSWORD_BYTE_COUNT); // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be > 32.
-                                                           // Should be caught above.
+            if (0 != safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
+                                 ATA_SECURITY_PASSWORD_BYTE_COUNT)) // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever
+                                                                    // be > 32. Should be caught above.
+            {
+                perror("Failed to copy ATA security password");
+                exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                      // failure - TJE
+            }
             ataPassword.passwordLength = ATA_SECURITY_PASSWORD_BYTE_COUNT;
             switch (run_Disable_ATA_Security_Password(&deviceList[deviceIter], ataPassword,
                                                       ATA_SECURITY_FORCE_SAT_VALID, ATA_SECURITY_FORCE_SAT))
@@ -1900,11 +2000,15 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 ataSecurityPassword ataPassword;
-                safe_memset(&ataPassword, sizeof(ataSecurityPassword), 0, sizeof(ataSecurityPassword));
+                M_INITIALIZE_STRUCTURE(&ataPassword, sizeof(ataSecurityPassword));
                 ataPassword.passwordType = ATA_SECURITY_USING_MASTER_PW;
-                safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
-                            ATA_SECURITY_PASSWORD_BYTE_COUNT); // ATA_SECURITY_PASSWORD_BYTE_COUNT shouldn't ever be
-                                                               // > 32. Should be caught above.
+                if (0 != safe_memcpy(ataPassword.password, ATA_SECURITY_MAX_PW_LENGTH, ATA_SECURITY_PASSWORD,
+                                     ATA_SECURITY_PASSWORD_BYTE_COUNT))
+                {
+                    perror("Failed to copy ATA security password");
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES); // Weird to return, but should be an indication of a memory
+                                                          // failure - TJE
+                }
                 ataPassword.passwordLength               = ATA_SECURITY_PASSWORD_BYTE_COUNT;
                 eATASecurityEraseType ataSecureEraseType = ATA_SECURITY_ERASE_STANDARD_ERASE;
                 if (ATA_SECURITY_ERASE_ENHANCED_FLAG)
@@ -2043,9 +2147,13 @@ void utility_Usage(bool shortUsage)
             switch (exitIter)
             {
             case SEACHEST_SECURITY_EXIT_ZERO_VALIDATION_FAILURE:
-                snprintf_err_handle(
-                    seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
-                    TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure");
+                if (0 !=
+                    safe_strcpy(
+                        seachestSecurityExitCodes[exitIter - UTIL_TOOL_SPECIFIC_STARTING_ERROR_CODE].exitCodeString,
+                        TOOL_EXIT_CODE_STRING_MAX_LENGTH, "Zero Validation Failure"))
+                {
+                    perror("Error writing utility specific exit code for zero validation failure. Likely truncation");
+                }
                 break;
                 // add more exit codes here!
             default: // We shouldn't ever hit the default case!

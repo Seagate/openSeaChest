@@ -399,22 +399,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, DISPLAY_LBA_LONG_OPT_STRING) == 0)
             {
@@ -856,7 +868,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1686,7 +1698,7 @@ int main(int argc, char* argv[])
                 switch (diameter_Test_Time(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
                                            PERFORM_OD_TEST, PERFORM_MD_TEST, PERFORM_ID_TEST, OdMdIdTestSeconds,
                                            ERROR_LIMIT_FLAG, STOP_ON_ERROR_FLAG, REPAIR_ON_FLY_FLAG, REPAIR_AT_END_FLAG,
-                                           HIDE_LBA_COUNTER))
+                                           HIDE_LBA_COUNTER, M_NULLPTR, M_NULLPTR))
                 {
                 case SUCCESS:
                     if (VERBOSITY_QUIET < toolVerbosity)

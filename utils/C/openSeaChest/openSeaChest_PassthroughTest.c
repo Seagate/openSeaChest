@@ -465,22 +465,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -814,7 +826,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1189,7 +1201,7 @@ int main(int argc, char* argv[])
             // Need to allow a way to skip to certain parts of a test if the device has problems, or hangs, or anything
             // like that.
             passthroughTestParams params;
-            safe_memset(&params, sizeof(passthroughTestParams), 0, sizeof(passthroughTestParams));
+            M_INITIALIZE_STRUCTURE(&params, sizeof(passthroughTestParams));
             params.device = &deviceList[deviceIter];
 
             params.allowLegacyATAPTTest                 = M_ToBool(ENABLE_LEGACY_ATA_PT_TESTING);
@@ -1481,7 +1493,13 @@ static void multi_Sector_PIO_Test_With_Logs(tDevice* device, bool gpl, uint8_t l
                     // is this a different error or multisector PIO issue?
                 }
                 // clear the log back out to zeros
-                safe_memset(log, logSize, 0, logSize);
+                if (0 != safe_memset(log, logSize, 0, logSize))
+                    M_UNLIKELY
+                    {
+                        safe_free_aligned_core(C_CAST(void**, &logR));
+                        perror("ERROR: Failed to clear log buffer\n");
+                        return;
+                    }
                 if (gpl)
                 {
                     cmdResult = ata_Write_Log_Ext(device, logAddress, 0, log, logSize, false, false);
@@ -1855,7 +1873,13 @@ static void check_Condition_Bit_Test(tDevice* device, bool smartSupported, bool 
             // Try SMART read data
             uint8_t* smartData = M_REINTERPRET_CAST(
                 uint8_t*, safe_calloc_aligned(512, sizeof(uint8_t), device->os_info.minimumAlignment));
-            safe_memset(&device->drive_info.lastCommandRTFRs, sizeof(ataReturnTFRs), 0, sizeof(ataReturnTFRs));
+            if (0 != safe_memset(&device->drive_info.lastCommandRTFRs, sizeof(ataReturnTFRs), 0, sizeof(ataReturnTFRs)))
+                M_UNLIKELY
+                {
+                    safe_free_aligned_core(C_CAST(void**, &smartData));
+                    perror("ERROR: Failed to clear last command RTFRs\n");
+                    return;
+                }
             if (smartData)
             {
                 eReturnValues smartRet = ata_SMART_Read_Data(device, smartData, 512);
@@ -1870,12 +1894,25 @@ static void check_Condition_Bit_Test(tDevice* device, bool smartSupported, bool 
                         gotValidRTFRsSMART = true;
                     }
                 }
-                safe_memset(&device->drive_info.lastCommandRTFRs, sizeof(ataReturnTFRs), 0, sizeof(ataReturnTFRs));
+                if (0 !=
+                    safe_memset(&device->drive_info.lastCommandRTFRs, sizeof(ataReturnTFRs), 0, sizeof(ataReturnTFRs)))
+                    M_UNLIKELY
+                    {
+                        safe_free_aligned_core(C_CAST(void**, &smartData));
+                        perror("ERROR: Failed to clear last command RTFRs\n");
+                        return;
+                    }
                 // If logging is available, try SMART read log for a multiple page log if possible.
                 if (smartLoggingSupported)
                 {
                     // Logging is available. Try SMART read log commands for a log page with multiple sectors
-                    safe_memset(smartData, 512, 0, 512);
+                    if (0 != safe_memset(smartData, 512, 0, 512))
+                        M_UNLIKELY
+                        {
+                            safe_free_aligned_core(C_CAST(void**, &smartData));
+                            perror("ERROR: Failed to clear SMART data buffer\n");
+                            return;
+                        }
                     smartRet = ata_SMART_Read_Log(device, 0, smartData, 512);
                     if (SUCCESS == smartRet || WARN_INVALID_CHECKSUM == smartRet)
                     {
@@ -2273,7 +2310,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
         print_str("         and limits which are useful to the host.\n");
         print_str("Will dummy up support to see if any pages are supported that are useful.\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
-        safe_memset(supportedPages, SUPPORTED_PAGES_LEN, 0, SUPPORTED_PAGES_LEN);
+        if (0 != safe_memset(supportedPages, SUPPORTED_PAGES_LEN, 0, SUPPORTED_PAGES_LEN))
+            M_UNLIKELY
+            {
+                perror("ERROR: Failed to clear supported VPD pages buffer\n");
+                return;
+            }
         uint16_t offset = UINT16_C(4); // start of pages to dummy up
         // in here we will set up a fake supported VPD pages buffer so that we try to read the unit serial number page,
         // the SAT page, and device identification page
@@ -2417,7 +2459,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                 if (unitSerialNumber)
                 {
                     scsiDevInfo->vpdData.gotUnitSNVPDPage = true;
-                    safe_memcpy(unitSerialNumber, vpdPageLength + 1, &pageToRead[4], vpdPageLength);
+                    if (0 != safe_memcpy(unitSerialNumber, vpdPageLength + 1, &pageToRead[4], vpdPageLength))
+                    {
+                        perror("ERROR: Failed to copy Unit Serial Number from VPD page\n");
+                        safe_free(&unitSerialNumber);
+                        return;
+                    }
                     for (uint16_t iter = UINT16_C(0); iter < vpdPageLength && iter < UINT16_MAX; ++iter)
                     {
                         if (!safe_isascii(unitSerialNumber[iter]) || !safe_isprint(unitSerialNumber[iter]))
@@ -2438,8 +2485,14 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     {
                         genericVPDPageReadOutput = false;
                         printf("\tGot Unit Serial Number as %s\n", unitSerialNumber);
-                        safe_memcpy(&scsiDevInfo->vpdData.unitSN, 255, unitSerialNumber,
-                                    M_Min(255, safe_strlen(unitSerialNumber)));
+                        if (0 != safe_memcpy(&scsiDevInfo->vpdData.unitSN, 255, unitSerialNumber,
+                                             M_Min(255, safe_strlen(unitSerialNumber))))
+                            M_UNLIKELY
+                            {
+                                safe_free(&unitSerialNumber);
+                                perror("ERROR: Failed to copy Unit Serial Number from VPD page\n");
+                                return;
+                            }
                     }
                     safe_free(&unitSerialNumber);
                 }
@@ -2501,8 +2554,13 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     }
                     // Save the value of the designator to our array to track all reported designators
                     scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].valid = true;
-                    safe_memcpy(&scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designator[0],
-                                16, &pageToRead[designatorOffset], M_Min(designatorLength, UINT16_C(16)));
+                    if (0 != safe_memcpy(
+                                 &scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designator[0],
+                                 16, &pageToRead[designatorOffset], M_Min(designatorLength, UINT16_C(16))))
+                    {
+                        perror("ERROR: Failed to copy designator from VPD page\n");
+                        return;
+                    }
                     scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designatorLength =
                         M_Min(designatorLength, UINT16_C(16));
                     scsiDevInfo->vpdData.designators[scsiDevInfo->vpdData.designatorCount].designatorType =
@@ -2637,7 +2695,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                         {
                             DECLARE_ZERO_INIT_ARRAY(char, desVendorID, 9);
                             char* vendorSpecificID = M_NULLPTR;
-                            safe_memcpy(desVendorID, 9, &pageToRead[designatorOffset], 8);
+                            if (0 != safe_memcpy(desVendorID, 9, &pageToRead[designatorOffset], 8))
+                                M_UNLIKELY
+                                {
+                                    perror("ERROR: Failed to copy desVendorID Vendor ID from VPD page\n");
+                                    return;
+                                }
                             printf("\t\t\t    T10 Vendor ID: %s\n", desVendorID);
                             if (designatorLength > 8)
                             {
@@ -2645,8 +2708,13 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                                     M_REINTERPRET_CAST(char*, safe_calloc(designatorLength - 8 + 1, sizeof(char)));
                                 if (vendorSpecificID)
                                 {
-                                    safe_memcpy(vendorSpecificID, designatorLength - 8 + 1,
-                                                &pageToRead[designatorOffset + 8], designatorLength - 8);
+                                    if (0 != safe_memcpy(vendorSpecificID, designatorLength - 8 + 1,
+                                                         &pageToRead[designatorOffset + 8], designatorLength - 8))
+                                    {
+                                        safe_free(&vendorSpecificID);
+                                        perror("ERROR: Failed to copy vendor specific ID from VPD page\n");
+                                        return;
+                                    }
                                     // TODO: validate that all characters are printable
                                     printf("\t\t\t    Vendor Specific ID: %s\n", vendorSpecificID);
                                     safe_free(&vendorSpecificID);
@@ -2922,8 +2990,13 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             scsiNameString = M_REINTERPRET_CAST(char*, safe_calloc(designatorLength + 1, sizeof(char)));
                             if (scsiNameString)
                             {
-                                safe_memcpy(scsiNameString, designatorLength + 1, &pageToRead[designatorOffset],
-                                            designatorLength);
+                                if (0 != safe_memcpy(scsiNameString, designatorLength + 1,
+                                                     &pageToRead[designatorOffset], designatorLength))
+                                {
+                                    perror("ERROR: Failed to copy SCSI Name string\n");
+                                    safe_free(&scsiNameString);
+                                    return;
+                                }
                                 // TODO: validate that all characters are UTF8
                                 printf("\t\t\t    SCSI Name: %s\n", scsiNameString);
                                 safe_free(&scsiNameString);
@@ -3132,9 +3205,24 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                     DECLARE_ZERO_INIT_ARRAY(char, satVendor, 9);
                     DECLARE_ZERO_INIT_ARRAY(char, satProductID, 17);
                     DECLARE_ZERO_INIT_ARRAY(char, satRevision, 5);
-                    safe_memcpy(satVendor, 9, &pageToRead[8], 8);
-                    safe_memcpy(satProductID, 17, &pageToRead[16], 16);
-                    safe_memcpy(satRevision, 5, &pageToRead[32], 4);
+                    if (0 != safe_memcpy(satVendor, 9, &pageToRead[8], 8))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Vendor ID from VPD page\n");
+                            return;
+                        }
+                    if (0 != safe_memcpy(satProductID, 17, &pageToRead[16], 16))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Product ID from VPD page\n");
+                            return;
+                        }
+                    if (0 != safe_memcpy(satRevision, 5, &pageToRead[32], 4))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Revision from VPD page\n");
+                            return;
+                        }
                     genericVPDPageReadOutput           = false;
                     scsiDevInfo->vpdData.gotSATVPDPage = true;
                     for (uint8_t iter = UINT8_C(0); iter < 8; ++iter)
@@ -3147,7 +3235,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
-                    safe_memcpy(device->drive_info.bridge_info.t10SATvendorID, 9, satVendor, 8);
+                    if (0 != safe_memcpy(device->drive_info.bridge_info.t10SATvendorID, 9, satVendor, 8))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Vendor ID from VPD page\n");
+                            return;
+                        }
                     if (safe_strlen(satVendor) == 0)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
@@ -3168,7 +3261,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
-                    safe_memcpy(device->drive_info.bridge_info.SATproductID, 17, satProductID, 16);
+                    if (0 != safe_memcpy(device->drive_info.bridge_info.SATproductID, 17, satProductID, 16))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Product ID from VPD page\n");
+                            return;
+                        }
                     if (safe_strlen(satProductID) == 0)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
@@ -3190,7 +3288,12 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                             set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                         }
                     }
-                    safe_memcpy(device->drive_info.bridge_info.SATfwRev, 9, satRevision, 4);
+                    if (0 != safe_memcpy(device->drive_info.bridge_info.SATfwRev, 9, satRevision, 4))
+                        M_UNLIKELY
+                        {
+                            perror("ERROR: Failed to copy SAT Revision from VPD page\n");
+                            return;
+                        }
                     if (safe_strlen(satRevision) == 0)
                     {
                         set_Console_Colors(true, WARNING_COLOR);
@@ -4023,14 +4126,31 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
     {
         bool     continueTesting = false;
         uint8_t* inqPtr          = &device->drive_info.scsiVpdData.inquiryData[0];
-        safe_memset(device->drive_info.serialNumber, sizeof(device->drive_info.serialNumber), 0,
-                    sizeof(device->drive_info.serialNumber));
-        safe_memset(device->drive_info.T10_vendor_ident, sizeof(device->drive_info.T10_vendor_ident), 0,
-                    sizeof(device->drive_info.T10_vendor_ident));
-        safe_memset(device->drive_info.product_identification, sizeof(device->drive_info.product_identification), 0,
-                    sizeof(device->drive_info.product_identification));
-        safe_memset(device->drive_info.product_revision, sizeof(device->drive_info.product_revision), 0,
-                    sizeof(device->drive_info.product_revision));
+        if (0 != safe_memset(device->drive_info.serialNumber, sizeof(device->drive_info.serialNumber), 0,
+                             sizeof(device->drive_info.serialNumber)))
+            M_UNLIKELY
+            {
+                return MEMORY_FAILURE;
+            }
+        if (0 != safe_memset(device->drive_info.T10_vendor_ident, sizeof(device->drive_info.T10_vendor_ident), 0,
+                             sizeof(device->drive_info.T10_vendor_ident)))
+            M_UNLIKELY
+            {
+                return MEMORY_FAILURE;
+            }
+        if (0 != safe_memset(device->drive_info.product_identification,
+                             sizeof(device->drive_info.product_identification), 0,
+                             sizeof(device->drive_info.product_identification)))
+            M_UNLIKELY
+            {
+                return MEMORY_FAILURE;
+            }
+        if (0 != safe_memset(device->drive_info.product_revision, sizeof(device->drive_info.product_revision), 0,
+                             sizeof(device->drive_info.product_revision)))
+            M_UNLIKELY
+            {
+                return MEMORY_FAILURE;
+            }
 
         // print out peripheral device type
         scsiDevInfo->inquiryData.peripheralDeviceType = M_GETBITRANGE(inqPtr[0], 4, 0);
@@ -4223,7 +4343,11 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
         else
         {
             // Get and print T10 vendor - print warning if empty?
-            safe_memcpy(scsiDevInfo->inquiryData.vendorId, T10_VENDOR_ID_LEN + 1, &inqPtr[8], T10_VENDOR_ID_LEN);
+            if (0 != safe_memcpy(scsiDevInfo->inquiryData.vendorId, sizeof(scsiDevInfo->inquiryData.vendorId),
+                                 &inqPtr[8], T10_VENDOR_ID_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             // Check for printable and non-ASCII characters to warn that these are not supposed to be here!
             for (uint8_t iter = UINT8_C(0); iter < T10_VENDOR_ID_LEN; ++iter)
             {
@@ -4236,8 +4360,11 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
-            safe_memcpy(device->drive_info.T10_vendor_ident, T10_VENDOR_ID_LEN + 1, scsiDevInfo->inquiryData.vendorId,
-                        T10_VENDOR_ID_LEN);
+            if (0 != safe_memcpy(device->drive_info.T10_vendor_ident, sizeof(device->drive_info.T10_vendor_ident),
+                                 scsiDevInfo->inquiryData.vendorId, T10_VENDOR_ID_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             if (safe_strlen(scsiDevInfo->inquiryData.vendorId) == 0)
             {
                 set_Console_Colors(true, WARNING_COLOR);
@@ -4249,8 +4376,11 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                 printf("Got Vendor ID as %s\n", scsiDevInfo->inquiryData.vendorId);
             }
             // Get and print Product ID - print warning if empty?
-            safe_memcpy(scsiDevInfo->inquiryData.productId, INQ_DATA_PRODUCT_ID_LEN + 1, &inqPtr[16],
-                        INQ_DATA_PRODUCT_ID_LEN);
+            if (0 != safe_memcpy(scsiDevInfo->inquiryData.productId, sizeof(scsiDevInfo->inquiryData.productId),
+                                 &inqPtr[16], INQ_DATA_PRODUCT_ID_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             // Check for printable and non-ASCII characters to warn that these are not supposed to be here!
             for (uint8_t iter = UINT8_C(0); iter < INQ_DATA_PRODUCT_ID_LEN; ++iter)
             {
@@ -4263,8 +4393,12 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
-            safe_memcpy(device->drive_info.product_identification, MODEL_NUM_LEN + 1,
-                        scsiDevInfo->inquiryData.productId, INQ_DATA_PRODUCT_ID_LEN);
+            if (0 != safe_memcpy(device->drive_info.product_identification,
+                                 sizeof(device->drive_info.product_identification), scsiDevInfo->inquiryData.productId,
+                                 INQ_DATA_PRODUCT_ID_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             if (safe_strlen(scsiDevInfo->inquiryData.productId) == 0)
             {
                 set_Console_Colors(true, WARNING_COLOR);
@@ -4276,8 +4410,11 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                 printf("Got Product ID as %s\n", scsiDevInfo->inquiryData.productId);
             }
             // get and print product revision - print warning if empty?
-            safe_memcpy(scsiDevInfo->inquiryData.productRev, INQ_DATA_PRODUCT_REV_LEN + 1, &inqPtr[32],
-                        INQ_DATA_PRODUCT_REV_LEN);
+            if (0 != safe_memcpy(scsiDevInfo->inquiryData.productRev, sizeof(scsiDevInfo->inquiryData.productRev),
+                                 &inqPtr[32], INQ_DATA_PRODUCT_REV_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             // Check for printable and non-ASCII characters to warn that these are not supposed to be here!
             for (uint8_t iter = UINT8_C(0); iter < INQ_DATA_PRODUCT_REV_LEN; ++iter)
             {
@@ -4290,8 +4427,11 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
             }
-            safe_memcpy(device->drive_info.product_revision, FW_REV_LEN + 1, scsiDevInfo->inquiryData.productRev,
-                        INQ_DATA_PRODUCT_REV_LEN);
+            if (0 != safe_memcpy(device->drive_info.product_revision, sizeof(device->drive_info.product_revision),
+                                 scsiDevInfo->inquiryData.productRev, INQ_DATA_PRODUCT_REV_LEN))
+            {
+                return MEMORY_FAILURE;
+            }
             if (safe_strlen(scsiDevInfo->inquiryData.productRev) == 0)
             {
                 set_Console_Colors(true, WARNING_COLOR);
@@ -4327,9 +4467,9 @@ static eReturnValues scsi_Information(tDevice* device, ptrScsiDevInformation scs
                             {
                                 DECLARE_ZERO_INIT_ARRAY(char, versionString, MAX_VERSION_DESCRIPTOR_STRING_LENGTH);
                                 printf("\t%04" PRIX16 " - ", scsiDevInfo->inquiryData.versionDescriptors[versionIter]);
-                                decypher_SCSI_Version_Descriptors(
+                                decypher_SCSI_Version_Descriptors_Len(
                                     scsiDevInfo->inquiryData.versionDescriptors[versionIter],
-                                    C_CAST(char*, versionString));
+                                    C_CAST(char*, versionString), SIZE_OF_STACK_ARRAY(versionString));
                                 printf("%s\n", versionString);
                                 // TODO: Note when finding SAT or USB, etc to and how it's helpful to figure out what a
                                 // device supports and how to discover it.
@@ -4424,7 +4564,11 @@ static eReturnValues scsi_Capacity_Information(tDevice* device, ptrScsiDevInform
         print_str("         at least fail gracefully and report \"Invalid Operation Code\"\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
     }
-    safe_memset(readCapacityData, 32, 0, 32);
+    if (0 != safe_memset(readCapacityData, 32, 0, 32))
+        M_UNLIKELY
+        {
+            return MEMORY_FAILURE;
+        }
     if (SUCCESS == (readCap16Result = scsi_Read_Capacity_16(device, readCapacityData, 32)))
     {
         scsiDevInfo->readCapData.rc16MaxLBA =
@@ -4541,7 +4685,10 @@ static eReturnValues get_SCSI_Mode_Page_Data(
     uint32_t* dataBufferLength)
 {
     eReturnValues ret = SUCCESS;
-    safe_memset(*dataBuffer, *dataBufferLength, 0, *dataBufferLength);
+    if (0 != safe_memset(*dataBuffer, *dataBufferLength, 0, *dataBufferLength))
+    {
+        return MEMORY_FAILURE;
+    }
     if (sixByte)
     {
         ret = scsi_Mode_Sense_6(device, pageCode, C_CAST(uint8_t, M_Min(*dataBufferLength, UINT8_MAX)), subPageCode,
@@ -6756,7 +6903,7 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
             // Print out the sense data and a error
             print_str("Error in SCSI Log test-Device returned the following sense data:\n");
             senseDataFields senseData;
-            safe_memset(&senseData, sizeof(senseDataFields), 0, sizeof(senseDataFields));
+            M_INITIALIZE_STRUCTURE(&senseData, sizeof(senseDataFields));
             get_Sense_Data_Fields(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN, &senseData);
             print_Sense_Fields(&senseData);
             print_str("\n");
@@ -6940,7 +7087,7 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
     DECLARE_ZERO_INIT_ARRAY(uint8_t, scsiDataBytes, 512); // used by each command
 
     scsiStatus blah;
-    safe_memset(&blah, sizeof(scsiStatus), 0, sizeof(scsiStatus));
+    M_INITIALIZE_STRUCTURE(&blah, sizeof(scsiStatus));
     if (SUCCESS == scsi_Test_Unit_Ready(device, &blah))
     {
         scsiCmds->testUnitReady = true;
@@ -7582,7 +7729,7 @@ static eReturnValues sat_Test_Identify(tDevice* device, uint8_t* ptrData, uint32
 {
     eReturnValues         ret = UNKNOWN;
     ataPassthroughCommand identify;
-    safe_memset(&identify, sizeof(ataPassthroughCommand), 0, sizeof(ataPassthroughCommand));
+    M_INITIALIZE_STRUCTURE(&identify, sizeof(ataPassthroughCommand));
     identify.commandType              = ATA_CMD_TYPE_TASKFILE;
     identify.commandDirection         = XFER_DATA_IN;
     identify.commadProtocol           = ATA_PROTOCOL_PIO;
@@ -7940,8 +8087,10 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
         // reports. For MN, SN, FW, check for commonly broken reporting methods.
 #define PASSTHROUGH_TEST_SCSI_PROD_ID_LEN 17
         DECLARE_ZERO_INIT_ARRAY(char, scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN);
-        snprintf_err_handle(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, "%s",
-                            scsiInformation->inquiryData.productId);
+        if (0 != safe_strcpy(scsiProdID, PASSTHROUGH_TEST_SCSI_PROD_ID_LEN, scsiInformation->inquiryData.productId))
+        {
+            perror("Error copying SCSI product ID. Likely truncation");
+        }
         remove_Leading_And_Trailing_Whitespace(scsiProdID);
         if (strncmp(scsiProdID, inputs->device->drive_info.bridge_info.childDriveMN,
                     M_Min(16, safe_strlen(scsiProdID))) == 0)
@@ -7961,8 +8110,13 @@ static bool test_SAT_Capabilities(ptrPassthroughTestParams inputs, ptrScsiDevInf
                 // Most likely had the vendor+productID set as the full ATA MN
 #define PASSTHROUGH_TEST_FULL_MN_LENGTH 42
                 DECLARE_ZERO_INIT_ARRAY(char, fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH);
-                snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s",
-                                    scsiInformation->inquiryData.vendorId, scsiInformation->inquiryData.productId);
+                if (0 > snprintf_err_handle(fullMN, PASSTHROUGH_TEST_FULL_MN_LENGTH, "%s%s",
+                                            scsiInformation->inquiryData.vendorId,
+                                            scsiInformation->inquiryData.productId))
+                    M_UNLIKELY
+                    {
+                        perror("Error detecting SAT incorrect MN translation. Likely truncation");
+                    }
                 if (strncmp(fullMN, inputs->device->drive_info.bridge_info.childDriveMN,
                             M_Min(safe_strlen(fullMN),
                                   safe_strlen(inputs->device->drive_info.bridge_info.childDriveMN))) == 0)
@@ -8688,8 +8842,12 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             return SUCCESS;
         }
         // Need to clear out the hacks or incorrect results may be found since they will be used while testing.
-        safe_memset(&inputs->device->drive_info.passThroughHacks, sizeof(passthroughHacks), 0,
-                    sizeof(passthroughHacks));
+        if (0 != safe_memset(&inputs->device->drive_info.passThroughHacks, sizeof(passthroughHacks), 0,
+                             sizeof(passthroughHacks)))
+        {
+            perror("Failure to clear pass-through hacks structure.");
+            return MEMORY_FAILURE;
+        }
 
         // 2. Check what things the device reports for SCSI capabilities, SAT VPD page, etc. Emit warnings for pages
         // that are missing that were expected
@@ -8699,7 +8857,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
 
         // TODO: save information from some pages to compare later to the data retrieved through passthrough
         scsiDevInformation scsiInformation;
-        safe_memset(&scsiInformation, sizeof(scsiDevInformation), 0, sizeof(scsiDevInformation));
+        M_INITIALIZE_STRUCTURE(&scsiInformation, sizeof(scsiDevInformation));
         scsi_Information(inputs->device, &scsiInformation);
         scsi_VPD_Pages(inputs->device, &scsiInformation);
         scsi_Capacity_Information(inputs->device, &scsiInformation);
@@ -8707,7 +8865,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         // check SCSI read/write CDB support. This runs a normal test, but will check for zero-length transfers IF asked
         // to to do.
         scsiRWSupport rwSupport;
-        safe_memset(&rwSupport, sizeof(scsiRWSupport), 0, sizeof(scsiRWSupport));
+        M_INITIALIZE_STRUCTURE(&rwSupport, sizeof(scsiRWSupport));
         scsi_Read_Check(inputs->device, false, &rwSupport,
                         (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads)
                             ? true
@@ -8723,7 +8881,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         // 5. optionally do a more in depth check for additional SCSI commands like report supported operation codes
         // that would also be useful, or security protocol commands.
         otherSCSICmdSupport supScsiCmds;
-        safe_memset(&supScsiCmds, sizeof(otherSCSICmdSupport), 0, sizeof(otherSCSICmdSupport));
+        M_INITIALIZE_STRUCTURE(&supScsiCmds, sizeof(otherSCSICmdSupport));
         other_SCSI_Cmd_Support(inputs->device, &supScsiCmds);
 
         // now perform a test to check the device error handling. Some have poor error handling and time to report

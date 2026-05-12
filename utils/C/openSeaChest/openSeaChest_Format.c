@@ -245,22 +245,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FORMAT_UNIT_LONG_OPT_STRING) == 0)
             {
@@ -951,7 +963,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -1428,7 +1440,7 @@ int main(int argc, char* argv[])
             }
             if (formats)
             {
-                safe_memset(formats, memSize, 0, memSize);
+                M_INITIALIZE_STRUCTURE(formats, memSize);
                 switch (get_Supported_Formats(&deviceList[deviceIter], formats))
                 {
                 case SUCCESS:
@@ -1465,7 +1477,7 @@ int main(int argc, char* argv[])
         if (SHOW_FORMAT_STATUS_LOG_FLAG)
         {
             formatStatus formatStatusInfo;
-            safe_memset(&formatStatusInfo, sizeof(formatStatus), 0, sizeof(formatStatus));
+            M_INITIALIZE_STRUCTURE(&formatStatusInfo, sizeof(formatStatus));
             switch (get_Format_Status(&deviceList[deviceIter], &formatStatusInfo))
             {
             case SUCCESS:
@@ -1505,8 +1517,7 @@ int main(int argc, char* argv[])
                     uint16_t currentDepop   = UINT16_C(0);
                     if (elementList)
                     {
-                        safe_memset(elementList, numberOfDescriptors * sizeof(physicalElement), 0,
-                                    numberOfDescriptors * sizeof(physicalElement));
+                        M_INITIALIZE_STRUCTURE(elementList, numberOfDescriptors * sizeof(physicalElement));
                         if (SUCCESS == get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors,
                                                                           &depopElementID, &maxDepop, &currentDepop,
                                                                           elementList))
@@ -1561,7 +1572,7 @@ int main(int argc, char* argv[])
             {
                 bool                    currentBlockSize = true;
                 runFormatUnitParameters formatUnitParameters;
-                safe_memset(&formatUnitParameters, sizeof(runFormatUnitParameters), 0, sizeof(runFormatUnitParameters));
+                M_INITIALIZE_STRUCTURE(&formatUnitParameters, sizeof(runFormatUnitParameters));
                 if (FORMAT_SECTOR_SIZE)
                 {
                     currentBlockSize = false;
@@ -2043,7 +2054,7 @@ int main(int argc, char* argv[])
             if (DATA_ERASE_FLAG)
             {
                 runNVMFormatParameters nvmformatParameters;
-                safe_memset(&nvmformatParameters, sizeof(runNVMFormatParameters), 0, sizeof(runNVMFormatParameters));
+                M_INITIALIZE_STRUCTURE(&nvmformatParameters, sizeof(runNVMFormatParameters));
                 if (NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM >= 16 && NVM_FORMAT_SECTOR_SIZE_OR_FORMAT_NUM <= 512)
                 {
                     nvmformatParameters.formatNumberProvided     = false;
@@ -2184,8 +2195,7 @@ int main(int argc, char* argv[])
                     ptrLbaStatusDescriptor, safe_malloc(numberOfDescriptors * sizeof(lbaStatusDescriptor)));
                 if (descriptorList != M_NULLPTR)
                 {
-                    safe_memset(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor), 0,
-                                numberOfDescriptors * sizeof(lbaStatusDescriptor));
+                    M_INITIALIZE_STRUCTURE(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor));
                     if (SUCCESS ==
                         get_LBA_Status_Descriptors(&deviceList[deviceIter], numberOfDescriptors, descriptorList))
                     {

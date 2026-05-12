@@ -925,7 +925,7 @@ int main(int argc, char* argv[])
                     if (filenameptr && safe_strlen(filenameptr) > 1)
                     {
                         filenameptr += 1; // go past the =
-                        if (snprintf_err_handle(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, "%s", filenameptr) <= 0)
+                        if (0 != safe_strcpy(SCSI_SET_MP_FILENAME, SCSI_SET_MP_FILENAME_LEN, filenameptr))
                         {
                             print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
                             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
@@ -958,7 +958,11 @@ int main(int argc, char* argv[])
                             {
                             case 0: // page-subpage
                             {
-                                snprintf_err_handle(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, "%s", token);
+                                if (0 != safe_strcpy(pageAndSubpage, PARSE_MP_PAGE_AND_SUBPAGE_LENGTH, token))
+                                {
+                                    print_Error_In_Cmd_Line_Args(SCSI_SET_MP_LONG_OPT_STRING, optarg);
+                                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                                }
                                 // parse later outside this loop. If we tokenize again in here, we'll break the way the
                                 // parsing works... :(
                             }
@@ -1489,22 +1493,34 @@ int main(int argc, char* argv[])
             else if (strcmp(longopts[optionIndex].name, MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(MODEL_STRING_FLAG, MODEL_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 FW_MATCH_FLAG = true;
-                snprintf_err_handle(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(FW_STRING_FLAG, FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_MODEL_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_MODEL_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_MODEL_STRING_FLAG, CHILD_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             else if (strcmp(longopts[optionIndex].name, CHILD_FW_MATCH_LONG_OPT_STRING) == 0)
             {
                 CHILD_FW_MATCH_FLAG = true;
-                snprintf_err_handle(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, "%s", optarg);
+                if (0 != safe_strcpy(CHILD_FW_STRING_FLAG, CHILD_FW_MATCH_STRING_LENGTH, optarg))
+                {
+                    exit(UTIL_EXIT_NOT_ENOUGH_RESOURCES);
+                }
             }
             break;
         case ':': // missing required argument
@@ -1851,7 +1867,7 @@ int main(int argc, char* argv[])
         exit(UTIL_EXIT_OPERATION_FAILURE);
     }
     versionBlock version;
-    safe_memset(&version, sizeof(versionBlock), 0, sizeof(versionBlock));
+    M_INITIALIZE_STRUCTURE(&version, sizeof(versionBlock));
     version.version = DEVICE_BLOCK_VERSION;
     version.size    = sizeof(tDevice);
 
@@ -2290,7 +2306,7 @@ int main(int argc, char* argv[])
         if (ATA_DCO_IDENTIFY)
         {
             dcoData dco;
-            safe_memset(&dco, sizeof(dcoData), 0, sizeof(dcoData));
+            M_INITIALIZE_STRUCTURE(&dco, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
@@ -2388,7 +2404,7 @@ int main(int argc, char* argv[])
         {
             dcoData dco;
             bool    scsiAtaInSync = false;
-            safe_memset(&dco, sizeof(dcoData), 0, sizeof(dcoData));
+            M_INITIALIZE_STRUCTURE(&dco, sizeof(dcoData));
             switch (dco_Identify(&deviceList[deviceIter], &dco))
             {
             case SUCCESS:
@@ -3846,7 +3862,7 @@ int main(int argc, char* argv[])
             print_str("\nPlease switch use of PUIS options to openSeaChest_PowerControl.\n");
             print_str("These options will be removed from openSeaChest_Configure in a future release.\n");
             puisInfo info;
-            safe_memset(&info, sizeof(puisInfo), 0, sizeof(puisInfo));
+            M_INITIALIZE_STRUCTURE(&info, sizeof(puisInfo));
             eReturnValues puisInfoRet = get_PUIS_Info(&deviceList[deviceIter], &info);
             if (PUIS_FEATURE_SPINUP_FLAG)
             {
@@ -4474,8 +4490,11 @@ int main(int argc, char* argv[])
                             {
                                 // Before going too far, clear the block descriptor to zeroes to make sure we are
                                 // clearly communicating that no changes are requested.
-                                safe_memset(&rawmodePageBuffer[modeHeaderLen], rawModePageSize - modeHeaderLen, 0,
-                                            blockDescriptorLength);
+                                if (0 != safe_memset(&rawmodePageBuffer[modeHeaderLen], rawModePageSize - modeHeaderLen,
+                                                     0, blockDescriptorLength))
+                                {
+                                    perror("Error setting block descriptor to zeroes");
+                                }
                             }
                             // now we have the data, we can begin modifying the field requested.
                             if (SCSI_SET_MP_FIELD_LEN_BITS % BITSPERBYTE)
@@ -4641,7 +4660,7 @@ int main(int argc, char* argv[])
         if (WRV_INFO)
         {
             wrvInfo info;
-            safe_memset(&info, sizeof(wrvInfo), 0, sizeof(wrvInfo));
+            M_INITIALIZE_STRUCTURE(&info, sizeof(wrvInfo));
             switch (get_Write_Read_Verify_Info(&deviceList[deviceIter], &info))
             {
             case SUCCESS:
