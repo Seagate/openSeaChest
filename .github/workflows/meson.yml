@@ -296,16 +296,16 @@ jobs:
             vm_arch: "x86_64",
           }
         - {
-            name: "VMActions FreeBSD 14.3 Build (x86_64)",
+            name: "VMActions FreeBSD 14.4 Build (x86_64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
             publish_release: true,
-            release_name: "freebsd_14_3-x86_64",
+            release_name: "freebsd_14_4-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
             vm_actions: true,
-            vm_release: "14.3",
+            vm_release: "14.4",
             vm_arch: "x86_64",
           }
         - {
@@ -335,16 +335,16 @@ jobs:
             vm_arch: "aarch64",
           }
         - {
-            name: "VMActions FreeBSD 14.3 Build (aarch64)",
+            name: "VMActions FreeBSD 14.4 Build (aarch64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
             publish_release: true,
-            release_name: "freebsd_14_3-aarch64",
+            release_name: "freebsd_14_4-aarch64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
             vm_actions: true,
-            vm_release: "14.3",
+            vm_release: "14.4",
             vm_arch: "aarch64",
           }
         - {
@@ -376,16 +376,16 @@ jobs:
         #     vm_arch: "riscv64",
         #   }
         # - {
-        #     name: "VMActions FreeBSD 14.3 Build (riscv64)",
+        #     name: "VMActions FreeBSD 14.4 Build (riscv64)",
         #     os: ubuntu-latest,
         #     cc: "",
         #     cxx: "",
         #     publish_release: true,
-        #     release_name: "freebsd_14_3-riscv64",
+        #     release_name: "freebsd_14_4-riscv64",
         #     release_extension: ".tar.xz",
         #     archive_command: "tar cvfJ",
         #     vm_actions: true,
-        #     vm_release: "14.3",
+        #     vm_release: "14.4",
         #     vm_arch: "riscv64",
         #   }
         # - {
@@ -750,6 +750,7 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
@@ -771,6 +772,8 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
@@ -793,11 +796,10 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
-
-          ntpdate -u pool.ntp.org
 
         run: |
           pkg install --accept developer/build/meson
@@ -814,11 +816,10 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           pkg update || true
           pkg install -y curl
-          pkg install -y ntp
-          ntpdate -u pool.ntp.org
 
         run: |
           pkg install -y meson
@@ -835,10 +836,10 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           pkg update || true
           pkg install -y socat
-          /usr/sbin/dntpd -s
 
         run: |
           pkg install -y meson
@@ -855,11 +856,9 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           pkg_add curl
-
-          # force a sync in the VM
-          ntpctl -s status || true
 
 
         run: |
@@ -877,12 +876,9 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
         disable-cache: true
+        sync-time: true
         prepare: |
           /usr/sbin/pkg_add curl
-          /usr/sbin/pkg_add ntp
-
-          # Removed for now because this crashes from errors in a config file for unknown reasons.
-          # /usr/pkg/sbin/ntpd -gq
 
         run: |
           /usr/sbin/pkg_add meson
