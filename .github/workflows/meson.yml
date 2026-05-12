@@ -749,6 +749,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
@@ -791,6 +792,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
@@ -811,6 +813,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           pkg update || true
           pkg install -y curl
@@ -831,6 +834,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           pkg update || true
           pkg install -y socat
@@ -850,6 +854,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           pkg_add curl
 
@@ -871,6 +876,7 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
         prepare: |
           /usr/sbin/pkg_add curl
           /usr/sbin/pkg_add ntp
