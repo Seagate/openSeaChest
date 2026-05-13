@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2021-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
-project('openSeaChest', 'c', version: 'v26.03.1', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+project('openSeaChest', 'c', version: 'v26.03.2', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
 
 c = meson.get_compiler('c')
 
@@ -480,13 +480,13 @@ if get_option('json_outputformat')
             message('pkg-config not available for json-c, trying find_library + header check')
             # Step 2: Try find_library + has_header
             jsonc_lib = c.find_library('json-c', required: false)
-            
+
             if jsonc_lib.found()
                 message('Found json-c library, checking for headers...')
                 # Check common header locations explicitly
                 has_json_headers = c.has_header('json-c/json_object.h', required: false) or \
                                    c.has_header('json_object.h', required: false)
-                
+
                 if has_json_headers
                     message('Found system json-c library and headers')
                     jsonc_dep = declare_dependency(

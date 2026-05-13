@@ -1,6 +1,18 @@
 ===============
 Version History - openSeaChest_NVMe
 ===============
+v26.03.2  13-May-2026  Fix for 32bit platforms for reading SCSI defect list. Previous fixes covered 64bit
+                       systems, but did not fully resolve 32bit platform issues.
+                       Added additional bounds checks for SAS firmware download capability detection,
+                       improved overflow checking when reading physical element status (HDD head health),
+                       added bounds checks when reading raw GPT partition information to prevent overflow
+                       if more than 31.5 million partitions exist in the table, added bounds checks when
+                       reading Set Max LBA model number and capacity descriptor lists to prevent overflow
+                       if an abnormally large descriptor count is reported, and added maximum bounds checks
+                       when iterating over SCSI log pages, subpages, and VPD page lists. A device returning
+                       a malformed or oversized length value in any of these paths could cause a loop
+                       counter to wrap and in at least one case produce an infinite loop. None of these
+                       conditions are reachable with real, spec-compliant hardware.
 v26.03.1  04-Apr-2026  Fix out or bounds read when reading Linux OS information in --version.
                        Fix possible out of bounds issue reading SCSI defect list for extremely
                        large defect lists. Unconfirmed if this access occurs in v26.03.0 due to
