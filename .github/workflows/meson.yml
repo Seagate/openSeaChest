@@ -858,6 +858,7 @@ jobs:
         disable-cache: true
         sync-time: true
         prepare: |
+          pkg_add -u || true
           pkg_add curl
 
 
@@ -878,6 +879,7 @@ jobs:
         disable-cache: true
         sync-time: true
         prepare: |
+          /usr/sbin/pkg_add -u || true
           /usr/sbin/pkg_add curl
 
         run: |
