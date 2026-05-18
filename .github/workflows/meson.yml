@@ -879,8 +879,6 @@ jobs:
         disable-cache: true
         sync-time: true
         prepare: |
-          export PKG_PATH="https://cdn.NetBSD.org/pub/pkgsrc/packages/$(uname -m)/$(uname -r)/All"
-
           /usr/sbin/pkg_add pkgin || true
           /usr/sbin/pkgin update
           /usr/sbin/pkgin upgrade -y
