@@ -464,16 +464,30 @@ if get_option('json_outputformat')
     message('json_outputformat=true: Build opensea_jsonformat')
     add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
 
+    force_fallback = false
+    if host_machine.system() == 'sunos'
+        if meson.version().version_compare('>=1.2.0')
+            if target_machine.kernel() != 'illumos'
+            force_fallback = true
+            endif
+        else
+            # Need a different way to decide illumos detection here.
+            force_fallback = true
+        endif
+    endif
+
     # Simplify json-c dependency with fallback
     jsonc_dep = dependency('json-c',
+        required = true,
         fallback: ['json-c', 'jsonc_dep'],
+        method: force_fallback ? 'fallback' : 'auto',
         default_options: [
                     'default_library=static',
                     'build_apps=false',
                     'disable_extra_libs=true',
                     'disable_json_pointer=false',
                     'disable_json_patch=false',
-                ],
+                ]
     )
 
     # Now that json-c is set up, build opensea-jsonformat subproject
