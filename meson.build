@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2021-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
-project('openSeaChest', 'c', version: 'v26.03.2', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true', 'buildtype=release'])
+project(
+    'openSeaChest',
+    'c',
+    version: 'v26.03.2',
+    license: 'MPL-2.0',
+    default_options: ['warning_level=2', 'b_pie=true', 'buildtype=release'],
+)
 
 c = meson.get_compiler('c')
 
@@ -19,7 +25,7 @@ if get_option('libc_musl')
 endif
 # Add JSON format support flag if enabled
 if get_option('json_outputformat')
-  add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language: 'c')
 endif
 warning_flags = []
 linker_flags = []  #additional linker flags to add per-compiler for hardening.
@@ -106,7 +112,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wcalloc-transposed-args',
         '-Werror=alloca',  # Do not allow use of the alloca function
         '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
-        '-Wfortify-source' # needed for diagnose_as_builtin attributes to work.
+        '-Wfortify-source',  # needed for diagnose_as_builtin attributes to work.
     ]
 
     if get_option('cc-suggest-attribute')
@@ -294,7 +300,14 @@ else
     # Probably in Windows, so check for powershell and try to get the environment variable from there
     powershell = find_program('pwsh', 'powershell', required: false)
     if powershell.found()
-        env_cmd = run_command(powershell, '-NoProfile', '-NonInteractive', '-Command', '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")', check: false)
+        env_cmd = run_command(
+            powershell,
+            '-NoProfile',
+            '-NonInteractive',
+            '-Command',
+            '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")',
+            check: false,
+        )
         if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
             source_epoch = env_cmd.stdout().strip()
         endif
@@ -329,10 +342,7 @@ if source_epoch != ''
     # Try Python first (most reliable, handles formatting consistently)
     python = find_program('python3', 'python', required: false)
     if python.found()
-        py_script = 'import datetime; ' + \
-                    'ts = int(' + source_epoch + '); ' + \
-                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + \
-                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
+        py_script = 'import datetime; ' + 'ts = int(' + source_epoch + '); ' + 'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + 'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
 
         date_cmd = run_command(python, '-c', py_script, check: false)
         if date_cmd.returncode() == 0
@@ -462,33 +472,50 @@ opensea_jsonformat_dep = disabler()
 
 if get_option('json_outputformat')
     message('json_outputformat=true: Build opensea_jsonformat')
-    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language: 'c')
 
-    fallback_method = 'auto'
+    force_jsonc_wrap = false
+
     if host_machine.system() == 'sunos'
         if meson.version().version_compare('>=1.2.0')
             if target_machine.kernel() != 'illumos'
-            fallback_method = 'fallback'
+                force_jsonc_wrap = true
             endif
         else
             # Need a different way to decide illumos detection here.
-            fallback_method = 'fallback'
+            force_jsonc_wrap = true
         endif
     endif
 
-    # Simplify json-c dependency with fallback
-    jsonc_dep = dependency('json-c',
-        required: true,
-        fallback: ['json-c', 'jsonc_dep'],
-        method: fallback_method,
-        default_options: [
-                    'default_library=static',
-                    'build_apps=false',
-                    'disable_extra_libs=true',
-                    'disable_json_pointer=false',
-                    'disable_json_patch=false',
-                ]
-    )
+    if force_jsonc_wrap
+        # Force subproject on Solaris
+        jsonc_proj = subproject(
+            'json-c',
+            default_options: [
+                'default_library=static',
+                'build_apps=false',
+                'disable_extra_libs=true',
+                'disable_json_pointer=false',
+                'disable_json_patch=false',
+            ],
+        )
+        jsonc_dep = jsonc_proj.get_variable('jsonc_dep')
+
+    else
+        # Simplify json-c dependency with fallback
+        jsonc_dep = dependency(
+            'json-c',
+            required: true,
+            fallback: ['json-c', 'jsonc_dep'],
+            default_options: [
+                'default_library=static',
+                'build_apps=false',
+                'disable_extra_libs=true',
+                'disable_json_pointer=false',
+                'disable_json_patch=false',
+            ],
+        )
+    endif
 
     # Now that json-c is set up, build opensea-jsonformat subproject
     # Pass BUILD_TIMESTAMP to opensea-jsonformat for reproducible builds
@@ -497,9 +524,7 @@ if get_option('json_outputformat')
         jsonformat_options += 'build_timestamp=' + formatted_date
     endif
 
-    opensea_jsonformat = subproject('opensea-jsonformat',
-        default_options: jsonformat_options
-    )
+    opensea_jsonformat = subproject('opensea-jsonformat', default_options: jsonformat_options)
     opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 endif
 
