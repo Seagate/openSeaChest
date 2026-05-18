@@ -880,8 +880,8 @@ jobs:
         sync-time: true
         prepare: |
           /usr/sbin/pkg_add pkgin || true
-          /usr/sbin/pkgin update
-          /usr/sbin/pkgin upgrade -y
+          /usr/pkg/bin/pkgin update
+          /usr/pkg/bin/pkgin upgrade -y
           
           /usr/sbin/pkg_add curl || true
 
