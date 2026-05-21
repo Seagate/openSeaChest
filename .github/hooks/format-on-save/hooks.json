@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": ".github/hooks/format-on-save/format-on-save.sh",
+        "cwd": ".",
+        "env": {
+          "FORMAT_EXTENSIONS": "c:h:cpp:hpp:cc:cxx"
+        },
+        "timeoutSec": 15
+      }
+    ]
+  }
+}

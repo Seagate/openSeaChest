@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Doxygen Documentation
+
+permissions: {}
+
+on:
+  push:
+    branches: [ develop, master ]
+    tags: [ v* ]
+  workflow_dispatch: # allow manual trigger from the Actions tab
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop' }}
+
+jobs:
+  build-docs:
+    name: Generate Doxygen HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    outputs:
+      warning_count: ${{ steps.count_warnings.outputs.count }}
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Doxygen and Graphviz
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends doxygen graphviz
+
+      - name: Print versions
+        run: |
+          doxygen --version
+          dot -V
+
+      - name: Generate documentation
+        run: doxygen Doxyfile
+        # Doxygen exits non-zero only on fatal errors.
+        # Warning-based failure is handled separately below.
+
+      - name: Count documentation warnings
+        id: count_warnings
+        run: |
+          count=0
+          if [ -f doxygen_warnings.txt ]; then
+            count=$(wc -l < doxygen_warnings.txt)
+          fi
+          echo "count=${count}" >> "$GITHUB_OUTPUT"
+          echo "Doxygen produced ${count} warning(s)."
+
+      - name: Print documentation warnings
+        if: ${{ steps.count_warnings.outputs.count != '0' }}
+        run: |
+          echo "::warning::Doxygen produced ${{ steps.count_warnings.outputs.count }} warning(s)."
+          cat doxygen_warnings.txt | while IFS= read -r line; do
+            echo "::warning::${line}"
+          done
+
+      - name: Upload documentation artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/doxygen/html
+
+  deploy-pages:
+    name: Publish to GitHub Pages
+    needs: build-docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Only deploy on pushes to develop/master or version tags — not on PRs or feature branches
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.ref == 'refs/heads/develop' ||
+      github.ref == 'refs/heads/master' ||
+      startsWith(github.ref, 'refs/tags/v')
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write # required by actions/deploy-pages
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

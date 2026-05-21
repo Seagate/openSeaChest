@@ -116,8 +116,15 @@ When writing device code, always consider:
 
 - **C Standards**: All C code must work with C99/C11 and later standards
 - **C++ Usage**: Use C++ only where explicitly required
-- **Formatting**: Use .clang-format file for formatting rules
+- **Formatting**: Allman brace style, Microsoft base, pointer-left, aligned assignments/macros — see `.github/instructions/clang-format.instructions.md` and the `.clang-format` file
+- **Static Analysis**: clang-tidy with `cert-*`, `bugprone-*`, `clang-analyzer-*`, `modernize-*`, `misc-*` — see `.github/instructions/clang-tidy.instructions.md` and the `.clang-tidy` file
 - **Style Guide**: See CONTRIBUTING.md for detailed coding conventions
+- **Compiler Hardening**: OpenSSF-aligned flags active in `meson.build` — see `.github/instructions/openssf-compiler-hardening.instructions.md`
+- **Compiler Annotations**: Portable attribute macros in `code_attributes.h` — see `.github/instructions/openssf-compiler-annotations.instructions.md`
+- **Secure Development**: OpenSSF secure coding and memory safety practices — see `.github/instructions/openssf-secure-development.instructions.md`
+- **C Coding Mistakes**: Project-specific safe_ patterns, memory, integer overflow, casts — see `.github/instructions/c-secure-coding.instructions.md`
+- **Regex Safety**: Anchoring, ReDoS prevention, and POSIX API rules — see `.github/instructions/regex-security.instructions.md`
+- **SCM / Repository Security**: Branch protection, workflow permissions, secrets — see `.github/instructions/github-scm.instructions.md`
 
 ## opensea-common Safe Functions (ALWAYS USE THESE)
 
@@ -138,15 +145,15 @@ safe_free(&pointer);  // Generic macro, auto-selects correct type helper
 // safe_free_char, safe_free_uchar, safe_free_int, safe_free_uint, etc.
 
 // Aligned memory allocation
-void* safe_aligned_malloc(size_t alignment, size_t size);
-void* safe_aligned_calloc(size_t alignment, size_t count, size_t size);
-void* safe_aligned_realloc(void* block, size_t alignment, size_t size);
+void* safe_malloc_aligned(size_t size, size_t alignment);
+void* safe_calloc_aligned(size_t count, size_t size, size_t alignment);
+void* safe_realloc_aligned(void* block, size_t originalSize, size_t size, size_t alignment);
 safe_free_aligned(&pointer);
 
 // Page-aligned memory allocation
-void* safe_page_aligned_malloc(size_t size);
-void* safe_page_aligned_calloc(size_t count, size_t size);
-void* safe_page_aligned_realloc(void* block, size_t size);
+void* safe_malloc_page_aligned(size_t size);
+void* safe_calloc_page_aligned(size_t count, size_t size);
+// No page-aligned realloc variant exists
 safe_free_page_aligned(&pointer);
 ```
 
@@ -185,7 +192,7 @@ errno_t safe_memmove(void* dest, rsize_t destsz, const void* src, rsize_t count)
 int safe_memcmp(const void* s1, rsize_t s1max, const void* s2, rsize_t s2max, rsize_t n);
 
 // Secure zero (prevents compiler optimization, ensures data is wiped)
-errno_t secure_memzero(void* dest, rsize_t destsz);
+void* explicit_zeroes(void* dest, size_t count);
 ```
 
 ### String to Number Conversion (ALWAYS use instead of strtol/atoi/etc.):
@@ -516,29 +523,43 @@ Key security practices:
 - Validate all inputs, especially from command-line arguments
 - Check bounds before array/buffer access
 - Prevent integer overflows in size calculations
-- Use secure_memzero() for sensitive data (prevents compiler optimization)
+- Use explicit_zeroes() for sensitive data (prevents compiler optimization)
 - Handle errors from all operations
 - Follow principle of least privilege
 
 ## Documentation Standards
 
-- **Comment Style**: Use doxygen-style comments for all public functions
-- **Function Documentation**: Include purpose, parameters, return values, and notes
+- **Style and Tags**: Full Doxygen conventions are in `.github/instructions/doxygen.instructions.md` — follow those rules for all new and updated documentation
+- **Comment Style**: `//!` Qt-style throughout; `//!<` for struct/enum member trailing docs; backslash (`\`) for all commands
+- **Required tags**: `\file` (file block), `\brief` (every public symbol), `\param[in/out/in,out]` (all parameters), `\retval` (every distinct return code), `\code{.c}` example (all public API functions)
+- **Conditional tags**: `\pre`/`\post` for ordering/state requirements, `\warning` for destructive operations, `\attention` for platform/USB quirks, `\par Platform:` for OS-specific behaviour, `\deprecated` with migration note, `\todo` for known gaps
 - **Code Comments**: Explain WHY, not WHAT (code should be self-documenting)
-- **Complex Logic**: Document algorithms, especially non-obvious optimizations
 
-Example:
-```c
-//! \fn int my_function(tDevice* device, uint32_t value)
-//! \brief Performs operation X on the device
-//! \param device pointer to device structure
-//! \param value input value for operation
-//! \return SUCCESS on success, FAILURE on error, NOT_SUPPORTED if device doesn't support operation
-int my_function(tDevice* device, uint32_t value)
-{
-    // Implementation
-}
-```
+## Copilot Customizations
+
+This repository ships several custom skills and lifecycle hooks for GitHub Copilot.
+
+### Available Skills
+
+Invoke skills by describing a task that matches their domain; Copilot will load them automatically via the `.github/skills/` entries.
+
+| Skill | When to use |
+|-------|-------------|
+| **codeql** | Setting up or configuring CodeQL scanning (GitHub Actions workflow, CLI, SARIF output, C/C++ `c-cpp` language identifier). |
+| **dependabot** | Creating or tuning `dependabot.yml` — ecosystem config, grouped updates, cooldown periods, `gitsubmodule` support. |
+| **git-flow-branch-creator** | Create a correctly named Git Flow branch (feature/, bugfix/, hotfix/, release/) from current git status or a description. |
+| **refactor** | Improving code structure without changing behaviour: extracting methods, eliminating code smells, applying design patterns. |
+| **refactor-method-complexity-reduce** | Reducing cognitive complexity of a specific method by extracting helpers. Provide the method name and target threshold. |
+| **security-review** | Full STRIDE-based security scan of the codebase or a file: injection, auth, crypto, secrets, data flow analysis. |
+| **write-coding-standards-from-file** | Generate a coding standards document by analysing one or more source files or a folder. Pass `.clang-format`, `.clang-tidy`, or any source file as `fileName`. |
+
+### Active Hooks
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| **tool-guardian** | `preToolUse` (block mode) | Intercepts every tool call and blocks ~20 dangerous patterns: `rm -rf /`, `git push --force`, `git reset --hard`, `curl \| bash`, `chmod 777`, database drops, etc. |
+| **secrets-scanner** | `sessionEnd` (warn mode, diff scope) | Scans modified files for leaked credentials (AWS keys, GitHub PATs, private keys, connection strings, etc.) before the session closes. |
+| **format-on-save** | `postToolUse` (passive) | Runs `clang-format --style=file -i` on every `.c`/`.h`/`.cpp`/`.hpp` file after a successful write. Silently skips if `clang-format` is not in PATH. |
 
 ## Additional Documentation References
 
