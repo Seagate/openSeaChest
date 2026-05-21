@@ -183,7 +183,7 @@ Pick the protocol that matches the actual data transfer mechanism the command us
 | PIO in | `ATA_PROTOCOL_PIO` | PIO data-in (IDENTIFY DEVICE, PIO READ SECTORS, SMART READ DATA) |
 | PIO out | `ATA_PROTOCOL_PIO` | PIO data-out (SMART WRITE LOG, DOWNLOAD MICROCODE via PIO) |
 | DMA | `ATA_PROTOCOL_DMA` | DMA data transfer (READ DMA EXT, WRITE DMA EXT) |
-| DMA queued | `ATA_PROTOCOL_DMA_QUE` | TCQ (legacy) |
+| DMA queued | `ATA_PROTOCOL_DMA_QUE` | TCQ (legacy) — defined in early SAT revisions but later changed to reserved because PATA TCQ saw virtually no real-world adoption. Only IBM is believed to have ever shipped a device that used this protocol. Do not use `ATA_PROTOCOL_DMA_QUE` in new code. |
 | FPDMA / NCQ | `ATA_PROTOCOL_DMA_FPDMA` | All NCQ commands — READ/WRITE FPDMA QUEUED **and** ncq-nondata variants. SAT uses the term "NCQ" for this protocol. Some specs label new NCQ commands as "DMA" — verify the protocol before adding new NCQ commands. Transfer length is in the Feature register (not SectorCount) due to a historical workaround: early PATA controllers ignored the extended SectorCount field but honored Feature, so NCQ reused Feature to stay compatible with those controllers. |
 | Packet | `ATA_PROTOCOL_PACKET` | ATAPI commands |
 | Hard reset | `ATA_PROTOCOL_HARD_RESET` | Hardware reset |
@@ -256,6 +256,47 @@ When an ATA device is connected through a SCSI bridge (SAS-to-SATA expander, USB
 
 **Rule**: Do not call SAT helper functions directly from command-builder code. `ata_Passthrough_Command` dispatches to SAT automatically when the device interface requires it.
 
+### SAT T_LENGTH Field and TPSIU
+
+The SAT CDB contains a `T_LENGTH` field (bits [1:0]) that tells the SATL how to determine the data transfer length. Understanding these values matters when debugging unexpected SAT CDB construction or when adding a command that uses a non-standard transfer size encoding:
+
+| T_LENGTH | Meaning | Typical commands |
+|----------|---------|----------------|
+| 0 | Non-data — nothing to transfer | Non-data commands (SET FEATURES, FLUSH CACHE, etc.) |
+| 1 | Sector count register — length is (sector count) × logical sector size, or × 512 for non-LBA commands | Most PIO and DMA commands |
+| 2 | Features register — length is (Features value) × 512 | NCQ/FPDMA commands; also TRUSTED SEND/RECEIVE and DOWNLOAD MICROCODE in extended mode |
+| 3 | **TPSIU** ("Transport Protocol Specific Information Unit") — find the length in a transport-layer-specific location | Some USB bridges; SECURITY SEND/RECEIVE; DOWNLOAD MICROCODE; READ LONG/WRITE LONG |
+
+**TPSIU** is an extremely generic encoding: it instructs the bridge to read the transfer length from the transport packet itself rather than deriving it from any TFR field. Only three scenarios require TPSIU in this codebase:
+
+1. **Some USB bridge chips** cannot handle standard T_LENGTH=1/2 encoding and require TPSIU to function correctly. The `alwaysUseTPSIUForSATPassthrough` flag in `passThroughHacks` enables this globally for a device. It is set during the `initial_Identify_Device()` retry sequence (see below) when all other corrections have failed.
+2. **SECURITY SEND / SECURITY RECEIVE** (ATA TRUSTED SEND / TRUSTED RECEIVE) — TCG security protocol commands use TPSIU because the transfer length is encoded in the security protocol payload, not in the standard TFR registers.
+3. **DOWNLOAD MICROCODE** — ATA firmware download uses TPSIU for analogous reasons.
+
+**28-bit sector count overflow caveat** (cases 2 and 3): in 28-bit mode the sector count register is only 8 bits wide. If the transfer length exceeds 255 sectors (128 KiB), the overflow must be read from a separate LBA register instead. This is a non-obvious quirk unique to these two commands. Keeping transfer lengths below 256 sectors avoids the issue entirely; real-world TRUSTED SEND/RECEIVE and DOWNLOAD MICROCODE transactions virtually never exceed this limit.
+
+READ LONG / WRITE LONG use their own special T_LENGTH mode distinct from the four table entries above — they transfer exactly one logical block plus ECC bytes, a size not derivable from any sector count field. Special handling for these commands is already implemented.
+
+### `initial_Identify_Device()` — Baseline of SAT Hacks
+
+`initial_Identify_Device()` in `ata_helper.c` (static, lines 1908–2007) is the canonical implementation of the retry-with-workaround strategy for initial ATA Identify Device. Its comment reads: *"This function attempts numerous workarounds to get working identify data (to work around SAT issues)."* It is the primary reference point when investigating USB passthrough compatibility for a new or unknown device.
+
+**Setup**: for ATAPI, optical, and tape devices where no hacks have been set by VID/PID lookup, `a1NeverSupported = true` is forced before the first attempt to prevent the A1h 12-byte CDB from being issued to those devices.
+
+**Retry sequence** (applied only when `hacksSetByReportedID` is false, i.e. the device is not in the VID/PID table):
+
+*On INVALID FIELD IN CDB* (opcode accepted, but a field in the CDB was rejected) — three corrections tried in order:
+1. Disable check condition (`alwaysCheckConditionAvailable = false`) → retry
+2. Set `a1NeverSupported = true` — switches from 12-byte A1h to 16-byte 85h SAT CDB → retry
+3. Set `alwaysUseTPSIUForSATPassthrough = true` — enables TPSIU T_LENGTH encoding → retry
+
+*On INVALID COMMAND OPERATION CODE* (the opcode itself was rejected):
+1. Set `a1NeverSupported = true` (A1h → 85h) → retry
+2. If USB interface: disable check condition → retry
+3. If `retryWithJMicronPT` was set during enumeration: switch to `ATA_PASSTHROUGH_JMICRON` → retry
+
+`scsi_Test_Unit_Ready()` is issued between every retry attempt (except on IDE interface) to clear error-throttling state in the adapter (cf. TURF). **SAS HBAs** succeed on the very first `get_Identify_Data()` call with no retries — the retry paths are a USB/SATL compatibility mechanism only. When `hacksSetByReportedID` is true (VID/PID table hit), only the JMicron PT retry path is considered; all other hacks are pre-populated correctly from the table.
+
 ---
 
 ## Common Patterns and Pitfalls
@@ -304,6 +345,253 @@ Check `device->drive_info.ata_Options.fourtyEightBitAddressFeatureSetSupported` 
 
 ### `ataTransferBlocks` — 512B vs. logical sector size
 
+This field controls whether the SAT CDB uses a 512-byte sector as the unit for `T_LENGTH` (legacy default) or the device's reported logical sector size (needed for 4K-native / 4Kn devices). Set `ataTransferBlocks = XFER_NO_DATA` for non-data commands. For data-bearing commands on 4Kn devices, the transport layer sets this automatically when it knows the device's logical sector size — do not override it in command-builder code unless you have a specific reason.
+
+---
+
+## SAT ATA PASS-THROUGH CDB Reference (SAT-5 §12.2.2)
+
+The following tables are from SAT-5 (INCITS 557 Revision 10, January 2022). This is the authoritative specification for how ATA commands are tunneled through SCSI interfaces. Three CDB variants exist:
+
+- **A1h** — ATA PASS-THROUGH (12): 28-bit commands only
+- **85h** — ATA PASS-THROUGH (16): 28-bit or 48-bit (controlled by EXTEND bit)
+- **7Fh / service action 1FF0h** — ATA PASS-THROUGH (32): 48-bit with ICC and AUXILIARY registers
+
+### ATA PASS-THROUGH (12) — Opcode A1h
+
+```
+Byte  7      6      5      4      3      2      1      0
+  0   OPERATION CODE (A1h)
+  1   Obs.   ┌── PROTOCOL (4 bits) ──┐   Reserved
+  2   OFF_LINE(3)  CK_COND  T_TYPE  T_DIR  BYTE_BLOCK  T_LENGTH(2)
+  3   FEATURES (7:0)
+  4   COUNT (7:0)
+  5   LBA (7:0)
+  6   LBA (15:8)
+  7   LBA (23:16)
+  8   DEVICE
+  9   COMMAND
+ 10   Reserved
+ 11   CONTROL
+```
+
+Limitations: 28-bit LBA only; no EXTEND bit; no FEATURES/COUNT high bytes; no ICC/AUXILIARY.
+
+### ATA PASS-THROUGH (16) — Opcode 85h
+
+```
+Byte  7      6      5      4      3      2      1      0
+  0   OPERATION CODE (85h)
+  1   Obs.   ┌── PROTOCOL (4 bits) ──┐   EXTEND
+  2   OFF_LINE(3)  CK_COND  T_TYPE  T_DIR  BYTE_BLOCK  T_LENGTH(2)
+  3   FEATURES (15:8)           ← high byte; ignored when EXTEND=0
+  4   FEATURES (7:0)
+  5   COUNT (15:8)              ← high byte; ignored when EXTEND=0
+  6   COUNT (7:0)
+  7   LBA (31:24)               ← ignored when EXTEND=0
+  8   LBA (7:0)
+  9   LBA (39:32)               ← ignored when EXTEND=0
+ 10   LBA (15:8)
+ 11   LBA (47:40)               ← ignored when EXTEND=0
+ 12   LBA (23:16)
+ 13   DEVICE
+ 14   COMMAND
+ 15   CONTROL
+```
+
+**EXTEND=0**: Behaves identically to ATA PASS-THROUGH (12); high bytes and extended LBA fields are ignored.  
+**EXTEND=1**: 48-bit extended taskfile; high bytes of FEATURES, COUNT, and all 48 bits of LBA are valid.
+
+> **Byte ordering note**: LBA bytes are interleaved in an unusual pattern — bytes 7/8 are LBA[31:24]/LBA[7:0], bytes 9/10 are LBA[39:32]/LBA[15:8], bytes 11/12 are LBA[47:40]/LBA[23:16]. This non-sequential interleaving is intentional in the spec and must be reproduced exactly.
+
+### ATA PASS-THROUGH (32) — Opcode 7Fh, Service Action 1FF0h
+
+```
+Byte  7      6      5      4      3      2      1      0
+  0   OPERATION CODE (7Fh)
+  1   CONTROL
+  2 - 6   Reserved
+  7   ADDITIONAL CDB LENGTH (18h)
+  8   SERVICE ACTION (MSB = 1Fh)
+  9   SERVICE ACTION (LSB = F0h)  ← combined: 1FF0h
+ 10   Reserved  ┌── PROTOCOL (4) ──┐   EXTEND
+ 11   OFF_LINE(3)  CK_COND  T_TYPE  T_DIR  BYTE_BLOCK  T_LENGTH(2)
+ 12   Reserved
+ 13   Reserved
+ 14   LBA (47:40)
+ 15   LBA (39:32)
+ 16   LBA (31:24)
+ 17   LBA (23:16)
+ 18   LBA (15:8)
+ 19   LBA (7:0)
+ 20   FEATURES (15:8)
+ 21   FEATURES (7:0)
+ 22   COUNT (15:8)
+ 23   COUNT (7:0)
+ 24   DEVICE
+ 25   COMMAND
+ 26   Reserved
+ 27   Reserved
+ 28   ICC (7:0)
+ 29   AUXILIARY (31:24)
+ 30   AUXILIARY (23:16)
+ 31   AUXILIARY (15:8)
+    --- (32nd byte completes the 32-byte CDB)
+    AUXILIARY (7:0)
+```
+
+Unlike (16), LBA bytes are in descending order (47:40 first, 7:0 last) — sequential and easier to fill. ICC and AUXILIARY registers are only present here; ATA PASS-THROUGH (16) zeros them. Only issue (32) when `ATA_CMD_TYPE_COMPLETE_TASKFILE` is needed.
+
+### PROTOCOL Field Values (shared by all three CDB variants)
+
+| Code | Protocol | Notes |
+|------|----------|-------|
+| 0h | Hardware Reset | COMRESET (SATA) or RST- assert (PATA); only PROTOCOL and OFF_LINE valid |
+| 1h | Software Reset | ATA software reset; only PROTOCOL and OFF_LINE valid |
+| 2h | Reserved | — |
+| 3h | Non-Data | No data transfer |
+| 4h | PIO Data-In | Device→host; verify T_DIR=1 |
+| 5h | PIO Data-Out | Host→device; verify T_DIR=0 |
+| 6h | DMA | |
+| 7h | Reserved | — |
+| 8h | Execute Device Diagnostic | |
+| 9h | Device Reset | Non-data; device reset |
+| Ah | UDMA Data In | |
+| Bh | UDMA Data Out | |
+| Ch | NCQ / FPDMA | NCQ commands (READ/WRITE FPDMA QUEUED, NCQ non-data) |
+| Dh-Eh | Reserved | — |
+| Fh | Return Response Information | Read current shadow TFRs without issuing a command; returns ATA Status Return Descriptor |
+
+Protocols 0h–Bh match ATA8-AAM definitions. If PROTOCOL does not match the command type, the SATL may lose communication with the device — the spec does not define recovery behavior.
+
+### Control/Status Fields (shared by all three variants)
+
+| Field | Width | Meaning |
+|-------|-------|---------|
+| `OFF_LINE` | 3 bits | Seconds the ATA STATUS may be invalid after command: 0→0s, 1→2s, 2→6s, 3→14s. PATA-specific; needed for commands that put the bus in an indeterminate state. Set to 0 for all SATA commands. |
+| `CK_COND` | 1 bit | If set, SATL always returns CHECK CONDITION with ATA Status Return Descriptor on completion, even on success. Used by the RTFR retrieval path. |
+| `T_TYPE` | 1 bit | 0 = transfer count is in 512B blocks; 1 = transfer count is in logical sector size blocks. Irrelevant when T_LENGTH=0. |
+| `T_DIR` | 1 bit | 0 = host→device (write); 1 = device→host (read). Ignored when T_LENGTH=0. For PIO, SATL validates this matches PROTOCOL direction. |
+| `BYTE_BLOCK` | 1 bit | 0 = T_LENGTH specifies bytes; 1 = T_LENGTH specifies blocks (sized by T_TYPE). |
+| `T_LENGTH` | 2 bits | Which field carries the transfer count: 0=no data, 1=FEATURES register, 2=COUNT register, 3=TPSIU. |
+| `EXTEND` | 1 bit | (16) and (32) only. 1 = 48-bit command; 0 = 28-bit (high bytes ignored). |
+
+### ATA Status Return Sense Data Descriptor (Descriptor Code 09h)
+
+This descriptor is returned in **descriptor-format sense data** (sense key 01h = RECOVERED ERROR, ASC 00h, ASCQ 1Dh = ATA PASS-THROUGH INFORMATION AVAILABLE) after every successful ATA PASS-THROUGH when `CK_COND=1`, and after every error.
+
+```
+Byte  7      6      5      4      3      2      1      0
+  0   DESCRIPTOR CODE (09h)
+  1   ADDITIONAL DESCRIPTOR LENGTH (0Ch)
+  2   Reserved                                   EXTEND
+  3   ERROR
+  4   COUNT (15:8)      ← set to 0 when EXTEND=0
+  5   COUNT (7:0)
+  6   LBA (31:24)       ← high nybble: 0 when EXTEND=0
+  7   LBA (7:0)
+  8   LBA (39:32)       ← 0 when EXTEND=0
+  9   LBA (15:8)
+ 10   LBA (47:40)       ← 0 when EXTEND=0
+ 11   LBA (23:16)
+ 12   DEVICE
+ 13   STATUS
+```
+
+Total size: 14 bytes (2 header + 12 additional). **The CSMI STP passthrough code packs RTFRs into sense data at bytes [8..21] of the full sense buffer** — bytes [8..9] are the descriptor header (09h / 0Ch), then bytes [10..21] correspond to descriptor bytes [2..13] above.
+
+**EXTEND=1**: All 48 bits of LBA and COUNT are valid.  
+**EXTEND=0**: Bits [7:4] of byte 6 (LBA[31:24] high nybble), bytes 8 and 10 are zeroed. LBA bits [3:0] of byte 6 carry LBA[27:24] for the 28-bit DEVICE nibble. COUNT(15:8) is zeroed.
+
+### Fixed Format Sense Data for ATA PASS-THROUGH
+
+Some bridges return fixed-format sense data instead of descriptor format. RTFRs appear in the INFORMATION and COMMAND-SPECIFIC INFORMATION fields:
+
+**INFORMATION field** (bytes 3–6 of fixed sense):
+```
+Byte 0: ERROR
+Byte 1: STATUS
+Byte 2: DEVICE
+Byte 3: COUNT (7:0)
+```
+
+**COMMAND-SPECIFIC INFORMATION field** (bytes 8–11 of fixed sense):
+```
+Byte 0: EXTEND | COUNT_UPPER_NONZERO | LBA_UPPER_NONZERO | Reserved(4) | LOG_INDEX(4)
+Byte 1: LBA (7:0)
+Byte 2: LBA (15:8)
+Byte 3: LBA (23:16)
+```
+
+Fixed format cannot return 48-bit registers fully: upper LBA bytes and COUNT(15:8) are lost. `COUNT_UPPER_NONZERO` and `LBA_UPPER_NONZERO` bits signal truncation. When these bits are set, the SATL may have logged the full descriptor-format sense in log page 10h (ATA PASS-THROUGH Results), retrievable with PROTOCOL=Fh (Return Response Information). `LOG_INDEX` nonzero indicates the parameter code in that log page (LOG_INDEX minus one).
+
+> **Real-world note**: LOG_INDEX has **never** been observed as non-zero on any real hardware — not on USB adapters, not on SAS HBAs. The only implementation that sets it is the opensea-transport software SATL. Do not rely on LOG_INDEX being populated by hardware translators; treat it as always zero for practical purposes.
+
+---
+
+## Known SAT Translator Bugs and Quirks
+
+This section documents deviations from the SAT specification that have been observed on real hardware and are explicitly handled in the codebase. These are not theoretical — they affect interoperability and must be understood when debugging RTFR parsing or extending passthrough support.
+
+### Return Response Information (PROTOCOL=Fh) — Always Set T_DIR=1
+
+The SAT spec says `T_DIR` is irrelevant when PROTOCOL=Fh (Return Response Information) because no data transfer occurs — the response is returned via sense data. However, some adapters (primarily USB bridges) still examine `T_DIR` and behave incorrectly when it is zero. The workaround is to **always set T_DIR=1** (device→host direction) for PROTOCOL=Fh commands, even though no data transfer happens. This matches the intent of the operation (reading back ATA register state) and avoids triggering adapter DMA-direction validation bugs.
+
+This is applied unconditionally in the SAT CDB builder — do not remove it.
+
+### USB Adapter EXTEND Bit Unreliability in ATA Status Return Descriptor
+
+Some USB adapters do not correctly set the EXTEND bit (byte 2, bit 0) of the ATA Status Return Descriptor (descriptor code 09h). The bit may be returned as zero even for 48-bit commands that set `EXTEND=1` in the CDB. On these adapters, the EXTEND bit in the returned sense data cannot be trusted to indicate whether 48-bit RTFRs are available.
+
+The workaround is to **ignore the returned EXTEND bit** on adapters with this known quirk. Instead, the code infers whether 48-bit registers are valid from the command that was issued (which the code already knows), not from what the adapter reports back. This is controlled by a passthrough hack flag set during device enumeration (`ignoreExtendBitInSenseData` or similar — check `passThroughHacks` in `ata_helper.h`).
+
+### Fixed Format Sense Data — LBA Byte Ordering Bug
+
+The LBA bytes in the COMMAND-SPECIFIC INFORMATION field of fixed-format sense data were defined differently in older SAT revisions vs. SAT-3 and later. Some translators implement the old byte order, some implement the new, and the bytes end up **reversed** compared to what the current spec specifies.
+
+**Critically**: this bug is not reliably correlated with the adapter's reported SAT compliance level. An adapter that reports SAT-5 compliance (e.g., a modern Broadcom HBA) may still return LBA bytes in the old reversed order. Do not trust the compliance string to predict whether this bug is present.
+
+The codebase detects this bug at device open time by issuing a **NOP command** with carefully chosen, non-palindromic COUNT and LBA values, then inspecting the returned RTFRs. The NOP command does nothing to the device but returns the command registers unmodified (on a conforming device), so mismatched byte order is immediately detectable. The test values in `eNOPCntTests` and `eNOPLBATests` are specifically chosen to avoid values that contain the digit patterns `2` or `F` in hex, which could mask byte-swap detection through coincidental symmetry.
+
+This detection runs inside `fill_ata_drive_info()` in `ata_helper.c` and also catches other RTFR reporting anomalies. Once the byte-order bug is detected, the passthrough hack flag is set and the RTFR parser applies the correction for the lifetime of that device handle.
+
+### Fixed Format LOG_INDEX — Never Populated by Hardware
+
+As noted above, the LOG_INDEX field in the COMMAND-SPECIFIC INFORMATION byte has never been observed as non-zero on any real hardware translator, including both USB bridges and enterprise SAS HBAs. Do not write code that depends on hardware populating this field. It is implemented in the opensea-transport software SATL only.
+
+### CDB Field → ATA Register Mapping (SAT-5 Table 207)
+
+| CDB field | 48-bit ATA field (EXTEND=1) | 28-bit ATA field (EXTEND=0) |
+|-----------|----------------------------|-----------------------------|
+| FEATURES (15:8) | FEATURE (15:8) | — (ignored) |
+| FEATURES (7:0) | FEATURE (7:0) | FEATURE (7:0) |
+| COUNT (15:8) | COUNT (15:8) | — (ignored) |
+| COUNT (7:0) | COUNT (7:0) | COUNT (7:0) |
+| LBA (47:40) | LBA (47:40) | — (ignored) |
+| LBA (39:32) | LBA (39:32) | — (ignored) |
+| LBA (31:24) | LBA (31:24) | — (ignored) |
+| LBA (23:16) | LBA (23:16) | LBA (23:16) |
+| LBA (15:8) | LBA (15:8) | LBA (15:8) |
+| LBA (7:0) | LBA (7:0) | LBA (7:0) |
+| DEVICE (7:4) | DEVICE (7:4) | DEVICE (7:4) |
+| DEVICE (3:0) | DEVICE (3:0) | LBA (27:24) ← 28-bit high nibble |
+| COMMAND | COMMAND | COMMAND |
+| AUXILIARY (31:0) | AUXILIARY (31:0) | — (32-byte CDB only) |
+| ICC | ICC | — (32-byte CDB only) |
+
+In 28-bit mode, the lower nibble of the DEVICE field carries LBA bits [27:24]. This is the CHS legacy: DEVICE[3:0] was originally the "head" number; in LBA mode it holds the top LBA nibble. **Do not confuse DEVICE(3:0) with DeviceControl** — they are different registers.
+
+### ATA PASS-THROUGH Status Results (SAT-5 Table 209)
+
+| CK_COND | ERROR bit | DEVICE FAULT bit | Result |
+|---------|-----------|-----------------|--------|
+| 0 | 0 | 0 | GOOD — no error |
+| 0 | 0 | 1 | CHECK CONDITION, RECOVERED ERROR, ASC 00h/ASCQ 1Dh (ATA status return descriptor included) |
+| 0 | 1 | any | CHECK CONDITION, error-mapped sense key per SAT-5 §11 (ATA status return descriptor included) |
+| 1 | any | any | CHECK CONDITION always; ATA status return descriptor included |
+
+When `CK_COND=1` and PROTOCOL is PIO Data-In or NCQ, sense data format depends on the device's D_SENSE bit (Control mode page): D_SENSE=1 returns descriptor format; D_SENSE=0 returns fixed format with INFORMATION and COMMAND-SPECIFIC INFORMATION fields zeroed for PIO Data-In, or the full RTFRs for other protocols.
+
 The `ataTransferBlocks` field tells the SAT layer what unit the sector count represents in the CDB:
 
 | Value | Meaning | Use for |
@@ -347,9 +635,88 @@ IDE (Integrated Drive Electronics) integrated the controller onto the drive itse
 
 **CHS mode**: Cylinder/Head/Sector addressing is always a logical construct in modern ATA — it has not reflected physical drive geometry in a very long time. The code uses LBA mode by default but retains software CHS support for ancient CHS-only devices, translating LBA to/from CHS in software. These devices are rare enough that the software translation approach is simpler than any hardware-level alternative.
 
+**ATA register naming across eras**: ATA register names reflect the addressing model in use at the time and have changed twice:
+
+- **CHS era**: `CylL` (cylinder low), `CylH` (cylinder high), `Head`, `Sector Number`, and `Sector Count`. These names came from physical disk geometry and appear in very old documentation and some legacy code comments.
+- **28-bit LBA era**: the same register positions were repurposed. `Sector Number` became LBA bits 7:0 (`LBALo`), `CylL` became bits 15:8 (`LBAMid`), `CylH` became bits 23:16 (`LBAHi`), and bit 4 of the `Device/Head` register carried LBA bit 27. `Sector Count` remained the transfer length.
+- **48-bit LBA era**: a shadow register bank was added — each LBA and Sector Count register has a "previous content" slot and a "current content" slot, loaded by two successive writes to the same port address. Modern ACS specifications express this as `lba7:0`, `lba15:8`, `lba23:16`, `lba31:24`, `lba39:32`, `lba47:40`, documenting exactly which LBA bits each write carries. When reading a current ACS specification this is the notation used; be aware of it when cross-referencing older documentation that still uses `CylL`/`CylH` or `LBALo`/`LBAMid`/`LBAHi`.
+
 **Standards bodies — T13 and SATA-IO**: The ATA command set (ACS-x) is maintained by the **T13** technical committee under INCITS. The physical SATA interface is maintained separately by **SATA-IO** (Serial ATA International Organization). SATA-IO may define new IDENTIFY fields, features, and capabilities that are specific to the SATA transport layer. These additions can take years to appear in an equivalent ACS revision from T13, if they are adopted at all. When working with SATA-specific IDENTIFY data or encountering a field that is not in the current ACS spec, check the SATA-IO specification — the feature may be defined there first.
 
 **AHCI (Advanced Host Controller Interface)**: AHCI is a **driver-level interface specification**, not a storage device standard. T13 and SATA-IO define what ATA/SATA devices do; AHCI defines how a SATA Host Bus Adapter (HBA) exposes itself to the OS and its driver. Intel developed AHCI and published the specification to provide a single, common programming interface for SATA HBAs — enabling a single OS driver to work with any AHCI-compliant HBA from any manufacturer. Before AHCI achieved widespread adoption, each silicon vendor shipped its own proprietary register-level interface: Silicon Image had their own programming interface for their SATA controller chips, NVIDIA had a different interface for the SATA controllers integrated into their chipsets, and so on. Each required a separate driver. AHCI eliminated that fragmentation. The register layout, command list structures, FIS (Frame Information Structure) memory organization, and interrupt model that AHCI defines are the reason ATA passthrough on SATA host systems looks the way it does in the OS passthrough layer.
+
+---
+
+## ATA Log Address Directory
+
+Log addresses are used with READ LOG EXT (GPL, 48-bit), READ LOG (SMART, 28-bit), WRITE LOG EXT, and WRITE LOG commands. The `eATALog` enum in `ata_helper.h` defines all known addresses. Addresses correspond to the table below (ACS-6, April 2025).
+
+**Access modes**: GPL = General Purpose Logging (READ/WRITE LOG EXT, 48-bit commands); SL = SMART Logging (SMART READ/WRITE LOG, 28-bit commands). GPL-only logs return command aborted to SMART commands and vice versa. Mandatory (M) logs must be supported; Optional (O) logs may be absent; Feature-mandatory (F) logs must be supported if the named feature set is supported.
+
+| Address | Enum constant | Log name | Feature | Access |
+|---------|--------------|----------|---------|--------|
+| 00h | `ATA_LOG_DIRECTORY` | Log Directory | — | M, GPL+SL |
+| 01h | `ATA_LOG_SUMMARY_SMART_ERROR_LOG` | Summary SMART Error log | SMART | O, SL only |
+| 02h | `ATA_LOG_COMPREHENSIVE_SMART_ERROR_LOG` | Comprehensive SMART Error log | SMART | O, SL only |
+| 03h | `ATA_LOG_EXTENDED_COMPREHENSIVE_SMART_ERROR_LOG` | Extended Comprehensive SMART Error log | SMART | O, GPL only |
+| 04h | `ATA_LOG_DEVICE_STATISTICS` | Device Statistics | — | O, GPL+SL |
+| 05h | — | Reserved for CFA | — | — |
+| 06h | `ATA_LOG_SMART_SELF_TEST_LOG` | **Obsolete** (was: SMART Self-Test log / DST log) | SMART | — |
+| 07h | `ATA_LOG_EXTENDED_SMART_SELF_TEST_LOG` | **Obsolete** (was: Extended SMART Self-Test log / DST log) | SMART | — |
+| 08h | `ATA_LOG_POWER_CONDITIONS` | Power Conditions | EPC | F, GPL only |
+| 09h | `ATA_LOG_SELECTIVE_SELF_TEST_LOG` | Selective Self-Test log | SMART | O, SL only |
+| 0Ah | `ATA_LOG_DEVICE_STATISTICS_NOTIFICATION` | Device Statistics Notification | DSN | F, GPL only |
+| 0Bh | — | Reserved for CFA | — | — |
+| 0Ch | `ATA_LOG_PENDING_DEFECTS_LOG` | Pending Defects log | — | O, GPL only |
+| 0Dh | `ATA_LOG_LPS_MISALIGNMENT_LOG` | LPS Mis-alignment log | LPS | F, GPL+SL |
+| 0Eh | — | Reserved for ZAC-2 | — | — |
+| 0Fh | `ATA_LOG_SENSE_DATA_FOR_SUCCESSFUL_NCQ_COMMANDS` | Sense Data for Successful NCQ Commands | NCQ | F, GPL only |
+| 10h | `ATA_LOG_NCQ_COMMAND_ERROR_LOG` | NCQ Command Error log | NCQ | F, GPL only |
+| 11h | `ATA_LOG_SATA_PHY_EVENT_COUNTERS_LOG` | SATA Phy Event Counters log | NCQ | F, GPL only |
+| 12h | `ATA_LOG_SATA_NCQ_QUEUE_MANAGEMENT_LOG` | SATA NCQ Non-Data (Queue Mgmt) log | NCQ | F, GPL only |
+| 13h | `ATA_LOG_SATA_NCQ_SEND_AND_RECEIVE_LOG` | SATA NCQ Send and Receive log | NCQ | F, GPL only |
+| 14h | `ATA_LOG_HYBRID_INFORMATION` | Hybrid Information log | Hybrid Info | F, GPL only |
+| 15h | `ATA_LOG_REBUILD_ASSIST` | Rebuild Assist log | Rebuild Assist | F, GPL only |
+| 16h | `ATA_LOG_OUT_OF_BAND_MANAGEMENT_CONTROL_LOG` | Out Of Band Management Control log | OOB Mgmt | F, GPL only |
+| 17h | — | Reserved for Serial ATA | — | — |
+| 18h | `ATA_LOG_COMMAND_DURATION_LIMITS_LOG` | Command Duration Limits log | CDL | F, GPL only |
+| 19h | `ATA_LOG_LBA_STATUS` | LBA Status log | — | O, GPL only |
+| 1Ah–1Fh | — | Reserved | — | — |
+| 20h | `ATA_LOG_STREAMING_PERFORMANCE` | **Obsolete** (was: Streaming Performance log) | Streaming | — |
+| 21h | `ATA_LOG_WRITE_STREAM_ERROR_LOG` | Write Stream Error log | Streaming | F, GPL only |
+| 22h | `ATA_LOG_READ_STREAM_ERROR_LOG` | Read Stream Error log | Streaming | F, GPL only |
+| 23h | `ATA_LOG_DELAYED_LBA_LOG` | **Obsolete** (was: Delayed LBA log, streaming) | Streaming | — |
+| 24h | `ATA_LOG_CURRENT_DEVICE_INTERNAL_STATUS_DATA_LOG` | Current Device Internal Status Data log | — | O, GPL only |
+| 25h | `ATA_LOG_SAVED_DEVICE_INTERNAL_STATUS_DATA_LOG` | Saved Device Internal Status Data log | — | O, GPL only |
+| 26h–2Eh | — | Reserved | — | — |
+| 2Fh | `ATA_LOG_SECTOR_CONFIGURATION_LOG` | Set Sector Configuration log | — | F, GPL only |
+| 30h | `ATA_LOG_IDENTIFY_DEVICE_DATA` | IDENTIFY DEVICE data log | — | M, GPL+SL |
+| 31h–41h | — | Reserved | — | — |
+| 42h | `ATA_LOG_MUTATE_CONFIGURATIONS` | Mutate Configurations log | User Data Init | O, GPL only |
+| 43h–46h | — | Reserved | — | — |
+| 47h | `ATA_LOG_CONCURRENT_POSITIONING_RANGES` | Concurrent Positioning Ranges log | — | O, GPL only |
+| 48h–52h | — | Reserved | — | — |
+| 53h | `ATA_LOG_SENSE_DATA` | Sense Data log | Sense Data Reporting | F, GPL only |
+| 54h–58h | — | Reserved | — | — |
+| 59h | `ATA_LOG_POWER_CONSUMPTION_CONTROL_LOG` | Power Consumption Control log | Power Consumption | F, GPL only |
+| 5Ah–60h | — | Reserved | — | — |
+| 61h | `ATA_LOG_CAPACITY_MODELNUMBER_MAPPING` | Capacity/Model Number Mapping log | — | F, GPL only |
+| 62h–7Fh | — | Reserved | — | — |
+| 80h–9Fh | `ATA_LOG_HOST_SPECIFIC_80H`..`9FH` | Host Specific logs | SMART | M, GPL+SL |
+| A0h–DFh | — | Device Vendor Specific | SMART | O, GPL+SL |
+| E0h | `ATA_SCT_COMMAND_STATUS` | SCT Command/Status | SCT | F, GPL+SL |
+| E1h | `ATA_SCT_DATA_TRANSFER` | SCT Data Transfer | SCT | F, GPL+SL |
+| E2h–FFh | — | Reserved | — | — |
+
+### Notes on Obsolete Log Addresses
+
+Several log addresses are **Obsolete** in ACS-6 but retain enum values in the code because older drives (pre-ACS-4/5) still implement them:
+
+- **06h / 07h** (`ATA_LOG_SMART_SELF_TEST_LOG` / `ATA_LOG_EXTENDED_SMART_SELF_TEST_LOG`): These were the original DST (Drive Self-Test) result logs. In ACS-6 the DST results are accessed via the Device Statistics log (04h) and the IDENTIFY DEVICE data log (30h). Older drives only have 06h/07h.
+- **20h** (`ATA_LOG_STREAMING_PERFORMANCE`): Was the streaming performance log. Obsoleted; streaming error logs at 21h/22h remain valid.
+- **23h** (`ATA_LOG_DELAYED_LBA_LOG`): Was used by the streaming feature set for delayed LBA reporting. Obsoleted.
+
+When reading these logs from a device that supports them, the log directory (00h) is authoritative — check it before assuming a log is present. A zero entry in the directory means the log is absent or unsupported on that device.
 
 **The long-term trajectory — from blackbox to transparent device**: ATA was traditionally a blackbox model. The host sent a command and got a result; what happened inside the drive was opaque. That model has been eroding steadily, driven largely by cloud and hyperscale operators who require deeper visibility and control over large drive populations.
 
@@ -464,3 +831,13 @@ Modern log access uses **READ LOG EXT** (GP log space). SMART is a legacy log me
 Log address **04h** (Device Statistics) and **30h** (Identify Device Data Log) both follow a newer pattern: subpage 00h of each log lists all supported subpages for that log address. This first-page-as-directory pattern may expand to other log addresses in the future, but as of the current ACS revision only these two use it.
 
 Both of these logs also use **QWORD (8-byte) fields** for most of their data entries. The one known exception is the World Wide Name (WWN), which is stored as a **DQWORD (16 bytes / 128 bits)** to accommodate the full field width along with the validity/support flags the log format adds.
+
+### Identify Device Data Log (Log 30h) — Preferred Source for Modern Feature Detection
+
+Log 30h is the **Identify Device Data Log** (IDDL). Standard IDENTIFY DEVICE is no longer receiving new word assignments in ACS revisions; new features are defined as additional IDDL subpages instead. For any new feature introduced in recent ACS revisions, check the IDDL first.
+
+- **Subpage 00h** is a directory listing which subpages this device supports (same pattern as Device Statistics log 04h).
+- **Subpage 01h** is a **verbatim, byte-for-byte copy** of the 512-byte IDENTIFY DEVICE response. It is accessible via READ LOG EXT asynchronously — the host can read it without halting the drive or waiting for pending I/O to drain. This is a meaningful advantage for background health monitoring.
+- **Subpages 02h and above** carry structured data for features not described in the 512-byte Identify response. Each subpage uses QWORD fields with explicit validity and support flags rather than the bare bit fields in standard IDENTIFY.
+
+**Availability caveat**: IDDL requires GP Log (General Purpose Logging) support and is absent on pre-GPL drives. USB bridge chips that do not implement GPL passthrough — or that silently truncate multi-sector PIO log reads — will not return IDDL data. Always confirm Read Log Ext availability before accessing IDDL, and maintain a fallback path using the standard IDENTIFY DEVICE response. When GPL availability is uncertain, read GP log directory page 0 first.
