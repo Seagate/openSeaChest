@@ -255,8 +255,12 @@ elif c.get_id().contains('msvc')
         warning_flags += '/QIntel-jcc-erratum'
     endif
 
-    if c.has_argument('/std:c17')
-        c_std = 'c17'
+    if  c.has_argument('/std:clatest')
+        warning_flags += '/std:clatest'
+    elif  c.has_argument('/std:c17')
+        warning_flags += '/std:c17'
+    elif  c.has_argument('/std:c11')
+        warning_flags += '/std:c11'
     endif
 
     linker_flags += [
@@ -395,16 +399,10 @@ if (c.get_id() == 'gcc' or c.get_id() == 'clang') and target_machine.system() !=
         if c.version().version_compare('<5.0')
             #4.7.4+ has C11 support, but c89 is the default standard so we need to change it.
             if c.has_argument('-std=gnu11')
-                c_std = 'gnu11'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu11', language: 'c')
-                endif
+                add_project_arguments('-std=gnu11', language: 'c')
             elif c.has_argument('-std=gnu99')
                 #Add this argument to the list since C99 is a minimum required C compiler standard
-                c_std = 'gnu99'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu99', language: 'c')
-                endif
+                add_project_arguments('-std=gnu99', language: 'c')
             else
                 error('C99/GNU99 standard is required but was not able to be set!')
             endif
