@@ -171,6 +171,29 @@ Use the inline helpers when available:
 - `set_ata_pt_LBA_28(cmd, lba)` — sets LbaLow/Mid/Hi and DeviceHead nibble for 28-bit commands
 - `set_ata_pt_LBA_28_sig(cmd, signature)` — same but without setting the LBA mode bit (for SMART signatures)
 
+### Why the `*48` Fields Are "Previous" / "High" Bytes — PATA Shadow Registers
+
+The 48-bit register mechanism has its roots in PATA/IDE hardware architecture. Each ATA task file register occupies a single 8-bit I/O port address. To supply 16-bit values to the drive without adding new port addresses, PATA controllers implement a **shadow register** for each port:
+
+- **First write** to a register port → stored in the "previous content" shadow (the high byte)
+- **Second write** to the same port → stored in the "current content" latch (the low byte)
+
+The drive controller does not begin processing a command until the **Command register** (opcode register) is written. At that point it reads both the current and previous content of every register simultaneously, assembling the full 16-bit values. This let ATA extend to 48-bit LBA using exactly the same port map that existed for 28-bit commands — no new hardware I/O addresses were required.
+
+This is why the `*48` fields in `ataTFRBlock` (the "extended" or high bytes) are written **first** when building a 48-bit command: they map to the "previous" shadow registers. The non-`*48` fields (the "current" or low bytes) are written second.
+
+**Windows formalizes this naming directly** in the `ATA_PASS_THROUGH_EX` structure:
+
+```c
+typedef struct _ATA_PASS_THROUGH_EX {
+    // ...
+    UCHAR PreviousTaskFile[8];  // High (extended) bytes — the *48 fields
+    UCHAR CurrentTaskFile[8];   // Low (current) bytes  — the plain fields
+} ATA_PASS_THROUGH_EX;
+```
+
+When reading Windows ATA passthrough documentation or reverse-engineering Windows driver code, `PreviousTaskFile` = the extended/high registers (`LbaLow48`, `LbaMid48`, `LbaHi48`, `SectorCount48`, `Feature48`), and `CurrentTaskFile` = the current/low registers (`LbaLow`, `LbaMid`, `LbaHi`, `SectorCount`, `ErrorFeature`, `DeviceHead`, `CommandStatus`). The SAT ATA PASS-THROUGH CDB `EXTEND` bit (bit 2 of byte 1) signals that both previous and current content are valid and should be issued as a 48-bit command.
+
 ---
 
 ## Protocols (`commadProtocol` field)
