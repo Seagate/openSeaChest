@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2021-2026 Seagate Technology LLC and/or its Affiliates, All Rights Reserved
-project('openSeaChest', 'c', version: 'v26.03.1', license: 'MPL-2.0', default_options: ['warning_level=2', 'b_pie=true'])
+project(
+    'openSeaChest',
+    'c',
+    version: 'v26.03.2',
+    license: 'MPL-2.0',
+    default_options: ['warning_level=2', 'b_pie=true', 'buildtype=release'],
+)
 
 c = meson.get_compiler('c')
 
@@ -19,7 +25,7 @@ if get_option('libc_musl')
 endif
 # Add JSON format support flag if enabled
 if get_option('json_outputformat')
-  add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language: 'c')
 endif
 warning_flags = []
 linker_flags = []  #additional linker flags to add per-compiler for hardening.
@@ -106,7 +112,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wcalloc-transposed-args',
         '-Werror=alloca',  # Do not allow use of the alloca function
         '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
-        '-Wfortify-source' # needed for diagnose_as_builtin attributes to work.
+        '-Wfortify-source',  # needed for diagnose_as_builtin attributes to work.
     ]
 
     if get_option('cc-suggest-attribute')
@@ -249,8 +255,12 @@ elif c.get_id().contains('msvc')
         warning_flags += '/QIntel-jcc-erratum'
     endif
 
-    if c.has_argument('/std:c17')
-        c_std = 'c17'
+    if  c.has_argument('/std:clatest')
+        warning_flags += '/std:clatest'
+    elif  c.has_argument('/std:c17')
+        warning_flags += '/std:c17'
+    elif  c.has_argument('/std:c11')
+        warning_flags += '/std:c11'
     endif
 
     linker_flags += [
@@ -294,7 +304,14 @@ else
     # Probably in Windows, so check for powershell and try to get the environment variable from there
     powershell = find_program('pwsh', 'powershell', required: false)
     if powershell.found()
-        env_cmd = run_command(powershell, '-NoProfile', '-NonInteractive', '-Command', '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")', check: false)
+        env_cmd = run_command(
+            powershell,
+            '-NoProfile',
+            '-NonInteractive',
+            '-Command',
+            '[Environment]::GetEnvironmentVariable("SOURCE_DATE_EPOCH")',
+            check: false,
+        )
         if env_cmd.returncode() == 0 and env_cmd.stdout().strip() != ''
             source_epoch = env_cmd.stdout().strip()
         endif
@@ -329,10 +346,7 @@ if source_epoch != ''
     # Try Python first (most reliable, handles formatting consistently)
     python = find_program('python3', 'python', required: false)
     if python.found()
-        py_script = 'import datetime; ' + \
-                    'ts = int(' + source_epoch + '); ' + \
-                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + \
-                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
+        py_script = 'import datetime; ' + 'ts = int(' + source_epoch + '); ' + 'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + 'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
 
         date_cmd = run_command(python, '-c', py_script, check: false)
         if date_cmd.returncode() == 0
@@ -385,16 +399,10 @@ if (c.get_id() == 'gcc' or c.get_id() == 'clang') and target_machine.system() !=
         if c.version().version_compare('<5.0')
             #4.7.4+ has C11 support, but c89 is the default standard so we need to change it.
             if c.has_argument('-std=gnu11')
-                c_std = 'gnu11'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu11', language: 'c')
-                endif
+                add_project_arguments('-std=gnu11', language: 'c')
             elif c.has_argument('-std=gnu99')
                 #Add this argument to the list since C99 is a minimum required C compiler standard
-                c_std = 'gnu99'
-                if meson.version().version_compare('<1.0.0')
-                    add_project_arguments('-std=gnu99', language: 'c')
-                endif
+                add_project_arguments('-std=gnu99', language: 'c')
             else
                 error('C99/GNU99 standard is required but was not able to be set!')
             endif
@@ -462,51 +470,24 @@ opensea_jsonformat_dep = disabler()
 
 if get_option('json_outputformat')
     message('json_outputformat=true: Build opensea_jsonformat')
-    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language : 'c')
+    add_project_arguments('-DFEATURE_JSONOUTPUT_SUPPORT', language: 'c')
 
-    # Set up json-c BEFORE opensea-jsonformat subproject so it's available when needed
-    # Determine whether to use system json-c or subproject
-    use_system_json = get_option('use_system_json')
-    jsonc_dep = disabler()  # Initialize as not found
+    force_jsonc_wrap = false
 
-    if use_system_json
-        message('use_system_json=true: Requiring system json-c library')
-
-        # Step 1: Try pkg-config (preferred method)
-        jsonc_dep = dependency('json-c', required: false)
-        if jsonc_dep.found()
-            message('Found system json-c via pkg-config')
-        else
-            message('pkg-config not available for json-c, trying find_library + header check')
-            # Step 2: Try find_library + has_header
-            jsonc_lib = c.find_library('json-c', required: false)
-            
-            if jsonc_lib.found()
-                message('Found json-c library, checking for headers...')
-                # Check common header locations explicitly
-                has_json_headers = c.has_header('json-c/json_object.h', required: false) or \
-                                   c.has_header('json_object.h', required: false)
-                
-                if has_json_headers
-                    message('Found system json-c library and headers')
-                    jsonc_dep = declare_dependency(
-                        dependencies: jsonc_lib,
-                        compile_args: ['-I/usr/include', '-I/usr/local/include']
-                    )
-                else
-                    error('json-c library found but headers not found!\n' +
-                          'Please install json-c development headers\n' +
-                          'OR use -Duse_system_json=false to build json-c from bundled subproject')
-                endif
-            else
-                error('json-c library not found!\n' +
-                      'Please install json-c development package\n' +
-                      'OR use -Duse_system_json=false to build json-c from bundled subproject')
+    if host_machine.system() == 'sunos'
+        if meson.version().version_compare('>=1.2.0')
+            if target_machine.kernel() != 'illumos'
+                force_jsonc_wrap = true
             endif
+        else
+            # Need a different way to decide illumos detection here.
+            force_jsonc_wrap = true
         endif
-    else
-        message('use_system_json=false: Building json-c from subproject')
-        jsonc = subproject(
+    endif
+
+    if force_jsonc_wrap
+        # Force subproject on Solaris
+        jsonc_proj = subproject(
             'json-c',
             default_options: [
                 'default_library=static',
@@ -516,7 +497,22 @@ if get_option('json_outputformat')
                 'disable_json_patch=false',
             ],
         )
-        jsonc_dep = jsonc.get_variable('jsonc_dep')
+        jsonc_dep = jsonc_proj.get_variable('jsonc_dep')
+
+    else
+        # Simplify json-c dependency with fallback
+        jsonc_dep = dependency(
+            'json-c',
+            required: true,
+            fallback: ['json-c', 'jsonc_dep'],
+            default_options: [
+                'default_library=static',
+                'build_apps=false',
+                'disable_extra_libs=true',
+                'disable_json_pointer=false',
+                'disable_json_patch=false',
+            ],
+        )
     endif
 
     # Now that json-c is set up, build opensea-jsonformat subproject
@@ -526,9 +522,7 @@ if get_option('json_outputformat')
         jsonformat_options += 'build_timestamp=' + formatted_date
     endif
 
-    opensea_jsonformat = subproject('opensea-jsonformat',
-        default_options: jsonformat_options
-    )
+    opensea_jsonformat = subproject('opensea-jsonformat', default_options: jsonformat_options)
     opensea_jsonformat_dep = opensea_jsonformat.get_variable('opensea_jsonformat_dep')
 endif
 

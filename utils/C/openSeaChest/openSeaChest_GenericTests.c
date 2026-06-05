@@ -34,7 +34,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_GenericTests";
+const char* util_name = "openSeaChest_GenericTests";
 #define buildVersion UTIL_BUILD_VERSION
 
 ////////////////////////////
@@ -600,7 +600,9 @@ int main(int argc, char* argv[])
                 print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-        case 'h': // help
+            M_UNREACHABLE();
+            break; // MSVC++ requires a break here, even though it's unreachable code
+        case 'h':  // help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
@@ -609,6 +611,8 @@ int main(int argc, char* argv[])
                 print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
+            M_UNREACHABLE();
+            break; // MSVC++ requires a break here, even though it's unreachable code
         default:
             break;
         }
@@ -1783,4 +1787,3 @@ void utility_Usage(bool shortUsage)
     print_Repair_At_End_Help(shortUsage);
     print_Repair_On_Fly_Help(shortUsage);
 }
-

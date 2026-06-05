@@ -54,7 +54,7 @@
 ////////////////////////
 //  Global Variables  //
 ////////////////////////
-const char* util_name    = "openSeaChest_Erase";
+const char* util_name = "openSeaChest_Erase";
 #define buildVersion UTIL_BUILD_VERSION
 
 typedef enum eSeaChestEraseExitCodesEnum
@@ -1001,7 +1001,9 @@ int main(int argc, char* argv[])
                 print_str("\n");
             }
             exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
-        case 'h': // help
+            M_UNREACHABLE();
+            break; // MSVC++ requires a break here, even though it's unreachable code
+        case 'h':  // help
             SHOW_HELP_FLAG = true;
             openseachest_utility_Info(util_name, buildVersion);
             utility_Usage(false);
@@ -1010,7 +1012,9 @@ int main(int argc, char* argv[])
                 print_str("\n");
             }
             exit(UTIL_EXIT_NO_ERROR);
-        case 'e': // sanitize
+            M_UNREACHABLE();
+            break; // MSVC++ requires a break here, even though it's unreachable code
+        case 'e':  // sanitize
             if (strcmp(SANITIZE_BLOCK_ERASE_STR, optarg) == 0)
             {
                 SANITIZE_RUN_FLAG        = true;
@@ -3786,4 +3790,3 @@ void utility_Usage(bool shortUsage)
     print_NVM_Format_Secure_Erase_Help(shortUsage);
     print_NVM_Format_Help(shortUsage);
 }
-

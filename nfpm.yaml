@@ -3,7 +3,7 @@
 name: "openseachest"
 arch: "amd64"
 platform: "linux"
-version: "25.05.2"
+version: "26.03.2"
 version_schema: "none"
 section: "admin"
 priority: "optional"
