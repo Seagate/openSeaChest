@@ -766,7 +766,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
-      uses: vmactions/openindiana-vm@0544593284f5c837f637097e278df86bf5bbab1e # v1.0.7
+      uses: vmactions/openindiana-vm@390c2c95de889e95a15bf127b07924ca26cda9f7 # v1.1.0
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
