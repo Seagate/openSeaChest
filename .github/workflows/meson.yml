@@ -20,8 +20,7 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     container: ${{ matrix.config.image }}
     timeout-minutes: 120
-    permissions:
-      contents: write # Create and update tagged release assets from build jobs.
+    permissions: {}
     strategy:
       fail-fast: false # so that if one config fails, other won't be cancelled automatically
       matrix:
@@ -297,16 +296,16 @@ jobs:
             vm_arch: "x86_64",
           }
         - {
-            name: "VMActions FreeBSD 14.3 Build (x86_64)",
+            name: "VMActions FreeBSD 14.4 Build (x86_64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
             publish_release: true,
-            release_name: "freebsd_14_3-x86_64",
+            release_name: "freebsd_14_4-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
             vm_actions: true,
-            vm_release: "14.3",
+            vm_release: "14.4",
             vm_arch: "x86_64",
           }
         - {
@@ -336,16 +335,16 @@ jobs:
             vm_arch: "aarch64",
           }
         - {
-            name: "VMActions FreeBSD 14.3 Build (aarch64)",
+            name: "VMActions FreeBSD 14.4 Build (aarch64)",
             os: ubuntu-latest,
             cc: "",
             cxx: "",
             publish_release: true,
-            release_name: "freebsd_14_3-aarch64",
+            release_name: "freebsd_14_4-aarch64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
             vm_actions: true,
-            vm_release: "14.3",
+            vm_release: "14.4",
             vm_arch: "aarch64",
           }
         - {
@@ -377,16 +376,16 @@ jobs:
         #     vm_arch: "riscv64",
         #   }
         # - {
-        #     name: "VMActions FreeBSD 14.3 Build (riscv64)",
+        #     name: "VMActions FreeBSD 14.4 Build (riscv64)",
         #     os: ubuntu-latest,
         #     cc: "",
         #     cxx: "",
         #     publish_release: true,
-        #     release_name: "freebsd_14_3-riscv64",
+        #     release_name: "freebsd_14_4-riscv64",
         #     release_extension: ".tar.xz",
         #     archive_command: "tar cvfJ",
         #     vm_actions: true,
-        #     vm_release: "14.3",
+        #     vm_release: "14.4",
         #     vm_arch: "riscv64",
         #   }
         # - {
@@ -599,13 +598,20 @@ jobs:
         key: llvm-llvm-project-relid-${{ steps.llvm_release.outputs.relid }}
 
     - name: Downloading latest clang for Windows
-      if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm-cache.outputs.cache-hit != 'true'
+      if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm_release.outputs.relid != '' && steps.llvm-cache.outputs.cache-hit != 'true'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         $headers = @{ Authorization = "Bearer $env:GH_TOKEN" }
         Invoke-WebRequest -Headers $headers -OutFile "LLVM.exe" $env:LLVM_DOWNLOAD_URL
         7z x LLVM.exe -y -o"C:/Program Files/LLVM"
+
+    - name: Save LLVM to cache
+      if: startsWith(matrix.config.name, 'Windows Clang') && steps.llvm_release.outputs.relid != '' && steps.llvm-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: C:/Program Files/LLVM
+        key: llvm-llvm-project-relid-${{ steps.llvm_release.outputs.relid }}
 
     - name: Escape backslash in branch name
       shell: bash
@@ -737,19 +743,21 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
-      uses: vmactions/omnios-vm@f3881ad366d773d8837ed6ac14563aeb34f6c7d3 # v1.2.9
+      uses: vmactions/omnios-vm@493aabc6b4f4dd6dcb81e748548b5f4bf56dd2b1 # v1.3.1
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
           pkg install socat
 
         run: |
-          pkg install build-essential ninja pkg-config
+          pkg install build-essential ninja pkg-config git
 
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
@@ -758,19 +766,21 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
-      uses: vmactions/openindiana-vm@0544593284f5c837f637097e278df86bf5bbab1e # v1.0.7
+      uses: vmactions/openindiana-vm@390c2c95de889e95a15bf127b07924ca26cda9f7 # v1.1.0
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
           pkg install socat
 
         run: |
-          pkg install build-essential ninja pkg-config
+          pkg install build-essential ninja pkg-config git
 
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
@@ -779,20 +789,20 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
-      uses: vmactions/solaris-vm@0a231b94365d1911cf62097ef342f6b30d95598f # v1.3.2
+      uses: vmactions/solaris-vm@c20562b2c69737b06be9e828915761703e487373 # v1.3.3
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg update --accept || true
           pkgutil -y -i socat
 
-          ntpdate -u pool.ntp.org
-
         run: |
-          pkg install --accept developer/build/meson
+          pkg install --accept developer/build/meson developer/versioning/git
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build --skip-subprojects
@@ -805,54 +815,55 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg update || true
           pkg install -y curl
-          pkg install -y ntp
-          ntpdate -u pool.ntp.org
 
         run: |
-          pkg install -y meson
+          pkg install -y meson git
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions DragonFlyBSD')
-      uses: vmactions/dragonflybsd-vm@323497fa680c1856dd1ba5c4fd89182a9194f649 # v1.2.7
+      uses: vmactions/dragonflybsd-vm@b4468429bb9ab60b14600c6eeeb6464427f29391 # v1.2.9
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
           pkg update || true
           pkg install -y socat
-          /usr/sbin/dntpd -s
 
         run: |
-          pkg install -y meson
+          pkg install -y meson git
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
-      uses: vmactions/openbsd-vm@d7d892b7b9ba97ed2747b0fc201be65037d64c3e # v1.4.0
+      uses: vmactions/openbsd-vm@6fac4962055fe9952d29930942445739e509fecd # v1.4.2
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
+          pkg_add -u || true
           pkg_add curl
-
-          # force a sync in the VM
-          ntpctl -s status || true
 
 
         run: |
-          pkg_add meson
+          pkg_add meson git
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build --skip-subprojects
@@ -865,15 +876,17 @@ jobs:
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         usesh: true
+        disable-cache: true
+        sync-time: true
         prepare: |
-          /usr/sbin/pkg_add curl
-          /usr/sbin/pkg_add ntp
-
-          # Removed for now because this crashes from errors in a config file for unknown reasons.
-          # /usr/pkg/sbin/ntpd -gq
+          /usr/sbin/pkg_add pkgin || true
+          /usr/pkg/bin/pkgin update
+          /usr/pkg/bin/pkgin upgrade -y
+          
+          /usr/sbin/pkg_add curl || true
 
         run: |
-          /usr/sbin/pkg_add meson
+          /usr/sbin/pkg_add -uu meson git
 
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
           meson install -C build --skip-subprojects
@@ -897,7 +910,7 @@ jobs:
         REF_FULL: ${{ github.ref }}
       run: |
         # Install nfpm
-        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+        go install github.com/goreleaser/nfpm/v2/cmd/nfpm@v2.46.3
 
         # Map cross_compiler_arch to Debian/RPM package arch
         case "$CROSS_COMPILER_ARCH" in
@@ -905,8 +918,8 @@ jobs:
           i686) package_arch="i386" ;;
           aarch64) package_arch="arm64" ;;
           armv7l) package_arch="armhf" ;;
-          armv6) package_arch="armhf" ;;
-          armv5l) package_arch="armel" ;;
+          armv6) package_arch="armv6l" ;;
+          armv5l) package_arch="armv5l" ;;
           powerpc64) package_arch="ppc64" ;;
           powerpc64le) package_arch="ppc64el" ;;
           *) package_arch="amd64" ;;  # fallback
@@ -1028,6 +1041,7 @@ jobs:
           echo "${HASH_OUTPUT_KEY}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
+      if: ${{ matrix.config.publish_release || (!startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/tags/test-ci')) }}
       uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}
@@ -1046,9 +1060,15 @@ jobs:
       contents: write
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          path: artifacts
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: artifacts/
 
       - name: Publish release
         shell: bash
@@ -1063,8 +1083,9 @@ jobs:
             gh release create "$RELEASE_TAG" --title "$RELEASE_TAG" --notes "" || gh release view "$RELEASE_TAG" >/dev/null 2>&1
           fi
 
-          # Collect release files: find only regular files to avoid uploading directories
-          mapfile -d '' release_files < <(find artifacts -maxdepth 2 -type f -print0)
+          # Collect all artifacts and upload (isolated from checkout by using artifacts/ subdir)
+          shopt -s nullglob
+          release_files=(artifacts/*/*)
 
           if [[ ${#release_files[@]} -gt 0 ]]; then
             gh release upload "$RELEASE_TAG" "${release_files[@]}" --clobber
@@ -1077,6 +1098,7 @@ jobs:
     name: Combine provenance hashes
     runs-on: ubuntu-latest
     needs: [build]
+    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')
     permissions: {}
     outputs:
       hashes: ${{ steps.hashes.outputs.hashes }}
@@ -1092,7 +1114,8 @@ jobs:
 
   # Generate the slsa provenance
   provenance:
-    needs: [combine_hashes, publish_release]
+    needs: [combine_hashes]
+    if: startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/test-ci')
     permissions:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
