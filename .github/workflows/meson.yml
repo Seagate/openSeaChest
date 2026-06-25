@@ -849,7 +849,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
-      uses: vmactions/openbsd-vm@9004791062e748d95cc87e499e77485f91888ce1 # v1.3.8
+      uses: vmactions/openbsd-vm@6fac4962055fe9952d29930942445739e509fecd # v1.4.2
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
