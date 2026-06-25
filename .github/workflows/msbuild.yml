@@ -46,11 +46,20 @@ jobs:
       with:
         egress-policy: audit
 
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: Checkout openSeaChest and subprojects
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
         persist-credentials: false
         submodules: recursive
+      
+    - name: Checkout json-c
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        repository: json-c/json-c
+        fetch-depth: 1
+        path: subprojects/json-c
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57 # v3.0.0
