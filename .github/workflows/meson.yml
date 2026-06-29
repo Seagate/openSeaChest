@@ -882,7 +882,7 @@ jobs:
           /usr/sbin/pkg_add pkgin || true
           /usr/pkg/bin/pkgin update
           /usr/pkg/bin/pkgin upgrade -y
-          
+
           /usr/sbin/pkg_add curl || true
 
         run: |
@@ -1059,8 +1059,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           fetch-depth: 1
