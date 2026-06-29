@@ -58,6 +58,14 @@ jobs:
         persist-credentials: false
         submodules: recursive
 
+    - name: Checkout json-c
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
+      with:
+        repository: json-c/json-c
+        fetch-depth: 1
+        path: subprojects/json-c
+
     - name: Escape backslash in branch name
       run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
 
