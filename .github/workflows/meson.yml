@@ -789,7 +789,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
-      uses: vmactions/solaris-vm@c20562b2c69737b06be9e828915761703e487373 # v1.3.3
+      uses: vmactions/solaris-vm@d30dd6c228c8661ade859e36ead7660b9a62efcc # v1.3.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
