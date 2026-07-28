@@ -29,7 +29,7 @@
 #include "EULA.h"
 #include "common_public.h"
 #include "drive_info.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)

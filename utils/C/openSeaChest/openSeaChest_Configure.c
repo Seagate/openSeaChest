@@ -28,7 +28,7 @@
 #include "cdl.h"
 #include "device_statistics.h"
 #include "drive_info.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "logs.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
@@ -1469,7 +1469,8 @@ int main(int argc, char* argv[])
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
             else if (strcmp(longopts[optionIndex].name, CONFIG_CDL_SETTINGS_LONG_OPT_STRING) == 0)
             {
-                int res = snprintf_err_handle(CONFIG_CDL_JSONFILENAME_FLAG, CONFIG_CDL_JSONFILENAME_MAX_LEN, "%s", optarg);
+                int res =
+                    snprintf_err_handle(CONFIG_CDL_JSONFILENAME_FLAG, CONFIG_CDL_JSONFILENAME_MAX_LEN, "%s", optarg);
                 if (res > 0 && res <= CONFIG_CDL_JSONFILENAME_MAX_LEN)
                 {
                     CONFIG_CDL_SETTINGS_FLAG = true;

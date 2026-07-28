@@ -127,9 +127,6 @@ v2.46.5-Unicode (http://nsis.sourceforge.net).
 All Linux versions of the SeaChest Utilities are compiled using GCC, the GNU 
 Compiler Collection, license shown below.
 
-All Windows versions of the SeaChest Utilities uses an open source project 
-named wingetopt, license shown below.
-
 SeaChest_Firmware uses two open source projects named mbedtls and zlib.h, 
 licenses shown below.
 

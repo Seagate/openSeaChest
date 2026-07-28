@@ -8,9 +8,6 @@
 [submodule "opensea-operations"]
 	path = subprojects/opensea-operations
 	url = https://github.com/Seagate/opensea-operations.git
-[submodule "wingetopt"]
-	path = subprojects/wingetopt
-	url = https://github.com/Seagate/wingetopt.git
 [submodule "subprojects/opensea-jsonformat"]
 	path = subprojects/opensea-jsonformat
 	url = https://github.com/Seagate/opensea-jsonformat.git

@@ -132,7 +132,7 @@ for tool in "${openSeaChest_doc_list[@]}"; do
         #10. Add About openSeaChest Tools
         cat "$generatorDir"/General_Docs/About_openSeaChest_Tools.txt
         #11. Add Opensource Licenses
-        cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
+        #cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
     } >> "$textDoc"
     
     
@@ -243,7 +243,7 @@ done
 
     cat "$generatorDir"/General_Docs/Sample_Output.txt
     cat "$generatorDir"/General_Docs/About_openSeaChest_Tools.txt
-    cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
+    #cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
 } >> "$combinedDoc"
 
 #copy all the other files to the enscript folder
@@ -265,9 +265,9 @@ for file in "$generatorDir/Feature_Docs/"*; do
 done
 
 #need to concatenate extra licenses to the file in the enscript folder before continuing to renaming
-{
-    cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
-} >> "$enscriptFolder/ Open Source Licenses"
+#{
+    #cat "$generatorDir"/General_Docs/Open_Source_Licenses.txt
+#} >> "$enscriptFolder/ Open Source Licenses"
 
 #We are almost ready to call enscript...we need to create the list of files in an array to give to enscript
 cd "$enscriptFolder" || exit

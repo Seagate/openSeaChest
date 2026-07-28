@@ -25,7 +25,7 @@
 #include "defect.h"
 #include "drive_info.h"
 #include "dst.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "seagate_operations.h"

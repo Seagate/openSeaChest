@@ -29,7 +29,7 @@
 #include "drive_info.h"
 #include "firmware_download.h"
 #include "format.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "logs.h"
 #include "nvme_operations.h"
 #include "openseachest_util_options.h"

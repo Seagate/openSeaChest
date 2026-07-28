@@ -428,13 +428,6 @@ common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
 os_deps = []
 
-#The wingetopt has been amended to build on any system openSeaChest supports.
-#This was done as AIX did not have getopt_long so this was done.
-#Additionally, it made sense to keep the same implementation between OSs so it is now used for getopt_long support.
-wingetopt = subproject('wingetopt', default_options: 'default_library=static')
-wingetopt_dep = wingetopt.get_variable('wingetopt_dep')
-os_deps += [wingetopt_dep]
-
 if target_machine.system() == 'windows'
     windows = import('windows')
     resources = windows.compile_resources('openSeaChest.rc')

@@ -31,7 +31,7 @@
 #include "EULA.h"
 #include "ata_helper.h" //for defined ATA security password size of 32bytes
 #include "cmds.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #if !defined(DISABLE_TCG_SUPPORT)
 #    include "common_TCG.h"

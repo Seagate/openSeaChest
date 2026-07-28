@@ -25,7 +25,7 @@
 
 #include "EULA.h"
 #include "common_public.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "operations.h"
 // include the seachest util options for the device option, drive info option and a few other things that are needed.
 #include "drive_info.h"

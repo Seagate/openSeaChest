@@ -17,7 +17,7 @@
 #include "EULA.h"
 #include "common_types.h"
 #include "drive_info.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "io_utils.h"
 #include "memory_safety.h"
 #include "openseachest_util_options.h"

@@ -28,7 +28,7 @@
 #include "buffer_test.h"
 #include "drive_info.h"
 #include "generic_tests.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)

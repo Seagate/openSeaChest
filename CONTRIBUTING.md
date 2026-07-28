@@ -50,12 +50,11 @@ OpenSeaChest is made up of a few libraries, and it is important to understand wh
 The Libraries:
 
 * [opensea-common](https://github.com/seagate/opensea-common) - This is a set of common functions and macros to provide some commonly used things within all the other tools or libraries.
-In here you will find things for high resolution timers, bit-banging, temperature conversion, operating system functions, etc.
+  In here you will find things for high resolution timers, bit-banging, temperature conversion, operating system functions, etc.
 * [opensea-transport](https://github.com/seagate/opensea-transport) - Handles the way in which an IO is issued to a storage device in different operating systems, APIs, drivers, etc.
-Aside from the OS specific passthrough code, you will also find definitions for various SCSI, ATA, & NVMe commands, and SCSI translation code for different interfaces.
+  Aside from the OS specific passthrough code, you will also find definitions for various SCSI, ATA, & NVMe commands, and SCSI translation code for different interfaces.
 * [opensea-operations](https://github.com/seagate/opensea-operations) - Performs the testing most people are familiar with for things like SMART check, Diagnostic Self Test (DST),
-configuring drive features, etc. Many of these are focused on sets of commands or command sequences to do the "fun" stuff to storage devices.
-* [wingetopt](https://github.com/Seagate/wingetopt) - This library is a forked, minimally changed, library that provides support for the getopt and getoptlong functions defined by POSIX to run in Windows.
+  configuring drive features, etc. Many of these are focused on sets of commands or command sequences to do the "fun" stuff to storage devices.
 
 ## Ways to Contribute
 
@@ -96,12 +95,12 @@ Like to code and want to be more involved? Awesome!
 
 Here's the best way to submit your code:
 
-  1. Fork the repository
-  2. Make your changes (follow commit message format and code style below). Update version numbers for the tool(s) modified.
-  Use [CalVer](https://calver.org/) (Calendar Versioning) for openSeaChest utilities, synchronized with release packages. For library changes, use [SemVer](https://semver.org/).
-  3. Submit a pull request. If it is associated with an issue, add a comment in the issue referencing the pull request.
-  4. A Seagate developer will review it. Please make any additional changes that are suggested.
-  5. Pull request is accepted! Celebrate!
+1. Fork the repository
+2. Make your changes (follow commit message format and code style below). Update version numbers for the tool(s) modified.
+   Use [CalVer](https://calver.org/) (Calendar Versioning) for openSeaChest utilities, synchronized with release packages. For library changes, use [SemVer](https://semver.org/).
+3. Submit a pull request. If it is associated with an issue, add a comment in the issue referencing the pull request.
+4. A Seagate developer will review it. Please make any additional changes that are suggested.
+5. Pull request is accepted! Celebrate!
 
 #### Commit Messages
 
@@ -138,18 +137,18 @@ Once, modified, you can set this template to be used globally, or per repository
 
 ##### Commit Message Components
 
-| Category | Description |
-| --- | --- |
-| `bug` | This commit is to fix a bug |
-| `feat` | This commit contains code adding a new feature |
-| `quick` | Code quickly fixes, or hot fixes, a small bug |
-| `clean` | Cleaning up warnings, or general code cleanup |
-| `doc` | Update to documentation, which includes comments |
-| `make` | Fixes to makefiles, visual studio project files, or any other files related to ability to build the code |
-| `lib` | Updating the submodule/library pointers to a new commit |
-| `release` | Software release |
-| `save` | checking in code to save place while working on larger bug or feature. |
-| `ci`  | Changes related to the CI and how it runs, but does not affect utility code. |
+| Category    | Description                                                                                              |
+| ----------- | -------------------------------------------------------------------------------------------------------- |
+| `bug`     | This commit is to fix a bug                                                                              |
+| `feat`    | This commit contains code adding a new feature                                                           |
+| `quick`   | Code quickly fixes, or hot fixes, a small bug                                                            |
+| `clean`   | Cleaning up warnings, or general code cleanup                                                            |
+| `doc`     | Update to documentation, which includes comments                                                         |
+| `make`    | Fixes to makefiles, visual studio project files, or any other files related to ability to build the code |
+| `lib`     | Updating the submodule/library pointers to a new commit                                                  |
+| `release` | Software release                                                                                         |
+| `save`    | checking in code to save place while working on larger bug or feature.                                   |
+| `ci`      | Changes related to the CI and how it runs, but does not affect utility code.                             |
 
 #### Code Style
 
@@ -170,8 +169,8 @@ All contributions should be under the same MPL 2.0 license the project uses, wit
 
 In general, the license should be:
 
- 1. compatible with MPL 2.0
- 2. Allow for binary redistribution without the need for source code distribution to also be distributed for the projects that include this (Ex: SeaTools can include these libraries without needing to opensource all of the SeaTools code)
+1. compatible with MPL 2.0
+2. Allow for binary redistribution without the need for source code distribution to also be distributed for the projects that include this (Ex: SeaTools can include these libraries without needing to opensource all of the SeaTools code)
 
 Any code being contributed without MPL 2.0 license will require additional review by Seagate to make sure it is ok to include in this project and the review may take longer to complete before it is accepted.
 

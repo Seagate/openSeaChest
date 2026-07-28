@@ -26,7 +26,7 @@
 #include "defect.h"
 #include "device_statistics.h"
 #include "drive_info.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "smart.h"

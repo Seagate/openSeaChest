@@ -25,7 +25,7 @@
 
 #include "EULA.h"
 #include "drive_info.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
 #include "power_control.h"
@@ -2707,7 +2707,8 @@ int main(int argc, char* argv[])
                     {
                         if (SET_POWER_CONSUMPTION_DISABLE_FLAG)
                         {
-                            print_str("An Error occurred while trying to disable Power Consumption feature for device.\n");
+                            print_str(
+                                "An Error occurred while trying to disable Power Consumption feature for device.\n");
                         }
                         else
                         {
@@ -2718,7 +2719,7 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-            else if(pcRet == BAD_PARAMETER)
+            else if (pcRet == BAD_PARAMETER)
             {
                 if (VERBOSITY_QUIET < toolVerbosity)
                 {

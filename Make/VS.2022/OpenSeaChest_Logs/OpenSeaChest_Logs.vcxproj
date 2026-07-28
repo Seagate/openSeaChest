@@ -333,7 +333,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -341,8 +341,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -354,7 +354,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -362,8 +362,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -375,7 +375,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -383,8 +383,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -396,7 +396,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -405,8 +405,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -418,7 +418,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -427,8 +427,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -440,7 +440,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -449,8 +449,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -462,7 +462,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -470,8 +470,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -483,7 +483,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -492,8 +492,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -507,7 +507,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -517,8 +517,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -532,7 +532,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -542,8 +542,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -557,7 +557,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -567,8 +567,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -582,7 +582,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -593,8 +593,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -608,7 +608,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -619,8 +619,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -634,7 +634,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -645,8 +645,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.02</MinimumRequiredVersion>
@@ -660,7 +660,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <DisableSpecificWarnings>4214;4201;4668;4820;4710;4255;5045;4711;4324;4221;4204;4061;5105</DisableSpecificWarnings>
@@ -670,8 +670,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -685,7 +685,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\wingetopt\src;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\subprojects\opensea-transport\include;..\..\..\subprojects\opensea-operations\include;..\..\..\include;..\..\..\subprojects\opensea-common\include;..\..\..\subprojects\opensea-transport\include\vendor;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration);..\..\..\subprojects\json-c;..\..\..\subprojects\opensea-jsonformat\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>STATIC_OPENSEA_TRANSPORT;STATIC_OPENSEA_OPERATIONS;STATIC_OPENSEA_JSONFORMAT;_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;ENABLE_CSMI;FEATURE_JSONOUTPUT_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -696,8 +696,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\wingetopt\VS.2022\$(Platform)\$(Configuration);..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;getopt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\subprojects\opensea-transport\Make\VS.2022\opensea-transport\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-operations\Make\VS.2022\opensea-operations\$(Platform)\$(Configuration)\LIB;..\..\..\subprojects\opensea-common\Make\VS.2022\opensea-common\$(Platform)\$(Configuration)\;..\..\..\subprojects\json-c\build-$(VisualStudioVersion)-$(Platform_Actual)-$(Configuration)\Release;..\..\..\subprojects\opensea-jsonformat\Make\VS.2022\opensea-jsonformat\$(Platform)\$(Configuration)\LIB;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opensea-common.lib;opensea-transport.lib;opensea-operations.lib;opensea-jsonformat.lib;json-c.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SubSystem>Console</SubSystem>
       <MinimumRequiredVersion>6.0</MinimumRequiredVersion>
@@ -713,6 +713,5 @@
     <ClCompile Include="..\..\..\utils\C\openSeaChest\openSeaChest_Logs.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets"></ImportGroup>
 </Project>

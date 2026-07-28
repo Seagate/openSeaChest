@@ -410,7 +410,7 @@ void print_EULA_To_Screen(void)
     print_Open_Source_Licenses();
 }
 
-static void print_Win_Getopt_Licenses(void)
+/*static void print_Win_Getopt_Licenses(void)
 {
     checked_fputs("===========================================================================\n", stdout);
     checked_fputs("wingetopt - getopt library for Windows compilers\n\n", stdout);
@@ -467,7 +467,7 @@ static void print_Win_Getopt_Licenses(void)
     checked_fputs("ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n", stdout);
     checked_fputs("(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n", stdout);
     checked_fputs("SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\n", stdout);
-}
+}*/
 
 #if defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__OpenBSD__)
 static void print_Berkeley_License(void)
@@ -1258,7 +1258,7 @@ void print_Open_Source_Licenses(void)
 {
     // show this license for the getopt parser in all builds now since it is the getopt used under all OSs. Name should
     // be changed to portable-getopt or something in the future.-TJE
-    print_Win_Getopt_Licenses();
+    //print_Win_Getopt_Licenses();
 #if defined(_WIN32)
     // TODO: This is technically flagged with ENABLE_OFNVME in opensea-transport, but that is always on right now.
     //       May need a way to access that flag to determine when this should or should-not be part of the license

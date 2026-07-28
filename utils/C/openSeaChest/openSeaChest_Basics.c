@@ -30,7 +30,7 @@
 #include "drive_info.h"
 #include "dst.h"
 #include "firmware_download.h"
-#include "getopt.h"
+#include "getopt_utils.h"
 #include "host_erase.h"
 #include "openseachest_util_options.h"
 #include "operations.h"
