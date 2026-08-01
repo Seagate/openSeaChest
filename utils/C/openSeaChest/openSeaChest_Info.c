@@ -1024,10 +1024,15 @@ int main(int argc, char* argv[])
 
         if (VERBOSITY_QUIET < toolVerbosity)
         {
-            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name,
-                   deviceList[deviceIter].drive_info.product_identification,
-                   deviceList[deviceIter].drive_info.serialNumber, deviceList[deviceIter].drive_info.product_revision,
-                   print_drive_type(&deviceList[deviceIter]));
+            // When a drive is behind a USB/SAT bridge, the standard drive info fields hold the bridge's SCSI identity
+            // while the actual drive's identity is stored in the bridge info (child MN/SN/FW). Prefer the child drive
+            // identity when it is available so the header shows the real drive.
+            const char* modelString  = M_NULLPTR;
+            const char* serialString = M_NULLPTR;
+            const char* fwString     = M_NULLPTR;
+            get_Device_Strings_For_Display(&deviceList[deviceIter], &modelString, &serialString, &fwString);
+            printf("\n%s - %s - %s - %s - %s\n", deviceList[deviceIter].os_info.name, modelString, serialString,
+                   fwString, print_drive_type(&deviceList[deviceIter]));
         }
 
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
