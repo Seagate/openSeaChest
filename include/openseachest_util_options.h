@@ -3883,6 +3883,8 @@ extern "C"
     void print_SMART_Feature_Help(bool shortHelp);
 
     void print_Set_MRIE_Help(bool shortHelp);
+    void print_Set_EWASC_Help(bool shortHelp);
+    void print_Set_DEXCPT_Help(bool shortHelp);
 
     void print_SMART_Attribute_Autosave_Help(bool shortHelp);
 
