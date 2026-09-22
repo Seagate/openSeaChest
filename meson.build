@@ -486,7 +486,7 @@ if get_option('json_outputformat')
             default_options: [
                 'default_library=static',
                 'build_apps=false',
-                'disable_extra_libs=true',
+                'extra_libs=false',
                 'disable_json_pointer=false',
                 'disable_json_patch=false',
             ],
@@ -502,7 +502,7 @@ if get_option('json_outputformat')
             default_options: [
                 'default_library=static',
                 'build_apps=false',
-                'disable_extra_libs=true',
+                'extra_libs=false',
                 'disable_json_pointer=false',
                 'disable_json_patch=false',
             ],
