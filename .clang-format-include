@@ -10,6 +10,9 @@ subprojects/opensea-transport/include/**/*
 subprojects/opensea-operations/src/**/*
 subprojects/opensea-operations/include/**/*
 
+subprojects/opensea-jsonformat/src/**/*
+subprojects/opensea-jsonformat/include/**/*
+
 utils/C/openSeaChest/*
 include/*
 src/*
