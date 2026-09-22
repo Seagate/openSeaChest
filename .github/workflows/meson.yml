@@ -743,7 +743,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OmniOS)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
-      uses: vmactions/omnios-vm@7f2be0b927aad1a78498c8aeeac4c4ce1fabd322 # v1.3.3
+      uses: vmactions/omnios-vm@317e4f8069dad8a65e1520808f1a68ef3fd20565 # v1.3.6
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -766,7 +766,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
-      uses: vmactions/openindiana-vm@3248e8c61485588528c034a4285242f77efd8b97 # v1.1.3
+      uses: vmactions/openindiana-vm@21e57a45fc8dbfc8b20804ba707c1dad6c271b4f # v1.1.6
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -789,7 +789,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
-      uses: vmactions/solaris-vm@d30dd6c228c8661ade859e36ead7660b9a62efcc # v1.3.7
+      uses: vmactions/solaris-vm@a11f407d3720a3717673d4194f19ee63b284977e # v1.4.0
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -809,7 +809,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions FreeBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions FreeBSD')
-      uses: vmactions/freebsd-vm@d1e65811565151536c0c894fff74f06351ed26e6 # v1.4.5
+      uses: vmactions/freebsd-vm@4469451fe39bee80be4066836c5170362e9349f3 # v1.5.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -829,7 +829,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions DragonFlyBSD')
-      uses: vmactions/dragonflybsd-vm@b4468429bb9ab60b14600c6eeeb6464427f29391 # v1.2.9
+      uses: vmactions/dragonflybsd-vm@7cd7c9b7f2b06e8e03d2337a9476995f3c112acf # v1.3.3
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -849,7 +849,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
-      uses: vmactions/openbsd-vm@6fac4962055fe9952d29930942445739e509fecd # v1.4.2
+      uses: vmactions/openbsd-vm@86cdc08415d9d0865267e686561e276c52d62530 # v1.4.7
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
@@ -870,7 +870,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions NetBSD)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions NetBSD')
-      uses: vmactions/netbsd-vm@1d9767765fd3f986e6de3aff4b1148f0c3a45f01 # v1.4.1
+      uses: vmactions/netbsd-vm@20ee93a005c9fc78743e6e05269f4cb023b87413 # v1.5.0
       with:
         envs: 'DESTDIR'
         release: ${{ matrix.config.vm_release }}
