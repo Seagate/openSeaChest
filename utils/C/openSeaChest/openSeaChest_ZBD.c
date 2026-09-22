@@ -1211,16 +1211,21 @@ int main(int argc, char* argv[])
                                                ZONE_ID_FLAG, &numberOfZones))
             {
                 numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
-                ptrZoneDescriptor zoneDescriptors =
+                eReturnValues     reportRet       = SUCCESS;
+                ptrZoneDescriptor zoneDescriptors = M_NULLPTR;
+                if (numberOfZones > 0)
+                {
+                    zoneDescriptors =
                     M_REINTERPRET_CAST(ptrZoneDescriptor, safe_calloc(numberOfZones, sizeof(zoneDescriptor)));
                 if (!zoneDescriptors)
                 {
                     perror("cannot allocate memory for zone descriptors");
                     exit(UTIL_EXIT_OPERATION_FAILURE);
                 }
-                eReturnValues reportRet = get_Zone_Descriptors(
-                    &deviceList[deviceIter], C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG),
+                    reportRet = get_Zone_Descriptors(&deviceList[deviceIter],
+                                                     C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG),
                     ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
+                }
                 switch (reportRet)
                 {
                 case SUCCESS:
