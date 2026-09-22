@@ -44,6 +44,8 @@
 #    include "scsi_defect_list_json.h"
 #    include "smart_attribute_json.h"
 #endif
+#include "logs.h"
+#include "seagate_operations.h"
 ////////////////////////
 //  Global Variables  //
 ////////////////////////

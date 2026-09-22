@@ -103,6 +103,12 @@ int main(int argc, char* argv[])
     ERROR_LIMIT_VAR
     RANDOM_READ_TEST_VAR
     BUTTEFFLY_READ_TEST_VAR
+    RANDOM_START_LBA_VAR
+    RANDOM_END_LBA_VAR
+    RANDOM_NUMBER_OF_SEEKS_VAR
+    BUTTERFLY_START_LBA_VAR
+    BUTTERFLY_END_LBA_VAR
+    BUTTERFLY_NUMBER_OF_SEEKS_VAR
     STOP_ON_ERROR_VAR
     REPAIR_AT_END_VAR
     REPAIR_ON_FLY_VAR
@@ -170,7 +176,13 @@ int main(int argc, char* argv[])
         OD_MD_ID_TEST_RANGE_LONG_OPT,
         ERROR_LIMIT_LONG_OPT,
         RANDOM_READ_TEST_LONG_OPT,
+        RANDOM_START_LBA_LONG_OPT,
+        RANDOM_END_LBA_LONG_OPT,
+        RANDOM_NUMBER_OF_SEEKS_LONG_OPT,
         BUTTERFLY_TEST_LONG_OPT,
+        BUTTERFLY_START_LBA_LONG_OPT,
+        BUTTERFLY_END_LBA_LONG_OPT,
+        BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT,
         STOP_ON_ERROR_LONG_OPT,
         REPAIR_AT_END_LONG_OPT,
         REPAIR_ON_FLY_LONG_OPT,
@@ -393,6 +405,60 @@ int main(int argc, char* argv[])
                 else
                 {
                     print_Error_In_Cmd_Line_Args(GENERIC_TEST_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, RANDOM_START_LBA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &RANDOM_START_LBA_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(RANDOM_START_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, RANDOM_END_LBA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &RANDOM_END_LBA_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(RANDOM_END_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, RANDOM_NUMBER_OF_SEEKS_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &RANDOM_NUMBER_OF_SEEKS_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(RANDOM_NUMBER_OF_SEEKS_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, BUTTERFLY_START_LBA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &BUTTERFLY_START_LBA_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(BUTTERFLY_START_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, BUTTERFLY_END_LBA_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint64(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &BUTTERFLY_END_LBA_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(BUTTERFLY_END_LBA_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT_STRING) == 0)
+            {
+                if (!get_And_Validate_Integer_Input_Uint16(C_CAST(const char*, optarg), M_NULLPTR, ALLOW_UNIT_NONE,
+                                                           &BUTTERFLY_NUMBER_OF_SEEKS_FLAG))
+                {
+                    print_Error_In_Cmd_Line_Args(BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
@@ -1578,6 +1644,57 @@ int main(int argc, char* argv[])
 
         if (RANDOM_READ_TEST_FLAG)
         {
+            bool useRange = (RANDOM_START_LBA_FLAG != UINT64_C(0) || RANDOM_END_LBA_FLAG != UINT64_MAX ||
+                             RANDOM_NUMBER_OF_SEEKS_FLAG != UINT16_C(5000));
+            if (useRange)
+            {
+                uint64_t maxLBA = return_Device_MaxLba(&deviceList[deviceIter]);
+                if (RANDOM_END_LBA_FLAG == UINT64_MAX || RANDOM_END_LBA_FLAG > maxLBA)
+                {
+                    RANDOM_END_LBA_FLAG = maxLBA;
+                }
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Starting Random test with range:\n");
+                    printf("\tStart LBA:    %" PRIu64 "\n", RANDOM_START_LBA_FLAG);
+                    printf("\tEnd LBA:      %" PRIu64 "\n", RANDOM_END_LBA_FLAG);
+                    printf("\tNumber of Seeks: %" PRIu16 "\n", RANDOM_NUMBER_OF_SEEKS_FLAG);
+                }
+                switch (random_Test_With_Range(&deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG),
+                                               RANDOM_START_LBA_FLAG, RANDOM_END_LBA_FLAG, RANDOM_NUMBER_OF_SEEKS_FLAG,
+                                               M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Random test completed successfully!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Random test is not supported on this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case BAD_PARAMETER:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Invalid LBA range for random test!\n");
+                    }
+                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Random test failed!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
             uint64_t randomReadSeconds =
                 SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1606,11 +1723,64 @@ int main(int argc, char* argv[])
                     print_str("Random test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
         }
 
         if (BUTTERFLY_READ_TEST_FLAG)
         {
+            bool useRange = (BUTTERFLY_START_LBA_FLAG != UINT64_C(0) || BUTTERFLY_END_LBA_FLAG != UINT64_MAX ||
+                             BUTTERFLY_NUMBER_OF_SEEKS_FLAG != UINT16_C(5000));
+            if (useRange)
+            {
+                uint64_t maxLBA = return_Device_MaxLba(&deviceList[deviceIter]);
+                if (BUTTERFLY_END_LBA_FLAG == UINT64_MAX || BUTTERFLY_END_LBA_FLAG > maxLBA)
+                {
+                    BUTTERFLY_END_LBA_FLAG = maxLBA;
+                }
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Starting Butterfly test with range:\n");
+                    printf("\tStart LBA:    %" PRIu64 "\n", BUTTERFLY_START_LBA_FLAG);
+                    printf("\tEnd LBA:      %" PRIu64 "\n", BUTTERFLY_END_LBA_FLAG);
+                    printf("\tNumber of Seeks: %" PRIu16 "\n", BUTTERFLY_NUMBER_OF_SEEKS_FLAG);
+                }
+                switch (butterfly_Test_With_Range(
+                    &deviceList[deviceIter], C_CAST(eRWVCommandType, GENERIC_TEST_MODE_FLAG), BUTTERFLY_START_LBA_FLAG,
+                    BUTTERFLY_END_LBA_FLAG, BUTTERFLY_NUMBER_OF_SEEKS_FLAG, M_NULLPTR, M_NULLPTR, HIDE_LBA_COUNTER))
+                {
+                case SUCCESS:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Butterfly test completed successfully!\n");
+                    }
+                    break;
+                case NOT_SUPPORTED:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Butterfly test is not supported on this device!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                    break;
+                case BAD_PARAMETER:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Invalid LBA range for butterfly test!\n");
+                    }
+                    exitCode = UTIL_EXIT_ERROR_IN_COMMAND_LINE;
+                    break;
+                default:
+                    if (VERBOSITY_QUIET < toolVerbosity)
+                    {
+                        print_str("Butterfly test failed!\n");
+                    }
+                    exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
+            }
+            else
+            {
             uint64_t butterflyTestSeconds =
                 SECONDS_TIME_FLAG + (MINUTES_TIME_FLAG * UINT64_C(60)) + (HOURS_TIME_FLAG * UINT64_C(3600));
             if (VERBOSITY_QUIET < toolVerbosity)
@@ -1639,6 +1809,8 @@ int main(int argc, char* argv[])
                     print_str("Butterfly test failed!\n");
                 }
                 exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                    break;
+                }
             }
         }
 
@@ -1801,6 +1973,12 @@ void utility_Usage(bool shortUsage)
            HOURS_TIME_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s 15\n", util_name, deviceHandleExample, BUTTERFLY_READ_TEST_LONG_OPT_STRING,
            MINUTES_TIME_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 1000 --%s maxLBA --%s 5000\n", util_name, deviceHandleExample,
+           RANDOM_READ_TEST_LONG_OPT_STRING, RANDOM_START_LBA_LONG_OPT_STRING, RANDOM_END_LBA_LONG_OPT_STRING,
+           RANDOM_NUMBER_OF_SEEKS_LONG_OPT_STRING);
+    printf("\t%s -d %s --%s --%s 0 --%s maxLBA --%s 10000\n", util_name, deviceHandleExample,
+           BUTTERFLY_READ_TEST_LONG_OPT_STRING, BUTTERFLY_START_LBA_LONG_OPT_STRING, BUTTERFLY_END_LBA_LONG_OPT_STRING,
+           BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s verify --%s\n", util_name, deviceHandleExample, LONG_GENERIC_LONG_OPT_STRING,
            GENERIC_TEST_LONG_OPT_STRING, REPAIR_AT_END_LONG_OPT_STRING);
     printf("\t%s -d %s --%s --%s read\n", util_name, deviceHandleExample, LONG_GENERIC_LONG_OPT_STRING,

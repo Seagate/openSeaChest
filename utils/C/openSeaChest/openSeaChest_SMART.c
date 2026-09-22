@@ -121,6 +121,8 @@ int main(int argc, char* argv[])
     SHOW_DST_LOG_VAR
     CONVEYANCE_DST_VAR
     SET_MRIE_MODE_VARS
+    SET_EWASC_MODE_VARS
+    SET_DEXCPT_MODE_VARS
     ERROR_LIMIT_VAR
     SCSI_DEFECTS_VARS
     SHOW_SMART_ERROR_LOG_VARS
@@ -190,6 +192,8 @@ int main(int argc, char* argv[])
         SHOW_DST_LOG_LONG_OPT,
         CONVEYANCE_DST_LONG_OPT,
         SET_MRIE_MODE_LONG_OPT,
+        SET_EWASC_MODE_LONG_OPT,
+        SET_DEXCPT_MODE_LONG_OPT,
         SCSI_DEFECTS_LONG_OPTS,
         SHOW_SMART_ERROR_LOG_LONG_OPT,
         SMART_ERROR_LOG_FORMAT_LONG_OPT,
@@ -380,6 +384,48 @@ int main(int argc, char* argv[])
                         print_Error_In_Cmd_Line_Args(SET_MRIE_MODE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SET_EWASC_MODE_LONG_OPT_STRING) == 0)
+            {
+                SET_EWASC_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    SET_EWASC_MODE_DEFAULT = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SET_EWASC_MODE_VALUE = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SET_EWASC_MODE_VALUE = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_EWASC_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, SET_DEXCPT_MODE_LONG_OPT_STRING) == 0)
+            {
+                SET_DEXCPT_MODE_FLAG = true;
+                if (strcmp(optarg, "default") == 0)
+                {
+                    SET_DEXCPT_MODE_DEFAULT = true;
+                }
+                else if (strcmp(optarg, "enable") == 0)
+                {
+                    SET_DEXCPT_MODE_VALUE = true;
+                }
+                else if (strcmp(optarg, "disable") == 0)
+                {
+                    SET_DEXCPT_MODE_VALUE = false;
+                }
+                else
+                {
+                    print_Error_In_Cmd_Line_Args(SET_DEXCPT_MODE_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
             }
             else if (strcmp(longopts[optionIndex].name, SMART_ATTR_AUTOSAVE_FEATURE_LONG_OPT_STRING) == 0)
@@ -883,8 +929,9 @@ int main(int argc, char* argv[])
           SHORT_DST_FLAG || LONG_DST_FLAG || ABORT_DST_FLAG || ABORT_IDD_FLAG || (PROGRESS_CHAR != M_NULLPTR) ||
           RUN_IDD_FLAG || DST_AND_CLEAN_FLAG || SMART_FEATURE_FLAG || SMART_ATTR_AUTOSAVE_FEATURE_FLAG ||
           SMART_INFO_FLAG || SMART_AUTO_OFFLINE_FEATURE_FLAG || SHOW_DST_LOG_FLAG || CONVEYANCE_DST_FLAG ||
-          SET_MRIE_MODE_FLAG || SCSI_DEFECTS_FLAG || SHOW_SMART_ERROR_LOG_FLAG || DEVICE_STATISTICS_FLAG ||
-          NVME_HEALTH_FLAG || SMART_OFFLINE_SCAN_FLAG || SHOW_FARM_FLAG
+          SET_MRIE_MODE_FLAG || SET_EWASC_MODE_FLAG || SET_DEXCPT_MODE_FLAG || SCSI_DEFECTS_FLAG ||
+          SHOW_SMART_ERROR_LOG_FLAG || DEVICE_STATISTICS_FLAG || NVME_HEALTH_FLAG || SMART_OFFLINE_SCAN_FLAG ||
+          SHOW_FARM_FLAG
           // check for other tool specific options here
           ))
     {
@@ -2286,6 +2333,88 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (SET_EWASC_MODE_FLAG)
+        {
+            switch (set_EWASC_Mode(&deviceList[deviceIter], SET_EWASC_MODE_VALUE, SET_EWASC_MODE_DEFAULT))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (SET_EWASC_MODE_DEFAULT)
+                    {
+                        print_str("Successfully set EWASC mode to default value\n");
+                    }
+                    else if (SET_EWASC_MODE_VALUE)
+                    {
+                        print_str("Successfully enabled EWASC mode.\n");
+                    }
+                    else
+                    {
+                        print_str("Successfully disabled EWASC mode.\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Changing EWASC mode not supported or attempted to change to an unsupported mode\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Failed to change EWASC mode.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+        if (SET_DEXCPT_MODE_FLAG)
+        {
+            switch (set_DEXCPT_Mode(&deviceList[deviceIter], SET_DEXCPT_MODE_VALUE, SET_DEXCPT_MODE_DEFAULT))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (SET_DEXCPT_MODE_DEFAULT)
+                    {
+                        print_str("Successfully set DEXCPT mode to default value\n");
+                    }
+                    else if (SET_DEXCPT_MODE_VALUE)
+                    {
+                        print_str("Successfully enabled DEXCPT mode.\n");
+                    }
+                    else
+                    {
+                        print_str("Successfully disabled DEXCPT mode.\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Changing DEXCPT mode not supported or attempted to change to an unsupported mode\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    print_str("Failed to change DEXCPT mode.\n");
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
         if (SMART_ATTR_AUTOSAVE_FEATURE_FLAG)
         {
             switch (enable_Disable_SMART_Attribute_Autosave(&deviceList[deviceIter],
@@ -2634,6 +2763,8 @@ void utility_Usage(bool shortUsage)
     // SAS Only
     print_str("\n\tSAS Only:\n\t=========\n");
     print_SCSI_Defects_Format_Help(shortUsage);
+    print_Set_DEXCPT_Help(shortUsage);
+    print_Set_EWASC_Help(shortUsage);
     print_Set_MRIE_Help(shortUsage);
     print_SCSI_Defects_Help(shortUsage);
 

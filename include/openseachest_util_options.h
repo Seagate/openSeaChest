@@ -88,6 +88,7 @@ extern "C"
         UTIL_OUTPUT_MODE_HUMAN = 0,
         UTIL_OUTPUT_MODE_RAW, // print it to screen
         UTIL_OUTPUT_MODE_BIN, // create a binary file.
+        UTIL_OUTPUT_MODE_JSON, // create a JSON file
     } eOutputMode;
 
     // standard utility options
@@ -672,6 +673,35 @@ extern "C"
 #define BUTTEFFLY_READ_TEST_VAR             getOptBool BUTTERFLY_READ_TEST_FLAG = goFalse;
 #define BUTTERFLY_READ_TEST_LONG_OPT_STRING "butterflyTest"
 #define BUTTERFLY_TEST_LONG_OPT             {BUTTERFLY_READ_TEST_LONG_OPT_STRING, no_argument, &BUTTERFLY_READ_TEST_FLAG, goTrue}
+#define RANDOM_START_LBA_FLAG                  randomStartLBA
+#define RANDOM_START_LBA_VAR                   uint64_t RANDOM_START_LBA_FLAG = UINT64_C(0);
+#define RANDOM_START_LBA_LONG_OPT_STRING       "randomStartLBA"
+#define RANDOM_START_LBA_LONG_OPT              {RANDOM_START_LBA_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define RANDOM_END_LBA_FLAG                    randomEndLBA
+#define RANDOM_END_LBA_VAR                     uint64_t RANDOM_END_LBA_FLAG = UINT64_MAX;
+#define RANDOM_END_LBA_LONG_OPT_STRING         "randomEndLBA"
+#define RANDOM_END_LBA_LONG_OPT                {RANDOM_END_LBA_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define RANDOM_NUMBER_OF_SEEKS_FLAG            randomNumberOfSeeks
+#define RANDOM_NUMBER_OF_SEEKS_VAR             uint16_t RANDOM_NUMBER_OF_SEEKS_FLAG = UINT16_C(5000);
+#define RANDOM_NUMBER_OF_SEEKS_LONG_OPT_STRING "randomNumberOfSeeks"
+#define RANDOM_NUMBER_OF_SEEKS_LONG_OPT        {RANDOM_NUMBER_OF_SEEKS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define RANDOM_TEST_WITH_RANGE_LONG_OPTS                                                                               \
+    RANDOM_READ_TEST_LONG_OPT, RANDOM_START_LBA_LONG_OPT, RANDOM_END_LBA_LONG_OPT, RANDOM_NUMBER_OF_SEEKS_LONG_OPT
+#define BUTTERFLY_START_LBA_FLAG                  butterflyStartLBA
+#define BUTTERFLY_START_LBA_VAR                   uint64_t BUTTERFLY_START_LBA_FLAG = UINT64_C(0);
+#define BUTTERFLY_START_LBA_LONG_OPT_STRING       "butterflyStartLBA"
+#define BUTTERFLY_START_LBA_LONG_OPT              {BUTTERFLY_START_LBA_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define BUTTERFLY_END_LBA_FLAG                    butterflyEndLBA
+#define BUTTERFLY_END_LBA_VAR                     uint64_t BUTTERFLY_END_LBA_FLAG = UINT64_MAX;
+#define BUTTERFLY_END_LBA_LONG_OPT_STRING         "butterflyEndLBA"
+#define BUTTERFLY_END_LBA_LONG_OPT                {BUTTERFLY_END_LBA_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define BUTTERFLY_NUMBER_OF_SEEKS_FLAG            butterflyNumberOfSeeks
+#define BUTTERFLY_NUMBER_OF_SEEKS_VAR             uint16_t BUTTERFLY_NUMBER_OF_SEEKS_FLAG = UINT16_C(5000);
+#define BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT_STRING "butterflyNumberOfSeeks"
+#define BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT        {BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define BUTTERFLY_TEST_WITH_RANGE_LONG_OPTS                                                                            \
+    BUTTERFLY_TEST_LONG_OPT, BUTTERFLY_START_LBA_LONG_OPT, BUTTERFLY_END_LBA_LONG_OPT,                                 \
+        BUTTERFLY_NUMBER_OF_SEEKS_LONG_OPT
 
 #define STOP_ON_ERROR_FLAG                  stopOnFirstError
 #define STOP_ON_ERROR_VAR                   getOptBool STOP_ON_ERROR_FLAG = goFalse;
@@ -1505,6 +1535,43 @@ extern "C"
     uint8_t SET_MRIE_MODE_VALUE   = UINT8_C(6);
 #define SET_MRIE_MODE_LONG_OPT_STRING "setMRIE"
 #define SET_MRIE_MODE_LONG_OPT        {SET_MRIE_MODE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define SET_EWASC_MODE_FLAG    setEWASCMode
+#define SET_EWASC_MODE_VALUE   setEWASCValue
+#define SET_EWASC_MODE_DEFAULT setEWASCDefault
+#define SET_EWASC_MODE_VARS                                                                                            \
+    bool SET_EWASC_MODE_FLAG    = false;                                                                               \
+    bool SET_EWASC_MODE_DEFAULT = false;                                                                               \
+    bool SET_EWASC_MODE_VALUE   = false;
+#define SET_EWASC_MODE_LONG_OPT_STRING "setEWASC"
+#define SET_EWASC_MODE_LONG_OPT        {SET_EWASC_MODE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define SET_DEXCPT_MODE_FLAG    setDEXCPTMode
+#define SET_DEXCPT_MODE_VALUE   setDEXCPTValue
+#define SET_DEXCPT_MODE_DEFAULT setDEXCPTDefault
+#define SET_DEXCPT_MODE_VARS                                                                                           \
+    bool SET_DEXCPT_MODE_FLAG    = false;                                                                              \
+    bool SET_DEXCPT_MODE_DEFAULT = false;                                                                              \
+    bool SET_DEXCPT_MODE_VALUE   = false;
+#define SET_DEXCPT_MODE_LONG_OPT_STRING "setDEXCPT"
+#define SET_DEXCPT_MODE_LONG_OPT        {SET_DEXCPT_MODE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define PERFORMANCE_MODE_INFO    performanceModeInfo
+#define PERFORMANCE_MODE_FLAG    performanceMode
+#define PERFORMANCE_MODE_VALUE   performanceModeValue
+#define PERFORMANCE_MODE_VARS                                                                                           \
+    bool PERFORMANCE_MODE_INFO  = false;                                                         \
+    bool PERFORMANCE_MODE_FLAG = false;                                                                              \
+    bool PERFORMANCE_MODE_VALUE = false;
+#define PERFORMANCE_MODE_LONG_OPT_STRING "performanceMode"
+#define PERFORMANCE_MODE_LONG_OPT                                                                              \
+    {PERFORMANCE_MODE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+#define THERMAL_THROTTLE_INFO    thermalThrottleInfo
+#define THERMAL_THROTTLE_FLAG    thermalThrottle
+#define THERMAL_THROTTLE_VALUE   thermalThrottleValue
+#define THERMAL_THROTTLE_VARS                                                                                  \
+    bool THERMAL_THROTTLE_INFO    = false;                                              \
+    bool THERMAL_THROTTLE_FLAG    = false;                                                                     \
+    bool THERMAL_THROTTLE_VALUE   = false;
+#define THERMAL_THROTTLE_LONG_OPT_STRING "thermalThrottle"
+#define THERMAL_THROTTLE_LONG_OPT        {THERMAL_THROTTLE_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
 // SMART Attribute Autosave
 #define SMART_ATTR_AUTOSAVE_FEATURE_FLAG       smartAttrAutosave
@@ -2614,6 +2681,10 @@ extern "C"
 #define RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING "inputOffset"
 #define RAW_INPUT_FILE_OFFSET_LONG_OPT        {RAW_INPUT_FILE_OFFSET_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
 
+#define FILE_NAME_TYPE          fileNameType
+#define SN_ONLY_VAR             eLogFileNamingConvention FILE_NAME_TYPE = NAMING_SERIAL_NUMBER_DATE_TIME;
+#define SN_ONLY_LONG_OPT_STRING "serialNumberOnlyFilename"
+#define SN_ONLY_LONG_OPT        {SN_ONLY_LONG_OPT_STRING, no_argument, M_NULLPTR, 0}
 // check Pending List count
 #define CHECK_PENDING_LIST_COUNT_FLAG         checkPendingListCount
 #define CHECK_PENDING_LIST_COUNT_VALUE        pendlingListCountToCheck
@@ -4097,6 +4168,8 @@ extern "C"
 
     void print_Set_SCSI_MP_Help(bool shortHelp);
 
+    void print_Performance_Mode_Help(bool shortHelp);
+    void print_Thermal_Throttle_Help(bool shortHelp);
     void print_Show_SCSI_MP_Output_Mode_Help(bool shortHelp);
 
     void print_NVM_Format_Help(bool shortHelp);
@@ -4330,6 +4403,7 @@ extern "C"
 
     void print_SCSI_FW_Info_Help(bool shortHelp);
 
+    void print_File_Name_Info_Help(bool shortHelp);
     void print_EnableDisableCDL_Help(bool shortHelp);
 
     void print_Show_CDL_Settings_Help(bool shortHelp);

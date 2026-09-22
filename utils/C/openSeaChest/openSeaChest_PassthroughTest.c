@@ -2386,12 +2386,32 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
     {
         bool     genericVPDPageReadOutput = true;
         bool     readVPDPage              = false;
-        uint8_t* pageToRead =
-            M_REINTERPRET_CAST(uint8_t*, safe_calloc_aligned(4, sizeof(uint8_t), device->os_info.minimumAlignment));
+        uint32_t pageLengthToRead = 4;
+        uint8_t* pageToRead = M_REINTERPRET_CAST(
+            uint8_t*, safe_calloc_aligned(pageLengthToRead, sizeof(uint8_t), device->os_info.minimumAlignment));
         uint16_t vpdPageLength = UINT16_C(0);
         printf("\tFound page %" PRIX8 "h\n", supportedPages[vpdIter]);
 
-        if (SUCCESS == scsi_Inquiry(device, pageToRead, 4, supportedPages[vpdIter], true, false))
+        while (SUCCESS != scsi_Inquiry(device, pageToRead, pageLengthToRead, supportedPages[vpdIter], true, false))
+        {
+            pageLengthToRead *= 2;
+            uint8_t* temp = realloc_aligned(pageToRead, 0, pageLengthToRead, device->os_info.minimumAlignment);
+            if (temp)
+            {
+                pageToRead = temp;
+            }
+            else
+            {
+                set_Console_Colors(true, ERROR_COLOR);
+                printf("ERROR: Unable to allocate memory to read %" PRIu32 "B of page %" PRIX8 "h\n", pageLengthToRead,
+                       supportedPages[vpdIter]);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+                break;
+            }
+        }
+        printf("Successfull page length: %" PRIu32 "B\n", pageLengthToRead);
+
+        if (SUCCESS == scsi_Inquiry(device, pageToRead, pageLengthToRead, supportedPages[vpdIter], true, false))
         {
             vpdPageLength = M_BytesTo2ByteValue(pageToRead[2], pageToRead[3]);
             uint8_t* temp = realloc_aligned(pageToRead, 4, vpdPageLength + 4, device->os_info.minimumAlignment);
@@ -3947,7 +3967,7 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
                         print_str("Reserved\n");
                         break;
                     }
-                    print_str("Zoned Capabilities: ");
+                    print_str("\tZoned Capabilities: ");
                     scsiDevInfo->vpdData.blockCharacteristicsData.zonedCapabilities =
                         M_GETBITRANGE(pageToRead[8], 5, 4);
                     switch (scsiDevInfo->vpdData.blockCharacteristicsData.zonedCapabilities)
@@ -5586,6 +5606,27 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
             uint8_t* pageToRead = M_REINTERPRET_CAST(
                 uint8_t*, safe_calloc_aligned(logPageLength, sizeof(uint8_t), device->os_info.minimumAlignment));
 
+            while (SUCCESS != scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES, pageCode, subPageCode, 0,
+                pageToRead, logPageLength))
+            {
+                logPageLength *= 2;
+                uint8_t* temp = realloc_aligned(pageToRead, logPageLength / 2, logPageLength, device->os_info.minimumAlignment);
+                if (temp)
+                {
+                    pageToRead = temp;
+                }
+                else
+                {
+                    set_Console_Colors(true, ERROR_COLOR);
+                    printf("ERROR: Unable to allocate memory to read %" PRIu16 "B of page  %02" PRIX8 "h-%02" PRIX8
+                           "h\n",
+                           logPageLength, pageCode, subPageCode);
+                    set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+                    break;
+                }
+            }
+            printf("Successful log page read for page %02" PRIX8 "h-%02" PRIX8 "h with length %" PRIu32 "\n", pageCode, subPageCode, logPageLength);
+
             if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES, pageCode, subPageCode, 0,
                                               pageToRead, logPageLength))
             {
@@ -5656,6 +5697,14 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                            logPageLength, pageCode, subPageCode);
                     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 }
+            }
+            else
+            {
+                set_Console_Colors(true, ERROR_COLOR);
+                printf("ERROR: Unable to read header for page %02" PRIX8 "h-%02" PRIX8 "h\n",
+                       pageCode, subPageCode);
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+                continue;
             }
 
             // Loop through the pages. Only looking for direct access block device and host managed zoned block device
@@ -6853,7 +6902,7 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                             }
                             break;
                         default:
-                            printf("Vendor Specific Pending Defects parameter code: %04" PRIX16 "h\n", parameterCode);
+                            printf("Vendor Specific Informational Exceptions parameter code: %04" PRIX16 "h\n", parameterCode);
                             print_Data_Buffer(&pageToRead[offset + 4], parameterLength, true);
                             break;
                         }

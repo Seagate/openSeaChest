@@ -1385,7 +1385,7 @@ int main(int argc, char* argv[])
                                     // for the device since we already check if reservations are supported above.-TJE
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf(
+						print_str(
                             "Invalid key or reservation type specified. Cannot acquire reservation for the device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
@@ -1422,7 +1422,7 @@ int main(int argc, char* argv[])
                                     // for the device since we already check if reservations are supported above.-TJE
                     if (VERBOSITY_QUIET < toolVerbosity)
                     {
-                        printf(
+						print_str(
                             "Invalid key or reservation type specified. Cannot release reservation for the device.\n");
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;

@@ -118,6 +118,8 @@ int main(int argc, char* argv[])
     VOLATILE_VAR
     PUIS_FEATURE_VARS
     SSC_FEATURE_VARS
+    PERFORMANCE_MODE_VARS
+    THERMAL_THROTTLE_VARS
 #if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
     CSMI_VERBOSE_VAR
@@ -203,6 +205,8 @@ int main(int argc, char* argv[])
         SCT_WRITE_CACHE_REORDER_LONG_OPT,
         PUIS_FEATURE_LONG_OPT,
         SSC_FEATURE_LONG_OPT,
+        PERFORMANCE_MODE_LONG_OPT,
+        THERMAL_THROTTLE_LONG_OPT,
         SCT_ERROR_RECOVERY_CONTROL_LONG_OPTS,
         FREE_FALL_LONG_OPT,
         SCSI_MP_RESET_LONG_OPT,
@@ -564,6 +568,54 @@ int main(int argc, char* argv[])
                     else
                     {
                         print_Error_In_Cmd_Line_Args(SSC_FEATURE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, PERFORMANCE_MODE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    PERFORMANCE_MODE_INFO = true;
+                }
+                else
+                {
+                    PERFORMANCE_MODE_FLAG = true;
+                    if (strcmp(optarg, "enable") == 0)
+                    {
+                        PERFORMANCE_MODE_VALUE = true;
+                    }
+                    else if (strcmp(optarg, "disable") == 0)
+                    {
+                        PERFORMANCE_MODE_VALUE = false;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(PERFORMANCE_MODE_LONG_OPT_STRING, optarg);
+                        exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                    }
+                }
+            }
+            else if (strcmp(longopts[optionIndex].name, THERMAL_THROTTLE_LONG_OPT_STRING) == 0)
+            {
+                if (strcmp(optarg, "info") == 0)
+                {
+                    THERMAL_THROTTLE_INFO = true;
+                }
+                else
+                {
+                    THERMAL_THROTTLE_FLAG = true;
+                    if (strcmp(optarg, "enable") == 0)
+                    {
+                        THERMAL_THROTTLE_VALUE = true;
+                    }
+                    else if (strcmp(optarg, "disable") == 0)
+                    {
+                        THERMAL_THROTTLE_VALUE = false;
+                    }
+                    else
+                    {
+                        print_Error_In_Cmd_Line_Args(THERMAL_THROTTLE_LONG_OPT_STRING, optarg);
                         exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                     }
                 }
@@ -1841,7 +1893,11 @@ int main(int argc, char* argv[])
           || CAPACITY_MODEL_NUMBER_MAPPING_FLAG || RESTORE_MAX_LBA_FLAG || SET_MAX_LBA_FLAG || SET_PHY_SPEED_FLAG ||
           SET_READY_LED_FLAG || READY_LED_INFO_FLAG || WRITE_CACHE_FLAG || READ_LOOK_AHEAD_FLAG ||
           READ_LOOK_AHEAD_INFO || NV_CACHE_INFO || NV_CACHE_FLAG || WRITE_CACHE_INFO || PROVISION_FLAG ||
-          LOW_CURRENT_SPINUP_FLAG || SCT_WRITE_CACHE_INFO || SCT_WRITE_CACHE_FLAG || SCT_WRITE_CACHE_REORDER_FLAG ||
+          LOW_CURRENT_SPINUP_FLAG || PERFORMANCE_MODE_INFO || PERFORMANCE_MODE_FLAG || THERMAL_THROTTLE_INFO ||
+          THERMAL_THROTTLE_FLAG ||
+          SCT_WRITE_CACHE_INFO ||
+          SCT_WRITE_CACHE_FLAG ||
+          SCT_WRITE_CACHE_REORDER_FLAG ||
           SCT_WRITE_CACHE_REORDER_INFO || PUIS_FEATURE_FLAG || SET_SSC_FLAG || GET_SSC_FLAG ||
           SCT_ERROR_RECOVERY_CONTROL_WRITE_INFO || SCT_ERROR_RECOVERY_CONTROL_READ_INFO ||
           SCT_ERROR_RECOVERY_CONTROL_SET_READ_TIMER || SCT_ERROR_RECOVERY_CONTROL_SET_WRITE_TIMER ||
@@ -2963,6 +3019,130 @@ int main(int argc, char* argv[])
             }
         }
 
+        if (PERFORMANCE_MODE_INFO)
+        {
+            if (is_Performance_Mode_Enabled(&deviceList[deviceIter]))
+            {
+                print_str("Performance mode is enabled!\n");
+            }
+            else
+            {
+                print_str("Performance mode is disabled!\n");
+            }
+        }
+        if (PERFORMANCE_MODE_FLAG)
+        {
+            switch (set_Performance_Mode(&deviceList[deviceIter], PERFORMANCE_MODE_VALUE))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (PERFORMANCE_MODE_VALUE)
+                    {
+                        print_str("Performance mode successfully enabled!\n");
+                    }
+                    else
+                    {
+                        print_str("Performance mode successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (PERFORMANCE_MODE_VALUE)
+                    {
+                        print_str("Enabling Performance mode not supported on this device.\n");
+                    }
+                    else
+                    {
+                        print_str("Disabling Performance mode not supported on this device.\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (PERFORMANCE_MODE_VALUE)
+                    {
+                        print_str("Failed to enable Performance mode!\n");
+                    }
+                    else
+                    {
+                        print_str("Failed to disable Performance mode!\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
+        if (THERMAL_THROTTLE_INFO)
+        {
+            if (is_Thermal_Throttle_Enabled(&deviceList[deviceIter]))
+            {
+                print_str("Thermal throttle is enabled!\n");
+            }
+            else
+            {
+                print_str("Thermal throttle is disabled!\n");
+            }
+        }
+        if (THERMAL_THROTTLE_FLAG)
+        {
+            switch (set_Thermal_Throttle(&deviceList[deviceIter], THERMAL_THROTTLE_VALUE))
+            {
+            case SUCCESS:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (THERMAL_THROTTLE_VALUE)
+                    {
+                        print_str("Thermal throttle successfully enabled!\n");
+                    }
+                    else
+                    {
+                        print_str("Thermal throttle successfully disabled!\n");
+                    }
+                    if (deviceList[deviceIter].drive_info.numberOfLUs > 1)
+                    {
+                        print_str("NOTE: This command may have affected more than 1 logical unit\n");
+                    }
+                }
+                break;
+            case NOT_SUPPORTED:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (THERMAL_THROTTLE_VALUE)
+                    {
+                        print_str("Enabling Thermal throttle not supported on this device.\n");
+                    }
+                    else
+                    {
+                        print_str("Disabling Thermal throttle not supported on this device.\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                break;
+            default:
+                if (VERBOSITY_QUIET < toolVerbosity)
+                {
+                    if (THERMAL_THROTTLE_VALUE)
+                    {
+                        print_str("Failed to enable Thermal throttle!\n");
+                    }
+                    else
+                    {
+                        print_str("Failed to disable Thermal throttle!\n");
+                    }
+                }
+                exitCode = UTIL_EXIT_OPERATION_FAILURE;
+                break;
+            }
+        }
         if (SCT_WRITE_CACHE_INFO)
         {
             uint16_t sctFlags = UINT16_C(0);
@@ -5084,6 +5264,8 @@ void utility_Usage(bool shortUsage)
     print_SCSI_MP_Restore_Help(shortUsage);
     print_SCSI_MP_Save_Help(shortUsage);
     print_Set_SCSI_MP_Help(shortUsage);
+    print_Performance_Mode_Help(shortUsage);
+    print_Thermal_Throttle_Help(shortUsage);
     print_Show_SCSI_MP_Output_Mode_Help(shortUsage);
     print_SCSI_Show_MP_Help(shortUsage);
     print_SCSI_Show_MP_Control_Help(shortUsage);

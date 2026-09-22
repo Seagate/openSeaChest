@@ -1061,6 +1061,14 @@ int main(int argc, char* argv[])
         {
             deviceList[deviceIter].deviceVerbosity = toolVerbosity;
         }
+        if (FORCE_NVME_FLAG)
+        {
+            if (VERBOSITY_QUIET < toolVerbosity)
+            {
+                print_str("\tForcing NVME Drive\n");
+            }
+            deviceList[deviceIter].drive_info.drive_type = NVME_DRIVE;
+        }
 
         if (ONLY_SEAGATE_FLAG)
         {

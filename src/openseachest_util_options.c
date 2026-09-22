@@ -3081,6 +3081,62 @@ void print_Set_MRIE_Help(bool shortHelp)
         print_str("\t\t         with multiple logical units or namespaces.\n\n");
     }
 }
+void print_Set_EWASC_Help(bool shortHelp)
+{
+    printf("\t--%s [ disable | enable | default ]  (SAS Only)\n", SET_EWASC_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to change the EWASC mode on the informational\n");
+        print_str("\t\texceptions mode page.\n");
+        print_str("\t\t    default - set to the drive default\n");
+        print_str("\t\t    enable  - Enable reporting of the warning\n");
+        print_str("\t\t    disable - Disable reporting of the warning\n");
+        print_str("\t\tWARNING: Changing EWASC may affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+void print_Set_DEXCPT_Help(bool shortHelp)
+{
+    printf("\t--%s [ disable | enable | default ]  (SAS Only)\n", SET_DEXCPT_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to change the DEXCPT mode on the informational\n");
+        print_str("\t\texceptions mode page.\n");
+        print_str("\t\t    default - set to the drive default\n");
+        print_str("\t\t    enable  - Failure prediction threshold exceeded reporting shall be disabled\n");
+        print_str("\t\t    disable - Failure prediction threshold exceeded reporting shall be enabled\n");
+        print_str("\t\tWARNING: Changing DEXCPT may affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+void print_Performance_Mode_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable]  (SAS Only)\n", PERFORMANCE_MODE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to change the PM (Performance Mode) bit in SCSI Unit Attention parameters page (00h).\n");
+        print_str("\t\t    info    - gets current state of the PM bit\n");
+        print_str("\t\t    enable  - A PM value of 1 indicates that the number of cache segments is fixed to the value set in mode page 08h\n");
+        print_str("\t\t    disable - A PM value of 0 indicates that the drive will optimize the number of segments depending on the command activity observed by the drive.\n");
+        print_str("\t\t              The number of segments value (in mode page 08h) is ignored with the PM value is 0.\n");
+        print_str("\t\tWARNING: Changing Performance Mode may affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
+void print_Thermal_Throttle_Help(bool shortHelp)
+{
+    printf("\t--%s [info | enable | disable]  (SAS Only)\n", THERMAL_THROTTLE_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to change the TTE (Thermal Throttle Enable) bit in SCSI Unit Attention parameters page (00h) \n");
+        print_str("\t\tis used to control drive's activity based on temperature.\n");
+        print_str("\t\t    info    - gets current state of the TTE bit\n");
+        print_str("\t\t    enable  - drive activity is limited based on temperature\n");
+        print_str("\t\t    disable - drive activity is not limited-based on temperature\n");
+        print_str("\t\tWARNING: Changing Thermal Throttle may affect all LUNs/namespaces for devices\n");
+        print_str("\t\t         with multiple logical units or namespaces.\n\n");
+    }
+}
 
 void print_SMART_Attribute_Autosave_Help(bool shortHelp)
 {
@@ -5723,6 +5779,14 @@ void print_Change_Id_String_Help(bool shortHelp)
     }
 }
 
+void print_File_Name_Info_Help(bool shortHelp)
+{
+    printf("\t--%s\n", SN_ONLY_LONG_OPT_STRING);
+    if (!shortHelp)
+    {
+        print_str("\t\tUse this option to change to output filename as just serial name\n\n");
+    }
+}
 void print_EnableDisableCDL_Help(bool shortHelp)
 {
     printf("\t--%s [enable | disable]\n", CDL_FEATURE_LONG_OPT_STRING);

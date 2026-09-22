@@ -1515,13 +1515,12 @@ int main(int argc, char* argv[])
                 if (numberOfDescriptors > 0)
                 {
                     ptrPhysicalElement elementList = M_REINTERPRET_CAST(
-                        ptrPhysicalElement, safe_malloc(numberOfDescriptors * sizeof(physicalElement)));
+                        ptrPhysicalElement, safe_calloc(numberOfDescriptors, sizeof(physicalElement)));
                     uint32_t depopElementID = UINT32_C(0);
                     uint16_t maxDepop       = UINT16_C(0);
                     uint16_t currentDepop   = UINT16_C(0);
                     if (elementList)
                     {
-                        M_INITIALIZE_STRUCTURE(elementList, numberOfDescriptors * sizeof(physicalElement));
                         if (SUCCESS == get_Physical_Element_Descriptors_2(&deviceList[deviceIter], numberOfDescriptors,
                                                                           &depopElementID, &maxDepop, &currentDepop,
                                                                           elementList))
@@ -2196,10 +2195,9 @@ int main(int argc, char* argv[])
             if (getLbaStatusRet == SUCCESS && numberOfDescriptors > 0)
             {
                 ptrLbaStatusDescriptor descriptorList = M_REINTERPRET_CAST(
-                    ptrLbaStatusDescriptor, safe_malloc(numberOfDescriptors * sizeof(lbaStatusDescriptor)));
+                    ptrLbaStatusDescriptor, safe_calloc(numberOfDescriptors, sizeof(lbaStatusDescriptor)));
                 if (descriptorList != M_NULLPTR)
                 {
-                    M_INITIALIZE_STRUCTURE(descriptorList, numberOfDescriptors * sizeof(lbaStatusDescriptor));
                     if (SUCCESS ==
                         get_LBA_Status_Descriptors(&deviceList[deviceIter], numberOfDescriptors, descriptorList))
                     {
