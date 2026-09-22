@@ -745,7 +745,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OmniOS')
       uses: vmactions/omnios-vm@317e4f8069dad8a65e1520808f1a68ef3fd20565 # v1.3.6
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -769,7 +769,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenIndiana')
       uses: vmactions/openindiana-vm@21e57a45fc8dbfc8b20804ba707c1dad6c271b4f # v1.1.6
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -793,7 +793,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Solaris')
       uses: vmactions/solaris-vm@a11f407d3720a3717673d4194f19ee63b284977e # v1.4.0
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -813,7 +813,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions FreeBSD')
       uses: vmactions/freebsd-vm@4469451fe39bee80be4066836c5170362e9349f3 # v1.5.7
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -832,7 +832,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions DragonFlyBSD')
       uses: vmactions/dragonflybsd-vm@7cd7c9b7f2b06e8e03d2337a9476995f3c112acf # v1.3.3
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -851,7 +851,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions OpenBSD')
       uses: vmactions/openbsd-vm@86cdc08415d9d0865267e686561e276c52d62530 # v1.4.7
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
@@ -870,7 +870,7 @@ jobs:
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions NetBSD')
       uses: vmactions/netbsd-vm@20ee93a005c9fc78743e6e05269f4cb023b87413 # v1.5.0
       with:
-        envs: 'DESTDIR'
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
