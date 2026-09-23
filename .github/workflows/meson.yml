@@ -536,7 +536,7 @@ jobs:
     #   with:
     #     egress-policy: audit
 
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
       with:
         persist-credentials: false
@@ -559,7 +559,7 @@ jobs:
     - name: Settings vars for MSVC
       if: startsWith(matrix.config.name, 'Windows MSVC')
       # uses: ilammy/msvc-dev-cmd@v1 # Deprecated in favor of TheMrMilchmann/setup-msvc-dev which is updated for node25
-      uses: TheMrMilchmann/setup-msvc-dev@79dac248aac9d0059f86eae9d8b5bfab4e95e97c # v4.0.0
+      uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0
       with:
         arch: ${{ matrix.config.arch }}
 
@@ -1105,7 +1105,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
           fetch-depth: 1
