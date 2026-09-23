@@ -133,27 +133,66 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         warning_flags += '-Wsign-conversion'
     endif
 
-    if target_machine.system() != 'sunos'
+    # Check if -fstack-protector-strong links or not - some systems support
+    # the argument but are unable to link with it. Fall back to plain
+    # -fstack-protector when strong is unavailable.
+    stack_protector_test_code = '''
+        __attribute__((noinline)) int ssp_probe(void)
+        {
+            volatile char buf[4];
+            buf[0] = 1;
+            return buf[0];
+        }
+        int main(void) { return ssp_probe(); }
+    '''
+    if c.links(
+        stack_protector_test_code, 
+        name: 'stack-protector-strong link support',
+        args: ['-fstack-protector-strong'],
+    )
         warning_flags += '-fstack-protector-strong'
-    else
-        #Illumos will support this, but solaris will not due to library differences in the systems
-        if meson.version().version_compare('>=1.2.0')
-            if target_machine.kernel() == 'illumos'
-                warning_flags += '-fstack-protector-strong'
-            endif
-        else
-            # TODO: Backup method to detect illumos vs solaris
-        endif
+    elif c.links(
+        stack_protector_test_code,
+        name: 'stack-protector link support',
+        args: ['-fstack-protector'],
+    )
+        warning_flags += '-fstack-protector'
     endif
 
-    if c.get_id().contains('gcc') and target_machine.system() == 'windows'
-        #According to the link below, this is not needed in Windows...it also causes a bug in some versions of GCC for Windows.
-        #https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90458
-        #NOTE: While this appears to be fixed for versions 11 and 12, the current CI is failing on this with
-        #      version 12.2. If we want to or need to enable this, it should be done based on which versions we
-        #      know have been patched for this. -TJE
-    else
-        warning_flags += '-fstack-clash-protection'
+    # Check if -fstack-clash-protection works or not. Some GCC for Windows
+    # versions (see
+    # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90458) accept the flag
+    # and even link it, but the generated code crashes at runtime, so the
+    # probe is also run when possible.
+    # The large local buffer forces the stack probing code path the buggy
+    # versions break.
+    stack_clash_test_code = '''
+        __attribute__((noinline)) int clash_probe(void)
+        {
+            volatile char buf[65536];
+            buf[0] = 1;
+            return buf[0];
+        }
+        int main(void) { return clash_probe() - 1; }
+    '''
+    if c.links(
+        stack_clash_test_code,
+        name: 'stack-clash-protection link support',
+        args: ['-fstack-clash-protection'],
+    )
+        if meson.can_run_host_binaries()
+            stack_clash_result = c.run(
+                stack_clash_test_code,
+                name: 'stack-clash-protection run support',
+                args: ['-fstack-clash-protection'],
+            )
+            if stack_clash_result.returncode() == 0
+                warning_flags += '-fstack-clash-protection'
+            endif
+        else
+            #Host binaries cannot be executed in this environment - keep the flag, the link check passed
+            warning_flags += '-fstack-clash-protection'
+        endif
     endif
 
     if target_machine.cpu_family() == 'ppc64'
