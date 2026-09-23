@@ -798,12 +798,10 @@ jobs:
           pkg update || true
           pkg install socat curl
           pkg install build-essential ninja pkg-config git
-
-          # CBE python3 on illumos ships without pip; bootstrap via ensurepip or get-pip.py
-          python3 -m ensurepip --upgrade 2>/dev/null || \
-            { curl -sS https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py && python3 /tmp/get-pip.py --root-user-action=ignore; }
-          python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
-          python3 -m pip install meson --root-user-action=ignore
+          # meson 1.7.2 and ninja are native IPS packages (developer/build/*),
+          # avoiding pip entirely - pip upgrades fail on the IPS-managed
+          # setuptools (no RECORD file, cannot uninstall)
+          pkg install developer/build/meson
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
