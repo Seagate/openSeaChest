@@ -288,6 +288,7 @@ jobs:
             cc: "gcc",
             cxx: "g++",
             publish_release: true,
+            meson_opts: "-Dopensea-common:allow-32bit-time-t=enabled",
             release_name: "tribblix_0m41-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ",
