@@ -770,8 +770,8 @@ jobs:
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
-          pkg install socat
-          pkg install build-essential ninja pkg-config git
+          pkg install socat || true
+          pkg install build-essential ninja pkg-config git || true
 
           # Working as-is on OmniOS. If "No module named pip" appears after a
           # python3 package update, apply the same ensurepip/get-pip.py bootstrap
@@ -796,12 +796,12 @@ jobs:
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
-          pkg install socat curl
-          pkg install build-essential ninja pkg-config git
+          pkg install socat curl || true
+          pkg install build-essential ninja pkg-config git || true
           # meson 1.7.2 and ninja are native IPS packages (developer/build/*),
           # avoiding pip entirely - pip upgrades fail on the IPS-managed
           # setuptools (no RECORD file, cannot uninstall)
-          pkg install developer/build/meson
+          pkg install developer/build/meson || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -820,8 +820,8 @@ jobs:
         sync-time: true
         prepare: |
           pkg update --accept || true
-          pkgutil -y -i socat
-          pkg install --accept developer/build/meson developer/versioning/git
+          pkgutil -y -i socat || true
+          pkg install --accept developer/build/meson developer/versioning/git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -841,7 +841,7 @@ jobs:
         prepare: |
           # python-developer group auto-resolves python313 (interpreter+pip) via REQUIRES
           # and provides meson/ninja/wheel for the build
-          zap install -y gcc-g++ git python-developer
+          zap install -y gcc-g++ git python-developer || true
 
         run: |
           # Platform introspection: surfaces new-OS build quirks early in the log
@@ -869,7 +869,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg update || true
-          pkg install -y curl meson git
+          pkg install -y curl meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -888,7 +888,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg update || true
-          pkg install -y socat meson git
+          pkg install -y socat meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -907,7 +907,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg_add -u || true
-          pkg_add curl meson git
+          pkg_add curl meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -926,11 +926,11 @@ jobs:
         sync-time: true
         prepare: |
           /usr/sbin/pkg_add pkgin || true
-          /usr/pkg/bin/pkgin update
-          /usr/pkg/bin/pkgin upgrade -y
+          /usr/pkg/bin/pkgin update || true
+          /usr/pkg/bin/pkgin upgrade -y || true
 
           /usr/sbin/pkg_add curl || true
-          /usr/sbin/pkg_add -uu meson git
+          /usr/sbin/pkg_add -uu meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
