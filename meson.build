@@ -154,16 +154,26 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         }
         int main(void) { return ssp_probe(); }
     '''
+    # The probe is compiled with the same warning_flags the real objects use
+    # (filtered to supported arguments) so its codegen matches the build,
+    # and linked with -z defs (also filtered to supported link arguments,
+    # like the real link does). On 32-bit i386/powerpc GCC
+    # emits a hidden (local binding) reference to __stack_chk_fail_local that
+    # is not a global export; it can only be satisfied by a static archive
+    # (glibc libc_nonshared.a, musl libssp_nonshared.a, illumos libssp_ns.a,
+    # see golang/go#58385). Toolchains that cannot provide it will fail the
+    # link and drop the flag. A bare 'compiles' check or a minimal link args
+    # list cannot detect this.
     if c.links(
-        stack_protector_test_code, 
+        stack_protector_test_code,
         name: 'stack-protector-strong link support',
-        args: ['-fstack-protector-strong'],
+        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-protector-strong'],
     )
         warning_flags += '-fstack-protector-strong'
     elif c.links(
         stack_protector_test_code,
         name: 'stack-protector link support',
-        args: ['-fstack-protector'],
+        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-protector'],
     )
         warning_flags += '-fstack-protector'
     endif
@@ -187,13 +197,13 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     if c.links(
         stack_clash_test_code,
         name: 'stack-clash-protection link support',
-        args: ['-fstack-clash-protection'],
+        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-clash-protection'],
     )
         if meson.can_run_host_binaries()
             stack_clash_result = c.run(
                 stack_clash_test_code,
                 name: 'stack-clash-protection run support',
-                args: ['-fstack-clash-protection'],
+                args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-clash-protection'],
             )
             if stack_clash_result.returncode() == 0
                 warning_flags += '-fstack-clash-protection'
