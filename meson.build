@@ -136,12 +136,21 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     # Check if -fstack-protector-strong links or not - some systems support
     # the argument but are unable to link with it. Fall back to plain
     # -fstack-protector when strong is unavailable.
+    # GCC's optimize attribute forces canary codegen on the probe function so
+    # the check does not depend on the compiler's per-function protection
+    # heuristics deciding that a small test function is not worth protecting.
     stack_protector_test_code = '''
-        __attribute__((noinline)) int ssp_probe(void)
+        #if defined(__GNUC__) && !defined(__clang__)
+        __attribute__((noinline, optimize("-fstack-protector-all")))
+        #else
+        __attribute__((noinline))
+        #endif
+        int ssp_probe(void)
         {
-            volatile char buf[4];
+            volatile char buf[8];
             buf[0] = 1;
-            return buf[0];
+            buf[7] = 2;
+            return buf[0] + buf[7];
         }
         int main(void) { return ssp_probe(); }
     '''
