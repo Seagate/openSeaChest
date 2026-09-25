@@ -529,18 +529,12 @@ jobs:
       hash-netbsd-aarch64:                                            ${{ steps.hash.outputs.hash-netbsd-aarch64 }}
 
     steps:
-    # Community tier is host-level nftables + DNS proxy, not eBPF (Enterprise),
-    # and its DNS layer cannot resolve names pointing to internal addresses
-    # (step-security/harden-runner#418, same class as podman DNS failures in #559).
-    # VMActions guest traffic transits the host with internal-destination lookups
-    # (socat/ssh bridge), so the agent is only enabled on plain runner jobs.
-    # Container jobs (MUSL) are auto-detected by the action as unsupported and
-    # no-op with a log message (step-security/harden-runner#124).
-    - name: Harden Runner
-      if: matrix.config.image == '' && matrix.config.vm_actions == false
-      uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
-      with:
-        egress-policy: audit
+    # Even with the if's this still interferes with the VMs so disabling until we get a better idea.
+    # - name: Harden Runner
+    #   if: matrix.config.image == '' && matrix.config.vm_actions != true
+    #   uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+    #   with:
+    #     egress-policy: audit
 
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       continue-on-error: true  # rsync code 24: harmless cleanup-phase race during VM setup
