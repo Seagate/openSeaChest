@@ -30,4 +30,7 @@ option('json_outputformat', type : 'boolean', value : true, description : 'Enabl
 #sent the ATA security freeze-lock command to the drive.
 #if you really want to enable this option, you can do it, but you have been warned!
 option('atasecsetpass', type : 'feature', value : 'disabled')
+#'auto' (default) and 'enabled' both probe the toolchain and add the strongest
+#stack protector flag it can handle; 'disabled' builds without stack protection.
+option('ssp', type : 'feature', value : 'auto', description : 'Stack protector (-fstack-protector-strong, falls back to -fstack-protector).')
 option('cc-suggest-attribute', type : 'boolean', value : false, description : 'Enable warnings where the compiler can suggest various attributes to be applied to functions for optimization and correctness.')

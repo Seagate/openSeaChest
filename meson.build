@@ -5,7 +5,13 @@ project(
     'c',
     version: 'v26.03.2',
     license: 'MPL-2.0',
-    default_options: [ 'meson_version: >=0.56.0', 'warning_level=2', 'b_pie=true', 'buildtype=release', 'default_library=static'],
+    default_options: [
+        'meson_version: >=0.56.0',
+        'warning_level=2',
+        'b_pie=true',
+        'buildtype=release',
+        'default_library=static',
+    ],
 )
 
 c = meson.get_compiler('c')
@@ -28,6 +34,7 @@ if get_option('json_outputformat')
 endif
 warning_flags = []
 linker_flags = []  #additional linker flags to add per-compiler for hardening.
+ssp_support_dep = []  #Solaris/illumos SSP support library dependency for executables
 
 if c.get_id().contains('gcc') or c.get_id().contains('clang')
     #TODO: Add -Wcast-align=strict and fix these issues to help ensure better portability
@@ -133,13 +140,16 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         warning_flags += '-Wsign-conversion'
     endif
 
-    # Check if -fstack-protector-strong links or not - some systems support
-    # the argument but are unable to link with it. Fall back to plain
-    # -fstack-protector when strong is unavailable.
-    # GCC's optimize attribute forces canary codegen on the probe function so
-    # the check does not depend on the compiler's per-function protection
-    # heuristics deciding that a small test function is not worth protecting.
-    stack_protector_test_code = '''
+    # ssp option: 'auto' (default) and 'enabled' both run the automatic
+    # probing below; 'disabled' skips the whole block and builds SSP-free.
+    if get_option('ssp').auto() or get_option('ssp').enabled()
+        # Check if -fstack-protector-strong links or not - some systems support
+        # the argument but are unable to link with it. Fall back to plain
+        # -fstack-protector when strong is unavailable.
+        # GCC's optimize attribute forces canary codegen on the probe function so
+        # the check does not depend on the compiler's per-function protection
+        # heuristics deciding that a small test function is not worth protecting.
+        stack_protector_test_code = '''
         #if defined(__GNUC__) && !defined(__clang__)
         __attribute__((noinline, optimize("-fstack-protector-all")))
         #else
@@ -154,28 +164,63 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         }
         int main(void) { return ssp_probe(); }
     '''
-    # The probe is compiled with the same warning_flags the real objects use
-    # (filtered to supported arguments) so its codegen matches the build,
-    # and linked with -z defs (also filtered to supported link arguments,
-    # like the real link does). On 32-bit i386/powerpc GCC
-    # emits a hidden (local binding) reference to __stack_chk_fail_local that
-    # is not a global export; it can only be satisfied by a static archive
-    # (glibc libc_nonshared.a, musl libssp_nonshared.a, illumos libssp_ns.a,
-    # see golang/go#58385). Toolchains that cannot provide it will fail the
-    # link and drop the flag. A bare 'compiles' check or a minimal link args
-    # list cannot detect this.
-    if c.links(
-        stack_protector_test_code,
-        name: 'stack-protector-strong link support',
-        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-protector-strong'],
-    )
-        warning_flags += '-fstack-protector-strong'
-    elif c.links(
-        stack_protector_test_code,
-        name: 'stack-protector link support',
-        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-protector'],
-    )
-        warning_flags += '-fstack-protector'
+        # A link check rather than a compile: on some toolchains the SSP glue
+        # symbols (__stack_chk_fail[_local], __stack_chk_guard) are only
+        # provided by a static archive and must already resolve at link time
+        # (see golang/go#58385).
+        ssp_strong_ok = c.links(
+            stack_protector_test_code,
+            name: 'stack-protector-strong link support',
+            args: ['-fstack-protector-strong'],
+        )
+        ssp_regular_ok = false
+        if not ssp_strong_ok
+            #Fall back to plain -fstack-protector when strong is unavailable
+            ssp_regular_ok = c.links(
+                stack_protector_test_code,
+                name: 'stack-protector link support',
+                args: ['-fstack-protector'],
+            )
+        endif
+
+        # On Solaris/illumos the probe above can pass yet the final link still
+        # fails with undefined __stack_chk* symbols: the GCC driver adds the
+        # SSP support library only when a -fstack-protector flag sits on the
+        # same command line as the link, and the ninja link of the executables
+        # carries no such flag (glibc/musl resolve the glue through the
+        # always-linked libgcc, so the probe result is trusted there, see
+        # golang/go#58385). On sunos SSP is therefore enabled only when the
+        # platform ships the SSP library and the executables link it through
+        # ssp_support_dep; otherwise the build proceeds SSP-free. Only the
+        # top-level project links executables, so only it needs the dependency.
+        if ssp_strong_ok or ssp_regular_ok
+            if target_machine.system() != 'sunos'
+                if ssp_strong_ok
+                    warning_flags += '-fstack-protector-strong'
+                else
+                    warning_flags += '-fstack-protector'
+                endif
+            else
+                #illumos (OmniOS, Tribblix, OpenIndiana) ships libssp_ns.a
+                ssp_ns_dep = find_library('ssp_ns', required: false)
+                if ssp_ns_dep.found()
+                    ssp_support_dep = [ssp_ns_dep]
+                else
+                    #classic Oracle Solaris ships libssp.a from the gcc package
+                    ssp_dep = find_library('ssp', required: false)
+                    if ssp_dep.found()
+                        ssp_support_dep = [ssp_dep]
+                    endif
+                endif
+                if ssp_support_dep.length() > 0
+                    if ssp_strong_ok
+                        warning_flags += '-fstack-protector-strong'
+                    else
+                        warning_flags += '-fstack-protector'
+                    endif
+                endif
+            endif
+        endif
     endif
 
     # Check if -fstack-clash-protection works or not. Some GCC for Windows
@@ -197,13 +242,15 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     if c.links(
         stack_clash_test_code,
         name: 'stack-clash-protection link support',
-        args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-clash-protection'],
+        args: ['-fstack-clash-protection'],
     )
         if meson.can_run_host_binaries()
             stack_clash_result = c.run(
                 stack_clash_test_code,
                 name: 'stack-clash-protection run support',
-                args: c.get_supported_arguments(warning_flags) + c.get_supported_link_arguments(['-Wl,-z,defs']) + ['-fstack-clash-protection'],
+                args: [
+                    '-fstack-clash-protection',
+                ],
             )
             if stack_clash_result.returncode() == 0
                 warning_flags += '-fstack-clash-protection'
@@ -312,11 +359,11 @@ elif c.get_id().contains('msvc')
         warning_flags += '/QIntel-jcc-erratum'
     endif
 
-    if  c.has_argument('/std:clatest')
+    if c.has_argument('/std:clatest')
         warning_flags += '/std:clatest'
-    elif  c.has_argument('/std:c17')
+    elif c.has_argument('/std:c17')
         warning_flags += '/std:c17'
-    elif  c.has_argument('/std:c11')
+    elif c.has_argument('/std:c11')
         warning_flags += '/std:c11'
     endif
 
@@ -403,10 +450,9 @@ if source_epoch != ''
     # Try Python first (most reliable, handles formatting consistently)
     python = find_program('python3', 'python', required: false)
     if python.found()
-        py_script = ('import datetime; ' +
-                    'ts = int(' + source_epoch + '); ' +
-                    'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' +
-                    'print(dt.strftime("%b %d %Y").replace(" 0", "  "));')
+        py_script = (
+            'import datetime; ' + 'ts = int(' + source_epoch + '); ' + 'dt = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc);' + 'print(dt.strftime("%b %d %Y").replace(" 0", "  "));'
+        )
 
         date_cmd = run_command(python, '-c', py_script, check: false)
         if date_cmd.returncode() == 0
@@ -503,6 +549,8 @@ if target_machine.system() != 'windows'
     endif
 endif
 
+# The subprojects' ssp option yields to this project's value (yield : true
+# in their meson_options.txt), so nothing to forward.
 opensea_common = subproject('opensea-common', default_options: 'default_library=static')
 opensea_common_dep = opensea_common.get_variable('opensea_common_dep')
 
@@ -591,6 +639,7 @@ foreach p : get_option('tools')
         opensea_common_dep,
         opensea_transport_dep,
         opensea_operations_dep,
+        ssp_support_dep,
         os_deps,
     ]
 
