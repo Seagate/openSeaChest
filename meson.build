@@ -191,8 +191,10 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         # always-linked libgcc, so the probe result is trusted there, see
         # golang/go#58385). On sunos SSP is therefore enabled only when the
         # platform ships the SSP library and the executables link it through
-        # ssp_support_dep; otherwise the build proceeds SSP-free. Only the
-        # top-level project links executables, so only it needs the dependency.
+        # ssp_support_dep; otherwise the build proceeds SSP-free. The
+        # subprojects run the same gate (without the flag) and expose
+        # ssp_support_dep through their declare_dependency() so that consumers
+        # of their libraries also link it on the final line.
         if ssp_strong_ok or ssp_regular_ok
             if target_machine.system() != 'sunos'
                 if ssp_strong_ok
@@ -202,12 +204,12 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
                 endif
             else
                 #illumos (OmniOS, Tribblix, OpenIndiana) ships libssp_ns.a
-                ssp_ns_dep = find_library('ssp_ns', required: false)
+                ssp_ns_dep = c.find_library('ssp_ns', required: false)
                 if ssp_ns_dep.found()
                     ssp_support_dep = [ssp_ns_dep]
                 else
                     #classic Oracle Solaris ships libssp.a from the gcc package
-                    ssp_dep = find_library('ssp', required: false)
+                    ssp_dep = c.find_library('ssp', required: false)
                     if ssp_dep.found()
                         ssp_support_dep = [ssp_dep]
                     endif
