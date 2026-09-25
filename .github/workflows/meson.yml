@@ -797,11 +797,17 @@ jobs:
           # IPS pkg install exits non-zero when a package is already
           # installed, so check first; a package genuinely missing from
           # the repository still fails loudly (| true would hide that)
+          # echo names the target package so download size in the log
+          # can be attributed to one of these installs
           pkg_install() {
-            pkg list "$1" >/dev/null 2>&1 || pkg install "$1"
+            if pkg list "$1" >/dev/null 2>&1; then
+              echo "skipping $1 (already installed)"
+            else
+              echo "installing $1"
+              pkg install "$1"
+            fi
           }
-          pkg_install pkg:/package/pkg
-          pkg update || true
+          pkg_install pkg
           pkg_install socat
           pkg_install curl
           pkg_install build-essential
@@ -811,7 +817,16 @@ jobs:
           # OpenIndiana's IPS repository provides no meson package at all,
           # so it comes from pip (ninja from pip as a fallback in case
           # the IPS install above did not succeed)
-          curl -sSL https://bootstrap.pypa.io/get-pip.py | python3 || true
+          # The latest get-pip.py rejects python below 3.10, so older minors
+          # need the archived per-minor bootstrap script (python3 is 3.9 on
+          # the image unless an IPS package update moves it to a newer minor)
+          minor=$(python3 -c 'import sys; print(sys.version_info[1])')
+          if [ "$minor" -lt 10 ]; then
+            pip_url="https://bootstrap.pypa.io/pip/3.${minor}/get-pip.py"
+          else
+            pip_url="https://bootstrap.pypa.io/get-pip.py"
+          fi
+          curl -sSL "$pip_url" | python3 || true
           python3 -m pip install --upgrade pip --root-user-action=ignore
           python3 -m pip install meson ninja --root-user-action=ignore
           command -v meson >/dev/null 2>&1 || { echo 'ERROR: meson not available after install' >&2; exit 1; }
