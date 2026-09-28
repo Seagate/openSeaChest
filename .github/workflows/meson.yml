@@ -256,19 +256,19 @@ jobs:
         # Disabled due to being extremely slow to install required packages for builds.
         # Will revisit in future versions of this action to see if it improves. Not sure if this is a
         # action issue or an OpenIndiana package repo issue.
-        # - {
-        #     name: "VMActions OpenIndiana Build (x86_64)",
-        #     os: ubuntu-latest,
-        #     cc: "",
-        #     cxx: "",
-        #     publish_release: true,
-        #     release_name: "openindiana-x86_64",
-        #     release_extension: ".tar.xz",
-        #     archive_command: "tar cvfJ",
-        #     vm_actions: true,
-        #     vm_release: "",
-        #     vm_arch: "x86_64",
-        #   }
+        - {
+            name: "VMActions OpenIndiana Build (x86_64)",
+            os: ubuntu-latest,
+            cc: "",
+            cxx: "",
+            publish_release: true,
+            release_name: "openindiana-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "",
+            vm_arch: "x86_64",
+          }
         - {
             name: "VMActions Solaris Build (x86_64)",
             os: ubuntu-latest,
@@ -280,6 +280,20 @@ jobs:
             archive_command: "tar cvfJ",
             vm_actions: true,
             vm_release: "11.4-gcc",
+            vm_arch: "x86_64",
+          }
+        - {
+            name: "VMActions Tribblix Build (x86_64)",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            publish_release: true,
+            meson_opts: "-Dopensea-common:allow-32bit-time-t=enabled",
+            release_name: "tribblix_0m41-x86_64",
+            release_extension: ".tar.xz",
+            archive_command: "tar cvfJ",
+            vm_actions: true,
+            vm_release: "0m41",
             vm_arch: "x86_64",
           }
         - {
@@ -495,8 +509,9 @@ jobs:
       hash-linux-powerpc64-portable:                                  ${{ steps.hash.outputs.hash-linux-powerpc64-portable }}
       hash-linux-powerpc64le-portable:                                ${{ steps.hash.outputs.hash-linux-powerpc64le-portable }}
       hash-omnios_r151054-x86_64:                                     ${{ steps.hash.outputs.hash-omnios_r151054-x86_64 }}
-      # hash-openindiana-x86_64:                                        ${{ steps.hash.outputs.hash-openindiana-x86_64 }}
+      hash-openindiana-x86_64:                                        ${{ steps.hash.outputs.hash-openindiana-x86_64 }}
       hash-solaris_11_4-x86_64:                                       ${{ steps.hash.outputs.hash-solaris_11_4-x86_64 }}
+      hash-tribblix_0m41-x86_64:                                       ${{ steps.hash.outputs.hash-tribblix_0m41-x86_64 }}
       hash-freebsd_15_0-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_15_0-x86_64 }}
       hash-freebsd_14_4-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_14_4-x86_64 }}
       hash-freebsd_13_5-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_13_5-x86_64 }}
@@ -514,10 +529,36 @@ jobs:
       hash-netbsd-aarch64:                                            ${{ steps.hash.outputs.hash-netbsd-aarch64 }}
 
     steps:
-    # Even with the if's this still interferes with the VMs so disabling until we get a better idea.
+    # Harden Runner is disabled in this workflow because it is incompatible with the
+    # VMActions guest jobs, and there is no workflow-side way to fully skip it:
+    #
+    # 1. harden-runner is a JS action declaring three entry points
+    #    (pre / main / post in its action.yml), with no pre-if or post-if.
+    # 2. Per GitHub Actions semantics, a step-level if: condition gates ONLY the
+    #    main entry point; pre and post always run by default (their default
+    #    pre-if/post-if is always()), evaluated against JOB status, not step status.
+    #    The workflow if: below is never consulted by pre/post.
+    # 3. So on every VMActions leg, the pre step still installed the
+    #    Community-tier agent (host-level nftables rules + DNS proxy) before the
+    #    QEMU guest booted, and post tore it down at the end. Confirmed by run
+    #    logs: pre and post executed, only main was skipped.
+    # 4. The agent's DNS proxy interferes with VMActions guest egress (which
+    #    transits the host NAT with internal-destination lookups via socat/ssh).
+    #    Its known inability to resolve names pointing to internal IP addresses
+    #    (step-security/harden-runner#418, #559, open, Community tier only)
+    #    surfaced as "Could not resolve" / transient network failures and
+    #    truncated downloads during package installation on the sunos-based VMs
+    #    (OpenIndiana, OmniOS, Solaris, Tribblix).
+    # 5. Verified by A/B test: with the gated step enabled the sunos VM legs
+    #    failed with network errors; with it removed all legs pass. The other
+    #    workflows (c-cpp, codeql-analysis, dependency-review, flawfinder,
+    #    msbuild, source-release) keep the step because they have no VMActions
+    #    jobs and no internal-address lookups.
+    # Re-enable here only if upstream adds pre-if/post-if (or equivalent opt-out)
+    # honoring the step if:.
     # - name: Harden Runner
-    #   if: matrix.config.image == '' && matrix.config.vm_actions != true
-    #   uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.14.1
+    #   if: matrix.config.image == '' && matrix.config.vm_actions == false
+    #   uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
     #   with:
     #     egress-policy: audit
 
@@ -755,9 +796,12 @@ jobs:
         prepare: |
           pkg install pkg:/package/pkg || true
           pkg update || true
-          pkg install socat
-          pkg install build-essential ninja pkg-config git
+          pkg install socat || true
+          pkg install build-essential ninja pkg-config git || true
 
+          # Working as-is on OmniOS. If "No module named pip" appears after a
+          # python3 package update, apply the same ensurepip/get-pip.py bootstrap
+          # used in the OpenIndiana prepare step below.
           python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
           python3 -m pip install meson --root-user-action=ignore
 
@@ -774,16 +818,48 @@ jobs:
         arch: ${{ matrix.config.vm_arch }}
         sync: rsync
         cache-after-prepare: true
-        disable-cache: true
         sync-time: true
         prepare: |
-          pkg install pkg:/package/pkg || true
-          pkg update || true
-          pkg install socat
-          pkg install build-essential ninja pkg-config git
+          # IPS pkg install exits non-zero when a package is already
+          # installed, so check first; a package genuinely missing from
+          # the repository still fails loudly (| true would hide that)
+          # echo names the target package so download size in the log
+          # can be attributed to one of these installs
+          pkg_install() {
+            if pkg list "$1" >/dev/null 2>&1; then
+              echo "skipping $1 (already installed)"
+            else
+              echo "installing $1"
+              pkg install "$1"
+            fi
+          }
+          pkg_install pkg
+          pkg_install socat
+          pkg_install curl
+          pkg_install build-essential
+          pkg_install ninja
+          pkg_install pkg-config
+          pkg_install git
+          # OpenIndiana's IPS repository provides no meson package at all,
+          # so it comes from pip (ninja from pip as a fallback in case
+          # the IPS install above did not succeed)
+          # The latest get-pip.py rejects python below 3.10, so older minors
+          # need the archived per-minor bootstrap script (python3 is 3.9 on
+          # the image unless an IPS package update moves it to a newer minor)
+          minor=$(python3 -c 'import sys; print(sys.version_info[1])')
+          if [ "$minor" -lt 10 ]; then
+            pip_url="https://bootstrap.pypa.io/pip/3.${minor}/get-pip.py"
+          else
+            pip_url="https://bootstrap.pypa.io/get-pip.py"
+          fi
+          curl -sSL "$pip_url" | python3 || true
+          python3 -m pip install --upgrade pip --root-user-action=ignore
+          python3 -m pip install meson ninja --root-user-action=ignore
+          command -v meson >/dev/null 2>&1 || { echo 'ERROR: meson not available after install' >&2; exit 1; }
+          command -v ninja >/dev/null 2>&1 || { echo 'ERROR: ninja not available after install' >&2; exit 1; }
+          meson --version
+          ninja --version
 
-          python3 -m pip install --upgrade pip setuptools wheel --root-user-action=ignore
-          python3 -m pip install meson --root-user-action=ignore
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -802,8 +878,28 @@ jobs:
         sync-time: true
         prepare: |
           pkg update --accept || true
-          pkgutil -y -i socat
-          pkg install --accept developer/build/meson developer/versioning/git
+          pkgutil -y -i socat || true
+          pkg install --accept developer/build/meson developer/versioning/git || true
+
+        run: |
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson install -C build --skip-subprojects
+
+    - name: Install Meson and Ninja and Build (VMActions Tribblix)
+      if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Tribblix')
+      uses: vmactions/tribblix-vm@238d918a36eaef5ea23791b5f8a8e5c9a4917984 # v1.0.5
+      with:
+        envs: 'DESTDIR SOURCE_DATE_EPOCH'
+        release: ${{ matrix.config.vm_release }}
+        arch: ${{ matrix.config.vm_arch }}
+        sync: rsync
+        cache-after-prepare: true
+        disable-cache: true
+        sync-time: true
+        prepare: |
+          # python-developer group auto-resolves python313 (interpreter+pip) via REQUIRES
+          # and provides meson/ninja/wheel for the build
+          zap install -y gcc-g++ git python-developer || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -822,7 +918,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg update || true
-          pkg install -y curl meson git
+          pkg install -y curl meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -841,7 +937,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg update || true
-          pkg install -y socat meson git
+          pkg install -y socat meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -860,7 +956,7 @@ jobs:
         sync-time: true
         prepare: |
           pkg_add -u || true
-          pkg_add curl meson git
+          pkg_add curl meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
@@ -879,11 +975,11 @@ jobs:
         sync-time: true
         prepare: |
           /usr/sbin/pkg_add pkgin || true
-          /usr/pkg/bin/pkgin update
-          /usr/pkg/bin/pkgin upgrade -y
+          /usr/pkg/bin/pkgin update || true
+          /usr/pkg/bin/pkgin upgrade -y || true
 
           /usr/sbin/pkg_add curl || true
-          /usr/sbin/pkg_add -uu meson git
+          /usr/sbin/pkg_add -uu meson git || true
 
         run: |
           meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
