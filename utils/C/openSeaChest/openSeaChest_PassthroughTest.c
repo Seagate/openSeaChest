@@ -47,6 +47,26 @@ const char* util_name = "openSeaChest_PassthroughTest";
 ////////////////////////////
 static void utility_Usage(bool shortUsage);
 
+//! \brief   Levels of SCSI testing performed when running the passthrough test
+//! \details Each level includes everything that the lower levels test, so the levels also act as
+//!          inclusion thresholds. The values intentionally match the number the user would type for
+//!          the --scsiTestingLevel command line option.
+typedef enum e_scsiTestingLevels
+{
+    SCSTEST_INQUIRY_ONLY = 0, //!< Standard INQUIRY only.
+                             //!< Level 0 remains the workaround to avoid SCSI commands that put some devices
+                             //!< into a bad state before the ATA/NVMe passthrough testing.
+    SCSTEST_READ_CAPACITY,    //!< + READ CAPACITY. This is the default level.
+    SCSTEST_READWRITE,        //!< + SCSI read/write CDB command testing.
+    SCSTEST_PARTIAL_PAGES,    //!< + limited VPD (unit serial number and device identification pages only) and
+                             //!< mode pages (control and caching only).
+    SCSTEST_OTHER_CMDS,       //!< + test unit ready, report LUNs, security protocol, and default self-test.
+    SCSTEST_ALL_PAGES,        //!< + all VPD pages, all mode pages, all log pages, and report supported
+                             //!< operation codes.
+    SCSTEST_ERROR_HANDLING    //!< + command processing performance with good vs. malformed commands and the
+                             //!< SCSI max transfer length test.
+} eSCSITestingLevels;
+
 typedef struct s_passthroughTestParams
 {
     tDevice*         device; // pointer to device to test
@@ -70,6 +90,10 @@ typedef struct s_passthroughTestParams
     bool noMultiSectorPIOTest;
     bool noReturnResponseInfoTest;
     bool nocheckConditionTest;
+    //
+    // Level of SCSI command testing to perform. Level 0 remains as the workaround for some SCSI commands sending
+    // certain devices into a bad state before PT testing ATA/NVMe.
+    eSCSITestingLevels scsiTestLevel;
 
 } passthroughTestParams, *ptrPassthroughTestParams;
 
@@ -225,6 +249,12 @@ static void print_Force_Retest_Help(bool shortHelp)
     }
 }
 
+#define SCSI_TESTING_LEVEL_MIN               SCSTEST_INQUIRY_ONLY
+#define SCSI_TESTING_LEVEL_MAX               SCSTEST_ERROR_HANDLING
+#define SCSI_TESTING_LEVEL_VAR               eSCSITestingLevels SCSI_TESTING_LEVEL = SCSTEST_READ_CAPACITY;
+#define SCSI_TESTING_LEVEL_LONG_OPT_STRING   "scsiTestingLevel"
+#define SCSI_TESTING_LEVEL_LONG_OPT          {SCSI_TESTING_LEVEL_LONG_OPT_STRING, required_argument, M_NULLPTR, 0}
+
 static void print_Run_Passthrough_Test_Help(bool shortHelp)
 {
     printf("\t--%s\n", RUN_PASSTHROUGH_TEST_LONG_OPT_STRING);
@@ -242,10 +272,47 @@ static void print_Run_Passthrough_Test_Help(bool shortHelp)
         printf("\t\t    --%s\n", PT_DRIVE_HINT_LONG_OPT_STRING);
         printf("\t\t    --%s\n", PT_PTTYPE_HINT_LONG_OPT_STRING);
         printf("\t\t    --%s\n", DISABLE_PT_TESTING_LONG_OPT_STRING);
+        printf("\t\t    --%s <0 - %d>\n", SCSI_TESTING_LEVEL_LONG_OPT_STRING, SCSI_TESTING_LEVEL_MAX);
         printf("\t\t    --%s\n", ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT_STRING);
         printf("\t\t    --%s\n", ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING);
         printf("\t\t    --%s\n", FORCE_RETEST_LONG_OPT_STRING);
         print_str("\n");
+    }
+}
+
+static void print_SCSI_Testing_Level_Help(bool shortHelp)
+{
+    printf("\t--%s <0 - %d>\n", SCSI_TESTING_LEVEL_LONG_OPT_STRING, SCSI_TESTING_LEVEL_MAX);
+    if (!shortHelp)
+    {
+        print_str("\t\tSets the level of SCSI command testing that is performed when running the\n");
+        print_str("\t\tpassthrough test. Standard inquiry is always performed since device detection\n");
+        print_str("\t	and the test flow depends on that data. Higher levels test more commands but\n");
+        print_str("\t	increase the chance of a device entering a bad state before the ATA/NVMe\n");
+        print_str("\t	passthrough testing. This is a workaround for devices that get into a bad\n");
+        print_str("\t	state when certain SCSI commands are sent, in which case a lower level can\n");
+        print_str("\t	be used to complete more of the ATA/NVMe passthrough testing. This should\n");
+        print_str("\t\tonly be used when the SCSI testing completes but no ATA or NVMe passthrough\n");
+        print_str("\t	results show up, as lower levels make for a much less complete test.\n");
+        print_str("\t	Levels:\n");
+        print_str("\t\t    0 - Only standard inquiry.\n");
+        print_str("\t\t    1 - Inquiry and read capacity.\n");
+        print_str("\t\t    2 - Level 1 with read/write command testing.\n");
+        print_str("\t\t    3 - Level 2 with limited VPD page testing (unit serial number and device\n");
+        print_str("\t\t        identification pages only) and mode page testing (control and caching\n");
+        print_str("\t\t        pages only).\n");
+        print_str("\t\t    4 - Level 3 with test unit ready, report LUNs, security protocol, and\n");
+        print_str("\t\t        default self-test command testing.\n");
+        print_str("\t\t    5 - Level 4 with all VPD pages, mode pages, and log pages tested.\n");
+        print_str("\t\t    6 - Level 5 with command processing performance testing with good and\n");
+        print_str("\t\t        malformed commands and the SCSI max transfer length test.\n");
+        print_str("\t\tIt is strongly recommended to re-run the test with higher levels once the\n");
+        print_str("\t\tdefault level test passes. The higher levels exercise more SCSI commands and\n");
+        print_str("\t\tdata reporting and so give much better data on how to work with the device\n");
+        print_str("\t\tin more circumstances than the base level gives.\n");
+        printf("\t\tIf the device is already in the known database, --%s must also be used in\n",
+               FORCE_RETEST_LONG_OPT_STRING);
+        print_str("\t\torder for any testing to occur at all.\n\n");
     }
 }
 
@@ -302,6 +369,7 @@ int main(int argc, char* argv[])
     ENABLE_LEGACY_ATA_PT_TESTING_VAR
     ENABLE_HANG_COMMANDS_TEST_VARS
     FORCE_RETEST_VAR
+    SCSI_TESTING_LEVEL_VAR
 
 #if defined(ENABLE_CSMI)
     CSMI_FORCE_VARS
@@ -353,6 +421,7 @@ int main(int argc, char* argv[])
         ENABLE_LEGACY_ATA_PT_TESTING_LONG_OPT,
         ENABLE_HANG_COMMANDS_TEST_LONG_OPT,
         FORCE_RETEST_LONG_OPT,
+        SCSI_TESTING_LEVEL_LONG_OPT,
 #if defined(FEATURE_JSONOUTPUT_SUPPORT)
         JSON_OUTPUT_LONG_OPT,
 #endif
@@ -434,6 +503,21 @@ int main(int argc, char* argv[])
                     print_Error_In_Cmd_Line_Args(PT_DRIVE_HINT_LONG_OPT_STRING, optarg);
                     exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
                 }
+            }
+            else if (strcmp(longopts[optionIndex].name, SCSI_TESTING_LEVEL_LONG_OPT_STRING) == 0)
+            {
+                int level = 0;
+                if (!get_And_Validate_Integer_Input_I(optarg, M_NULLPTR, ALLOW_UNIT_NONE, &level))
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_TESTING_LEVEL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+                if (level < SCSI_TESTING_LEVEL_MIN || level > SCSI_TESTING_LEVEL_MAX)
+                {
+                    print_Error_In_Cmd_Line_Args(SCSI_TESTING_LEVEL_LONG_OPT_STRING, optarg);
+                    exit(UTIL_EXIT_ERROR_IN_COMMAND_LINE);
+                }
+                SCSI_TESTING_LEVEL = C_CAST(eSCSITestingLevels, level);
             }
             else if (strcmp(longopts[optionIndex].name, ENABLE_HANG_COMMANDS_TEST_LONG_OPT_STRING) == 0)
             {
@@ -1229,6 +1313,7 @@ int main(int argc, char* argv[])
                 // TODO: Handle value of 50 meaning test all legacy methods!
                 params.suspectedPassthroughType = C_CAST(ePassthroughType, PT_PTTYPE_HINT);
             }
+            params.scsiTestLevel = SCSI_TESTING_LEVEL;
             perform_Passthrough_Test(&params);
         }
         // At this point, close the device handle since it is no longer needed. Do not put any further IO below this.
@@ -2293,8 +2378,11 @@ typedef struct s_scsiDevInfo
 
 } scsiDevInformation, *ptrScsiDevInformation;
 
-static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
+static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo, eSCSITestingLevels level,
+                           bool testForNoVPDPages)
 {
+    // level 3 only reads the unit serial number and device identification pages. Any other level tests all pages.
+    bool limitedVPDPages = (level == SCSTEST_PARTIAL_PAGES);
     set_Console_Colors(true, HEADING_COLOR);
     print_str("\n=========================\n");
     print_str("Checking VPD page support\n");
@@ -2386,11 +2474,22 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
     {
         bool     genericVPDPageReadOutput = true;
         bool     readVPDPage              = false;
-        uint32_t pageLengthToRead = 4;
-        uint8_t* pageToRead = M_REINTERPRET_CAST(
+        uint32_t pageLengthToRead         = 4;
+        uint8_t* pageToRead               = M_REINTERPRET_CAST(
             uint8_t*, safe_calloc_aligned(pageLengthToRead, sizeof(uint8_t), device->os_info.minimumAlignment));
         uint16_t vpdPageLength = UINT16_C(0);
         printf("\tFound page %" PRIX8 "h\n", supportedPages[vpdIter]);
+
+        if (limitedVPDPages && supportedPages[vpdIter] != UNIT_SERIAL_NUMBER &&
+            supportedPages[vpdIter] != DEVICE_IDENTIFICATION)
+        {
+            set_Console_Colors(true, NOTE_COLOR);
+            print_str("\tPage not read as only the unit serial number and device identification pages are being "
+                      "tested.\n");
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            safe_free_aligned_core(C_CAST(void**, &pageToRead));
+            continue;
+        }
 
         while (SUCCESS != scsi_Inquiry(device, pageToRead, pageLengthToRead, supportedPages[vpdIter], true, false))
         {
@@ -4128,8 +4227,8 @@ static void scsi_VPD_Pages(tDevice* device, ptrScsiDevInformation scsiDevInfo)
         }
         safe_free_aligned_core(C_CAST(void**, &pageToRead));
     }
-    if (pagesread <= dummiedPageCount && dummiedPages) // less than or equal to 1 because it is possible that the only
-                                                       // suppored page is the unit serial number!
+    if (testForNoVPDPages && pagesread <= dummiedPageCount && dummiedPages) // less than or equal to 1 because it is
+        // possible that the only suppored page is the unit serial number!
     {
         set_Console_Colors(true, HACK_COLOR);
         print_str("HACK FOUND: NVPD\n");
@@ -4861,15 +4960,24 @@ static eReturnValues get_SCSI_Mode_Page_Data(
 }
 
 // TODO: Validate or check for default, changable, and saved values? Only checking current right now - TJE
-static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformation scsiDevInfo)
+static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformation scsiDevInfo, eSCSITestingLevels level)
 {
     bool successfullyReadAtLeastOnePage = false;
     bool use6Byte                       = false;
+    // level 3 only tests the control and caching mode pages. Other levels test all mode pages.
+    bool limitedModePages = (level == SCSTEST_PARTIAL_PAGES);
     set_Console_Colors(true, HEADING_COLOR);
     print_str("\n==========================\n");
     print_str("Checking Mode Page Support\n");
     print_str("==========================\n");
     set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Testing the control and caching mode pages only since the SCSI testing level is 3. Other\n");
+        print_str("       mode pages are only tested at level 5 or higher.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
     // Attempting mode sense 10 since nearly EVERYTHING should support it. The only exception is REALLY old SCSI drives.
     eReturnValues sixTest = use_Mode_Sense_6(device, MP_CONTROL, &use6Byte);
     if (SUCCESS != sixTest)
@@ -5004,6 +5112,14 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     safe_free_aligned_core(C_CAST(void**, &modeData));
 
     // read write error recovery mode page
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Read Write Error Recovery mode page not tested since the SCSI testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     modeDataLength = MP_READ_WRITE_ERROR_RECOVERY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
         uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -5057,6 +5173,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         printf("\tRecovery Time Limit: %" PRIu16 "\n", scsiDevInfo->modeData.rwErrRecData.recoveryTimeLimit);
     }
     safe_free_aligned_core(C_CAST(void**, &modeData));
+    }
     // caching mode page
     modeDataLength = MP_CACHING_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
@@ -5112,6 +5229,14 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     safe_free_aligned_core(C_CAST(void**, &modeData));
 
     // rigid disk geometry page
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Rigid Disk Geometry mode page not tested since the SCSI testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     modeDataLength = MP_RIGID_DISK_GEOMETRY_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
         uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -5198,8 +5323,17 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         }
     }
     safe_free_aligned_core(C_CAST(void**, &modeData));
+    }
 
     // informational exceptions mode page
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Informational Exceptions Control mode page not tested since the SCSI testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     modeDataLength = MP_INFORMATION_EXCEPTIONS_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
         uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -5263,7 +5397,16 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
                scsiDevInfo->modeData.infoExcepData.mrie);
     }
     safe_free_aligned_core(C_CAST(void**, &modeData));
+    }
     // power condition control mode page
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Power Condition Control mode page not tested since the SCSI testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     modeDataLength = MP_POWER_CONDITION_LEN + commonModeDataLength;
     modeData       = M_REINTERPRET_CAST(
         uint8_t*, safe_calloc_aligned(modeDataLength, sizeof(uint8_t), device->os_info.minimumAlignment));
@@ -5332,8 +5475,17 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         }
     }
     safe_free_aligned_core(C_CAST(void**, &modeData));
+    }
     // TODO: The next 2 are ATA specific. Attempt to only read them when we suspect an ATA drive.
     // if () //ATA AND the passthrough hack for not supporting subpages is NOT set
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: The ATA specific PATA Control and Power Condition mode pages are not tested since the SCSI\n");
+        print_str("       testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
     {
         // if () //TODO: Only read this if we suspect a PATA drive. Base this off of existance of ATA VPD page and PATA
         // signature vs SATA signature
@@ -5426,6 +5578,14 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
     }
     // Check for vendor specific page 0? May help detect true SCSI devices, but nothing says a translator cannot
     // implement it.
+    if (limitedModePages)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Vendor specific mode page 0 not tested since the SCSI testing level is 3.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     modeDataLength = UINT8_MAX; // try this size since it's unlikely this page will be this size, but it should be more
                                 // than enough memory.
     modeData = M_REINTERPRET_CAST(
@@ -5454,6 +5614,7 @@ static eReturnValues scsi_Mode_Information(tDevice* device, ptrScsiDevInformatio
         scsiDevInfo->modeData.gotVendorUniquePage0 = true;
         print_str("Vendor Specific Mode Page 0\n");
         // just saving that we did get this page. Nothing else is needed if this worked.
+    }
     }
     if (!successfullyReadAtLeastOnePage)
     {
@@ -5607,10 +5768,11 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                 uint8_t*, safe_calloc_aligned(logPageLength, sizeof(uint8_t), device->os_info.minimumAlignment));
 
             while (SUCCESS != scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES, pageCode, subPageCode, 0,
-                pageToRead, logPageLength))
+                                                 pageToRead, logPageLength))
             {
                 logPageLength *= 2;
-                uint8_t* temp = realloc_aligned(pageToRead, logPageLength / 2, logPageLength, device->os_info.minimumAlignment);
+                uint8_t* temp =
+                    realloc_aligned(pageToRead, logPageLength / 2, logPageLength, device->os_info.minimumAlignment);
                 if (temp)
                 {
                     pageToRead = temp;
@@ -5625,7 +5787,8 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                     break;
                 }
             }
-            printf("Successful log page read for page %02" PRIX8 "h-%02" PRIX8 "h with length %" PRIu32 "\n", pageCode, subPageCode, logPageLength);
+            printf("Successful log page read for page %02" PRIX8 "h-%02" PRIX8 "h with length %" PRIu32 "\n", pageCode,
+                   subPageCode, logPageLength);
 
             if (SUCCESS == scsi_Log_Sense_Cmd(device, false, LPC_CUMULATIVE_VALUES, pageCode, subPageCode, 0,
                                               pageToRead, logPageLength))
@@ -5701,8 +5864,7 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
             else
             {
                 set_Console_Colors(true, ERROR_COLOR);
-                printf("ERROR: Unable to read header for page %02" PRIX8 "h-%02" PRIX8 "h\n",
-                       pageCode, subPageCode);
+                printf("ERROR: Unable to read header for page %02" PRIX8 "h-%02" PRIX8 "h\n", pageCode, subPageCode);
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
                 continue;
             }
@@ -6902,7 +7064,8 @@ static eReturnValues scsi_Log_Information(tDevice* device, ptrScsiDevInformation
                             }
                             break;
                         default:
-                            printf("Vendor Specific Informational Exceptions parameter code: %04" PRIX16 "h\n", parameterCode);
+                            printf("Vendor Specific Informational Exceptions parameter code: %04" PRIX16 "h\n",
+                                   parameterCode);
                             print_Data_Buffer(&pageToRead[offset + 4], parameterLength, true);
                             break;
                         }
@@ -7124,7 +7287,8 @@ static bool does_Sense_Data_Show_Invalid_Field_In_CDB(tDevice* device)
 //     return is_Invalid_Field_In_Parameter(device->drive_info.lastCommandSenseData, SPC3_SENSE_LEN);
 // }
 
-static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupport scsiCmds)
+static eReturnValues other_SCSI_Cmd_Support(
+    tDevice* device, ptrOtherSCSICmdSupport scsiCmds, bool testOpcodeSupportReports)
 {
     if (!device || !scsiCmds)
     {
@@ -7212,6 +7376,15 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
         }
     }
 
+    if (!testOpcodeSupportReports)
+    {
+        set_Console_Colors(true, NOTE_COLOR);
+        print_str("NOTE: Report Supported Operation Codes tests skipped since the SCSI testing level is 4. These are\n");
+        print_str("       only tested at level 5 or higher.\n");
+        set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+    }
+    else
+    {
     if (SUCCESS == scsi_Report_Supported_Operation_Codes(device, false, 0, 0, 0, 512, scsiDataBytes))
     {
         scsiCmds->reportAllSupportedOperationCodes = true;
@@ -7265,6 +7438,7 @@ static eReturnValues other_SCSI_Cmd_Support(tDevice* device, ptrOtherSCSICmdSupp
         print_str("HACK FOUND: NRSUPOP\n");
         set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
         device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations = true;
+    }
     }
 
     print_str("Testing SCSI default self-test.\n");
@@ -8891,7 +9065,11 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         if (setup_Passthrough_Hacks_By_ID(inputs->device) && !inputs->forceRetest)
         {
             print_str("This device is already in the database with known pass-through hacks.\n");
-            printf("Use the --%s option to force a retest of pass-through hacks already known.\n", "forceRetest");
+            print_str("No testing will be attempted on this device in this run.\n");
+            printf(
+                "If you want to retest this device, restart the tool with the --%s option to force a\n",
+                FORCE_RETEST_LONG_OPT_STRING);
+            print_str("retest even though the device is already known.\n");
             return SUCCESS;
         }
         // Need to clear out the hacks or incorrect results may be found since they will be used while testing.
@@ -8901,50 +9079,109 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             perror("Failure to clear pass-through hacks structure.");
             return MEMORY_FAILURE;
         }
-
-        // 2. Check what things the device reports for SCSI capabilities, SAT VPD page, etc. Emit warnings for pages
-        // that are missing that were expected
-        print_str("Checking standard SCSI inquiry data, VPD pages, and some mode pages\n");
-        print_str("to understand device capabilities. Only commands specified in translator\n");
-        print_str("specifications will be tested.\n");
-
-        // TODO: save information from some pages to compare later to the data retrieved through passthrough
         scsiDevInformation scsiInformation;
         M_INITIALIZE_STRUCTURE(&scsiInformation, sizeof(scsiDevInformation));
         scsi_Information(inputs->device, &scsiInformation);
-        scsi_VPD_Pages(inputs->device, &scsiInformation);
-        scsi_Capacity_Information(inputs->device, &scsiInformation);
-
-        // check SCSI read/write CDB support. This runs a normal test, but will check for zero-length transfers IF asked
-        // to to do.
+        if (inputs->scsiTestLevel >= SCSTEST_READ_CAPACITY)
+        {
+            scsi_Capacity_Information(inputs->device, &scsiInformation);
+        }
+        double        relativeCommandProcessingPerformance = 0.0;
         scsiRWSupport rwSupport;
         M_INITIALIZE_STRUCTURE(&rwSupport, sizeof(scsiRWSupport));
-        scsi_Read_Check(inputs->device, false, &rwSupport,
-                        (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads)
-                            ? true
-                            : false);
+        if (inputs->scsiTestLevel >= SCSTEST_READWRITE)
+        {
+            // 2. Check what things the device reports for SCSI capabilities, SAT VPD page, etc. Emit warnings for pages
+            // that are missing that were expected
+            print_str("Checking standard SCSI inquiry data, VPD pages, and some mode pages\n");
+            print_str("to understand device capabilities. Only commands specified in translator\n");
+            print_str("specifications will be tested.\n");
 
-        // Now check for mode pages - Warn about any missing MANDATORY pages
-        scsi_Mode_Information(inputs->device, &scsiInformation);
-        // Now check for log pages - Warn about any missing MANDATORY pages
-        // This is likely where we'll find issues with subpages not being supported, but the device returning data
-        // anyways
-        scsi_Log_Information(inputs->device, &scsiInformation);
+            // check SCSI read/write CDB support. This runs a normal test, but will check for zero-length transfers IF
+            // asked to to do.
+            scsi_Read_Check(inputs->device, false, &rwSupport,
+                            (inputs->testPotentiallyDeviceHangingCommands && inputs->hangCommandsToTest.zeroLengthReads)
+                                ? true
+                                : false);
 
-        // 5. optionally do a more in depth check for additional SCSI commands like report supported operation codes
-        // that would also be useful, or security protocol commands.
-        otherSCSICmdSupport supScsiCmds;
-        M_INITIALIZE_STRUCTURE(&supScsiCmds, sizeof(otherSCSICmdSupport));
-        other_SCSI_Cmd_Support(inputs->device, &supScsiCmds);
+            if (inputs->scsiTestLevel >= SCSTEST_PARTIAL_PAGES)
+            {
+                // TODO: save information from some pages to compare later to the data retrieved through passthrough.
+                // Lower levels only read a subset of the VPD and mode pages to reduce the chance of certain devices
+                // getting into a bad state that prevents the ATA/NVMe passthrough testing from completing.
+                scsi_VPD_Pages(inputs->device, &scsiInformation, inputs->scsiTestLevel, false);
 
-        // now perform a test to check the device error handling. Some have poor error handling and time to report
-        // errors grows with each command slowing the whole device down.
-        double relativeCommandProcessingPerformance = 0;
-        scsi_Error_Handling_Test(inputs->device, &relativeCommandProcessingPerformance);
+                // Now check for mode pages - Warn about any missing MANDATORY pages
+                scsi_Mode_Information(inputs->device, &scsiInformation, inputs->scsiTestLevel);
+            }
+            else
+            {
+                set_Console_Colors(true, NOTE_COLOR);
+                print_str("NOTE: VPD page and mode page checks skipped since the SCSI testing level is below 3.\n");
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            }
 
-        scsi_Max_Transfer_Length_Test(inputs->device, scsiInformation.vpdData.blockLimitsData.maximumXferLen,
-                                      scsiInformation.vpdData.blockLimitsData.optimalXferLen);
+            if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES)
+            {
+                // Now check for log pages - Warn about any missing MANDATORY pages
+                // This is likely where we'll find issues with subpages not being supported, but the device returning data
+                // anyways
+                scsi_Log_Information(inputs->device, &scsiInformation);
+            }
+            else
+            {
+                set_Console_Colors(true, NOTE_COLOR);
+                print_str("NOTE: Log page checks skipped since the SCSI testing level is below 5.\n");
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            }
 
+            // 5. optionally do a more in depth check for additional SCSI commands like report supported operation codes
+            // that would also be useful, or security protocol commands.
+            otherSCSICmdSupport supScsiCmds;
+            M_INITIALIZE_STRUCTURE(&supScsiCmds, sizeof(otherSCSICmdSupport));
+            if (inputs->scsiTestLevel >= SCSTEST_OTHER_CMDS)
+            {
+                other_SCSI_Cmd_Support(inputs->device, &supScsiCmds, inputs->scsiTestLevel >= SCSTEST_ALL_PAGES);
+            }
+            else
+            {
+                set_Console_Colors(true, NOTE_COLOR);
+                print_str("NOTE: Other SCSI command checks skipped since the SCSI testing level is below 4.\n");
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            }
+
+            if (inputs->scsiTestLevel >= SCSTEST_ERROR_HANDLING)
+            {
+                // now perform a test to check the device error handling. Some have poor error handling and time to
+                // report errors grows with each command slowing the whole device down.
+                scsi_Error_Handling_Test(inputs->device, &relativeCommandProcessingPerformance);
+
+                scsi_Max_Transfer_Length_Test(inputs->device, scsiInformation.vpdData.blockLimitsData.maximumXferLen,
+                                              scsiInformation.vpdData.blockLimitsData.optimalXferLen);
+            }
+            else
+            {
+                set_Console_Colors(true, NOTE_COLOR);
+                print_str("NOTE: Command processing performance and SCSI max transfer length tests skipped since the\n");
+                print_str("       SCSI testing level is below 6.\n");
+                set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+            }
+        }
+        else
+        {
+            // These low levels exist to workaround a small number of SCSI commands sending certain devices into
+            // a bad state before PT testing ATA/NVMe.
+            set_Console_Colors(true, NOTE_COLOR);
+            if (inputs->scsiTestLevel > SCSTEST_INQUIRY_ONLY)
+            {
+                print_str("NOTE: SCSI testing is limited to read capacity since the SCSI testing level is 1.\n");
+            }
+            else
+            {
+                print_str("NOTE: SCSI testing is limited to standard inquiry since the SCSI testing level is 0.\n");
+            }
+            set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+        }
         // 3. Start checking for SAT or VS NVMe passthrough, unless given information to use a different passthrough.
         // TODO: Make sure to do this only for direct access block devices OR zoned block devices
         // TODO: Move these passthrough tests to separate functions.
@@ -9143,13 +9380,20 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             print_str("\tbe done manually by specifying specific offsets at this time for optimal support.\n");
             print_str("\tPlease include the full output from the tool when sending to seaboard@seagate.com\n");
         }
-        printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
-
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength <
-            (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
+        if (inputs->scsiTestLevel < SCSTEST_ERROR_HANDLING)
         {
-            printf("\tSCSI Max Transfer Size: %" PRIu32 "\n",
-                   inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+            print_str("\tCommand Processing (bad relative to good): skipped\n");
+            print_str("\tSCSI Max Transfer Size: skipped\n");
+        }
+        else
+        {
+            printf("\tCommand Processing (bad relative to good): %0.02f\n", relativeCommandProcessingPerformance);
+            if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength <
+                (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
+            {
+                printf("\tSCSI Max Transfer Size: %" PRIu32 "\n",
+                       inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+            }
         }
         if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN &&
             (inputs->device->drive_info.drive_type != NVME_DRIVE ||
@@ -9160,6 +9404,7 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
             printf("\tPassthrough Max Transfer Size: %" PRIu32 "\n",
                    inputs->device->drive_info.passThroughHacks.ataPTHacks.maxTransferLength);
         }
+
         // TODO: NVMe passthrough max transfer size
 
         print_str("\nHacks For This Device:\n");
@@ -9167,96 +9412,248 @@ eReturnValues perform_Passthrough_Test(ptrPassthroughTestParams inputs)
         // This should focus on generic SCSI data reporting first, followed by SAT/NVMe/Legacy Passthrough hacks after
         // that Add a warning that these hacks should be tested on another tool with the (TODO) deviceHacks command line
         // option to make sure everything functions optimally.
-        if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
+        if (inputs->scsiTestLevel < SCSTEST_ERROR_HANDLING)
         {
-            printf("\t\tTURF:%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue);
+            print_str("\t\tTURF: Skipped\n");
         }
+        else
+        {
+            if (inputs->device->drive_info.passThroughHacks.testUnitReadyAfterAnyCommandFailure)
+            {
+                printf("\t\tTURF:%" PRIu8 "\n", inputs->device->drive_info.passThroughHacks.turfValue);
+            }
+        }
+        // Skipped tests are reported with the not-supported hack name plus (skipped) so the output carries the
+        // default assumption (the feature is not supported) while making clear the test was not run at this level.
+        // A comma is only printed between tokens that were actually printed, so track whether one was printed.
         print_str("\tSCSI Hacks:");
+        bool printedSCSIToken = false;
+        if (inputs->scsiTestLevel < SCSTEST_READWRITE)
+        {
+            print_str(" RW6/RW10/RW12/RW16 (skipped)");
+            printedSCSIToken = true;
+        }
+        if (inputs->scsiTestLevel < SCSTEST_PARTIAL_PAGES)
+        {
+            print_str(printedSCSIToken ? ", NVPD (skipped), NMP (skipped)"
+                                       : " NVPD (skipped), NMP (skipped)");
+            printedSCSIToken = true;
+        }
+        if (inputs->scsiTestLevel < SCSTEST_ALL_PAGES)
+        {
+            print_str(printedSCSIToken ? ", NLP (skipped), NLPS (skipped)" : " NLP (skipped), NLPS (skipped)");
+            printedSCSIToken = true;
+        }
+        if (inputs->scsiTestLevel < SCSTEST_OTHER_CMDS)
+        {
+            print_str(printedSCSIToken ? ", NSECPROT (skipped)" : " NSECPROT (skipped)");
+            printedSCSIToken = true;
+        }
+        if (inputs->scsiTestLevel < SCSTEST_ALL_PAGES)
+        {
+            print_str(printedSCSIToken ? ", NRSUPOP (skipped)" : " NRSUPOP (skipped)");
+            printedSCSIToken = true;
+        }
+        if (inputs->scsiTestLevel < SCSTEST_ERROR_HANDLING)
+        {
+            print_str(printedSCSIToken ? ", MXFER (skipped)" : " MXFER (skipped)");
+            printedSCSIToken = true;
+        }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.preSCSI2InqData)
         {
-            print_str(" PRESCSI2,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" PRESCSI2");
+            printedSCSIToken = true;
         }
         if (inputs->device->drive_info.passThroughHacks.scsiHacks.unitSNAvailable)
         {
-            print_str(" UNA,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" UNA");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.available)
+        if (inputs->scsiTestLevel >= SCSTEST_READWRITE &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.available)
         {
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw6)
             {
-                print_str(" RW6,");
+                if (printedSCSIToken)
+                {
+                    print_str(",");
+                }
+                print_str(" RW6");
+                printedSCSIToken = true;
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw10)
             {
-                print_str(" RW10,");
+                if (printedSCSIToken)
+                {
+                    print_str(",");
+                }
+                print_str(" RW10");
+                printedSCSIToken = true;
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw12)
             {
-                print_str(" RW12,");
+                if (printedSCSIToken)
+                {
+                    print_str(",");
+                }
+                print_str(" RW12");
+                printedSCSIToken = true;
             }
             if (inputs->device->drive_info.passThroughHacks.scsiHacks.readWrite.rw16)
             {
-                print_str(" RW16,");
+                if (printedSCSIToken)
+                {
+                    print_str(",");
+                }
+                print_str(" RW16");
+                printedSCSIToken = true;
             }
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noVPDPages)
+        if (inputs->scsiTestLevel >= SCSTEST_PARTIAL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noVPDPages)
         {
-            print_str(" NVPD,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NVPD");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModePages)
+        if (inputs->scsiTestLevel >= SCSTEST_PARTIAL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noModePages)
         {
-            print_str(" NMP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NMP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogPages)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noLogPages)
         {
-            print_str(" NLP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NLP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSubPages)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noLogSubPages)
         {
-            print_str(" NLPS,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NLPS");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.mode6bytes)
+        if (inputs->scsiTestLevel >= SCSTEST_PARTIAL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.mode6bytes)
         {
-            print_str(" MP6,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" MP6");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noModeSubPages)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noModeSubPages)
         {
-            print_str(" NMSP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NMSP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.noReportSupportedOperations)
         {
-            print_str(" NRSUPOP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" NRSUPOP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.reportSingleOpCodes)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.reportSingleOpCodes)
         {
-            print_str(" SUPSOP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" SUPSOP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.reportAllOpCodes)
+        if (inputs->scsiTestLevel >= SCSTEST_ALL_PAGES &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.reportAllOpCodes)
         {
-            print_str(" REPALLOP,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" REPALLOP");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported)
+        if (inputs->scsiTestLevel >= SCSTEST_OTHER_CMDS &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolSupported)
         {
-            print_str(" SECPROT,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" SECPROT");
+            printedSCSIToken = true;
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512)
+        if (inputs->scsiTestLevel >= SCSTEST_OTHER_CMDS &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.securityProtocolWithInc512)
         {
-            print_str(" SECPROTI512,");
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            print_str(" SECPROTI512");
+            printedSCSIToken = true;
         }
         if (inputs->testPotentiallyDeviceHangingCommands)
         {
             if (!inputs->hangCommandsToTest.zeroLengthReads)
             {
                 set_Console_Colors(true, LIKELY_HACK_COLOR);
-                print_str(" NORWZ,");
+                if (printedSCSIToken)
+                {
+                    print_str(",");
+                }
+                print_str(" NORWZ");
                 set_Console_Colors(true, CONSOLE_COLOR_DEFAULT);
+                printedSCSIToken = true;
             }
         }
-        if (inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength <
-            (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
+        // The max transfer length is only measured at level 6.
+        if (inputs->scsiTestLevel >= SCSTEST_ERROR_HANDLING &&
+            inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength <
+                (MAX_SCSI_SECTORS_TO_TEST * inputs->device->drive_info.deviceBlockSize))
         {
-            printf(" MXFER:%" PRIu32 "\n", inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+            if (printedSCSIToken)
+            {
+                print_str(",");
+            }
+            printf(" MXFER:%" PRIu32, inputs->device->drive_info.passThroughHacks.scsiHacks.maxTransferLength);
+            printedSCSIToken = true;
         }
+        print_str("\n");
         ////////////////////////////////////////////////////////////////////////////////
         // TODO: if NVMe don't show this, but rather NVMe specific things.
         if (inputs->device->drive_info.passThroughHacks.passthroughType < ATA_PASSTHROUGH_UNKNOWN &&
@@ -9668,6 +10065,7 @@ void utility_Usage(bool shortUsage)
     print_Drive_Type_Hint_Help(shortUsage);
     print_Passthrough_Type_Hint_Help(shortUsage);
     print_Disable_PT_Testing_Help(shortUsage);
+    print_SCSI_Testing_Level_Help(shortUsage);
     print_Enable_Legacy_ATA_PT_Testing_Help(shortUsage);
     print_Enable_Hang_Commands_Test_Help(shortUsage);
     print_Force_Retest_Help(shortUsage);
