@@ -1041,14 +1041,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Closing zone(s) not supported\n");
+                        printf("Invalid option with --%s command or command failed\n", CLOSE_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Closing zone(s) failed\n");
+                        printf("Invalid option with --%s command or command failed\n", CLOSE_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1089,14 +1089,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Finishing zone(s) not supported\n");
+                        printf("Invalid option with --%s command or command failed\n", FINISH_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Finishing zone(s) failed\n");
+                        printf("Invalid option with --%s command or command failed\n", FINISH_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1137,14 +1137,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Opening zone(s) not supported\n");
+                        printf("Invalid option with --%s command or command failed\n", OPEN_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Opening zone(s) failed\n");
+                        printf("Invalid option with --%s command or command failed\n", OPEN_ZONE_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1185,14 +1185,14 @@ int main(int argc, char* argv[])
                 case NOT_SUPPORTED:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Resetting write pointer(s) not supported\n");
+                        printf("Invalid option with --%s command or command failed\n", RESET_WP_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                     break;
                 default:
                     if (toolVerbosity > VERBOSITY_QUIET)
                     {
-                        print_str("Resetting write pointer(s) failed\n");
+                        printf("Invalid option with --%s command or command failed\n", RESET_WP_LONG_OPT_STRING);
                     }
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
                     break;
@@ -1210,21 +1210,21 @@ int main(int argc, char* argv[])
                                                C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG),
                                                ZONE_ID_FLAG, &numberOfZones))
             {
-                numberOfZones = M_Min(MAX_ZONES_FLAG, numberOfZones);
+                numberOfZones                     = M_Min(MAX_ZONES_FLAG, numberOfZones);
                 eReturnValues     reportRet       = SUCCESS;
                 ptrZoneDescriptor zoneDescriptors = M_NULLPTR;
                 if (numberOfZones > 0)
                 {
                     zoneDescriptors =
-                    M_REINTERPRET_CAST(ptrZoneDescriptor, safe_calloc(numberOfZones, sizeof(zoneDescriptor)));
-                if (!zoneDescriptors)
-                {
-                    perror("cannot allocate memory for zone descriptors");
-                    exit(UTIL_EXIT_OPERATION_FAILURE);
-                }
+                        M_REINTERPRET_CAST(ptrZoneDescriptor, safe_calloc(numberOfZones, sizeof(zoneDescriptor)));
+                    if (!zoneDescriptors)
+                    {
+                        perror("cannot allocate memory for zone descriptors");
+                        exit(UTIL_EXIT_OPERATION_FAILURE);
+                    }
                     reportRet = get_Zone_Descriptors(&deviceList[deviceIter],
                                                      C_CAST(eZoneReportingOptions, REPORT_ZONES_REPORTING_MODE_FLAG),
-                    ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
+                                                     ZONE_ID_FLAG, numberOfZones, zoneDescriptors);
                 }
                 switch (reportRet)
                 {
@@ -1234,11 +1234,11 @@ int main(int argc, char* argv[])
                     break;
                 case NOT_SUPPORTED:
                     exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
-                    print_str("Reporting zones is not supported on this device.\n");
+                    print_str("Report type or Reporting zones is not supported on this device.\n");
                     break;
                 default:
                     exitCode = UTIL_EXIT_OPERATION_FAILURE;
-                    print_str("Failed to get zones to report!\n");
+                    print_str("Report type is not supported or failed to get zones to report!\n");
                     break;
                 }
                 safe_free_zone_descriptor(&zoneDescriptors);
