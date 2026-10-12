@@ -66,6 +66,7 @@ jobs:
             os: windows-latest,
             cc: "gcc.exe",
             cxx: "g++.exe",
+            publish_release: false,
             release_name: "win-x86_64-gcc",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -75,6 +76,7 @@ jobs:
             os: windows-latest,
             cc: "clang.exe",
             cxx: "clang++.exe",
+            publish_release: false,
             meson_opts: "--native-file=./meson_crosscompile/Windows-Clang.txt -Db_pie=false",
             release_name: "win-x86_64-clang",
             release_extension: ".zip",
@@ -86,6 +88,7 @@ jobs:
             msys2_msystem: "MINGW64",
             cc: "gcc",
             cxx: "g++",
+            publish_release: false,
             release_name: "win-x86_64-msys2-mingw64",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -96,6 +99,7 @@ jobs:
             msys2_msystem: "UCRT64",
             cc: "gcc",
             cxx: "g++",
+            publish_release: false,
             release_name: "win-x86_64-msys2-ucrt64",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -106,6 +110,7 @@ jobs:
             msys2_msystem: "CLANG64",
             cc: "clang",
             cxx: "clang++",
+            publish_release: false,
             release_name: "win-x86_64-msys2-clang64",
             release_extension: ".zip",
             archive_command: "7z a -tzip -mmt"
@@ -115,6 +120,7 @@ jobs:
             os: ubuntu-latest,
             cc: "gcc",
             cxx: "g++",
+            publish_release: false,
             release_name: "linux-x86_64-gcc",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
@@ -124,9 +130,60 @@ jobs:
             os: ubuntu-latest,
             cc: "clang",
             cxx: "clang++",
+            publish_release: false,
             release_name: "linux-x86_64",
             release_extension: ".tar.xz",
             archive_command: "tar cvfJ"
+          }
+        - {
+            name: "GCC 12 Compatibility",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            gcc_version: "12",
+            publish_release: false,
+            image: "gcc:12",
+            release_name: "linux-gcc-12-compatibility"
+          }
+        - {
+            name: "GCC 13 Compatibility",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            gcc_version: "13",
+            publish_release: false,
+            image: "gcc:13",
+            release_name: "linux-gcc-13-compatibility"
+          }
+        - {
+            name: "GCC 14 Compatibility",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            gcc_version: "14",
+            publish_release: false,
+            image: "gcc:14",
+            release_name: "linux-gcc-14-compatibility"
+          }
+        - {
+            name: "GCC 15 Compatibility",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            gcc_version: "15",
+            publish_release: false,
+            image: "gcc:15",
+            release_name: "linux-gcc-15-compatibility"
+          }
+        - {
+            name: "GCC Latest Compatibility",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            gcc_version: "latest",
+            publish_release: false,
+            image: "gcc:latest",
+            release_name: "linux-gcc-latest-compatibility"
           }
         - {
             name: "MUSL Cross Compile x86_64",
@@ -685,7 +742,16 @@ jobs:
         echo "SOURCE_DATE_EPOCH=${COMMIT_TIMESTAMP}" >> $GITHUB_ENV
         echo "Reproducible build timestamp: ${COMMIT_TIMESTAMP} ($(date -u -d @${COMMIT_TIMESTAMP} 2>/dev/null || date -u -r ${COMMIT_TIMESTAMP} 2>/dev/null))"
 
-    - name: Install Meson and Ninja and Build (MUSL container)
+    - name: Install Meson and Ninja in GCC container
+      if: matrix.config.gcc_version != ''
+      shell: bash
+      run: |
+        gcc --version
+        g++ --version
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y meson ninja-build
+
+    - name: Install Meson and Ninja and Build (container)
       if: matrix.config.image != '' && matrix.config.vm_actions != true
       shell: bash
       env:
@@ -988,14 +1054,14 @@ jobs:
 
 
     - name: Install Go for nfpm
-      if: ${{ matrix.config.create_package }}
+      if: ${{ matrix.config.publish_release && matrix.config.create_package }}
       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
       with:
         go-version: 'stable'
         cache: false
 
     - name: Create packages
-      if: ${{ matrix.config.create_package }}
+      if: ${{ matrix.config.publish_release && matrix.config.create_package }}
       working-directory: ${{ format('build/{0}', steps.release_vars.outputs.destdir) }}
       shell: bash
       env:
@@ -1032,7 +1098,7 @@ jobs:
         nfpm package -f ../../nfpm.yaml -p rpm -t ..
 
     - name: Set ownership of executables to root:root
-      if: ${{ matrix.config.os != 'windows-latest' }}
+      if: ${{ matrix.config.publish_release && matrix.config.os != 'windows-latest' }}
       shell: bash
       env:
         MATRIX_IMAGE: ${{ matrix.config.image }}
@@ -1044,7 +1110,7 @@ jobs:
         fi
 
     - name: Normalize file timestamps for reproducibility
-      if: ${{ matrix.config.os != 'windows-latest' }}
+      if: ${{ matrix.config.publish_release && matrix.config.os != 'windows-latest' }}
       shell: bash
       run: |
         # Touch all files to set mtime to SOURCE_DATE_EPOCH for reproducible archives
@@ -1052,6 +1118,7 @@ jobs:
         find build/$DESTDIR -print0 | xargs -0 touch -h -d "@${SOURCE_DATE_EPOCH}" 2>/dev/null || true
 
     - name: Packing release
+      if: ${{ matrix.config.publish_release }}
       env:
         ARCHIVE_COMMAND: ${{ matrix.config.archive_command }}
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
@@ -1093,7 +1160,7 @@ jobs:
       shell: bash
 
     - name: Verify Archive Reproducibility
-      if: ${{ matrix.config.os != 'windows-latest' }}
+      if: ${{ matrix.config.publish_release && matrix.config.os != 'windows-latest' }}
       shell: bash
       env:
         ARCHIVE_EXT: ${{ matrix.config.release_extension }}
@@ -1105,7 +1172,7 @@ jobs:
         echo "Expected timestamp: $(date -u -d @${SOURCE_DATE_EPOCH} 2>/dev/null || date -u -r ${SOURCE_DATE_EPOCH} 2>/dev/null)"
 
     - name: Set ownership of tar archive to root:root
-      if: ${{ matrix.config.os != 'windows-latest' }}
+      if: ${{ matrix.config.publish_release && matrix.config.os != 'windows-latest' }}
       shell: bash
       env:
         MATRIX_IMAGE: ${{ matrix.config.image }}
@@ -1135,7 +1202,7 @@ jobs:
           echo "${HASH_OUTPUT_KEY}=$(base64 -w0 checksum || base64 checksum)" >> "${GITHUB_OUTPUT}"
 
     - name: Uploading artifacts
-      if: ${{ matrix.config.publish_release || (!startsWith(github.ref, 'refs/tags/v') && !startsWith(github.ref, 'refs/tags/test-ci')) }}
+      if: ${{ matrix.config.publish_release }}
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ format('{0}', matrix.config.release_name) }}

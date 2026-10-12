@@ -121,6 +121,13 @@ int main(int argc, char* argv[])
     JSON_OUTPUT_VAR
 #endif
 
+#if !defined (_DEBUG)
+    // set the bounds checking handler function to "ignore" by default for release since we handle all errors reported by these functions.
+    set_Constraint_Handler(ERR_IGNORE);
+#else
+    set_Constraint_Handler(ERR_ABORT);
+#endif
+
     int args        = 0;
     int argIndex    = 0;
     int optionIndex = 0;
@@ -609,9 +616,16 @@ int main(int argc, char* argv[])
         if (JSON_OUTPUT_FLAG)
         {
             char* jsonFormatOutput = M_NULLPTR;
-            create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput);
-            // write the data on console
-            printf("%s\n\n", jsonFormatOutput);
+            if (create_JSON_Output_For_Scan(scanControl, toolVerbosity, util_name, buildVersion, &jsonFormatOutput) ==
+                    SUCCESS &&
+                jsonFormatOutput != M_NULLPTR)
+            {
+                printf("%s\n\n", jsonFormatOutput);
+            }
+            else
+            {
+                printf("%s\n\n", SCAN_JSON_GENERATION_ERROR);
+            }
             safe_free(&jsonFormatOutput);
         }
         else

@@ -8,9 +8,12 @@ project(
     default_options: [
         'meson_version: >=0.56.0',
         'warning_level=2',
+        'werror=true',
         'b_pie=true',
         'buildtype=release',
+        'b_ndebug=if-release',
         'default_library=static',
+        'install_umask=022',
     ],
 )
 
@@ -105,7 +108,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wsequence-point',
         '-Wreturn-type',
         '-Wpointer-bool-conversion',
-        '-fvisibility=hidden',  #to work similarly to Window's DLL import/export
         '-Wmismatched-dealloc',
         '-Wfree-nonheap-object',
         '-Wnullability',  # Warnings for nullability annotations
@@ -119,6 +121,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Werror=alloca',  # Do not allow use of the alloca function
         '-Wstring-compare',  # Helps detect when strcmp is used when the programmer likely meant to use strncmp
         '-Wfortify-source',  # needed for diagnose_as_builtin attributes to work.
+        '-Wunused-but-set-variable',
     ]
 
     if get_option('cc-suggest-attribute')
@@ -307,36 +310,34 @@ elif c.get_id().contains('msvc')
         '/wd5105',  # macro expansion producing 'defined' has undefined behavior
         '/wd4746',  # volatile access of '<expression>' is subject to /volatile:[iso|ms] setting; consider using __iso_volatile_load/store intrinsic functions.
         #Turn on the following warnings to make the output more useful or like GCC/clang
-        '/w14255',  # 'function' : no function prototype given: converting '()' to '(void)'
-        '/w14062',  # enumerator 'identifier' in switch of enum 'enumeration' is not handled
-        '/w14101',  # 'identifier' : unreferenced local variable
-        '/w14189',  # 'identifier' : local variable is initialized but not referenced
-        '/w15031',  # #pragma warning(pop): likely mismatch, popping warning state pushed in different file
-        '/w15032',  # detected #pragma warning(push) with no corresponding #pragma warning(pop)
-        '/w15262',  # implicit fall-through occurs here; are you missing a break statement? Use [[fallthrough]] when a break statement is intentionally omitted between cases
-        '/w14255',  # 'function' : no function prototype given: converting '()' to '(void)' #NOTE: Only needed for /Wall, otherwise enabling can be good-TJE
-        '/w14242',  # identifier conversion from type 1 to type 2, possible loss of data (matches -wconversion above)
-        '/w14254',  # operator conversion from type 1 to type 2, possible loss of data (matches -wconversion above)
-        '/w14287',  # operator: unsigned/negative constant mismatch (matches -wconversion above)
-        '/w14296',  # operator: expression is always false
-        '/w14365',  # action: conversion from type 1 to type 2, signed/unsigned mismatch (matches -wconversion above)
-        '/w14388',  # implicit conversion warning during a comparison (matches -wconversion above)
-        '/w14545',  # expression before comma evaluates to a function which is missing an argument list
-        '/w14546',  # function call before comma missing argument list
-        '/w14547',  # 'operator' : operator before comma has no effect; expected operator with side-effect
-        '/w14548',  # expression before comma has no effect; expected expression with side-effect
-        '/w14549',  # 'operator1': operator before comma has no effect; did you intend 'operator2'?
-        '/w14574',  # 'identifier' is defined to be '0': did you mean to use '#if identifier'?
-        '/w14605',  # 	'/Dmacro' specified on current command line, but was not specified when precompiled header was built
-        '/w14555',  # expression has no effect; expected expression with side-effect
-        '/w14774',  # 'string' : format string expected in argument number is not a string literal
-        '/w14777',  # 'function' : format string 'string' requires an argument of type 'type1', but variadic argument number has type 'type2'
-        '/w14826',  # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior (more -wconversion)
-        '/w15219',  # implicit conversion from 'type-1' to 'type-2', possible loss of data (-wconversion)
-        '/w15240',  # 'attribute-name': attribute is ignored in this syntactic position
-        '/w15245',  # 'function': unreferenced function with internal linkage has been removed
-        '/w14555',  # expression has no effect; expected expression with side-effect
-        '/w15264',  # 'variable-name': 'const' variable is not used
+        '/w34255',  # 'function' : no function prototype given: converting '()' to '(void)'
+        '/w34062',  # enumerator 'identifier' in switch of enum 'enumeration' is not handled
+        '/w34101',  # 'identifier' : unreferenced local variable
+        '/w34189',  # 'identifier' : local variable is initialized but not referenced
+        '/w35031',  # #pragma warning(pop): likely mismatch, popping warning state pushed in different file
+        '/w35032',  # detected #pragma warning(push) with no corresponding #pragma warning(pop)
+        '/w35262',  # implicit fall-through occurs here; are you missing a break statement? Use [[fallthrough]] when a break statement is intentionally omitted between cases
+        '/w34242',  # identifier conversion from type 1 to type 2, possible loss of data (matches -wconversion above)
+        '/w34254',  # operator conversion from type 1 to type 2, possible loss of data (matches -wconversion above)
+        '/w34287',  # operator: unsigned/negative constant mismatch (matches -wconversion above)
+        '/w34296',  # operator: expression is always false
+        '/w34365',  # action: conversion from type 1 to type 2, signed/unsigned mismatch (matches -wconversion above)
+        '/w34388',  # implicit conversion warning during a comparison (matches -wconversion above)
+        '/w34545',  # expression before comma evaluates to a function which is missing an argument list
+        '/w34546',  # function call before comma missing argument list
+        '/w34547',  # 'operator' : operator before comma has no effect; expected operator with side-effect
+        '/w34548',  # expression before comma has no effect; expected expression with side-effect
+        '/w34549',  # 'operator1': operator before comma has no effect; did you intend 'operator2'?
+        '/w34574',  # 'identifier' is defined to be '0': did you mean to use '#if identifier'?
+        '/w34605',  #  	'/Dmacro' specified on current command line, but was not specified when precompiled header was built
+        '/w34555',  # expression has no effect; expected expression with side-effect
+        '/w34774',  # 'string' : format string expected in argument number is not a string literal
+        '/w34777',  # 'function' : format string 'string' requires an argument of type 'type1', but variadic argument number has type 'type2'
+        '/w34826',  # Conversion from 'type1' to 'type2' is sign-extended. This may cause unexpected runtime behavior (more -wconversion)
+        '/w35219',  # implicit conversion from 'type-1' to 'type-2', possible loss of data (-wconversion)
+        '/w35240',  # 'attribute-name': attribute is ignored in this syntactic position
+        '/w35245',  # 'function': unreferenced function with internal linkage has been removed
+        '/w35264',  # 'variable-name': 'const' variable is not used
         '/w24302',  # 'conversion': truncation from 'type1' to 'type2'
         '/w14311',  # 'variable': pointer truncation from 'type' to 'type'
         '/w14312',  # 'operation': conversion from 'type1' to 'type2' of greater size
@@ -593,6 +594,7 @@ if get_option('json_outputformat')
             'json-c',
             default_options: [
                 'default_library=static',
+                'werror=false',
                 'build_apps=false',
                 'extra_libs=false',
                 'disable_json_pointer=false',
@@ -609,6 +611,7 @@ if get_option('json_outputformat')
             fallback: ['json-c', 'jsonc_dep'],
             default_options: [
                 'default_library=static',
+                'werror=false',
                 'build_apps=false',
                 'extra_libs=false',
                 'disable_json_pointer=false',

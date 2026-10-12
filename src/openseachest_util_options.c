@@ -93,6 +93,13 @@ M_NODISCARD bool set_Verbosity_From_String(const char* requestedLevel, eVerbosit
         {
             *verbosity = M_STATIC_CAST(eVerbosityLevels, temp);
             set        = true;
+#if !defined(_DEBUG)
+            // turn on bounds checking warnings when any verbosity above quiet mode.
+            if (temp >= VERBOSITY_DEFAULT)
+            {
+                set_Constraint_Handler(ERR_WARN);
+            }
+#endif
         }
     }
     return set;
