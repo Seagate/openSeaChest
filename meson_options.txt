@@ -34,3 +34,9 @@ option('atasecsetpass', type : 'feature', value : 'disabled')
 #stack protector flag it can handle; 'disabled' builds without stack protection.
 option('ssp', type : 'feature', value : 'auto', description : 'Stack protector (-fstack-protector-strong, falls back to -fstack-protector).')
 option('cc-suggest-attribute', type : 'boolean', value : false, description : 'Enable warnings where the compiler can suggest various attributes to be applied to functions for optimization and correctness.')
+#disabled by default; set to true only for targets that must never be loadable
+#via dlopen() (leave false when shipping dynamic libraries others may dlopen())
+option('nodlopen', type : 'boolean', value : false, description : 'Link with -z,nodlopen (DF_1_NOOPEN) so the result cannot be loaded via dlopen().')
+#disabled by default: GCC 14.x false-positives the auto-enabled check, which is
+#fatal with werror=true; enable it when building with a fixed/newer compiler
+option('hardened_warn', type : 'feature', value : 'disabled', description : 'Enable -Whardened along with the -fhardened umbrella flag (GCC >= 14 on GNU/Linux). auto enables it on GCC 15 or later.')

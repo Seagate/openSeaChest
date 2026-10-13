@@ -1260,7 +1260,7 @@ int main(int argc, char* argv[])
 
         if (REINITIALIZE_DEV_STATS >= 0)
         {
-            switch (ata_Device_Statistics_Reinitialize(&deviceList[deviceIter], REINITIALIZE_DEV_STATS))
+            switch (ata_Device_Statistics_Reinitialize(&deviceList[deviceIter], M_STATIC_CAST(eDeviceStatisticsLog, REINITIALIZE_DEV_STATS)))
             {
             case SUCCESS:
                 if (VERBOSITY_QUIET < toolVerbosity)

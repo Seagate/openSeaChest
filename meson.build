@@ -8,8 +8,10 @@ project(
     default_options: [
         'meson_version: >=0.56.0',
         'warning_level=2',
-        'werror=true',
         'b_pie=true',
+        'b_staticpic=true',
+        'b_asneeded=true',
+        'b_lundef=true',
         'buildtype=release',
         'b_ndebug=if-release',
         'default_library=static',
@@ -44,9 +46,15 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
     #NOTE: -Wsign-conversion can be useful while debugging, but there are numerous places this shows up
     #      and it is not useful, so only add it while debugging.
     #NOTE: 4/4/2024 - adding flags from https://best.openssf.org/Compiler-Hardening-Guides/Compiler-Options-Hardening-Guide-for-C-and-C++
+    #NOTE: Where the check below succeeds (GCC >=14 on GNU/Linux) we add -fhardened on
+    #      top of the explicit flags here; the explicit flags are equal or stronger than
+    #      the -fhardened set, so no component is reduced. -fhardened is only supported
+    #      on GNU/Linux targets (GCC docs), so Clang, MSVC, non-Linux builds, and older
+    #      GCC rely on the explicit equivalents in this block (OpenSSF guide 3.26.2).
     warning_flags = [
         #	'-Wcast-align=strict',
         '-Wshadow=compatible-local',
+        '-Wbidi-chars=any',  #rejects bidi override chars in source (Trojan Source); dropped by get_supported_arguments where unsupported
         '-Wvla',
         '-Wfloat-equal',
         '-Wnull-dereference',
@@ -75,7 +83,6 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         '-Wfloat-conversion',
         '-Wint-to-pointer-cast',
         '-Wimplicit-fallthrough',
-        '-D_GLIBCXX_ASSERTIONS',
         '-fstrict-flex-arrays=3',
         '-fno-delete-null-pointer-checks',
         '-fno-strict-overflow',
@@ -138,9 +145,31 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
             '-fipa-pure-const',
         ]
     endif
-    if c.get_id().contains('gcc') and c.version().version_compare('>=10.0')
-        #only enable the sign conversion warning on versions 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
+    if (c.get_id().contains('gcc') and c.version().version_compare('>=10.0')) or c.get_id().contains('clang')
+        #only enable the sign conversion warning on GCC 10 and up because it is way too noisy on earlier GCC versions than it is useful-TJE
+        #Clang supports it across all versions in our build matrix, so enable it there for parity
         warning_flags += '-Wsign-conversion'
+    endif
+
+    if c.get_id().contains('gcc') and c.version().version_compare('>=14.0') and target_machine.system() == 'linux'
+        #KEEP IN SYNC: this -fhardened block is duplicated in 17 meson.build files (both repos)
+        #GNU/Linux + GCC >= 14: -fhardened is fully supported only on GNU/Linux; elsewhere GCC
+        #warns and applies it partially (GCC bug 126822/126823), so those targets use the
+        #explicit (equal-or-stronger) flags appended later.
+        #-Whardened + -Werror: false positive on GCC 14.2 (driver's own _FORTIFY_SOURCE),
+        #clean on 16.2.1 (both confirmed in real builds; 15.x untested).
+        #hardened_warn: 'disabled' (default) adds -Wno-hardened, 'auto' enables -Whardened
+        #on GCC >= 15, 'enabled' enables it unconditionally.
+        warning_flags += '-fhardened'
+        if get_option('hardened_warn').enabled() or (get_option('hardened_warn').auto() and c.version().version_compare('>=15.0'))
+            warning_flags += '-Whardened'
+        else
+            warning_flags += '-Wno-hardened'
+        endif
+    else
+        #-fhardened (above, where active) also enables _GLIBCXX_ASSERTIONS, so this
+        #is only needed for toolchains that lack -fhardened
+        warning_flags += '-D_GLIBCXX_ASSERTIONS'
     endif
 
     # ssp option: 'auto' (default) and 'enabled' both run the automatic
@@ -203,7 +232,10 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
                 if ssp_strong_ok
                     warning_flags += '-fstack-protector-strong'
                 else
-                    warning_flags += '-fstack-protector'
+                    #plain -fstack-protector only instruments functions with local char
+                    #arrays of 8 bytes or more; tighten the threshold to 4 bytes
+                    #per OpenSSF guide 3.14.2 (dropped if the toolchain lacks the param)
+                    warning_flags += ['-fstack-protector', '--param=ssp-buffer-size=4']
                 endif
             else
                 #illumos (OmniOS, Tribblix, OpenIndiana) ships libssp_ns.a
@@ -221,7 +253,7 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
                     if ssp_strong_ok
                         warning_flags += '-fstack-protector-strong'
                     else
-                        warning_flags += '-fstack-protector'
+                        warning_flags += ['-fstack-protector', '--param=ssp-buffer-size=4']
                     endif
                 endif
             endif
@@ -272,11 +304,25 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         warning_flags += ['-Wno-psabi']
     elif target_machine.cpu_family() == 'x86_64'
         warning_flags += ['-fcf-protection=full']        #this may be linux only at this time.
+        #zero the callee-saved regs left by calls so they cannot seed ROP gadgets;
+        #skipped on Clang < 16 (codegen bug) and dropped by get_supported_arguments on older GCC
+        if not (c.get_id().contains('clang') and not c.version().version_compare('>=16.0'))
+            warning_flags += '-fzero-call-used-regs=used-gpr'
+        endif
     elif target_machine.cpu_family() == 'aarch64'
         warning_flags += ['-mbranch-protection=standard']
+        if not (c.get_id().contains('clang') and not c.version().version_compare('>=16.0'))
+            warning_flags += '-fzero-call-used-regs=used-gpr'
+        endif
     endif
 
-    linker_flags += ['-Wl,-z,nodlopen', '-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now']
+    linker_flags += ['-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now', '-Wl,--no-copy-dt-needed-entries']
+    #DF_1_NOOPEN (-z,nodlopen) is a build option so targets that must remain dlopen()-able
+    #can disable it; --no-copy-dt-needed-entries is the binutils default since 2.22 but is
+    #stated explicitly for systems that still link with older toolchains
+    if get_option('nodlopen')
+        linker_flags += '-Wl,-z,nodlopen'
+    endif
     fortifytest = ''' #include <stdio.h>
                       int main() {
                           return 0;
@@ -534,12 +580,21 @@ endif
 common_sources = ['src/EULA.c', 'src/openseachest_util_options.c']
 
 os_deps = []
+# This software targets Windows Vista and up
+# note: It *might* be possible to get XP, but there are significant limitations
+# that need handling within the code to make it work properly...or close to properly.
+winsubsystem = 'console,6.0'
 
 if target_machine.system() == 'windows'
     windows = import('windows')
     resources = windows.compile_resources('openSeaChest.rc')
     common_sources += [resources]
     add_project_arguments('-D_CRT_SECURE_NO_WARNINGS', language: 'c')
+    if target_machine.cpu_family() == 'aarch64'
+        # ARM support added in Windows 8.1 and up
+        # Only checking for ARM64 since 32bit is more or less dead
+        winsubsystem = 'console,6.02'
+    endif
 endif
 
 usehelp2man = false
@@ -660,6 +715,8 @@ foreach p : get_option('tools')
         dependencies: exe_deps,
         include_directories: incdir,
         install: true,
+        win_subsystem: winsubsystem,
+        gnu_symbol_visibility: 'hidden',
     )
     if usehelp2man
         #use help2man to generate manpages before installing them

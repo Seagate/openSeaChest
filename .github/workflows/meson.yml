@@ -778,7 +778,7 @@ jobs:
           read -r -a extra_meson_args <<< "$MESON_OPTS"
           meson_args+=("${extra_meson_args[@]}")
         fi
-        meson_args+=(--buildtype=release)
+        meson_args+=(-Dwerror=true --buildtype=release)
         meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
@@ -795,7 +795,7 @@ jobs:
           read -r -a extra_meson_args <<< "$MESON_OPTS"
           meson_args+=("${extra_meson_args[@]}")
         fi
-        meson_args+=(--buildtype=release)
+        meson_args+=(-Dwerror=true --buildtype=release)
         meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
@@ -826,7 +826,7 @@ jobs:
         if ($env:MESON_OPTS) {
           $mesonArgs += ($env:MESON_OPTS -split ' ')
         }
-        $mesonArgs += '--buildtype=release'
+        $mesonArgs += '-Dwerror=true', '--buildtype=release'
         meson @mesonArgs
         meson install -C build --skip-subprojects
 
@@ -844,7 +844,7 @@ jobs:
           read -r -a extra_meson_args <<< "$MESON_OPTS"
           meson_args+=("${extra_meson_args[@]}")
         fi
-        meson_args+=(--buildtype=release)
+        meson_args+=(-Dwerror=true --buildtype=release)
         meson "${meson_args[@]}"
         meson install -C build --skip-subprojects
 
@@ -872,7 +872,7 @@ jobs:
           python3 -m pip install meson --root-user-action=ignore
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OpenIndiana)
@@ -928,7 +928,7 @@ jobs:
 
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions Solaris)
@@ -948,7 +948,7 @@ jobs:
           pkg install --accept developer/build/meson developer/versioning/git || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions Tribblix)
@@ -968,7 +968,7 @@ jobs:
           zap install -y gcc-g++ git python-developer || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions FreeBSD)
@@ -987,7 +987,7 @@ jobs:
           pkg install -y curl meson git || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions DragonFlyBSD)
@@ -1006,7 +1006,7 @@ jobs:
           pkg install -y socat meson git || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions OpenBSD)
@@ -1025,7 +1025,7 @@ jobs:
           pkg_add curl meson git || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
     - name: Install Meson and Ninja and Build (VMActions NetBSD)
@@ -1048,7 +1048,7 @@ jobs:
           /usr/sbin/pkg_add -uu meson git || true
 
         run: |
-          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} --buildtype=release
+          meson setup build -Dprefix=/ -Dmandir=/man -Dbindir=/ ${{ matrix.config.meson_opts }} -Dwerror=true --buildtype=release
           meson install -C build --skip-subprojects
 
 
