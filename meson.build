@@ -583,7 +583,7 @@ os_deps = []
 # This software targets Windows Vista and up
 # note: It *might* be possible to get XP, but there are significant limitations
 # that need handling within the code to make it work properly...or close to properly.
-winsubsystem = 'console,6.0'
+winsubsystem = 'console'
 
 if target_machine.system() == 'windows'
     windows = import('windows')
@@ -593,7 +593,7 @@ if target_machine.system() == 'windows'
     if target_machine.cpu_family() == 'aarch64'
         # ARM support added in Windows 8.1 and up
         # Only checking for ARM64 since 32bit is more or less dead
-        winsubsystem = 'console,6.02'
+        winsubsystem = 'console'
     endif
 endif
 
