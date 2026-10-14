@@ -316,7 +316,15 @@ if c.get_id().contains('gcc') or c.get_id().contains('clang')
         endif
     endif
 
-    linker_flags += ['-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now', '-Wl,--no-copy-dt-needed-entries']
+    linker_flags += ['-Wl,-z,noexecstack', '-Wl,-z,relro', '-Wl,-z,now']
+    # lld-family linkers (lld-link for the MSVC interface, ld.lld for the GNU interface)
+    # do not know --no-copy-dt-needed-entries: they warn and ignore it, so the support
+    # probe "passes" (exit 0) and the flag ends up on every link line. lld already does
+    # not copy DT_NEEDED entries by default; state it explicitly only for toolchains
+    # where the probe genuinely validates it (older binutils < 2.22).
+    if not c.get_linker_id().contains('lld')
+        linker_flags += '-Wl,--no-copy-dt-needed-entries'
+    endif
     #DF_1_NOOPEN (-z,nodlopen) is a build option so targets that must remain dlopen()-able
     #can disable it; --no-copy-dt-needed-entries is the binutils default since 2.22 but is
     #stated explicitly for systems that still link with older toolchains
@@ -583,17 +591,28 @@ os_deps = []
 # This software targets Windows Vista and up
 # note: It *might* be possible to get XP, but there are significant limitations
 # that need handling within the code to make it work properly...or close to properly.
-winsubsystem = 'console'
+winsubsystem = 'console,6.0'
 
 if target_machine.system() == 'windows'
     windows = import('windows')
     resources = windows.compile_resources('openSeaChest.rc')
     common_sources += [resources]
     add_project_arguments('-D_CRT_SECURE_NO_WARNINGS', language: 'c')
-    if target_machine.cpu_family() == 'aarch64'
+    if target_machine.cpu_family() == 'aarch64' or target_machine.cpu_family() == 'arm'
         # ARM support added in Windows 8.1 and up
-        # Only checking for ARM64 since 32bit is more or less dead
-        winsubsystem = 'console'
+        winsubsystem = 'console,6.02'
+    endif
+    # GNU-mode compilers (gcc-family argument syntax) driving lld-link pass
+    # -Wl,/SUBSYSTEM:NAME,VER and the driver splits -Wl, on the first comma,
+    # leaking the version as a stray input file ("could not open '6.0'").
+    # MSVC-syntax compilers (cl.exe, clang-cl) pass the value as a single
+    # token, and other linkers (link.exe, ld.lld, MinGW ld.bfd/ld.gold) split
+    # it correctly, so they keep the comma-version. lld-link's CONSOLE
+    # defaults are already exactly 6.00 (x86/x64) / 6.02 (ARM), so the
+    # version-less value is value-identical there.
+    if c.get_argument_syntax() == 'gcc' and c.get_linker_id() == 'lld-link'
+        winsubsystem = winsubsystem.split(',')[0]
+        warning('GNU-mode compiler with lld-link: Windows subsystem set to "' + winsubsystem + '" (version stripped; equals lld-link CONSOLE default)')
     endif
 endif
 
