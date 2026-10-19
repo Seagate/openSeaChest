@@ -953,7 +953,7 @@ jobs:
 
     - name: Install Meson and Ninja and Build (VMActions Tribblix)
       if: matrix.config.vm_actions == true && startsWith(matrix.config.name, 'VMActions Tribblix')
-      uses: vmactions/tribblix-vm@238d918a36eaef5ea23791b5f8a8e5c9a4917984 # v1.0.5
+      uses: vmactions/tribblix-vm@036967a9232db5edb0432ca7970d771d3a3c2853 # v1.0.6
       with:
         envs: 'DESTDIR SOURCE_DATE_EPOCH'
         release: ${{ matrix.config.vm_release }}
