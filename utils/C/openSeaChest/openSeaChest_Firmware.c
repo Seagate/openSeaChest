@@ -1332,6 +1332,17 @@ int main(int argc, char* argv[])
                             }
                             exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
                             break;
+                        case TRANSFER_SIZE_UNAVAILABLE:
+                            if (VERBOSITY_QUIET < toolVerbosity)
+                            {
+                                print_str("Unable to proceed with the firmware download: unable to find a suitable\n");
+                                print_str("transfer size for this device that meets the OS, interface, and hardware\n");
+                                print_str("requirements for firmware download.\n");
+                                printf("You can attempt to override this by specifying a transfer size with --%s.\n",
+                                       FWDL_SEGMENT_SIZE_LONG_OPT_STRING);
+                            }
+                            exitCode = UTIL_EXIT_OPERATION_NOT_SUPPORTED;
+                            break;
                         default:
                             if (VERBOSITY_QUIET < toolVerbosity)
                             {
