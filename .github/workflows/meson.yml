@@ -380,19 +380,6 @@ jobs:
             vm_arch: "x86_64",
           }
         - {
-            name: "VMActions FreeBSD 13.5 Build (x86_64)",
-            os: ubuntu-latest,
-            cc: "",
-            cxx: "",
-            publish_release: true,
-            release_name: "freebsd_13_5-x86_64",
-            release_extension: ".tar.xz",
-            archive_command: "tar cvfJ",
-            vm_actions: true,
-            vm_release: "13.5",
-            vm_arch: "x86_64",
-          }
-        - {
             name: "VMActions FreeBSD 15.0 Build (aarch64)",
             os: ubuntu-latest,
             cc: "",
@@ -416,19 +403,6 @@ jobs:
             archive_command: "tar cvfJ",
             vm_actions: true,
             vm_release: "14.4",
-            vm_arch: "aarch64",
-          }
-        - {
-            name: "VMActions FreeBSD 13.5 Build (aarch64)",
-            os: ubuntu-latest,
-            cc: "",
-            cxx: "",
-            publish_release: true,
-            release_name: "freebsd_13_5-aarch64",
-            release_extension: ".tar.xz",
-            archive_command: "tar cvfJ",
-            vm_actions: true,
-            vm_release: "13.5",
             vm_arch: "aarch64",
           }
         # Disabled FreeBSD riscv64 builds due to lack of pkg support to setup build environment.
@@ -457,19 +431,6 @@ jobs:
         #     archive_command: "tar cvfJ",
         #     vm_actions: true,
         #     vm_release: "14.4",
-        #     vm_arch: "riscv64",
-        #   }
-        # - {
-        #     name: "VMActions FreeBSD 13.5 Build (riscv64)",
-        #     os: ubuntu-latest,
-        #     cc: "",
-        #     cxx: "",
-        #     publish_release: true,
-        #     release_name: "freebsd_13_5-riscv64",
-        #     release_extension: ".tar.xz",
-        #     archive_command: "tar cvfJ",
-        #     vm_actions: true,
-        #     vm_release: "13.5",
         #     vm_arch: "riscv64",
         #   }
         - {
@@ -571,13 +532,10 @@ jobs:
       hash-tribblix_0m41-x86_64:                                       ${{ steps.hash.outputs.hash-tribblix_0m41-x86_64 }}
       hash-freebsd_15_0-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_15_0-x86_64 }}
       hash-freebsd_14_4-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_14_4-x86_64 }}
-      hash-freebsd_13_5-x86_64:                                       ${{ steps.hash.outputs.hash-freebsd_13_5-x86_64 }}
       hash-freebsd_15_0-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_15_0-aarch64 }}
       hash-freebsd_14_4-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_14_4-aarch64 }}
-      hash-freebsd_13_5-aarch64:                                      ${{ steps.hash.outputs.hash-freebsd_13_5-aarch64 }}
       # hash-freebsd_15_0-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_15_0-riscv64 }}
       # hash-freebsd_14_4-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_14_4-riscv64 }}
-      # hash-freebsd_13_5-riscv64:                                      ${{ steps.hash.outputs.hash-freebsd_13_5-riscv64 }}
       hash-dragonflybsd-x86_64:                                       ${{ steps.hash.outputs.hash-dragonflybsd-x86_64 }}
       hash-openbsd-x86_64:                                            ${{ steps.hash.outputs.hash-openbsd-x86_64 }}
       hash-openbsd-aarch64:                                           ${{ steps.hash.outputs.hash-openbsd-aarch64 }}
